@@ -65,7 +65,7 @@ Cloud deployment, authentication, and DevOps.
 | Backend framework | NestJS |
 | Database | PostgreSQL with JSONB |
 | Cloud | GCP |
-| Authentication | Google SSO (+ Passkeys planned) |
+| Authentication | Firebase Authentication (Google Sign-In + Passkeys) |
 | Styling | Tailwind CSS |
 | Repository | Monorepo (single Git repo) |
 | Default language | Spanish |
@@ -77,7 +77,7 @@ Cloud deployment, authentication, and DevOps.
 | Decision | Options / Notes |
 |---|---|
 | Monorepo tooling | pnpm workspaces + Turborepo (recommended) |
-| Auth implementation | Custom JWT vs. GCP Identity Platform |
+| Auth implementation | ~~Custom JWT vs. GCP Identity Platform~~ → **Firebase Authentication** ✓ |
 | Real-time messaging | WebSockets (Socket.io) vs. SSE |
 | Exchange rate API | Open Exchange Rates, Fixer.io, or organizer-set manual rate |
 | CI/CD tooling | GitHub Actions vs. Cloud Build |

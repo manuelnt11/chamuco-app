@@ -111,7 +111,7 @@ The database design balances relational integrity with document flexibility:
 | Concern | Technology |
 |---|---|
 | Cloud Provider | Google Cloud Platform (GCP) |
-| Authentication | Google SSO (primary), Passkeys (planned) |
+| Authentication | Firebase Authentication — Google Sign-In (launch) + Passkeys (planned) |
 | Hosting | TBD — likely Cloud Run (containerized, serverless-friendly) |
 | Database Hosting | Cloud SQL (PostgreSQL managed) |
 | Storage | Cloud Storage (for assets, attachments) |
