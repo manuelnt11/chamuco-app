@@ -27,6 +27,7 @@ Chamuco App uses a modern, Node.js-first stack optimized for modular backend dev
 | Validation | class-validator + class-transformer | Native to NestJS ecosystem |
 | ORM | Drizzle ORM | See rationale below |
 | Migrations | drizzle-kit | Generates auditable `.sql` migration files versioned in Git |
+| API documentation | `@nestjs/swagger` | OpenAPI 3.0 spec auto-generated from decorators; Swagger UI served at `/api/docs` |
 
 ### Drizzle ORM
 

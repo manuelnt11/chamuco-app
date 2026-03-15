@@ -1,7 +1,7 @@
 # Chamuco App — Backend Architecture
 
 **Status:** Proposed
-**Last Updated:** 2026-03-14
+**Last Updated:** 2026-03-15
 
 ---
 
@@ -45,9 +45,9 @@ src/modules/trips/
 ├── trips.module.ts
 ├── trips.controller.ts
 ├── trips.service.ts
-├── trips.repository.ts         # Data access layer
-├── entities/
-│   └── trip.entity.ts          # TypeORM / Prisma entity
+├── trips.repository.ts         # Data access layer (Drizzle queries)
+├── schema/
+│   └── trips.schema.ts         # Drizzle table/column definitions for this domain
 ├── dto/
 │   ├── create-trip.dto.ts
 │   ├── update-trip.dto.ts
@@ -72,6 +72,7 @@ These are handled in the `common/` folder and applied globally or selectively vi
 | Error handling | Global `HttpExceptionFilter` |
 | Logging | Custom `LoggingInterceptor` (structured logs for GCP) |
 | Pagination | Shared pagination DTO and utility |
+| API documentation | `@nestjs/swagger` — OpenAPI spec + Swagger UI |
 
 ---
 
@@ -101,13 +102,42 @@ Error responses:
 
 ---
 
+## API Documentation (OpenAPI / Swagger)
+
+The entire API surface is documented following the **OpenAPI 3.0** standard, enforced through `@nestjs/swagger`.
+
+### How it works in NestJS
+
+`@nestjs/swagger` reads NestJS decorators (`@Controller`, `@Get`, `@Body`, `@Param`, etc.) and class-validator annotations on DTOs to generate the OpenAPI spec automatically. Additional metadata is added via dedicated Swagger decorators where needed:
+
+- `@ApiTags('trips')` — groups endpoints by domain in the Swagger UI.
+- `@ApiOperation({ summary: '...' })` — describes what the endpoint does.
+- `@ApiResponse({ status: 201, type: TripResponseDto })` — documents possible responses.
+- `@ApiProperty()` on DTO fields — documents field types, constraints, and examples.
+- `@ApiBearerAuth()` — marks endpoints that require a JWT token.
+
+### Swagger UI
+
+The interactive documentation interface is served at `/api/docs` in non-production environments. It allows any developer or reviewer to:
+
+- Browse all available endpoints grouped by module.
+- See full request/response schemas with field-level descriptions.
+- Execute requests directly from the browser (with authentication).
+
+In production, the Swagger UI is **disabled by default**. It can be re-enabled via an environment variable (`SWAGGER_ENABLED=true`) for internal or staging use.
+
+### DTO as the contract
+
+DTOs (`create-trip.dto.ts`, `trip-response.dto.ts`, etc.) are the single source of truth for both runtime validation (class-validator) and API documentation (Swagger). A field decorated with `@ApiProperty()` and `@IsString()` is validated at runtime and documented in the spec — no duplication.
+
+### OpenAPI spec export
+
+The raw `openapi.json` spec is exportable programmatically (`SwaggerModule.createDocument()`), enabling future tooling such as client SDK generation or contract testing.
+
+---
+
 ## Database Access
 
-See [`database-design.md`](./database-design.md) for schema and design decisions.
+See [`database-design.md`](./database-design.md) for schema and design decisions, and [`tech-stack.md`](../overview/tech-stack.md) for the full Drizzle ORM rationale.
 
-The ORM choice (TypeORM vs. Prisma) is pending. Key considerations:
-
-- **TypeORM:** Native NestJS integration, decorator-based entities, more verbose but flexible.
-- **Prisma:** Schema-first, excellent developer experience, type-safe client, strong community momentum.
-
-> **Recommendation:** Prisma is recommended for new projects in 2025+ due to its superior type safety, migration tooling, and developer experience. Final decision to be confirmed.
+**Drizzle ORM** is the chosen data access layer. Each module owns its Drizzle schema file (`schema/`) defining the tables and columns for that domain. The `DrizzleModule` is a shared provider that exposes the database connection across all modules without them needing to manage it directly.
