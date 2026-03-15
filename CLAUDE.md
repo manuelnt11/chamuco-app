@@ -36,10 +36,10 @@ A **group travel coordination platform**. It covers the full lifecycle of a trip
 | Frontend i18n | `i18next` + `react-i18next` |
 | Backend i18n | `nestjs-i18n` |
 | Cloud | Google Cloud Platform (GCP) |
-| Hosting | Cloud Run (containerized, serverless) |
+| Hosting | Cloud Run (containerized, serverless, scales to zero) |
 | File storage | Cloud Storage |
 | CI/CD | GitHub Actions (two independent pipelines: `api` and `web`) |
-| Repository | Monorepo — pnpm workspaces + Turborepo (pending confirmation) |
+| Repository | Monorepo — pnpm workspaces + Turborepo |
 
 ---
 
@@ -242,6 +242,4 @@ Examples: ⚠️ includes a DB migration, OpenAPI updated, follow-up PR needed.
 
 ## Open Decisions (Still Pending)
 
-- Monorepo tooling confirmation: pnpm workspaces + Turborepo (recommended, not yet formally decided).
 - Exchange rate API: Open Exchange Rates, Fixer.io, or organizer-set manual rate.
-- Hosting confirmation: Cloud Run is assumed but not formally finalized.

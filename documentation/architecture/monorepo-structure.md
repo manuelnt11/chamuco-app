@@ -1,7 +1,7 @@
 # Chamuco App — Monorepo Structure
 
-**Status:** Proposed
-**Last Updated:** 2026-03-14
+**Status:** Defined
+**Last Updated:** 2026-03-15
 
 ---
 
@@ -31,7 +31,7 @@ chamuco-app/
 │   │   ├── test/
 │   │   └── package.json
 │   │
-│   └── web/                        # Frontend application (framework TBD)
+│   └── web/                        # Next.js frontend application
 │       ├── src/
 │       │   ├── components/
 │       │   ├── pages/              # or app/ for Next.js App Router
@@ -61,7 +61,9 @@ chamuco-app/
 ├── .github/                        # GitHub Actions workflows (CI/CD)
 │   └── workflows/
 │
-├── package.json                    # Root package.json (workspace manager)
+├── turbo.json                      # Turborepo pipeline configuration
+├── package.json                    # Root package.json (pnpm workspaces)
+├── pnpm-workspace.yaml             # pnpm workspace declaration
 ├── tsconfig.base.json              # Base TypeScript config extended by all packages
 ├── .eslintrc.js                    # Root ESLint config
 ├── .prettierrc                     # Prettier config
@@ -72,13 +74,31 @@ chamuco-app/
 
 ## Package Manager & Workspace Tool
 
-To be decided between:
+The monorepo uses **pnpm workspaces** as the package manager and **Turborepo** as the build orchestration layer.
 
-- **npm workspaces** — Native, minimal tooling, sufficient for most cases.
-- **pnpm workspaces** — Faster installs, better disk efficiency, stricter dependency resolution.
-- **Turborepo** — Build system on top of npm/pnpm workspaces; adds caching and parallel task execution. Recommended if build times become a concern.
+**pnpm** was chosen over npm and yarn for:
+- Significantly faster installs via content-addressable storage (packages are never duplicated on disk).
+- Strict dependency isolation — a package can only import what is declared in its own `package.json`, preventing accidental cross-package leakage.
+- Native workspace support with `pnpm-workspace.yaml`.
 
-> **Recommendation:** Start with **pnpm workspaces + Turborepo**. This combination is well-suited for Node.js monorepos and scales well as the project grows.
+**Turborepo** sits on top of pnpm workspaces and provides:
+- **Task pipelines** — defines the dependency graph between tasks across packages (e.g., `web#build` depends on `shared-types#build`).
+- **Local caching** — task outputs are cached; re-running an unchanged package skips the work entirely.
+- **Remote caching** — integrates with Vercel Remote Cache for sharing build artifacts across CI runs and team machines.
+- **Parallel execution** — independent tasks run concurrently, reducing total CI time.
+
+The pipeline is defined in `turbo.json` at the root. Common tasks:
+
+```json
+{
+  "pipeline": {
+    "build": { "dependsOn": ["^build"], "outputs": ["dist/**"] },
+    "lint": {},
+    "test": { "dependsOn": ["^build"] },
+    "typecheck": {}
+  }
+}
+```
 
 ---
 

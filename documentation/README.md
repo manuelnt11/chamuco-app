@@ -67,7 +67,7 @@ Cloud deployment, authentication, and DevOps.
 | Cloud | GCP |
 | Authentication | Firebase Authentication (Google Sign-In + Passkeys) |
 | Styling | Tailwind CSS |
-| Repository | Monorepo (single Git repo) |
+| Repository | Monorepo — pnpm workspaces + Turborepo |
 | Default language | Spanish |
 | Default currency | COP |
 | Code language | English (all code, docs, enums, variables) |
@@ -76,7 +76,7 @@ Cloud deployment, authentication, and DevOps.
 
 | Decision | Options / Notes |
 |---|---|
-| Monorepo tooling | pnpm workspaces + Turborepo (recommended) |
+| Monorepo tooling | ~~pnpm workspaces + Turborepo (recommended)~~ → **pnpm + Turborepo** ✓ |
 | Auth implementation | ~~Custom JWT vs. GCP Identity Platform~~ → **Firebase Authentication** ✓ |
 | Real-time messaging | ~~WebSockets (Socket.io) vs. SSE~~ → **Firestore** ✓ |
 | Exchange rate API | Open Exchange Rates, Fixer.io, or organizer-set manual rate |
