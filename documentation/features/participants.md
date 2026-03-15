@@ -1,7 +1,7 @@
 # Feature: Participants & Invitations
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-14
+**Last Updated:** 2026-03-15
 
 ---
 
@@ -98,7 +98,9 @@ The unified state machine covers both flows:
 | `user_id` | UUID | The participant's account |
 | `status` | Enum `ParticipantStatus` | Current state (see above) |
 | `role` | Enum `TripRole` | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT` |
-| `display_name` | String | Optional per-trip nickname. Defaults to account display name. |
+| `display_name` | String | Optional per-trip nickname. Defaults to `users.display_name`. |
+| `profile_confirmed_at` | Timestamp | When the participant last confirmed their personal profile is accurate for this trip. Null if never confirmed. Informational only — does not block participation. |
+| `share_medical_notes` | Boolean | Whether the participant opts in to sharing their `medical_notes` from their health profile with the trip organizer. Defaults to `false`. |
 | `join_flow` | Enum `JoinFlow` | `REQUEST` (public) or `INVITATION` (private). Records how this participant entered. |
 | `initiated_at` | Timestamp | When the request or invitation was created |
 | `responded_at` | Timestamp | When the decision was made (accept / reject / decline) |
@@ -150,29 +152,22 @@ Rules are stored as JSONB on the trip record and can be combined (e.g., `MANUAL_
 
 ---
 
-## Travel Profile (per trip)
+## Travel Profile
 
-Each confirmed participant can optionally fill in travel document data scoped to the trip. This data is sensitive — visible only to the participant and organizers.
+A participant's travel-relevant personal data — documents, emergency contact, dietary needs, allergies, phobias, limitations — lives on the **user's personal profile** (`user_profiles` and `user_health_profiles`), not on the trip participant record. This is the single source of truth: the person's data exists once and is referenced by any trip they join, rather than duplicated per trip.
 
-### `trip_participant_travel_profile`
+See [`features/users.md`](./users.md) for the full profile model.
 
-| Field | Type | Description |
-|---|---|---|
-| `participant_id` | UUID | |
-| `trip_id` | UUID | |
-| `first_name` | String | Legal first name (as on travel document) |
-| `last_name` | String | Legal last name |
-| `email` | String | Contact email for trip communications |
-| `phone_number` | String | Mobile number (international format) |
-| `date_of_birth` | Date | |
-| `national_id_number` | String | National ID / Cédula / DNI |
-| `passport_number` | String | |
-| `passport_expiry_date` | Date | Auto-triggers a `DOCUMENTS` pre-trip task if expiry is within 6 months of departure |
-| `nationality` | String | ISO 3166-1 alpha-2 country code |
-| `loyalty_program_id` | String | Frequent flyer / loyalty program account number |
-| `loyalty_program_name` | String | Name of the program (e.g., "LifeMiles") |
-| `emergency_contact_name` | String | |
-| `emergency_contact_phone` | String | |
+### What the participant record adds
+
+The `trip_participants` record carries two trip-specific fields related to the profile:
+
+- **`profile_confirmed_at`** — timestamp of when the participant last confirmed their personal profile is accurate for this trip (e.g., passport still valid, emergency contact up to date). Informational only. The pre-trip task system handles hard blockers.
+- **`share_medical_notes`** — opt-in flag for sharing the participant's `medical_notes` with the organizer for this specific trip. Defaults to `false`. Only the participant can toggle it.
+
+### Passport expiry detection
+
+The trigger for auto-creating a `DOCUMENTS` pre-trip task (passport expiry within 6 months of departure) is evaluated against the user's `passport_expiry_date` in `user_profiles` when they are confirmed as a participant. It is not stored per trip.
 
 ---
 
@@ -189,7 +184,7 @@ A confirmed participant may register additional non-registered travelers under t
 | `sponsored_by` | UUID | The `trip_participant` responsible for this guest |
 | `display_name` | String | Guest's name or alias |
 | `relationship` | String | Optional (e.g., "daughter", "parent") |
-| `travel_profile` | JSONB | Optional travel document data (same fields as `trip_participant_travel_profile`) |
+| `travel_profile` | JSONB | Optional personal data for the guest. Mirrors the fields in `user_profiles` and `user_health_profiles` (name, document numbers, dietary preference, allergies, emergency contact, etc.). JSONB is appropriate here because guests don't have system accounts. |
 
 ---
 
