@@ -22,3 +22,9 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+
+# MacOS specific
+.DS_Store
+
+# VS Code specific
+.vscode/
