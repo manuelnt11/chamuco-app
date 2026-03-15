@@ -112,10 +112,12 @@ The database design balances relational integrity with document flexibility:
 |---|---|
 | Cloud Provider | Google Cloud Platform (GCP) |
 | Authentication | Firebase Authentication — Google Sign-In (launch) + Passkeys (planned) |
+| Real-time messaging | Firestore (Firebase) — message storage and real-time delivery |
+| Push notifications | Firebase Cloud Messaging (FCM) |
 | Hosting | TBD — likely Cloud Run (containerized, serverless-friendly) |
 | Database Hosting | Cloud SQL (PostgreSQL managed) |
 | Storage | Cloud Storage (for assets, attachments) |
-| CI/CD | TBD — Cloud Build or GitHub Actions |
+| CI/CD | GitHub Actions — two independent pipelines (api + web), auto-triggered on push to `main` |
 
 See [`infrastructure/cloud.md`](../infrastructure/cloud.md) and [`infrastructure/auth.md`](../infrastructure/auth.md) for details.
 

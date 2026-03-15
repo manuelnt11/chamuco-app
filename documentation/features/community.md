@@ -127,6 +127,101 @@ All members of a channel or DM thread can see the **complete message history** r
 
 ---
 
+## Real-time Architecture
+
+### Technology: Firestore
+
+Real-time message delivery is handled by **Firebase Firestore**. The frontend subscribes to Firestore collections via the Firebase client SDK and receives new messages and membership changes in real time without polling or maintaining a WebSocket connection to the NestJS backend.
+
+### Data Ownership: Two Layers, One Source of Truth
+
+The system is divided into two clearly separated data stores with distinct responsibilities:
+
+| Layer | Store | Owns |
+|---|---|---|
+| **Membership & metadata** | PostgreSQL | Who belongs to what channel, channel definitions, user roles, channel settings, DM thread records |
+| **Messages** | Firestore | Message content, reactions, read state, typing indicators |
+
+**PostgreSQL is the single source of truth for membership.** Firestore mirrors it. A user's presence in a Firestore channel document is always a consequence of their membership state in PostgreSQL — never managed independently.
+
+### PostgreSQL → Firestore Sync
+
+Any event in PostgreSQL that affects membership must be **immediately reflected in Firestore**. This sync is performed by the NestJS backend via the Firebase Admin SDK as part of the same operation that changes the PostgreSQL state.
+
+The sync is synchronous: the API response is not returned until both the PostgreSQL write and the Firestore update have completed. This prevents windows where a user could read or post to a channel they no longer belong to.
+
+#### Events that trigger a sync
+
+| PostgreSQL event | Firestore action |
+|---|---|
+| Trip participant confirmed (`CONFIRMED`) | Add user to trip's auto-channel members in Firestore |
+| Trip participant left (`LEFT`) | Remove user from trip's auto-channel in Firestore |
+| Trip participant removed (`REMOVED`) | Remove user from trip's auto-channel in Firestore |
+| Trip status → `COMPLETED` or `CANCELLED` | Set trip's auto-channel to archived (read-only) in Firestore |
+| Group member becomes `ACTIVE` | Add user to group's auto-channel members in Firestore |
+| Group member left (`LEFT`) | Remove user from group's auto-channel in Firestore |
+| Group member removed (`REMOVED`) | Remove user from group's auto-channel in Firestore |
+| Group dissolved | Delete or archive group's auto-channel in Firestore |
+| User invited to a `PRIVATE` channel (accepted) | Add user to channel members in Firestore |
+| User removed from a `STANDARD` channel | Remove user from channel members in Firestore |
+| User role changed (e.g., promoted to organizer) | Update role on user's channel membership document in Firestore |
+
+#### Sync failure handling
+
+If the Firestore update fails after a successful PostgreSQL write, the operation is retried. A failed sync is logged and flagged for monitoring. The system must never leave PostgreSQL and Firestore in a contradictory state (e.g., user removed from the trip in PostgreSQL but still a member of the Firestore channel).
+
+### Firestore Data Model (simplified)
+
+```
+/channels/{channelId}
+  - id: string                  (mirrors channels.id from PostgreSQL)
+  - name: string
+  - type: string                (TRIP_AUTO | GROUP_AUTO | STANDARD)
+  - archived: boolean
+  - members: {
+      [userId]: { role: string, joinedAt: timestamp }
+    }
+
+/channels/{channelId}/messages/{messageId}
+  - id: string
+  - senderId: string
+  - content: string
+  - type: string
+  - sentAt: timestamp
+  - editedAt: timestamp | null
+  - deletedAt: timestamp | null
+  - replyToId: string | null
+
+/dm_threads/{threadId}
+  - id: string
+  - userAId: string
+  - userBId: string
+
+/dm_threads/{threadId}/messages/{messageId}
+  - (same structure as channel messages)
+```
+
+The `members` map on each channel document is what Firestore security rules use to enforce read/write access — only users listed as members can interact with the channel's messages.
+
+### Message Flow
+
+**Sending a message:**
+1. Frontend calls `POST /api/v1/channels/:id/messages` on the NestJS backend.
+2. NestJS validates auth, verifies the user is an active member (PostgreSQL), and writes the message to Firestore via Admin SDK.
+3. Firestore delivers the message in real time to all connected subscribers (other channel members).
+
+The frontend never writes directly to Firestore. All writes go through NestJS, which is the only actor with Admin SDK write access to message collections. This keeps authorization centralized and auditable.
+
+**Receiving messages:**
+1. Frontend subscribes to `/channels/{channelId}/messages` using the Firebase client SDK.
+2. Firestore pushes new documents as they arrive — no polling, no WebSocket on the NestJS side.
+
+### Notifications
+
+Push notifications (for messages received while the app is not in the foreground) are sent via **Firebase Cloud Messaging (FCM)**, which is included in the Firebase suite already in use. The NestJS backend triggers the notification as part of the message write step.
+
+---
+
 ## Direct Messages (DMs)
 
 A DM is a private thread between exactly two users. Either user can initiate it. DMs are always private — no visibility setting, no admin role.
@@ -262,7 +357,6 @@ Permissions are enforced at the API layer via NestJS guards. A detailed permissi
 - Is there a concept of "connections" or "friends" between individual users (outside of groups)?
 - Should the community feed (public trips, public groups) be a standalone section or integrated into the home screen?
 - What moderation tools are needed — report, block, mute? At what granularity (per message, per user, per group, per channel)?
-- Real-time messaging: WebSockets (Socket.io) vs. SSE vs. polling? Architectural decision with infrastructure implications.
 - Should message history be persisted indefinitely or subject to a configurable retention policy?
 - Can a `GROUP_AUTO` or `TRIP_AUTO` channel be muted or hidden by individual members without leaving it?
 - Should `STANDARD` public channels be scoped to the platform level only, or can groups also create discoverable public channels?
