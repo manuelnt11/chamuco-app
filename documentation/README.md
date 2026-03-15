@@ -24,14 +24,24 @@ Technical structure and design decisions for the system.
 ### `/features`
 Feature definitions, domain models, and open design questions per feature area.
 
-- [`trips.md`](./features/trips.md) — The central entity. Trip lifecycle, composition (movements, stays, activities), roles, visibility.
-- [`participants.md`](./features/participants.md) — Invitation system, attendance confirmation rules, participant states.
+- [`trips.md`](./features/trips.md) — The central entity. Trip lifecycle, itinerary model, full item category/subtype taxonomy.
+- [`participants.md`](./features/participants.md) — Invitation system, confirmation rules, participant states, travel profiles, guest participants.
 - [`pre-trip-planning.md`](./features/pre-trip-planning.md) — Pre-trip phase: route alternatives, task checklist with per-participant tracking & deadlines, destination budgets, exchange rates.
-- [`expenses.md`](./features/expenses.md) — Expense recording, split strategies, multi-currency handling, settlement.
-- [`reservations.md`](./features/reservations.md) — Booking status tracking for stays and transport.
+- [`expenses.md`](./features/expenses.md) — Expense recording, participant scope, split strategies, advance payments, multi-currency handling, settlement.
+- [`reservations.md`](./features/reservations.md) — Booking status tracking, per-participant reservation records, metadata by transport/stay type.
 - [`community.md`](./features/community.md) — User profiles, groups, chats, broadcast channels, roles and permissions.
-- [`trip-planning-insights.md`](./features/trip-planning-insights.md) — Real-world analysis from Egypt Tour.xlsx (simplified workbook).
-- [`trip-planning-insights-v2.md`](./features/trip-planning-insights-v2.md) — Real-world analysis from History Tour 2023.xlsx (full 8-sheet workbook). Primary reference.
+
+### `/analysis`
+Extraction and analysis documents derived from real-world trip planning samples. These inform the feature design documents but are not design specs themselves.
+
+- [`analysis-egypt-tour-sample.md`](./analysis/analysis-egypt-tour-sample.md) — Analysis of `Egypt Tour.xlsx` (simplified single-sheet workbook).
+- [`analysis-history-tour-sample.md`](./analysis/analysis-history-tour-sample.md) — Analysis of `2023.09 - History tour.xlsx` (full 8-sheet workbook). Primary reference.
+
+### `/samples`
+Source files used as real-world planning examples.
+
+- `Egypt Tour.xlsx` — Simplified itinerary spreadsheet.
+- `2023.09 - History tour.xlsx` — Complete planning workbook (itinerary, travelers, categories, pre-trip tasks, budget, route options).
 
 ### `/design`
 UX, UI, and product design guidelines.

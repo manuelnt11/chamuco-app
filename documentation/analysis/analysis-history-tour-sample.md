@@ -1,7 +1,7 @@
 # Trip Planning Insights v2 — Derived from History Tour 2023 (Extended Spreadsheet)
 
-**Source:** `samples/2023.09 - History tour.xlsx` — Complete planning workbook for the same 23-day, 6-country trip, with 8 worksheets covering all planning dimensions.
-**Supersedes:** `trip-planning-insights.md` (derived from the simplified `Egypt Tour.xlsx`)
+**Source:** `../samples/2023.09 - History tour.xlsx` — Complete planning workbook for the same 23-day, 6-country trip, with 8 worksheets covering all planning dimensions.
+**Supersedes:** `analysis/analysis-egypt-tour-sample.md` (derived from the simplified `Egypt Tour.xlsx`)
 **Last Updated:** 2026-03-14
 
 ---
@@ -396,7 +396,7 @@ This is a signal that **frequent flyer miles and loyalty programs** are a real p
 
 ## 11. Consolidated Design Implications for Chamuco App
 
-This section extends and partially supersedes the implications from `trip-planning-insights.md`.
+This section extends and partially supersedes the implications from `analysis/analysis-egypt-tour-sample.md`.
 
 ### New or Updated Findings
 

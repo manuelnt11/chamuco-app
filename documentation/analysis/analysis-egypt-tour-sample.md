@@ -1,6 +1,6 @@
 # Trip Planning Insights — Derived from Egypt Tour 2023
 
-**Source:** `samples/Egypt Tour.xlsx` — A real 23-day, 6-country, 6-participant itinerary (Sep 24 – Oct 17, 2023)
+**Source:** `../samples/Egypt Tour.xlsx` — A real 23-day, 6-country, 6-participant itinerary (Sep 24 – Oct 17, 2023)
 **Purpose:** Extract real-world patterns and requirements to inform the design of the Chamuco App trip model.
 **Last Updated:** 2026-03-14
 
