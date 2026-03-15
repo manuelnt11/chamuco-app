@@ -114,7 +114,7 @@ The database design balances relational integrity with document flexibility:
 | Authentication | Firebase Authentication — Google Sign-In (launch) + Passkeys (planned) |
 | Real-time messaging | Firestore (Firebase) — message storage and real-time delivery |
 | Push notifications | Firebase Cloud Messaging (FCM) |
-| Hosting | TBD — likely Cloud Run (containerized, serverless-friendly) |
+| Hosting | Cloud Run (containerized, serverless, auto-scaling, scales to zero) |
 | Database Hosting | Cloud SQL (PostgreSQL managed) |
 | Storage | Cloud Storage (for assets, attachments) |
 | CI/CD | GitHub Actions — two independent pipelines (api + web), auto-triggered on push to `main` |
@@ -125,13 +125,14 @@ See [`infrastructure/cloud.md`](../infrastructure/cloud.md) and [`infrastructure
 
 ## Monorepo
 
-The entire project lives in a single Git repository structured as a monorepo. This simplifies:
+The entire project lives in a single Git repository structured as a monorepo, managed with **pnpm workspaces** and **Turborepo**.
 
-- Shared TypeScript types between frontend and backend.
-- Unified versioning and dependency management.
-- Consistent tooling (linting, formatting, testing) across packages.
+| Concern | Technology |
+|---|---|
+| Package manager | pnpm — fast installs, strict dependency isolation, native workspace support |
+| Build orchestration | Turborepo — task pipelines, local and remote caching, parallel execution |
 
-See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md) for the proposed directory layout.
+See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md) for the full directory layout and Turborepo pipeline configuration.
 
 ---
 

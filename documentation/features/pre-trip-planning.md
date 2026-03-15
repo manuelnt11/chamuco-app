@@ -1,7 +1,7 @@
 # Feature: Pre-Trip Planning Phase
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-14
+**Last Updated:** 2026-03-15
 **Source insights:** `trip-planning-insights-v2.md` (derived from History Tour 2023 workbook)
 
 ---
@@ -184,30 +184,50 @@ This data is set by the organizer as a **recommendation** for participants, not 
 
 ## 5. Exchange Rates
 
-A set of reference exchange rates stored at the trip level. Used to compute COP (or any base currency) equivalents throughout the trip's financial tracking.
+Exchange rates in Chamuco App follow a **two-level model**: rates are set at the trip level by the organizer as a reference, and then confirmed per expense at the moment of recording. This reflects the reality that each transaction happens at a different time, through a different payment method, at a rate that cannot be known in advance.
 
-### Exchange Rate Record (`trip_exchange_rates`)
+### Trip Base Currency
+
+Every trip must have a **base currency** defined at creation. All financial summaries, budget totals, and expense consolidations are expressed in this currency. Example: a trip to Egypt and Greece might use `COP` as the base currency, with `EGP`, `EUR`, and `USD` as secondary currencies.
+
+### Level 1 — Trip-level rates (`trip_exchange_rates`)
+
+At trip creation (or during planning), the organizer defines the currencies the trip will use and sets a reference rate for each. These rates are used as the **suggested default** when recording expenses.
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | UUID | |
 | `trip_id` | UUID | Parent trip |
-| `currency` | String (ISO 4217) | Foreign currency (e.g., `GBP`, `EUR`, `EGP`, `MAD`) |
-| `rate_to_base` | Decimal | Units of base currency per 1 unit of `currency` (e.g., 1 GBP = 4,847 COP → `rate_to_base = 4847`) |
-| `set_at` | Timestamp | When the rate was recorded |
-| `set_by` | UUID | User who set the rate |
-| `source` | Enum `ExchangeRateSource` | `MANUAL` or `API` |
+| `from_currency` | String (ISO 4217) | Foreign currency (e.g., `EGP`, `EUR`, `USD`) |
+| `to_currency` | String (ISO 4217) | Trip base currency (e.g., `COP`) |
+| `rate` | Decimal | Units of base currency per 1 unit of foreign currency (e.g., 1 GBP = 4,847 COP → `rate = 4847`) |
+| `set_at` | Timestamp | When the rate was last updated |
+| `set_by` | UUID | Organizer who set it |
+| `source` | Enum `ExchangeRateSource` | `API` if pre-populated from ExchangeRate-API, `MANUAL` if set or overridden by the organizer |
 
-**Enum `ExchangeRateSource`:** `MANUAL` \| `API`
+**Enum `ExchangeRateSource`:** `API` \| `MANUAL`
 
-> When an expense is created in a foreign currency, it reads `rate_to_base` from this table and stores it as `exchange_rate_snapshot` on the expense record. Subsequent rate updates do not alter existing expenses. See `expenses.md` for the full expense model.
+When creating the trip, the app queries **ExchangeRate-API** to suggest the current rate for each declared currency pair. The organizer reviews and confirms (or overrides) the suggested values before saving. The organizer can update these rates at any point during the trip.
 
-### Behavior
+### Level 2 — Expense-level rate (`exchange_rate_snapshot`)
 
-- Rates are set once by the organizer at planning time and apply throughout the trip.
-- The organizer can update rates if they change significantly before or during the trip.
-- When an expense is recorded in a foreign currency, the system looks up the stored trip rate to compute the base currency equivalent.
-- The original rate is stored on the expense record itself (snapshot), so future rate changes don't alter historical expense totals.
+When recording an individual expense in a foreign currency, the app pre-fills the rate from the trip-level table as a suggestion. The user confirms or overrides it with the **actual rate they obtained** at that moment (e.g., the rate from the physical currency exchange office, the bank, the ATM, or the credit card charge).
+
+The confirmed rate is saved as `exchange_rate_snapshot` directly on the expense record. It is **immutable after saving** — subsequent changes to trip-level rates never alter historical expenses.
+
+This is the only rate that matters for financial accuracy. The trip-level rate is a convenience starting point, not a financial truth.
+
+### Rate API Provider
+
+Exchange rate suggestions are powered by **ExchangeRate-API** (`exchangerate-api.com`).
+
+Chosen for:
+- No base currency restriction on the free tier — works for COP, USD, EUR, or any trip base currency.
+- Daily rate updates — sufficient precision for a suggested value the user will confirm manually.
+- HTTPS on the free tier.
+- 1,500 requests/month free, well above projected usage with a 24-hour client-side cache.
+
+Rate requests are cached for 24 hours on the backend. A suggestion that is hours old is entirely acceptable given that the final rate is always user-confirmed per expense.
 
 ---
 

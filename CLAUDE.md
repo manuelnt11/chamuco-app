@@ -242,4 +242,4 @@ Examples: ⚠️ includes a DB migration, OpenAPI updated, follow-up PR needed.
 
 ## Open Decisions (Still Pending)
 
-- Exchange rate API: Open Exchange Rates, Fixer.io, or organizer-set manual rate.
+All major technical and architectural decisions have been resolved. No open items remain at this time.

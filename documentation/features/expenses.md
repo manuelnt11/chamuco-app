@@ -180,11 +180,24 @@ Records actual payments made between participants to reduce debts:
 
 Expenses are recorded in the currency they were actually incurred. The system handles multiple currencies within one trip (real-world example: COP, USD, GBP, EUR, EGP, MAD in a single trip).
 
-Rules:
-1. `currency` and `amount` always store the original denomination — never lost or overwritten.
-2. `exchange_rate_snapshot` is the rate stored on the trip's exchange rates table **at the time the expense is created**.
-3. `base_currency_equivalent` is computed once at creation and stored — it does not change if trip rates are updated later.
-4. Balances and settlement suggestions are always displayed in the trip's base currency (default: COP) but can be toggled.
+Every trip has a **base currency** defined at creation. All totals, balances, and settlement amounts are consolidated in that base currency.
+
+### Two-level exchange rate model
+
+Exchange rates work in two levels. The full model is defined in `pre-trip-planning.md` (section 5). Summary as it applies to expenses:
+
+**Level 1 — Trip-level reference rate:** The organizer defines a reference rate for each currency pair at planning time (e.g., 1 EGP = 215 COP). This rate is suggested by ExchangeRate-API and confirmed manually. It serves as the default when recording expenses.
+
+**Level 2 — Expense-level effective rate (`exchange_rate_snapshot`):** Each expense records its own rate — the actual rate obtained at the moment of the transaction (ATM rate, bank rate, physical exchange office rate, credit card rate). The app pre-fills this from the trip-level rate as a convenience, but the user confirms or overrides it before saving.
+
+This reflects the reality that every transaction happens at a different time, through a different payment method, at a rate that cannot be predicted at planning time. The trip-level rate is a reference; the expense-level rate is the financial truth.
+
+### Rules
+
+1. `currency` and `amount` always store the original denomination — never converted or overwritten.
+2. `exchange_rate_snapshot` is the user-confirmed effective rate for that specific transaction. It is set at creation time and **never modified afterwards**.
+3. `base_currency_equivalent` is computed once at creation (`amount_per_participant × exchange_rate_snapshot`) and stored — it does not change if trip-level rates are updated later.
+4. Balances and settlement suggestions are always displayed in the trip's base currency but can be toggled to any other currency in the trip.
 
 ---
 

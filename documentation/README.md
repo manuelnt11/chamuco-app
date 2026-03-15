@@ -79,7 +79,7 @@ Cloud deployment, authentication, and DevOps.
 | Monorepo tooling | ~~pnpm workspaces + Turborepo (recommended)~~ → **pnpm + Turborepo** ✓ |
 | Auth implementation | ~~Custom JWT vs. GCP Identity Platform~~ → **Firebase Authentication** ✓ |
 | Real-time messaging | ~~WebSockets (Socket.io) vs. SSE~~ → **Firestore** ✓ |
-| Exchange rate API | Open Exchange Rates, Fixer.io, or organizer-set manual rate |
+| Exchange rate API | ~~Open Exchange Rates, Fixer.io, or organizer-set manual rate~~ → **ExchangeRate-API + user-confirmed per expense** ✓ |
 | CI/CD tooling | ~~GitHub Actions vs. Cloud Build~~ → **GitHub Actions** ✓ |
 
 ## Decided Since Initial Draft
