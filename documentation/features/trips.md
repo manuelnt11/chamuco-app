@@ -1,7 +1,7 @@
 # Feature: Trips
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-14
+**Last Updated:** 2026-03-15
 
 ---
 
@@ -23,6 +23,30 @@ A trip progresses through the following statuses (enum: `TripStatus`):
 | `IN_PROGRESS` | Trip is currently happening (departure date has passed). |
 | `COMPLETED` | Trip has ended. Expense settlement may still be pending. |
 | `CANCELLED` | Trip was cancelled. Participants are notified. |
+
+---
+
+## Trip Date & Time Boundaries
+
+A trip spans a continuous range of calendar days with precise start and end times:
+
+- A trip **starts at 00:00 (midnight) on `start_date`** in the trip's primary timezone.
+- A trip **ends at 24:00 (midnight end) on `end_date`** — equivalent to 00:00 of the following day. The trip covers the full last day.
+- `end_date` must be **greater than or equal to** `start_date`. A same-day trip (day trip) is valid.
+- `end_date` may not precede `start_date` under any condition.
+
+These boundaries determine when the trip transitions to `IN_PROGRESS` (start boundary crossed) and `COMPLETED` (end boundary crossed), unless overridden manually by an organizer.
+
+---
+
+## Changes While IN_PROGRESS
+
+Once a trip enters `IN_PROGRESS` status, the trip is live. To protect participants from unexpected changes during travel:
+
+- **Any modification** to the trip (itinerary items, participant list, dates, settings) **requires explicit confirmation** by the organizer before it is saved.
+- After a change is confirmed and applied, **all confirmed participants are notified** of what changed.
+- Notifications reference the specific field or item that was modified (e.g., "The departure time for Day 3 — Cairo Airport was updated") using i18n keys with interpolated values.
+- This confirmation requirement does not apply to purely additive, non-disruptive actions such as adding a new expense record or posting a message in the trip channel.
 
 ---
 

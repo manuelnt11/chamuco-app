@@ -46,8 +46,14 @@ Modules should not reach into each other's internals. Cross-module communication
 |---|---|---|
 | Styling | Tailwind CSS | Utility-first, highly composable, consistent design system without writing custom CSS |
 | Framework | TBD (Next.js recommended) | Next.js fits well in a Node.js monorepo, provides SSR/SSG, and has a strong Tailwind ecosystem |
+| i18n | `i18next` + `react-i18next` | Industry standard, supports nested JSON locale files, interpolation, pluralization, and lazy loading of language bundles |
+| i18n enforcement | `eslint-plugin-i18next` | Lint rule `i18next/no-literal-string` prevents any raw string literal from being rendered in a component |
 
 > **Note:** Frontend framework is not yet finalized. Options to evaluate: Next.js, Nuxt.js, or a separate React SPA. This decision should be made before starting implementation.
+
+### No-Hardcoded-Text Rule
+
+**No user-facing string may be hardcoded in a component, template, or page.** All visible text must reference a locale file key via the `i18next` `t()` function. This rule is enforced at the linter level and is a hard requirement — not a guideline. See [`design/localization.md`](../design/localization.md) for the full specification, key naming convention, locale file structure, and enforcement details.
 
 ---
 
@@ -101,6 +107,8 @@ See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md
 |---|---|
 | Language support | Spanish (default), English |
 | Currency support | COP (default), USD |
-| i18n library | TBD — i18next or NestJS built-in i18n module |
+| Frontend i18n library | `i18next` + `react-i18next` |
+| Backend i18n library | `nestjs-i18n` |
+| Enforcement | `eslint-plugin-i18next` — blocks hardcoded strings at lint time |
 
 See [`design/localization.md`](../design/localization.md) for details.

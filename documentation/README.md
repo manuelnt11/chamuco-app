@@ -82,3 +82,11 @@ Cloud deployment, authentication, and DevOps.
 | Real-time messaging | WebSockets (Socket.io) vs. SSE |
 | Exchange rate API | Open Exchange Rates, Fixer.io, or organizer-set manual rate |
 | CI/CD tooling | GitHub Actions vs. Cloud Build |
+
+## Decided Since Initial Draft
+
+| Decision | Choice |
+|---|---|
+| Frontend i18n library | `i18next` + `react-i18next` |
+| Backend i18n library | `nestjs-i18n` |
+| Hardcoded string policy | **Zero tolerance** — enforced via `eslint-plugin-i18next` |
