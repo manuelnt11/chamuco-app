@@ -1,6 +1,6 @@
 # Trip Planning Insights v2 — Derived from History Tour 2023 (Extended Spreadsheet)
 
-**Source:** `2023.09 - History tour.xlsx` — Complete planning workbook for the same 23-day, 6-country trip, with 8 worksheets covering all planning dimensions.
+**Source:** `samples/2023.09 - History tour.xlsx` — Complete planning workbook for the same 23-day, 6-country trip, with 8 worksheets covering all planning dimensions.
 **Supersedes:** `trip-planning-insights.md` (derived from the simplified `Egypt Tour.xlsx`)
 **Last Updated:** 2026-03-14
 
