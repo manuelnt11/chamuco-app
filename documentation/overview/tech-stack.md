@@ -65,12 +65,10 @@ Modules should not reach into each other's internals. Cross-module communication
 
 | Concern | Technology | Rationale |
 |---|---|---|
+| Framework | Next.js (React) | SSR/SSG out of the box, fits naturally in a Node.js monorepo, large ecosystem, strong Tailwind and i18next integration |
 | Styling | Tailwind CSS | Utility-first, highly composable, consistent design system without writing custom CSS |
-| Framework | TBD (Next.js recommended) | Next.js fits well in a Node.js monorepo, provides SSR/SSG, and has a strong Tailwind ecosystem |
 | i18n | `i18next` + `react-i18next` | Industry standard, supports nested JSON locale files, interpolation, pluralization, and lazy loading of language bundles |
 | i18n enforcement | `eslint-plugin-i18next` | Lint rule `i18next/no-literal-string` prevents any raw string literal from being rendered in a component |
-
-> **Note:** Frontend framework is not yet finalized. Options to evaluate: Next.js, Nuxt.js, or a separate React SPA. This decision should be made before starting implementation.
 
 ### No-Hardcoded-Text Rule
 
