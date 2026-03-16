@@ -61,12 +61,15 @@ chamuco-app/
 ├── .github/                        # GitHub Actions workflows (CI/CD)
 │   └── workflows/
 │
+├── .husky/                         # Husky git hooks
+│   └── pre-commit                  # Runs lint-staged then turbo test with coverage
 ├── turbo.json                      # Turborepo pipeline configuration
 ├── package.json                    # Root package.json (pnpm workspaces)
 ├── pnpm-workspace.yaml             # pnpm workspace declaration
 ├── tsconfig.base.json              # Base TypeScript config extended by all packages
 ├── .eslintrc.js                    # Root ESLint config
-├── .prettierrc                     # Prettier config
+├── .prettierrc                     # Prettier config (indentation, quotes, trailing commas)
+├── .lintstagedrc.js                # lint-staged config: which tools run on which file patterns
 └── README.md
 ```
 
@@ -99,6 +102,25 @@ The pipeline is defined in `turbo.json` at the root. Common tasks:
   }
 }
 ```
+
+---
+
+## Pre-commit Hooks
+
+The root package uses **Husky** to manage git hooks and **lint-staged** to run checks only on staged files.
+
+The pre-commit hook (`.husky/pre-commit`) runs two steps in sequence:
+
+1. **`lint-staged`** — for every staged file matching a relevant pattern:
+   - `*.{ts,tsx}` → `prettier --write` + `eslint --fix`
+   - `*.{json,md,yaml}` → `prettier --write`
+2. **`turbo run test --filter=[HEAD^1] -- --coverage`** — runs unit tests with coverage enforcement only for packages that contain staged changes. Fails if any test fails or if coverage on any metric drops below **90%**.
+
+Because `prettier --write` modifies files in place, Husky re-stages the formatted files automatically — the commit lands already clean.
+
+Coverage thresholds are defined per package:
+- `apps/api/jest.config.ts` — `coverageThreshold: { global: { lines: 90, functions: 90, branches: 90, statements: 90 } }`
+- `apps/web/vitest.config.ts` — `coverage: { thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 } }`
 
 ---
 

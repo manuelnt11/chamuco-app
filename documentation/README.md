@@ -92,3 +92,8 @@ Cloud deployment, authentication, and DevOps.
 | Frontend i18n library | `i18next` + `react-i18next` |
 | Backend i18n library | `nestjs-i18n` |
 | Hardcoded string policy | **Zero tolerance** — enforced via `eslint-plugin-i18next` |
+| Backend test runner | Jest + `@swc/jest` |
+| Frontend test runner | Vitest + React Testing Library |
+| E2E test runner | Playwright |
+| Code formatter | Prettier |
+| Pre-commit hooks | Husky + lint-staged — lint, format, tests, 90% coverage gate |

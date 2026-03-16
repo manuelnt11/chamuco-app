@@ -136,6 +136,55 @@ See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md
 
 ---
 
+## Testing
+
+| Scope | Tool | Rationale |
+|---|---|---|
+| Backend unit & integration | Jest + `@swc/jest` | `@nestjs/testing` is built around Jest — first-class NestJS support with no workarounds. `@swc/jest` replaces `ts-jest` as the transpiler, delivering 3–5× faster test runs with an identical API. |
+| Frontend unit & component | Vitest + React Testing Library | ESM-native and Vite-powered — no extra config to handle Next.js App Router's ESM output. Jest-compatible API means zero retraining. Significantly faster than Jest for large component suites. |
+| End-to-end | Playwright | Cross-browser (Chromium, Firefox, WebKit), parallel execution by default, first-class TypeScript, and Trace Viewer for debugging CI failures. |
+
+### Conventions
+
+- **Co-location:** Unit and integration test files live alongside the source files they test (e.g., `users.service.spec.ts` next to `users.service.ts`).
+- **E2E separation:** Playwright tests live in `apps/web/e2e/` and run as a separate CI step after the build, not during the unit test phase.
+- **Coverage threshold: 90%** — lines, statements, functions, and branches. Both Jest (`coverageThreshold`) and Vitest (`coverage.thresholds`) are configured to enforce this. A commit that drops coverage below 90% fails the pre-commit hook.
+- **Mocking:** The backend uses Jest's native `jest.fn()` and module mocking. The frontend uses Vitest's compatible equivalents (`vi.fn()`, `vi.mock()`).
+
+---
+
+## Code Quality & Pre-commit Hooks
+
+| Tool | Purpose |
+|---|---|
+| **Prettier** | Opinionated code formatter — enforces consistent indentation, quotes, trailing commas, and line length across the entire monorepo. Config lives at `.prettierrc` in the root. |
+| **Husky** | Git hooks manager. Installs and manages the pre-commit hook. |
+| **lint-staged** | Runs linters and formatters only on Git-staged files — keeps the pre-commit hook fast even as the codebase grows. |
+
+### Pre-commit Hook
+
+Every commit must pass the following gates before it is accepted:
+
+```
+1. lint-staged
+   ├── prettier --write         Fix indentation and formatting on staged files
+   └── eslint --fix             Auto-fix lint violations; fail if unfixable issues remain
+
+2. turbo run test --filter=[HEAD^1] -- --coverage
+   └── Runs unit tests only for packages affected by staged changes.
+       Fails if any test fails or if coverage drops below 90% (lines / statements / functions / branches).
+```
+
+**Why `--filter=[HEAD^1]`:** Running the entire test suite on every commit would be prohibitively slow in a monorepo. Turborepo's `--filter=[HEAD^1]` limits test execution to packages that have changes in the current commit. This keeps the hook fast while still enforcing quality at the point of change.
+
+**Auto-fix on format:** `prettier --write` and `eslint --fix` modify staged files in place. Husky re-stages the fixed files before the commit is finalized — the developer sees their code committed already formatted, with no manual intervention required.
+
+**Coverage configuration:**
+- Backend (`apps/api/jest.config.ts`): `coverageThreshold: { global: { lines: 90, functions: 90, branches: 90, statements: 90 } }`
+- Frontend (`apps/web/vitest.config.ts`): `coverage: { thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 } }`
+
+---
+
 ## Localization & Internationalization
 
 | Concern | Technology / Approach |

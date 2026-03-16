@@ -33,6 +33,11 @@ A **group travel coordination platform**. It covers the full lifecycle of a trip
 | Authentication | Firebase Authentication (Google Sign-In + Passkeys) |
 | Push notifications | Firebase Cloud Messaging (FCM) |
 | API documentation | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs` |
+| Backend testing | Jest + `@swc/jest` — unit and integration tests |
+| Frontend testing | Vitest + React Testing Library — unit and component tests |
+| E2E testing | Playwright — cross-browser end-to-end tests |
+| Code formatting | Prettier — indentation, quotes, trailing commas; config at `.prettierrc` |
+| Git hooks | Husky + lint-staged — pre-commit enforces lint, format, unit tests, and 90% coverage |
 | Frontend i18n | `i18next` + `react-i18next` |
 | Backend i18n | `nestjs-i18n` |
 | Cloud | Google Cloud Platform (GCP) |
@@ -148,7 +153,21 @@ Then verify and update:
 
 No endpoint may be left without a summary (`@ApiOperation`), at least one `@ApiResponse`, and fully annotated DTO fields.
 
-### 3. Migration file on every schema change
+### 3. Pre-commit quality gates are non-negotiable
+
+Every commit must pass all four gates enforced by the Husky pre-commit hook:
+
+1. **Format** — `prettier --write` on staged files. If a file is touched, it must be correctly formatted.
+2. **Lint** — `eslint --fix` on staged files. Auto-fixable violations are fixed automatically; non-auto-fixable violations block the commit.
+3. **Unit tests** — `turbo run test --filter=[HEAD^1]` runs unit tests for all packages affected by the commit.
+4. **Coverage** — 90% threshold on lines, statements, functions, and branches for affected packages. A commit that drops any metric below 90% is rejected.
+
+When writing new code:
+- Every new function, service method, or component must have corresponding unit tests.
+- New tests must be added in the same commit as the code they cover — never defer test writing to a later commit.
+- Coverage thresholds are configured in `apps/api/jest.config.ts` (backend) and `apps/web/vitest.config.ts` (frontend).
+
+### 4. Migration file on every schema change
 
 When any Drizzle schema file (`*.schema.ts`) is modified — new table, new column, renamed column, dropped column, new index, constraint change — a migration file must be generated:
 
@@ -158,21 +177,21 @@ pnpm --filter db drizzle-kit generate
 
 The generated `.sql` file must be committed alongside the schema change in the same PR. No schema change may be merged without its corresponding migration file. Destructive operations (column drops, renames) require a multi-step migration strategy — document the steps in the PR description.
 
-### 4. `/autodoc` command
+### 5. `/autodoc` command
 
 When the `/autodoc` command is invoked, perform the following automatically:
 
 1. Run `git diff main...HEAD --name-only` to identify all files changed since branching from `main`.
 2. For each changed file, apply the relevant rule:
    - **Controller or DTO changed** → verify OpenAPI decorators are complete and accurate (Rule 2).
-   - **Schema file changed** → verify a migration file exists for the change; if not, generate it (Rule 3).
+   - **Schema file changed** → verify a migration file exists for the change; if not, generate it (Rule 4).
    - **Documentation file changed** → scan cross-references and update stale ones (Rule 1).
    - **Feature implemented that has a design doc** → read the design doc and verify the implementation matches. Flag any discrepancy.
 3. Produce a summary of what was checked, what was updated, and any issues found.
 
 This command is the primary documentation maintenance tool during the implementation phase.
 
-### 5. `/write_pr` command
+### 6. `/write_pr` command
 
 When the `/write_pr` command is invoked, draft a pull request title and description and output it as **raw markdown only** — no prose before or after, ready to paste directly into GitHub.
 

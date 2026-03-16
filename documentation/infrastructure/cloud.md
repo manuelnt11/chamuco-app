@@ -90,13 +90,15 @@ Triggered by: push or PR affecting `apps/api/**` or `packages/**`.
 1. Install dependencies        pnpm install
 2. Lint                        pnpm --filter api lint
 3. Type check                  pnpm --filter api tsc --noEmit
-4. Unit tests                  pnpm --filter api test
+4. Unit & integration tests    pnpm --filter api test              (Jest + @swc/jest)
 5. Build                       pnpm --filter api build
 6. Build Docker image          docker build -t gcr.io/$PROJECT/api:$SHA .
 7. Push image                  Push to Artifact Registry          [main only]
 8. Run DB migrations           drizzle-kit migrate (via Cloud SQL) [main only]
 9. Deploy to Cloud Run         gcloud run deploy api ...           [main only]
 ```
+
+**Step 4 — Tests** use Jest with `@swc/jest` as the transpiler. `@nestjs/testing` module is used to spin up isolated application contexts for integration tests without a real HTTP server.
 
 **Step 8 — DB migrations** runs immediately before the new container is deployed. The migration applies all pending `.sql` files in order against the production (or staging) Cloud SQL instance. If the migration fails, the deployment step is skipped — the running version is never replaced with a version whose schema is not yet applied.
 
@@ -113,14 +115,19 @@ Triggered by: push or PR affecting `apps/web/**` or `packages/**`.
 2. Lint                        pnpm --filter web lint
 3. Type check                  pnpm --filter web tsc --noEmit
 4. i18n check                  eslint-plugin-i18next (no hardcoded strings)
-5. Unit / component tests      pnpm --filter web test
+5. Unit & component tests      pnpm --filter web test              (Vitest + RTL)
 6. Build                       pnpm --filter web build
-7. Build Docker image          docker build -t gcr.io/$PROJECT/web:$SHA .  [main only]
-8. Push image                  Push to Artifact Registry                   [main only]
-9. Deploy to Cloud Run         gcloud run deploy web ...                   [main only]
+7. E2E tests                   pnpm --filter web test:e2e          (Playwright) [main only]
+8. Build Docker image          docker build -t gcr.io/$PROJECT/web:$SHA .       [main only]
+9. Push image                  Push to Artifact Registry                        [main only]
+10. Deploy to Cloud Run        gcloud run deploy web ...                        [main only]
 ```
 
-Step 4 (i18n check) is a CI gate — the pipeline fails if any hardcoded user-facing string is detected, enforcing the no-hardcoded-text rule at the pipeline level in addition to the local lint.
+**Step 4 (i18n check)** is a CI gate — the pipeline fails if any hardcoded user-facing string is detected, enforcing the no-hardcoded-text rule at the pipeline level in addition to the local lint.
+
+**Step 5 (unit & component tests)** use Vitest with React Testing Library. Vitest's ESM-native runtime aligns with Next.js App Router's module format without additional configuration.
+
+**Step 7 (E2E tests)** use Playwright and run after a successful build against the built Next.js output. E2E tests are gated to `main` only to avoid the added CI time on every pull request; critical flows can be promoted to run on PRs as the suite matures.
 
 ---
 
