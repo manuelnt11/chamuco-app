@@ -25,6 +25,7 @@ A **group travel coordination platform**. It covers the full lifecycle of a trip
 | Runtime | Node.js + TypeScript |
 | Backend framework | NestJS |
 | Frontend framework | Next.js (React) |
+| PWA | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background messages) |
 | Styling | Tailwind CSS |
 | ORM | Drizzle ORM |
 | Migrations | drizzle-kit — generates `.sql` files committed to Git |

@@ -218,7 +218,18 @@ The frontend never writes directly to Firestore. All writes go through NestJS, w
 
 ### Notifications
 
-Push notifications (for messages received while the app is not in the foreground) are sent via **Firebase Cloud Messaging (FCM)**, which is included in the Firebase suite already in use. The NestJS backend triggers the notification as part of the message write step.
+Push notifications are delivered via **Firebase Cloud Messaging (FCM)**. The NestJS backend triggers a notification as part of the message write step, targeting all active FCM tokens registered for the recipient user(s).
+
+Two delivery paths exist depending on the app state:
+
+- **App in foreground** — The Firebase client SDK receives the FCM message and the app renders an in-app notification banner. No OS-level notification is shown.
+- **App in background or closed** — The unified Service Worker receives the FCM background message and calls `showNotification()`, producing an OS-level notification on Android, iOS (installed PWA only, iOS 16.4+), and desktop.
+
+**FCM token management:** Each browser/device instance generates a unique FCM registration token that must be stored in PostgreSQL against the user. A user may have multiple active tokens (different devices). The backend sends to all of them. Tokens inactive for 60+ days are pruned.
+
+**iOS limitation:** On iOS, push notifications are only delivered if the user has installed the app (added to home screen) and is on iOS 16.4 or later. The app detects this state and prompts the user to install when appropriate.
+
+See [`architecture/pwa.md`](../architecture/pwa.md) for the full PWA and notification architecture, including the unified Service Worker strategy and platform support matrix.
 
 ---
 

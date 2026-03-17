@@ -67,6 +67,7 @@ Modules should not reach into each other's internals. Cross-module communication
 | Concern | Technology | Rationale |
 |---|---|---|
 | Framework | Next.js (React) | SSR/SSG out of the box, fits naturally in a Node.js monorepo, large ecosystem, strong Tailwind and i18next integration |
+| PWA | `@ducanh2912/next-pwa` + unified Service Worker | Installable on desktop and mobile; background push notifications via FCM; offline-capable. Single SW combines `next-pwa` caching with the FCM background message handler. See [`architecture/pwa.md`](../architecture/pwa.md). |
 | Styling | Tailwind CSS | Utility-first, highly composable, consistent design system without writing custom CSS |
 | i18n | `i18next` + `react-i18next` | Industry standard, supports nested JSON locale files, interpolation, pluralization, and lazy loading of language bundles |
 | i18n enforcement | `eslint-plugin-i18next` | Lint rule `i18next/no-literal-string` prevents any raw string literal from being rendered in a component |

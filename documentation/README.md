@@ -20,6 +20,7 @@ Technical structure and design decisions for the system.
 - [`monorepo-structure.md`](./architecture/monorepo-structure.md) — Directory layout, package manager, shared packages, versioning.
 - [`backend-architecture.md`](./architecture/backend-architecture.md) — NestJS modules, domain boundaries, API design, cross-cutting concerns.
 - [`database-design.md`](./architecture/database-design.md) — PostgreSQL schema philosophy, relational vs. JSONB approach, entity overview.
+- [`pwa.md`](./architecture/pwa.md) — Progressive Web App architecture: Service Worker strategy, FCM push notifications, offline behavior, platform support (iOS/Android/desktop).
 
 ### `/features`
 Feature definitions, domain models, and open design questions per feature area.
@@ -97,3 +98,4 @@ Cloud deployment, authentication, and DevOps.
 | E2E test runner | Playwright |
 | Code formatter | Prettier |
 | Pre-commit hooks | Husky + lint-staged — lint, format, tests, 90% coverage gate |
+| PWA delivery | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background push) |
