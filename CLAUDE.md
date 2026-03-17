@@ -263,3 +263,37 @@ Examples: ⚠️ includes a DB migration, OpenAPI updated, follow-up PR needed.
 ## Open Decisions (Still Pending)
 
 All major technical and architectural decisions have been resolved. No open items remain at this time.
+
+---
+
+## Project Tracking
+
+Work is tracked in a **GitHub Projects v2** kanban board:
+
+| Field | Value |
+|---|---|
+| URL | https://github.com/users/manuelnt11/projects/4 |
+| Project number | 4 |
+| Owner | `manuelnt11` |
+
+### Fields
+
+| Field | Type | Options |
+|---|---|---|
+| Status | Single select | Backlog, Ready, In Progress, In Review, Done |
+| Area | Single select | Backend, Frontend, Infrastructure, Database, Documentation, Testing |
+| Priority | Single select | High, Medium, Low |
+| Size | Single select | XS, S, M, L, XL |
+
+### CLI reference
+
+```bash
+# List all items
+gh project item-list 4 --owner manuelnt11
+
+# Create a new item (draft issue)
+gh project item-create 4 --owner manuelnt11 --title "Title here"
+
+# View project fields
+gh project field-list 4 --owner manuelnt11
+```
