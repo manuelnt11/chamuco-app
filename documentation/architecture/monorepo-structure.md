@@ -24,19 +24,35 @@ chamuco-app/
 ├── apps/
 │   ├── api/                        # NestJS backend application
 │   │   ├── src/
-│   │   │   ├── modules/            # Feature modules (see backend-architecture.md)
-│   │   │   ├── common/             # Guards, interceptors, decorators, pipes
-│   │   │   ├── config/             # Environment config and validation
+│   │   │   ├── modules/            # Feature modules — one folder per domain (users, trips, etc.)
+│   │   │   ├── common/             # Guards, interceptors, decorators, pipes, filters
+│   │   │   ├── config/             # Environment config and validation (class-validator)
+│   │   │   ├── database/           # Drizzle connection provider and schema barrel
 │   │   │   └── main.ts
-│   │   ├── test/
+│   │   ├── test/                   # Integration test helpers and fixtures
+│   │   ├── jest.config.ts
+│   │   ├── tsconfig.json           # Extends tsconfig.base.json; defines @/* alias
 │   │   └── package.json
 │   │
-│   └── web/                        # Next.js frontend application
+│   └── web/                        # Next.js frontend application (App Router)
 │       ├── src/
-│       │   ├── components/
-│       │   ├── pages/              # or app/ for Next.js App Router
-│       │   ├── hooks/
-│       │   └── styles/
+│       │   ├── app/                # Next.js App Router — layouts, pages, loading, error
+│       │   ├── components/         # Reusable UI components
+│       │   ├── hooks/              # Custom React hooks
+│       │   ├── lib/                # External library wrappers and low-level utilities
+│       │   ├── services/           # API client functions (fetchers, mutations)
+│       │   ├── store/              # Zustand stores and React contexts
+│       │   ├── types/              # App-local TypeScript types (not shared across apps)
+│       │   └── locales/            # i18n locale files (es.json, en.json)
+│       │       ├── es.json
+│       │       └── en.json
+│       ├── public/
+│       │   ├── custom-sw.js        # Unified Service Worker (FCM + next-pwa caching)
+│       │   └── icons/
+│       ├── e2e/                    # Playwright end-to-end tests
+│       ├── vitest.config.ts
+│       ├── next.config.ts          # withPWA() wrapper
+│       ├── tsconfig.json           # Extends tsconfig.base.json; defines @/* alias
 │       └── package.json
 │
 ├── packages/
@@ -44,12 +60,15 @@ chamuco-app/
 │   │   ├── src/
 │   │   │   ├── trip.types.ts
 │   │   │   ├── user.types.ts
-│   │   │   └── ...
-│   │   └── package.json
+│   │   │   └── index.ts            # Barrel export
+│   │   ├── tsconfig.json
+│   │   └── package.json            # name: "@chamuco/shared-types"
 │   │
-│   └── shared-utils/               # Shared pure utility functions (date formatting, currency, etc.)
+│   └── shared-utils/               # Shared pure utility functions (dates, currency, etc.)
 │       ├── src/
-│       └── package.json
+│       │   └── index.ts
+│       ├── tsconfig.json
+│       └── package.json            # name: "@chamuco/shared-utils"
 │
 ├── documentation/                  # All design and planning documentation (this folder)
 │   ├── overview/
@@ -60,6 +79,8 @@ chamuco-app/
 │
 ├── .github/                        # GitHub Actions workflows (CI/CD)
 │   └── workflows/
+│       ├── api.yml
+│       └── web.yml
 │
 ├── .husky/                         # Husky git hooks
 │   └── pre-commit                  # Runs lint-staged then turbo test with coverage
@@ -133,6 +154,122 @@ The `packages/shared-types` package is critical for keeping API contracts consis
 - DTO interfaces used in API request/response contracts.
 
 > All enums and type names must be in English regardless of the application's display language.
+
+---
+
+## Import Aliases
+
+Relative imports (e.g., `../../../components/Button`) are **prohibited**. Every import of a local module must use a path alias. This is enforced via TypeScript's `paths` compiler option and ESLint's `no-restricted-imports` rule.
+
+### Two alias namespaces
+
+| Alias prefix | Scope | Resolves to |
+|---|---|---|
+| `@/*` | App-internal | The `src/` directory of the **current app** |
+| `@chamuco/*` | Cross-package | A shared package in `packages/` |
+
+These two namespaces are completely separate. `@/` is always local to the app being compiled; `@chamuco/` always refers to a published (workspace) package.
+
+### `@/*` — app-internal alias
+
+Each app defines `@/*` pointing to its own `src/` in its local `tsconfig.json`:
+
+```jsonc
+// apps/api/tsconfig.json  and  apps/web/tsconfig.json
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+**Usage examples:**
+
+```ts
+// ✅ Correct — alias
+import { UsersService } from '@/modules/users/users.service'
+import { FirebaseAuthGuard } from '@/common/guards/firebase-auth.guard'
+import { Button } from '@/components/Button'
+import { useTrip } from '@/hooks/useTrip'
+import { apiClient } from '@/lib/api-client'
+
+// ❌ Wrong — relative path
+import { Button } from '../../../components/Button'
+```
+
+The alias is identical in both apps (`@/`) without conflict — TypeScript resolves it relative to each app's own `tsconfig.json`, so there is no cross-app leakage.
+
+### `@chamuco/*` — shared workspace packages
+
+Shared packages are imported by their declared package name (set in `packages/*/package.json`). pnpm workspaces resolve these via the `workspace:*` protocol; TypeScript resolves them via `paths` in `tsconfig.base.json`:
+
+```jsonc
+// tsconfig.base.json
+{
+  "compilerOptions": {
+    "paths": {
+      "@chamuco/shared-types": ["./packages/shared-types/src/index.ts"],
+      "@chamuco/shared-utils": ["./packages/shared-utils/src/index.ts"]
+    }
+  }
+}
+```
+
+**Usage examples:**
+
+```ts
+// ✅ Correct — workspace package alias
+import type { ITrip, TripStatus } from '@chamuco/shared-types'
+import { formatCurrency } from '@chamuco/shared-utils'
+
+// ❌ Wrong — relative cross-package path
+import type { ITrip } from '../../packages/shared-types/src/trip.types'
+```
+
+### Directory conventions implied by `@/*`
+
+The alias makes directory naming load-bearing — a consistent layout ensures every developer knows where to put and find code.
+
+**`apps/api/src/`**
+
+| Directory | Contents |
+|---|---|
+| `modules/` | One folder per domain feature (e.g., `modules/users/`, `modules/trips/`). Each contains its controller, service, repository, DTOs, and schema file. |
+| `common/` | Cross-cutting: guards, interceptors, decorators, filters, pipes. Nothing domain-specific. |
+| `config/` | Environment variable validation and typed config providers. |
+| `database/` | Drizzle connection factory, schema barrel file, migration utilities. |
+
+**`apps/web/src/`**
+
+| Directory | Contents |
+|---|---|
+| `app/` | Next.js App Router — layouts, pages, `loading.tsx`, `error.tsx`, route groups. |
+| `components/` | Reusable, presentational UI components. No data fetching logic. |
+| `hooks/` | Custom React hooks. May call services or access stores. |
+| `lib/` | Thin wrappers around external libraries (Firebase client, date-fns, etc.) and low-level helpers. |
+| `services/` | API client functions — typed wrappers around `fetch`/HTTP calls to the NestJS backend. |
+| `store/` | Zustand stores and React contexts (auth state, preference state, etc.). |
+| `types/` | App-local TypeScript types that are not shared with other apps or packages. |
+| `locales/` | i18n locale files: `es.json`, `en.json`. |
+
+### ESLint enforcement
+
+The `no-restricted-imports` rule is configured at the root ESLint config to disallow patterns that escape upward through the directory tree:
+
+```js
+// .eslintrc.js (excerpt)
+rules: {
+  'no-restricted-imports': ['error', {
+    patterns: ['../*', './**/..']
+  }]
+}
+```
+
+This catches any relative import that navigates upward (`../`) at lint time, before it reaches the pre-commit hook or CI.
 
 ---
 

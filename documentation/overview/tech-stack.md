@@ -73,6 +73,15 @@ Modules should not reach into each other's internals. Cross-module communication
 | i18n | `i18next` + `react-i18next` | Industry standard, supports nested JSON locale files, interpolation, pluralization, and lazy loading of language bundles |
 | i18n enforcement | `eslint-plugin-i18next` | Lint rule `i18next/no-literal-string` prevents any raw string literal from being rendered in a component |
 
+### Import Aliases (No Relative Paths)
+
+Relative imports are prohibited across the entire monorepo. All local imports use one of two alias namespaces:
+
+- **`@/*`** — resolves to the `src/` directory of the current app (`apps/api` or `apps/web`). Defined in each app's `tsconfig.json`.
+- **`@chamuco/*`** — resolves to a shared workspace package in `packages/`. Defined in `tsconfig.base.json`.
+
+See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md) for the full alias spec, directory conventions, and ESLint enforcement rule.
+
 ### No-Hardcoded-Text Rule
 
 **No user-facing string may be hardcoded in a component, template, or page.** All visible text must reference a locale file key via the `i18next` `t()` function. This rule is enforced at the linter level and is a hard requirement — not a guideline. See [`design/localization.md`](../design/localization.md) for the full specification, key naming convention, locale file structure, and enforcement details.
