@@ -42,7 +42,7 @@ Hardcoded strings are caught during code review and, where possible, via static 
 - All UI strings are externalized into locale files. The locale file is the single source of truth for every user-facing string.
 - Locale files use **nested JSON** format, one file per language per package (e.g., `es.json`, `en.json`).
 - Library: **`i18next`** with `react-i18next` on the frontend and `nestjs-i18n` on the backend. Both use the same key naming convention so keys are consistent across the stack.
-- The user's preferred language is stored in their `preferences` JSONB field on the `users` table and applied on login.
+- The user's preferred language is stored in the `user_preferences` table and applied on login. For unauthenticated users on public paths, the preference is read from the `chamuco_prefs` cookie. See [`design/preferences.md`](./preferences.md) for the full resolution and sync strategy.
 - Language can be overridden per-session via the `Accept-Language` HTTP header or a `?lang=` query param.
 
 ### Locale File Structure
@@ -181,15 +181,10 @@ Rules:
 
 ### Exchange Rate Strategy
 
-Options under consideration:
+A two-level model is used. See [`features/pre-trip-planning.md`](../features/pre-trip-planning.md) and [`features/expenses.md`](../features/expenses.md) for the full spec.
 
-| Option | Pros | Cons |
-|---|---|---|
-| Organizer sets a fixed rate for the trip | Simple, predictable, no external dependency | May not reflect real-world rates |
-| Rate fetched from a free API at expense recording time | Accurate, automatic | Requires external API, rate may fluctuate |
-| Rate stored manually per expense | Maximum flexibility | More friction for users |
-
-> **Recommendation:** Fetch from a free-tier exchange rate API at expense recording time and store the rate snapshot. Fall back to organizer-defined rate if the API is unavailable.
+- **Level 1 — Trip-level reference rates:** Suggested by **ExchangeRate-API** (chosen provider), confirmed by the trip organizer. Used for planning and budget estimates.
+- **Level 2 — Expense-level snapshot:** The user confirms the effective rate at the moment of recording each expense. Stored as `exchange_rate_snapshot` — immutable after saving. This is the financial source of truth.
 
 ---
 

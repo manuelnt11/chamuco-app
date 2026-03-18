@@ -48,7 +48,8 @@ Source files used as real-world planning examples.
 ### `/design`
 UX, UI, and product design guidelines.
 
-- [`localization.md`](./design/localization.md) — Multi-language (ES/EN), multi-currency (COP/USD), timezone handling.
+- [`localization.md`](./design/localization.md) — Multi-language (ES/EN), multi-currency (COP/USD), timezone handling, i18n enforcement.
+- [`preferences.md`](./design/preferences.md) — User preferences (language, currency, theme); guest cookie layer; authenticated DB layer; login sync; `next-themes` integration.
 
 ### `/infrastructure`
 Cloud deployment, authentication, and DevOps.
@@ -99,3 +100,5 @@ Cloud deployment, authentication, and DevOps.
 | Code formatter | Prettier |
 | Pre-commit hooks | Husky + lint-staged — lint, format, tests, 90% coverage gate |
 | PWA delivery | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background push) |
+| User preferences | Language, currency, theme — cookie for guests, DB for auth users, synced on login |
+| Theme management | `next-themes` — SSR-safe, cookie-backed, Tailwind `class` dark mode strategy |

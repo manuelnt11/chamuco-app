@@ -26,7 +26,6 @@ The core identity and authentication record.
 | `avatar_url` | String | Profile picture URL (stored in Cloud Storage). |
 | `auth_provider` | Enum `AuthProvider` | `GOOGLE`, `PASSKEY` |
 | `auth_provider_id` | String | External ID from the auth provider. |
-| `locale` | String (BCP 47) | User's preferred language (e.g., `es`, `en`). Defaults to `es`. |
 | `timezone` | String (IANA) | User's home timezone. Used for date/time display defaults. |
 | `created_at` | Timestamp | |
 | `updated_at` | Timestamp | |
@@ -41,6 +40,20 @@ The core identity and authentication record.
 - Required at registration — the user must choose one before completing onboarding.
 - Displayed prefixed with `@` throughout the UI (e.g., `@ana_gomez`), but stored without the prefix.
 - Used for: user search, `@mention` in messages, invitation by handle (alternative to email).
+
+---
+
+## User Preferences (`user_preferences`)
+
+A 1:1 extension of the `users` table that holds display and UX preferences. Created automatically when the user is first provisioned. See [`design/preferences.md`](../design/preferences.md) for the full preference system — including guest (cookie-based) preferences on public paths, resolution priority, and login sync behavior.
+
+| Field | Type | Description |
+|---|---|---|
+| `user_id` | UUID | PK + FK → `users.id` |
+| `language` | Enum `AppLanguage` | `ES` or `EN`. Default: `ES`. |
+| `currency` | Enum `AppCurrency` | `COP` or `USD`. Default: `COP`. |
+| `theme` | Enum `AppTheme` | `LIGHT`, `DARK`, or `SYSTEM`. Default: `SYSTEM`. |
+| `updated_at` | Timestamp | |
 
 ---
 
