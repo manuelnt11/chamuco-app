@@ -167,6 +167,8 @@ Whichever pair is chosen, the recommended scale (based on a 16px base):
 
 ### Option A — Phosphor Icons *(recommended)*
 
+🔗 [phosphoricons.com](https://phosphoricons.com) · [npm: @phosphor-icons/react](https://www.npmjs.com/package/@phosphor-icons/react)
+
 - 9,000+ icons, 6 weights (thin, light, regular, bold, fill, duotone)
 - MIT license, React package: `@phosphor-icons/react`
 - Exceptional coverage of travel-specific icons (airplane, compass, map pin, tent, boat, currency, passport, etc.)
@@ -175,12 +177,16 @@ Whichever pair is chosen, the recommended scale (based on a 16px base):
 
 ### Option B — Tabler Icons
 
+🔗 [tabler.io/icons](https://tabler.io/icons) · [npm: @tabler/icons-react](https://www.npmjs.com/package/@tabler/icons-react)
+
 - 5,900+ icons, consistent 2px stroke, MIT license
 - React package: `@tabler/icons-react`
 - Very clean, dashboard-friendly. Less personality than Phosphor but extremely complete.
 - Best choice if the UI ends up leaning toward a more structured, data-heavy feel.
 
 ### Option C — Lucide React *(already in proto stack)*
+
+🔗 [lucide.dev](https://lucide.dev) · [npm: lucide-react](https://www.npmjs.com/package/lucide-react)
 
 - 1,450+ icons, MIT, smallest bundle, React-native
 - Already referenced in the project (used in skill examples)
@@ -199,6 +205,8 @@ Whichever pair is chosen, the recommended scale (based on a 16px base):
 
 ### Option A — shadcn/ui *(recommended)*
 
+🔗 [ui.shadcn.com](https://ui.shadcn.com) · [npm: shadcn](https://www.npmjs.com/package/shadcn)
+
 - Not a dependency — components are copied into the project via CLI (`npx shadcn@latest add button`)
 - Built on Radix UI primitives (fully accessible, keyboard navigable)
 - Tailwind-native: components are plain TSX with Tailwind classes — fully customizable
@@ -209,6 +217,8 @@ Whichever pair is chosen, the recommended scale (based on a 16px base):
 
 ### Option B — HeroUI (formerly NextUI)
 
+🔗 [heroui.com](https://heroui.com) · [npm: @heroui/react](https://www.npmjs.com/package/@heroui/react)
+
 - Full component library as an npm dependency
 - Beautiful defaults with strong mobile/touch interactions (ripple effects, smooth animations)
 - Uses Framer Motion for animations — adds bundle weight
@@ -216,6 +226,8 @@ Whichever pair is chosen, the recommended scale (based on a 16px base):
 - **Downside:** Less control over markup; dependency version management
 
 ### Option C — DaisyUI
+
+🔗 [daisyui.com](https://daisyui.com) · [npm: daisyui](https://www.npmjs.com/package/daisyui)
 
 - Tailwind CSS plugin — adds semantic class names (`btn`, `card`, `badge`, etc.)
 - 63+ components, zero JavaScript, pure CSS
