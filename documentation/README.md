@@ -50,6 +50,7 @@ UX, UI, and product design guidelines.
 
 - [`localization.md`](./design/localization.md) — Multi-language (ES/EN), multi-currency (COP/USD), timezone handling, i18n enforcement.
 - [`preferences.md`](./design/preferences.md) — User preferences (language, currency, theme); guest cookie layer; authenticated DB layer; login sync; `next-themes` integration.
+- [`visual-identity.md`](./design/visual-identity.md) — **Pending decisions:** logo variants, color palettes (3 proposals), typography, icon pack, component framework, reference sites, responsive/PWA aesthetic guidelines.
 
 ### `/infrastructure`
 Cloud deployment, authentication, and DevOps.
