@@ -294,6 +294,27 @@ Additional fields for `CITY_PASS`: `pass_name`, `covered_item_ids[]`, `valid_fro
 
 ---
 
+---
+
+## Trip Completion & Gamification
+
+When a trip transitions to `COMPLETED` status, the platform triggers a structured post-trip sequence. This is defined in full in [`features/gamification.md`](./gamification.md) — Trip Completion Flow section. In summary:
+
+- **Statistics** are updated for all confirmed participants (`user_stats`, `group_member_stats`).
+- **Achievements** are evaluated and newly unlocked ones are recorded (`user_achievements`).
+- **Chamuco Points** are distributed to all confirmed participants (`chamuco_point_transactions`).
+- **Feedback window** opens for 7 days — participants may leave trip feedback (scored, directed at organizers) and optional peer-to-peer notes.
+- **Recognition window** opens for organizers — they may award named recognitions to any participant within the same 7-day window.
+
+The `trips` table carries two additional fields to track these windows:
+
+| Field | Type | Description |
+|---|---|---|
+| `feedback_open_until` | Timestamp (nullable) | Set at `COMPLETED` transition. Feedback and recognition submissions accepted until this time. |
+| `points_distributed` | Boolean | Set to `true` after Chamuco Points have been distributed. Prevents duplicate distribution on retry. |
+
+---
+
 ## Open Questions / To Be Defined
 
 - Can a trip have multiple organizers, or only one with co-organizers?
@@ -302,3 +323,5 @@ Additional fields for `CITY_PASS`: `pass_name`, `covered_item_ids[]`, `valid_fro
 - How are time zones handled for display across multi-destination trips — show destination local time or user's local time?
 - Should `PLACE / HOTEL` items be the same entity as stays in the reservations module, or a separate reference?
 - Should child items of a `GUIDED_TOUR` be full itinerary items or a lightweight sub-list?
+- Should the 7-day feedback window be configurable per trip by the organizer, or fixed platform-wide?
+- Can the organizer extend the feedback window if it expires before they've awarded all recognitions?

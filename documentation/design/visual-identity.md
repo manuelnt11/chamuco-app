@@ -255,8 +255,11 @@ Sites that share a similar spirit: group-oriented, travel-focused, social, mobil
 | [Notion](https://www.notion.so) | Collaborative workspace | Collaborative editing feel, clean empty states, breadcrumb navigation |
 | [Linear](https://linear.app) | Project task management | Task list design, keyboard shortcuts, fast interactions |
 | [Telegram](https://telegram.org) | Messaging | Chat UI patterns, channel list, message bubbles, media handling |
+| [Strava](https://www.strava.com) | Fitness activity social network | **Primary identity reference.** Athlete profile with stats, activity feed, achievement badges, segment rankings, kudos system, discovery map (heatmap). Chamuco is "Strava for group travel." |
 
-**Note on Wanderlog:** It is the most direct functional overlap. Worth studying its mobile UX, particularly how it handles the itinerary day-by-day view and real-time collaboration indicators.
+**Note on Wanderlog:** It is the most direct functional overlap for trip planning. Study its mobile UX for the itinerary day-by-day view and real-time collaboration indicators.
+
+**Note on Strava:** The philosophical reference. Strava's core loop — you do something in the real world, it gets recorded, your community sees it, you collect trophies, you see where you've been — maps directly to Chamuco's gamification layer. Study: the athlete profile layout (stats grid, achievement shelf, activity feed), segment leaderboards (group rankings), the heatmap (discovery map equivalent), and the kudos interaction (peer recognition).
 
 ---
 
@@ -367,8 +370,60 @@ Tailwind's default 4px base spacing is used. Key spacing tokens:
 
 ---
 
+---
+
+## 9. Gamification UI Considerations
+
+The gamification system introduces new visual patterns that need to fit cohesively into the overall identity. These are design constraints, not final decisions.
+
+### Badges & Achievements
+
+Achievement badges are small visual icons displayed in a shelf/grid on the user's profile. Each badge needs variants for:
+- **Locked** (grayed out, with a hint of what triggers it) — encourages progression
+- **Unlocked** (full color) — celebratory state
+- **Featured** (slightly enlarged) — 3–5 badges the user pins to the top of their profile
+
+The badge visual language should be consistent with the icon pack choice (Phosphor recommended). Duotone weight works well for the unlocked state.
+
+### Group Status Tiers
+
+The three tiers (Novicio → Explorador → Veterano) each need a distinct visual treatment: an icon and a color accent. These should feel like military or adventure ranks — not video game "level up" aesthetics. Recommended approach: subtle shield or compass variants in the primary palette's secondary color, with increasing complexity of the icon at each tier.
+
+### Discovery Map
+
+The discovery map introduces a cartographic element that must align with the app's color system:
+- Visited territories: primary color fill at 60–80% opacity.
+- Unvisited territories: neutral gray (`#D1D5DB` in light mode, `#374151` in dark mode).
+- Territory hover/tap: slightly darker fill + tooltip with trip names.
+- The map background (ocean/borders) should be minimal — monochrome or very desaturated.
+
+Redeemable map color themes (via Chamuco Points) are a product decision for the implementation phase.
+
+### Feedback & Recognition UI
+
+- **Post-trip feedback**: triggered by a bottom sheet (mobile) or modal (desktop) that appears when the user opens the app after a trip completes. Uses star ratings per dimension + optional text. Should feel gentle and celebratory, not administrative.
+- **Recognition award flow** (for organizers): a simple card-per-participant interface where the organizer assigns a title and optional note. Should feel like signing someone's yearbook — personal and meaningful.
+- **Recognition display** on profile: displayed as small labeled chips or cards, grouped by context (trip / group / event). Context is always shown.
+
+### Celebration Screens
+
+When a user unlocks a new achievement or receives a recognition, the app should display a momentary celebration screen. This is a full-screen or sheet overlay with:
+- The badge or recognition card (large)
+- Confetti or particle animation (respects `prefers-reduced-motion`)
+- A share button (optional — share to group chat or external)
+
+Celebration screens are one of the few places where motion and color can be more expressive than the rest of the app.
+
+### Points & Balance Display
+
+The Chamuco Points balance appears in the user's profile and in the spending catalog. The icon for points should be a small custom mark — the chamuco face or a stylized flame/compass — consistent with the mascot direction.
+
+---
+
 ## Related Documents
 
 - [`design/preferences.md`](./preferences.md) — Theme (light/dark/system) preference management.
 - [`design/localization.md`](./localization.md) — Language and currency display.
 - [`architecture/pwa.md`](../architecture/pwa.md) — PWA manifest icons, maskable icon spec.
+- [`features/gamification.md`](../features/gamification.md) — Full gamification system spec: achievements, points, discovery map, recognitions, feedback.
+- [`features/events.md`](../features/events.md) — Events system spec.

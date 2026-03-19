@@ -183,6 +183,77 @@ The checklist is scoped to what the organizer needs for that specific trip type 
 
 ---
 
+---
+
+## Traveler Statistics (`user_stats`)
+
+A 1:1 extension of the `users` table that stores the user's computed travel statistics. Populated and updated automatically as part of the trip completion flow — never edited directly. See [`features/gamification.md`](./gamification.md) for the full definition of each metric.
+
+| Field | Type | Description |
+|---|---|---|
+| `user_id` | UUID | PK + FK → `users.id` |
+| `trips_completed` | Integer | Total completed trips as a confirmed participant |
+| `countries_visited` | Integer | Unique countries covered in completed trips |
+| `regions_visited` | Integer | Unique region/state subdivisions visited |
+| `km_traveled` | Decimal | Sum of transport distances across completed trips |
+| `km2_explored` | Decimal | Approximate area covered by visited places |
+| `unique_travel_companions` | Integer | Distinct users traveled with across all trips |
+| `trips_as_organizer` | Integer | Trips completed in the `ORGANIZER` role |
+| `longest_trip_days` | Integer | Duration in days of the longest completed trip |
+| `traveler_score` | Integer | Composite score for global ranking (auto-computed) |
+| `updated_at` | Timestamp | |
+
+---
+
+## Achievements (`user_achievements`)
+
+Records which achievements the user has unlocked and when. Created by the system during the trip completion flow. Never created manually.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `user_id` | UUID | FK → `users.id` |
+| `achievement` | Enum `Achievement` | Identifier of the unlocked achievement (e.g., `FIRST_TRIP`, `EXPLORER_10_COUNTRIES`) |
+| `unlocked_at` | Timestamp | |
+| `trip_id` | UUID (nullable) | The trip that triggered the unlock |
+
+See [`features/gamification.md`](./gamification.md) for the full `Achievement` enum with all values and trigger conditions.
+
+---
+
+## Chamuco Points
+
+The user's point balance is never stored as a single column — it is derived by summing all `chamuco_point_transactions` records for the user. See [`features/gamification.md`](./gamification.md) for the transaction schema, earn events, spending catalog, and rules.
+
+---
+
+## Recognitions Received
+
+Recognitions received by the user are stored in the `recognitions` table, keyed by `recipient_user_id`. They appear on the user's public profile, grouped by context (trip / group / event). See [`features/gamification.md`](./gamification.md) for the full `recognitions` schema.
+
+---
+
+## Discovery Map
+
+The discovery map is a personal geographic visualization derived from `itinerary_items` of type `PLACE` in completed trips where the user was a confirmed participant. No separate table is needed — it is computed on demand from existing trip data. See [`features/gamification.md`](./gamification.md) for map behavior, granularity, and visibility rules.
+
+---
+
+## Public Profile Additions (Gamification)
+
+The following gamification fields are added to the user's public-facing profile:
+
+| Data | Visibility |
+|---|---|
+| Traveler Score | Per `ProfileVisibility` setting |
+| Global ranking position | Per `ProfileVisibility` setting |
+| Achievements (badge collection) | Per `ProfileVisibility` setting |
+| Recognitions received | Per `ProfileVisibility` setting |
+| Key stats (trips, countries, km) | Per `ProfileVisibility` setting |
+| Discovery map | Per `ProfileVisibility` setting (independent toggle TBD) |
+
+---
+
 ## Open Questions / To Be Defined
 
 - Should multiple passport records be supported (e.g., dual nationality)?
@@ -190,3 +261,4 @@ The checklist is scoped to what the organizer needs for that specific trip type 
 - Should loyalty programs be linked to specific reservations, or just stored on the profile for manual reference?
 - Is `medical_notes` the right granularity, or should it be further split (conditions, medications, blood type)?
 - Should phobias and physical limitations use a structured tag system for better organizer filtering, or remain free text?
+- Should the discovery map have its own visibility toggle independent of the main `ProfileVisibility` setting?

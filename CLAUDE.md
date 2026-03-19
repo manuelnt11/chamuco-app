@@ -6,7 +6,11 @@ This file provides essential context for working on Chamuco App. Read it in full
 
 ## What Is Chamuco App
 
-A **group travel coordination platform**. It covers the full lifecycle of a trip: planning, itinerary, participant management, shared expenses, reservations, and real-time communication between travelers. The project is currently in the **design and documentation phase** — no source code has been written yet.
+**Chamuco is not a travel app. It is an app for groups that travel.**
+
+It covers the full lifecycle of a group's journey together: trip planning, itinerary, participant management, shared expenses, reservations, real-time communication, and — crucially — the long-term social identity of the group: achievements, reputation, rankings, recognitions, and a personal travel history that grows with every trip. The closest reference is Strava, applied to group travel.
+
+The project is currently in the **design and documentation phase** — no source code has been written yet.
 
 ---
 
@@ -104,6 +108,22 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - `amount_per_participant` = auto-computed from `amount / participant_count`.
 - `exchange_rate_snapshot` is immutable — snapshotted at time of recording.
 
+### Gamification
+- **Traveler Score** — composite metric computed from completed trips, countries visited, km traveled, achievements, and feedback received. Used for global ranking. Never editable.
+- **Achievements** — auto-triggered badges at defined milestones (trips, geography, distance, social). Earned once, never lost.
+- **Chamuco Points** — soft in-app currency. Earned at trip completion and achievement unlocks. Spent on cosmetic profile customizations. No real monetary value; non-transferable; non-expiring.
+- **Discovery Map** — personal geographic visualization derived from `PLACE` items in completed trips. Displayed on the public profile.
+- **Group Member Tier** — per-group progression: `NEWCOMER` → `NOVICE` (1 trip) → `EXPLORER` (5 trips) → `VETERAN` (10+ trips). Independent of global reputation and of `GroupRole`.
+- **Recognitions** — peer-awarded badges. Sources: trip organizer at completion, group admin annually, event organizer at event completion.
+- **Trip Feedback** — structured post-trip feedback (scored + optional comment) directed at organizers, plus optional peer-to-peer notes. Window: 7 days after `COMPLETED`.
+- **Trip Completion Flow** — when a trip reaches `COMPLETED`: stats updated, achievements evaluated, points distributed, feedback window opened, recognition window unlocked for organizers.
+
+### Events
+- Three modes: `FREE` (standalone), `GROUP` (linked to a group), `TRIP` (linked to a trip).
+- Five categories: `PRESENTATION`, `PLANNING`, `CELEBRATION`, `AWARDS`, `OTHER`.
+- Optional gamification: events may award Chamuco Points and/or unlock a recognition window for the organizer.
+- RSVP states: `CONFIRMED`, `TENTATIVE`, `DECLINED`. Attendance is always opt-in.
+
 ---
 
 ## Documentation Structure
@@ -117,13 +137,15 @@ All design documentation lives in `documentation/`. Key files:
 | `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger |
 | `architecture/database-design.md` | Schema philosophy, JSONB usage |
 | `architecture/monorepo-structure.md` | Directory layout |
-| `features/users.md` | User account, personal profile, health profile, loyalty programs |
-| `features/trips.md` | Trip lifecycle, itinerary model, full taxonomy |
+| `features/users.md` | User account, personal profile, health profile, loyalty programs, traveler stats, achievements |
+| `features/trips.md` | Trip lifecycle, itinerary model, full taxonomy, post-completion gamification flow |
 | `features/participants.md` | Membership flows, states, guest participants |
-| `features/community.md` | Groups, Slack-like messaging, Firestore architecture |
+| `features/community.md` | Groups, Slack-like messaging, Firestore architecture, group member tiers |
 | `features/expenses.md` | Expense model, splits, settlements, multi-currency |
 | `features/reservations.md` | Booking records, metadata by type |
 | `features/pre-trip-planning.md` | Pre-trip tasks, route planning, budget envelopes |
+| `features/gamification.md` | Traveler Score, achievements, Chamuco Points, discovery map, recognitions, feedback |
+| `features/events.md` | Events system: modes, categories, RSVP, gamification integration |
 | `infrastructure/auth.md` | Firebase Authentication integration |
 | `infrastructure/cloud.md` | GCP services, CI/CD pipelines |
 | `design/localization.md` | i18n spec, key naming, enforcement |

@@ -363,6 +363,64 @@ Permissions are enforced at the API layer via NestJS guards. A detailed permissi
 
 ---
 
+---
+
+## Group Gamification
+
+Groups accumulate their own gamification layer, separate from any individual user's global reputation. This gives groups an identity and history that grows over time. See [`features/gamification.md`](./gamification.md) for the full specification.
+
+### Group Member Status
+
+Each member earns a **status tier** within the group based on the number of completed trips taken as part of that group:
+
+| Tier | Display name | Requirement |
+|---|---|---|
+| `NEWCOMER` | Novicio | Joined but no completed group trips yet |
+| `NOVICE` | Novicio | 1 completed group trip |
+| `EXPLORER` | Explorador | 5 completed group trips |
+| `VETERAN` | Veterano | 10+ completed group trips |
+
+The tier badge is displayed next to the member's name in the group member list and in the group's auto-channel. It does not affect moderation permissions (those are governed by `GroupRole`).
+
+### Group Member Stats (`group_member_stats`)
+
+A per-member-per-group record tracking gamification data within the group context:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `group_id` | UUID | FK → `groups.id` |
+| `user_id` | UUID | FK → `users.id` |
+| `tier` | Enum `GroupMemberTier` | `NEWCOMER`, `NOVICE`, `EXPLORER`, `VETERAN` |
+| `group_trips_completed` | Integer | Trips completed as a confirmed participant in this group |
+| `joined_at` | Timestamp | When the membership became `ACTIVE` (seniority anchor) |
+| `active_streak` | Integer | Consecutive group trips participated in without skipping |
+| `recognitions_received` | Integer | Count of recognitions received in the context of this group |
+| `updated_at` | Timestamp | |
+
+### Group Rankings
+
+Within any group, members can see an internal leaderboard ranked by `group_trips_completed`, with seniority (`joined_at`) as the tiebreaker.
+
+### Annual Group Recognitions
+
+Once per calendar year, group `OWNER` or `ADMIN` roles may award named recognitions to any group members. These recognitions have `source: GROUP_ANNUAL` and appear on the recipient's profile with the group's name as context. The `AWARDS` event category (see [`features/events.md`](./events.md)) is the natural home for a formal annual ceremony.
+
+### Group Stats
+
+The `groups` table (or a companion `group_stats` record) tracks aggregate group-level statistics:
+
+| Field | Description |
+|---|---|
+| `trips_completed` | Total trips completed by the group |
+| `countries_visited` | Unique countries visited across all group trips |
+| `total_members_ever` | Cumulative count of all users who were ever active members |
+| `founding_date` | Date the group was created (`groups.created_at`) |
+
+These stats are displayed on the group's public profile page.
+
+---
+
 ## Open Questions / To Be Defined
 
 - Is there a concept of "connections" or "friends" between individual users (outside of groups)?
@@ -373,3 +431,5 @@ Permissions are enforced at the API layer via NestJS guards. A detailed permissi
 - Should `STANDARD` public channels be scoped to the platform level only, or can groups also create discoverable public channels?
 - Can a channel admin demote themselves, or must there always be at least one admin per channel?
 - Should DMs support more than two participants, or is that always a `STANDARD` private channel?
+- Should a group's discovery map (aggregate of all members' visited territories) be displayed on the group's public profile?
+- Can group members view the full internal ranking, or is it admin-only?
