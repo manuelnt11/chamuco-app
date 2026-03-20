@@ -27,6 +27,7 @@ The core identity and authentication record.
 | `auth_provider` | Enum `AuthProvider` | `GOOGLE`, `PASSKEY` |
 | `auth_provider_id` | String | External ID from the auth provider. |
 | `timezone` | String (IANA) | User's home timezone. Used for date/time display defaults. |
+| `platform_role` | Enum `PlatformRole` | `USER` (default) or `SUPPORT_ADMIN`. See Platform Roles below. |
 | `created_at` | Timestamp | |
 | `updated_at` | Timestamp | |
 | `last_active_at` | Timestamp | |
@@ -194,7 +195,7 @@ A 1:1 extension of the `users` table that stores the user's computed travel stat
 | `user_id` | UUID | PK + FK → `users.id` |
 | `trips_completed` | Integer | Total completed trips as a confirmed participant |
 | `countries_visited` | Integer | Unique countries covered in completed trips |
-| `regions_visited` | Integer | Unique region/state subdivisions visited |
+| `cities_visited` | Integer | Unique cities/towns visited across completed trips |
 | `km_traveled` | Decimal | Sum of transport distances across completed trips |
 | `km2_explored` | Decimal | Approximate area covered by visited places |
 | `unique_travel_companions` | Integer | Distinct users traveled with across all trips |
@@ -251,6 +252,35 @@ The following gamification fields are added to the user's public-facing profile:
 | Recognitions received | Per `ProfileVisibility` setting |
 | Key stats (trips, countries, km) | Per `ProfileVisibility` setting |
 | Discovery map | Per `ProfileVisibility` setting (independent toggle TBD) |
+
+---
+
+## Platform Roles (Enum: `PlatformRole`)
+
+| Value | Description |
+|---|---|
+| `USER` | A standard Chamuco user. Subject to all trip, group, and permission rules. Default for all registered accounts. |
+| `SUPPORT_ADMIN` | A service account for platform support and troubleshooting. Bypasses all access restrictions. Not a traveler, has no group membership, and holds no trip roles. |
+
+### Support Admin
+
+The `SUPPORT_ADMIN` role is a **platform-level service account** used exclusively for troubleshooting and operational support. It is not a feature for end users.
+
+**Capabilities:**
+
+- Can access any trip or group regardless of visibility, membership, or invitation status.
+- Can read and write any record, bypassing all role and permission checks (trip organizer permissions, group admin rules, participant status requirements, co-organizer permission sets).
+- Can act on behalf of the platform to resolve data inconsistencies, correct stuck states, or assist users who cannot help themselves due to app failures.
+
+**Restrictions:**
+
+- A `SUPPORT_ADMIN` user is **never counted as a participant** on any trip or group. They do not occupy capacity, are not included in expense splits, and do not trigger membership side effects (Firestore sync, channel access, etc.).
+- They do not have a travel profile, group memberships, or gamification records. `user_stats`, `user_achievements`, `group_member_stats`, and all associated records are not created for this role.
+- The `SUPPORT_ADMIN` role is **not assignable from within the app**. It can only be granted by directly updating the `platform_role` column at the database level (or by another `SUPPORT_ADMIN` via a restricted internal interface if one exists).
+
+**Audit trail:**
+
+Every write action performed by a `SUPPORT_ADMIN` is recorded in a dedicated `support_admin_audit_log` table with: `id`, `admin_user_id`, `action` (description of what was done), `target_table`, `target_id`, `before_state` (JSONB snapshot), `after_state` (JSONB snapshot), `performed_at`. This log is immutable — records cannot be updated or deleted.
 
 ---
 

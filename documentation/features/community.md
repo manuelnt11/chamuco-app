@@ -421,6 +421,35 @@ These stats are displayed on the group's public profile page.
 
 ---
 
+## Group Resources
+
+Every group has a shared **Resources** section where members can attach notes, documents, and links of interest relevant to the group — recurring packing templates, favorite destinations, visa requirements, useful contacts, group rules, and so on.
+
+The resource types and schema mirror those of trip resources. See [`features/trips.md`](./trips.md) — Trip Resources section for the full `ResourceType` enum and field definitions.
+
+### Schema (`group_resources`)
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `group_id` | UUID | FK → `groups.id` |
+| `type` | Enum `ResourceType` | `NOTE`, `DOCUMENT`, or `LINK` |
+| `title` | String (nullable) | Optional for notes; required for documents and links |
+| `body` | Text (nullable) | Markdown content for `NOTE`; optional description for `LINK` |
+| `url` | String (nullable) | External URL (`LINK`) or Cloud Storage URL (`DOCUMENT`) |
+| `file_name` | String (nullable) | Original filename for `DOCUMENT` type |
+| `file_size` | Integer (nullable) | Size in bytes for `DOCUMENT` type |
+| `mime_type` | String (nullable) | MIME type for `DOCUMENT` type |
+| `added_by` | UUID | FK → `users.id` — the user who created this resource |
+| `created_at` | Timestamp | |
+| `updated_at` | Timestamp | |
+
+### Access Rules
+
+Any active group member may **add** resources. The creator (`added_by`) may always manage their own resources; group `ADMIN` and `OWNER` roles may edit or delete any resource.
+
+---
+
 ## Open Questions / To Be Defined
 
 - Is there a concept of "connections" or "friends" between individual users (outside of groups)?

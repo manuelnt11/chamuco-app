@@ -55,45 +55,64 @@ Before the itinerary is finalized, organizers often evaluate multiple route alte
 
 ## 2. Pre-Trip Tasks
 
-A structured checklist of preparations that must be completed before departure. Tasks are visible to all participants and each person tracks their own completion status.
+A structured checklist of preparations that must be completed before departure. Tasks are divided into three types depending on who owns them and how completion is tracked.
 
-### Task Record
+### Task Types (Enum: `PreTripTaskType`)
+
+| Value | Created by | Completed by | Completion tracking | Visibility |
+|---|---|---|---|---|
+| `ORGANIZER` | Organizer | Organizer team | Single status on the task | All trip viewers |
+| `GROUP` | Organizer | Each assigned traveler independently | Per-participant record | Assigned participants + organizers |
+| `PERSONAL` | Any confirmed participant | The creator | Single status on the task | Creator only (organizers do not see personal tasks by default) |
+
+**`ORGANIZER` tasks** represent things the organizing team must handle: booking group transport, securing permits, arranging airport transfers. They are visible to all trip viewers for transparency but only organizers mark them done.
+
+**`GROUP` tasks** represent preparations each traveler must complete individually: renewing a passport, obtaining insurance, enabling an international card. The organizer assigns them to all travelers or a defined subset, and tracks each person's progress via the aggregate matrix view.
+
+**`PERSONAL` tasks** are self-managed. Any confirmed participant can create tasks for themselves — pack specific medications, arrange a house sitter, set an out-of-office reply. No one else manages or tracks these.
+
+### Task Record (`pre_trip_tasks`)
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | UUID | |
 | `trip_id` | UUID | Parent trip |
+| `type` | Enum `PreTripTaskType` | `ORGANIZER`, `GROUP`, or `PERSONAL` |
 | `title` | String | Short description of the task |
 | `description` | Text (rich) | Detailed notes, sub-items, instructions |
-| `category` | Enum | See task categories below |
-| `assigned_to` | `ALL` \| `[]userId` | All participants, or a specific subset |
-| `start_date` | Date | When the task becomes relevant / actionable |
-| `deadline` | Date | Latest date by which the task should be completed |
-| `deadline_strict` | Boolean | Whether missing the deadline blocks trip confirmation |
-| `created_by` | UUID | The user who created the task (typically organizer) |
+| `category` | Enum `PreTripTaskCategory` | See categories below |
+| `assigned_to` | `ALL` \| UUID[] | All travelers or a specific subset. Only meaningful for `GROUP` type. |
+| `status` | Enum `PreTripTaskStatus` | `PENDING`, `IN_PROGRESS`, `DONE`. Used directly for `ORGANIZER` and `PERSONAL` types. |
+| `start_date` | Date (nullable) | When the task becomes relevant / actionable |
+| `deadline` | Date (nullable) | Latest date by which the task should be completed |
+| `deadline_strict` | Boolean | Whether missing the deadline blocks trip confirmation. Only applicable to `ORGANIZER` and `GROUP` types. |
+| `created_by` | UUID | The user who created the task |
+| `completed_at` | Timestamp (nullable) | Set when `status = DONE`. Used for `ORGANIZER` and `PERSONAL` types. |
+| `completed_by` | UUID (nullable) | Who marked it done. Used for `ORGANIZER` type. |
 | `created_at` | Timestamp | |
+| `updated_at` | Timestamp | |
 
-### Per-Participant Completion Record
+### Per-Participant Completion Record (`pre_trip_task_completions`)
 
-Each `trip_participant` has an independent completion status per task:
+Applies only to `GROUP` type tasks. Each assigned `trip_participant` has an independent completion record:
 
 | Field | Type | Description |
 |---|---|---|
 | `task_id` | UUID | |
 | `participant_id` | UUID | |
-| `status` | Enum | `PENDING`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE` |
-| `completed_at` | Timestamp | |
-| `notes` | Text | Optional personal note on how they completed it |
+| `status` | Enum `PreTripTaskStatus` | `PENDING`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE` |
+| `completed_at` | Timestamp (nullable) | |
+| `notes` | Text (nullable) | Optional personal note on how they completed it |
 
 ### Task Categories (Enum: `PreTripTaskCategory`)
 
-Derived from real-world usage:
+Applies to all three task types:
 
-| Value | Label | Examples |
+| Value | Label | Typical use |
 |---|---|---|
 | `DOCUMENTS` | Documents | Passport renewal, visa application, ID copy |
 | `HEALTH` | Health & Vaccines | Yellow fever vaccine, travel insurance, medical kit |
-| `FINANCIAL` | Financial | Enable international card use, buy foreign currency |
+| `FINANCIAL` | Financial | Enable international card, buy foreign currency |
 | `GEAR` | Gear & Packing | Power adapter, luggage scale, day backpack |
 | `BOOKINGS` | Bookings | Confirm accommodation, pre-book attraction tickets |
 | `LOGISTICS` | Logistics | Print itinerary, download offline maps, buy SIM |
@@ -102,7 +121,11 @@ Derived from real-world usage:
 
 ### Organizer View
 
-The organizer sees an aggregate matrix:
+The organizer sees three separate lists:
+
+**Organizer tasks** — a simple checklist with a single status per task and the name of whoever last updated it.
+
+**Group tasks** — an aggregate matrix of traveler progress:
 
 ```
 Task                          | P1  | P2  | P3   | P4  | P5  | P6   | Progress
@@ -114,9 +137,14 @@ Enable international cards    |  ✓  |  ✓  |  ✓   |  ✓  |  ✓  |  ✓   
 
 *(Columns use participant `display_name` values. See `participants.md`.)*
 
+**Personal tasks** — organizers do not see individual participants' personal tasks.
+
 ### Participant View
 
-Each participant sees only their own tasks, their completion status, and deadlines — not other participants' statuses (unless the organizer configures visibility).
+Each participant sees:
+- **Organizer tasks** — read-only view; they can see what the organizing team is working on.
+- **Their own group tasks** — their completion status and deadlines. Other participants' statuses are not visible.
+- **Their own personal tasks** — their full personal checklist. Only visible to them.
 
 ---
 
@@ -180,6 +208,12 @@ Per-destination cash and spending envelopes. Helps participants know how much ca
 
 This data is set by the organizer as a **recommendation** for participants, not a hard limit. It answers the practical question: "How much cash should I bring to Egypt?"
 
+### Budget Visibility
+
+The budget planner is visible to **anyone who can see the trip** — the same audience defined by the trip's visibility setting (`PUBLIC`, `LINK_ONLY`, or `PRIVATE` with its group list). There is no separate budget visibility toggle; it follows trip visibility directly. This allows prospective participants to evaluate the trip's financial scope before requesting to join.
+
+Actual recorded expenses (the expense ledger) are restricted to **confirmed travelers and organizers** only. The distinction is: the budget planner is planning data (public within the trip's audience); expense records are financial data (private to the trip's members).
+
 ---
 
 ## 5. Exchange Rates
@@ -231,7 +265,39 @@ Rate requests are cached for 24 hours on the backend. A suggestion that is hours
 
 ---
 
-## 6. Pre-Trip Phase Status
+## 6. Task Templates
+
+To reduce setup friction for organizers, Chamuco App provides a **template library** of pre-built task sets for common trip types. When creating the pre-trip checklist, the organizer can import one or more templates and then customize the imported tasks.
+
+### Template Sources
+
+| Source | Description |
+|---|---|
+| **Platform templates** | Curated by Chamuco. Cover common scenarios: international trip, beach trip, mountain/hiking trip, city break, backpacking trip, group cruise, road trip. Each template contains a mix of `ORGANIZER` and `GROUP` task types with suggested categories, deadlines (expressed as "N days before departure"), and descriptions. |
+| **Saved by the organizer** | After completing a trip, any organizer can save the trip's task list as a personal template for future reuse. |
+
+### Template Record (`pre_trip_task_templates`)
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `name` | String | Template name (e.g., "International Group Trip") |
+| `description` | Text (nullable) | Short description of when this template is useful |
+| `source` | Enum | `PLATFORM` or `USER` |
+| `created_by` | UUID (nullable) | Null for platform templates; FK → `users.id` for user-created |
+| `tasks` | JSONB | Array of task definitions: `type`, `title`, `description`, `category`, `days_before_deadline` (relative offset from departure date) |
+| `created_at` | Timestamp | |
+
+### Behavior
+
+- Importing a template creates actual `pre_trip_tasks` records on the trip. Deadlines are computed from the trip's `start_date` minus `days_before_deadline`.
+- Templates are a starting point — all imported tasks are fully editable after import.
+- Multiple templates can be applied to the same trip (e.g., "International Trip" + "Beach Trip").
+- Duplicate tasks are not automatically merged — the organizer reviews and removes redundancies manually.
+
+---
+
+## 7. Pre-Trip Phase Status
 
 The pre-trip phase has its own progress indicators, separate from the trip's overall status:
 
@@ -248,7 +314,7 @@ A **Pre-Trip Readiness Score** (simple percentage or traffic-light indicator) gi
 
 ---
 
-## 7. Pre-Trip Items in the Itinerary (Day 0)
+## 8. Pre-Trip Items in the Itinerary (Day 0)
 
 Even with the pre-trip module, some preparatory items belong **on the itinerary timeline** because they represent real activities with a time and a cost:
 
@@ -261,12 +327,12 @@ These are logged as itinerary items under a **"Day 0 — Pre-departure"** block 
 
 ---
 
-## 8. Open Questions / To Be Defined
+## 9. Open Questions / To Be Defined
 
-- Can participants add their own pre-trip tasks, or is it organizer-only?
-- Should there be a template library of common pre-trip tasks (e.g., "Standard international trip checklist") that organizers can import?
 - At what point does the pre-trip phase "end" — is it on departure date, or when the organizer manually closes it?
 - Should overdue strict tasks send escalation notifications to the organizer as well as the participant?
-- Is the budget planner visible to all participants, or only to the organizer? (Participants likely benefit from knowing the recommended cash amounts.)
 - Should reminder notification frequency be configurable per task, or is the global schedule (7d / 3d / 1d) sufficient?
 - Does the pre-trip checklist survive if the trip is cancelled — should it be archived or deleted?
+- Should organizers have the option to make personal tasks visible to them (opt-in per participant or per trip)?
+- Can organizers save a template from a trip in progress, or only after the trip is `COMPLETED`?
+- Should user-created templates be shareable between organizers (e.g., within a group), or strictly personal?

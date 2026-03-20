@@ -53,7 +53,7 @@ Statistics are computed automatically from completed trips. They are displayed o
 |---|---|
 | `trips_completed` | Total count of trips where the user was a confirmed participant and the trip reached `COMPLETED` status |
 | `countries_visited` | Count of unique countries covered by at least one itinerary item in a completed trip |
-| `regions_visited` | Count of unique region/state subdivisions visited (used for the discovery map) |
+| `cities_visited` | Count of unique cities/towns visited across completed trips (used for the discovery map city view) |
 | `km_traveled` | Sum of `distance_km` across all transport itinerary items in completed trips |
 | `km2_explored` | Approximate area covered by visited places, computed from coordinates of `PLACE` itinerary items |
 | `trips_per_year` | Historical breakdown: trips completed per calendar year |
@@ -184,23 +184,44 @@ The computed balance is never stored directly — it is always derived from the 
 
 ## 5. Discovery Map
 
-Every user has a **personal discovery map**: an interactive geographic visualization of all territories they have visited across completed trips.
+Every user has a **personal discovery map**: an interactive geographic visualization of all places they have visited across completed trips.
 
-### Granularity
+### Granularity Levels
 
-- **Country level** — every country where at least one itinerary `PLACE` item was located in a completed trip is highlighted.
-- **Region/state level** — for countries with region data on itinerary items, individual regions/states are highlighted within the country polygon.
+The map has two primary zoom levels and two aggregate statistical views. There is deliberately **no intermediate level** (states, departments, counties, municipalities) — political subdivisions vary too much across countries to be meaningful or consistent.
+
+**Level 1 — Country view (default)**
+The world map with every visited country highlighted. A country is considered visited when at least one itinerary `PLACE` item in a completed trip is located in that country. This is the primary view.
+
+**Level 2 — City/town view**
+Accessible by tapping/clicking a highlighted country. Shows individual cities and towns visited within that country as point markers or small clusters, derived from the city-level metadata on `PLACE` itinerary items. No further subdivision (no states, no provinces).
+
+**Statistical view A — Continental summary**
+A panel (not a geographic map) showing all 6 inhabited continents with:
+- Number of countries visited per continent
+- Total countries in that continent
+- Percentage visited (e.g., "Europe: 8 / 44 countries — 18%")
+
+This view is always available alongside the map as a summary card.
+
+**Statistical view B — Country coverage**
+When viewing a specific country at Level 2, a summary shows: "X cities visited in {country}". No percentage is shown since "total cities in a country" is not a meaningful or universal figure — count is more honest.
 
 ### Behavior
 
-- Territories with at least one visit are colored (color determined by the user's active map theme from Chamuco Points catalog; default is the primary color of the chosen app palette).
-- Unvisited territories are neutral gray.
-- Clicking or tapping a highlighted territory opens a panel showing the trips that covered that territory, with links to each trip's detail page.
+- Visited countries are filled with the primary color at 60–80% opacity. Unvisited countries are neutral gray.
+- City-level markers use a small dot; clusters expand on zoom/tap.
+- Tapping a highlighted country (Level 1) or a city marker (Level 2) opens a panel listing the trips that covered that location, with links to each trip's detail page.
+- The map respects the user's active map theme from the Chamuco Points cosmetic catalog; the default theme uses the chosen app palette's primary color.
 - The map is displayed on the user's public profile if their profile visibility permits it.
 
 ### Data Source
 
-The map is derived from `itinerary_items` of type `PLACE` that carry coordinate or country/region metadata, filtered to items belonging to completed trips where the user was a confirmed participant.
+The map is computed on demand from `itinerary_items` of type `PLACE` in completed trips where the user was a confirmed participant. Each `PLACE` item carries:
+- `address` — used to extract country and city name
+- `coordinates` — used for map pinpoint placement
+
+No separate geographic database table is required. Country and city extraction relies on the place's address fields populated at trip planning time.
 
 ---
 

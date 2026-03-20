@@ -11,6 +11,17 @@ The **Trip** is the central entity of Chamuco App. Everything else — participa
 
 ---
 
+## Trip Creation
+
+When a user creates a trip, they become its first `ORGANIZER`. As part of the creation flow, they must explicitly declare whether they will be traveling with the group:
+
+- **Traveling** (`is_traveling_participant = true`) — the organizer is counted in the participant capacity and the per-person budget estimate.
+- **Not traveling** (`is_traveling_participant = false`) — the organizer administers the trip but does not occupy a spot, and is excluded from expense splits and capacity counts.
+
+This decision can be changed later by the organizer, but declaring it upfront ensures the budget estimate and capacity are accurate from the start.
+
+---
+
 ## Trip Lifecycle
 
 A trip progresses through the following statuses (enum: `TripStatus`):
@@ -52,28 +63,38 @@ Once a trip enters `IN_PROGRESS` status, the trip is live. To protect participan
 
 ## Trip Roles
 
-Within a trip, each participant holds a role (enum: `TripRole`):
+Within a trip, each member holds a role (enum: `TripRole`) and an independent traveling flag. See [`features/participants.md`](./participants.md) for the full role model and co-organizer permission system.
 
 | Value | Description |
 |---|---|
-| `ORGANIZER` | Creates and manages the trip. Sets rules, controls invitations, manages the itinerary. Does not have to be a participant. |
-| `CO_ORGANIZER` | Shares organizational permissions with the organizer. |
-| `PARTICIPANT` | A confirmed attendee of the trip. |
-| `INVITED` | Has received an invitation but has not yet confirmed. |
-| `DECLINED` | Declined the invitation. |
-| `WAITLISTED` | Accepted but on a waitlist pending capacity. |
+| `ORGANIZER` | Full administrative control. All permissions always granted. May or may not travel — decided independently by `is_traveling_participant`. Multiple organizers allowed. |
+| `CO_ORGANIZER` | Delegated helper with a configurable set of permissions defined by an assigning organizer (`co_organizer_permissions`). May or may not travel — independent of the role. |
+| `PARTICIPANT` | Confirmed traveler. Standard access. Always counts as a traveling participant. |
+
+`INVITED`, `DECLINED`, and `WAITLISTED` are **participant statuses** (`ParticipantStatus`), not roles. See [`features/participants.md`](./participants.md) for the full state machine.
 
 ---
 
 ## Trip Visibility
 
-Configurable visibility (enum: `TripVisibility`):
+Configurable visibility (enum: `TripVisibility`). **Visibility controls discoverability only** — it does not determine who can be invited. Organizers can always invite any user regardless of visibility setting.
 
 | Value | Description |
 |---|---|
-| `PRIVATE` | Only invited users can see the trip. |
-| `LINK_ONLY` | Anyone with the link can view (read-only). |
-| `PUBLIC` | Listed publicly in the community feed. |
+| `PUBLIC` | Listed publicly in the community feed. Any registered user can discover and view the trip. |
+| `LINK_ONLY` | Not listed publicly. Anyone who has the direct link can view the trip. |
+| `PRIVATE` | Not searchable and not publicly listed. Visible only to members of groups the organizer has explicitly shared it with (see `trip_visible_to_groups` below). If no groups are defined, the trip is invisible to everyone except direct invitees. |
+
+### Private Trip — Visible Groups
+
+A `PRIVATE` trip may define a set of groups whose members can see it. This is stored in a `trip_visible_to_groups` join table (`trip_id`, `group_id`). Any member of a listed group can:
+
+- See the trip in the group's context.
+- Submit a join request.
+
+The organizer may add or remove groups from this list at any time. Changing visibility settings does not affect pending requests or invitations already in flight.
+
+See [`features/participants.md`](./participants.md) for the full membership flow that follows from trip visibility.
 
 ---
 
@@ -296,6 +317,77 @@ Additional fields for `CITY_PASS`: `pass_name`, `covered_item_ids[]`, `valid_fro
 
 ---
 
+## Trip Views
+
+A trip can be presented in two frontend view modes. Both are read-only projections of the same underlying data — no separate model is required.
+
+### Timeline View (default)
+
+The standard itinerary view: a chronological day-by-day breakdown of all items, grouped by country → city → day. This is the primary working view for organizers and confirmed participants. Shows all fields, allows inline editing (for authorized roles), and exposes full detail per item.
+
+### Activity Sequence View
+
+A condensed, visual card sequence showing the trip's highlights. Intended for quick preview — useful for potential participants evaluating whether to join, for sharing the plan externally, or for a post-trip recap.
+
+Each card in the sequence shows:
+- Category icon (from the chosen icon pack)
+- Item name
+- Day and time
+- One key detail (city/destination for transport, venue for places, restaurant for food)
+- Per-person cost estimate (if `budget_visibility` allows — see below)
+
+The sequence is auto-generated from the itinerary; no additional authoring is required. Items marked `SKIPPED` are omitted from post-trip sequence views.
+
+---
+
+## Trip Budget Estimate
+
+Every trip has a **budget estimate** derived automatically from its itinerary items. This estimate helps potential participants decide whether to join before committing.
+
+### Computation
+
+| Component | Source |
+|---|---|
+| Total estimated cost | Sum of `amount` across all itinerary items with a non-null `amount` |
+| Per-person estimate | Total / count of `CONFIRMED` participants (excluding non-traveling organizers) |
+| Base currency | The trip's declared base currency |
+| Category breakdown | Grouped by `category`: `TRANSPORT`, `PLACE` (accommodation), `FOOD`, `OTHER` |
+| Confidence indicator | Percentage of items with `status = CONFIRMED` vs `PLANNED` — signals how firm the estimate is |
+
+The per-person estimate updates automatically whenever:
+- An itinerary item is added, edited, or removed
+- A new participant is confirmed or removed
+
+### Budget Visibility (`budget_visibility`)
+
+The organizer controls who can see the budget estimate:
+
+| Value | Description |
+|---|---|
+| `PUBLIC` | Visible on the trip's public description — accessible to anyone who can see the trip |
+| `PARTICIPANTS_ONLY` | Visible only to confirmed participants and organizers |
+| `ORGANIZER_ONLY` | Visible only to organizers (default for private trips) |
+
+`budget_visibility` is stored as a field on the `trips` table. Default: `PARTICIPANTS_ONLY` for public trips, `ORGANIZER_ONLY` for private trips.
+
+### Display on Trip Description
+
+When `budget_visibility` permits, the trip detail page shows a **budget summary card**:
+
+```
+Estimated cost per person: ~$320 USD
+  Transport:      $180  (56%)
+  Accommodation:  $90   (28%)
+  Food:           $30   (9%)
+  Other:          $20   (6%)
+Confidence: 70% of items confirmed
+Based on 12 confirmed participants
+```
+
+This is an estimate for planning purposes — it is not the final expense settlement. Final costs are tracked separately in the Expenses module.
+
+---
+
 ## Trip Completion & Gamification
 
 When a trip transitions to `COMPLETED` status, the platform triggers a structured post-trip sequence. This is defined in full in [`features/gamification.md`](./gamification.md) — Trip Completion Flow section. In summary:
@@ -315,13 +407,51 @@ The `trips` table carries two additional fields to track these windows:
 
 ---
 
+## Trip Resources
+
+Every trip has a shared **Resources** section where participants and organizers can attach notes, documents, and links of interest that are relevant to the trip. This is a collaborative space — a lightweight wiki for the group.
+
+### Resource Types (enum: `ResourceType`)
+
+| Value | Description |
+|---|---|
+| `NOTE` | Free-form markdown text. Useful for reminders, shared checklists, packing lists, local tips, or anything that doesn't fit the structured itinerary. |
+| `DOCUMENT` | A file uploaded to Cloud Storage (PDF, image, spreadsheet, etc.). Useful for insurance documents, visas, booking confirmations, maps. |
+| `LINK` | An external URL with an optional title and description. Useful for hotel websites, tourist information, recommendations, booking pages. |
+
+### Schema (`trip_resources`)
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `trip_id` | UUID | FK → `trips.id` |
+| `type` | Enum `ResourceType` | `NOTE`, `DOCUMENT`, or `LINK` |
+| `title` | String (nullable) | Optional for notes; required for documents and links |
+| `body` | Text (nullable) | Markdown content for `NOTE`; optional description for `LINK` |
+| `url` | String (nullable) | External URL (`LINK`) or Cloud Storage URL (`DOCUMENT`) |
+| `file_name` | String (nullable) | Original filename for `DOCUMENT` type |
+| `file_size` | Integer (nullable) | Size in bytes for `DOCUMENT` type |
+| `mime_type` | String (nullable) | MIME type for `DOCUMENT` type |
+| `added_by` | UUID | FK → `users.id` — the user who created this resource |
+| `created_at` | Timestamp | |
+| `updated_at` | Timestamp | |
+
+### Access Rules
+
+Any confirmed participant or organizer on the trip may **add** resources. Editing and deleting follow ownership: the creator (`added_by`) may always manage their own resources; organizers and co-organizers with `EDIT_TRIP_DETAILS` may edit or delete any resource.
+
+---
+
 ## Open Questions / To Be Defined
 
-- Can a trip have multiple organizers, or only one with co-organizers?
-- Should organizers who are not participants be able to see all expense details?
+- Should non-traveling organizers (`is_traveling_participant = false`) have access to all expense details by default?
 - Can a trip be cloned or saved as a template for repeat travel (e.g., annual trips)?
 - How are time zones handled for display across multi-destination trips — show destination local time or user's local time?
 - Should `PLACE / HOTEL` items be the same entity as stays in the reservations module, or a separate reference?
 - Should child items of a `GUIDED_TOUR` be full itinerary items or a lightweight sub-list?
 - Should the 7-day feedback window be configurable per trip by the organizer, or fixed platform-wide?
 - Can the organizer extend the feedback window if it expires before they've awarded all recognitions?
+- Should `budget_visibility` be configurable post-publication, or locked once the trip is `OPEN`?
+- Should the activity sequence view be available publicly (for trip discovery) or only to invited/confirmed participants?
+- Should the budget estimate exclude items that are not part of the group cost (e.g., items where `participant_ids` is a subset)?
+- **How should past trips be registered?** Users will have travel history that predates Chamuco. Options to consider: (a) full retroactive trip creation with `status = COMPLETED` from the start, bypassing the normal lifecycle — participants are added directly without invitations; (b) a lightweight "travel history entry" with minimal required fields (destination, dates, who traveled) that contributes to stats and the discovery map but doesn't support the full trip ecosystem; (c) a "past trip" creation flow — same entity as a regular trip but with a streamlined UI, no invitations/approvals, and no pre-trip phase. The chosen approach must ensure retroactive contributions to `user_stats`, `group_member_stats`, achievements, and the discovery map.

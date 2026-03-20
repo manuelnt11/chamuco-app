@@ -83,7 +83,7 @@ Authorization uses **Role-Based Access Control (RBAC)** layered across three sco
 
 | Layer | Roles | Enforced at |
 |---|---|---|
-| Platform | `USER`, `MODERATOR`, `ADMIN` | Global API guards |
+| Platform | `USER`, `SUPPORT_ADMIN` | Global API guards |
 | Trip | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT` | Trip-scoped guards |
 | Group | `OWNER`, `ADMIN`, `MEMBER` | Group-scoped guards |
 
@@ -91,6 +91,18 @@ NestJS implementation:
 - A custom `@Roles()` decorator declares required roles on controller methods.
 - A `RolesGuard` reads the current user's roles from `req.user` and compares against the declared requirements.
 - For trip/group-scoped roles, the guard resolves the user's role within the specific resource being accessed (trip participant record or group member record).
+
+### Support Admin Bypass
+
+When `req.user.platform_role === 'SUPPORT_ADMIN'`, all trip-scoped and group-scoped guards short-circuit and allow the request through regardless of membership, status, or permission checks. The `FirebaseAuthGuard` still runs — support admins must authenticate with a valid Firebase token. Authentication is never bypassed; only authorization is.
+
+Every write request from a `SUPPORT_ADMIN` is intercepted by a `SupportAdminAuditInterceptor` that:
+
+1. Captures the before-state of the affected record(s) before the handler runs.
+2. Lets the handler execute normally.
+3. Captures the after-state and writes an immutable entry to `support_admin_audit_log`.
+
+The audit log records: `admin_user_id`, `action`, `target_table`, `target_id`, `before_state` (JSONB), `after_state` (JSONB), `performed_at`. Read-only requests by a support admin are not logged.
 
 ---
 

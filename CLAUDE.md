@@ -78,17 +78,26 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 ### Users
 - Every user must choose a unique `@username` at registration: lowercase, 3–30 chars, `a-z 0-9 _ -` only, stored without `@`, displayed with `@`.
 - Personal data (passport, emergency contact, dietary needs, allergies, phobias, physical limitations) lives on the user profile (`user_profiles`, `user_health_profiles`) — never duplicated per trip.
+- **Platform roles** (`platform_role` on `users`): `USER` (default) or `SUPPORT_ADMIN`. A `SUPPORT_ADMIN` is a service account for troubleshooting — it bypasses all trip and group access restrictions (authentication still required), is never counted as a participant, has no travel profile or gamification records, and every write it performs is logged immutably in `support_admin_audit_log`. The role is not assignable from within the app.
 
 ### Trips
 - A trip starts at **00:00 on `start_date`** and ends at **24:00 on `end_date`** (`end_date >= start_date`, same day is valid).
 - Once `IN_PROGRESS`: all edits require organizer confirmation and all confirmed participants are notified.
-- An organizer/co-organizer can **always** invite any user regardless of trip visibility (public or private).
-- Changing trip visibility never affects pending requests or invitations.
+- **Trip visibility controls discoverability only**, not who can be invited. `PUBLIC` = listed publicly; `LINK_ONLY` = accessible via direct link; `PRIVATE` = not searchable, visible only to members of groups explicitly listed in `trip_visible_to_groups`.
+- An organizer can **always** invite any user regardless of trip visibility.
+- If a user can see the trip (by any visibility path), they can submit a join request. Changing visibility does not affect pending requests or invitations already in flight.
+- The trip creator must declare `is_traveling_participant` at creation time.
 
 ### Participants & Groups
-- Dual membership flow: public trips/groups allow user join requests; private trips/groups use organizer invitations. Both paths always available to organizers.
+- Two entry paths: **join request** (user-initiated, requires the user to be able to see the trip) and **invitation** (organizer-initiated, always available). Both may coexist.
 - Only one active request **or** invitation per user per trip/group at a time.
+- **Requests and invitations can be cancelled at any time by their creator**: a user may withdraw their `PENDING_REQUEST`; an organizer may revoke an `INVITED` invitation. The record is deleted (no terminal status set) and the slot is freed immediately.
+- **Waitlist** is not a separate entity. It is a view of `PENDING_REQUEST` records ordered by `initiated_at`. When `WAITLIST_MODE` confirmation rule is active and capacity is full, the organizer must accept requests in chronological order — they may reject any request at any time but may not skip one to accept a later one.
 - Last organizer (trip) or last admin (group) cannot leave without transferring the role first.
+- **Organizer role vs. participation are independent**: both `ORGANIZER` and `CO_ORGANIZER` may or may not travel on the trip, controlled by `is_traveling_participant` (boolean). Non-traveling organizers are excluded from capacity, expense splits, and the per-person budget estimate. Multiple users may hold `ORGANIZER` simultaneously.
+- **Co-organizer permissions are granular**: when assigning `CO_ORGANIZER`, the assigning organizer defines an explicit `CoOrganizerPermission[]` set: `MANAGE_ITINERARY`, `MANAGE_EXPENSES`, `MANAGE_PARTICIPANTS`, `MANAGE_RESERVATIONS`, `EDIT_TRIP_DETAILS`, `MANAGE_PRE_TRIP_TASKS`, `MODERATE_CHANNEL`, `VIEW_TRAVEL_PROFILES`, `AWARD_RECOGNITIONS`. Full organizers always have all permissions implicitly.
+- **Role promotion requires a role invitation** (`trip_role_invitations`): if the invitee is already a confirmed participant, the invitation only upgrades their role (`is_traveling_participant` stays `true`); if not yet a participant, the organizer declares `will_travel`. A role invitation with `will_travel = true` bypasses `WAITLIST_MODE`. Role invitations follow the same create/revoke-at-will lifecycle as participant invitations. If the invitee has an active participant request or invitation, it is deleted when the role invitation is created.
+- **Role downgrade is a direct organizer action** (no invitation): never affects `is_traveling_participant`.
 
 ### Messaging (Slack-like)
 - DMs (1:1) and Channels (named, PUBLIC or PRIVATE).
@@ -103,10 +112,14 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - Items have `duration_minutes`, `participant_ids` (subset scoping), multi-currency fields with `exchange_rate_snapshot`.
 
 ### Expenses
-- `amount` = total group cost in original currency.
-- `participant_scope` = UUID[] of which participants the expense covers (not always all).
-- `amount_per_participant` = auto-computed from `amount / participant_count`.
-- `exchange_rate_snapshot` is immutable — snapshotted at time of recording.
+- **No real money is processed.** The expense module is a collaborative ledger. Settlement is computed at trip end (Splitwise-style minimal debt graph) and participants settle outside the app.
+- Two layers: **planned costs** (`trip_budget_items` — required or optional, defined by organizer) and **actual expenses** (`expenses` — the live ledger). Planned and actual can be linked.
+- Expense ownership: `SHARED` (split among participants, generates debt) or `INDIVIDUAL` (personal spend, no debt, recorded in the group ledger for reference and aggregate totals).
+- Optional budget items: each participant opts in; organizer marks as paid. `SHARED` optional items have a max group size — the participant who opts in declares who they share with.
+- Split types: `EQUAL`, `EXACT`, `PERCENTAGE`, `SHARES`. The expense **creator** controls payers, split type, and distribution. Organizers (and co-organizers with `MANAGE_EXPENSES`) can edit any expense.
+- Multiple payers per expense are supported (`expense_payers` table). Sum of payer amounts must equal the total.
+- `exchange_rate_snapshot` is immutable — snapshotted at time of recording, never overwritten.
+- Splits and settlement only include participants with `did_travel = true`. Confirmed participants who did not travel (`did_travel = false`) are excluded from expense splits.
 
 ### Gamification
 - **Traveler Score** — composite metric computed from completed trips, countries visited, km traveled, achievements, and feedback received. Used for global ranking. Never editable.
@@ -138,14 +151,15 @@ All design documentation lives in `documentation/`. Key files:
 | `architecture/database-design.md` | Schema philosophy, JSONB usage |
 | `architecture/monorepo-structure.md` | Directory layout |
 | `features/users.md` | User account, personal profile, health profile, loyalty programs, traveler stats, achievements |
-| `features/trips.md` | Trip lifecycle, itinerary model, full taxonomy, post-completion gamification flow |
-| `features/participants.md` | Membership flows, states, guest participants |
+| `features/trips.md` | Trip lifecycle, itinerary model (timeline + sequence views), budget estimate visibility, full taxonomy, post-completion gamification flow |
+| `features/participants.md` | Membership flows, states, waitlist mechanics, guest participants |
 | `features/community.md` | Groups, Slack-like messaging, Firestore architecture, group member tiers |
 | `features/expenses.md` | Expense model, splits, settlements, multi-currency |
 | `features/reservations.md` | Booking records, metadata by type |
 | `features/pre-trip-planning.md` | Pre-trip tasks, route planning, budget envelopes |
 | `features/gamification.md` | Traveler Score, achievements, Chamuco Points, discovery map, recognitions, feedback |
-| `features/events.md` | Events system: modes, categories, RSVP, gamification integration |
+| `features/events.md` | Events system: modes, categories, RSVP, waitlist, gamification integration |
+| `features/calendar.md` | Calendar views: monthly grid + upcoming list, aggregating trips and events |
 | `infrastructure/auth.md` | Firebase Authentication integration |
 | `infrastructure/cloud.md` | GCP services, CI/CD pipelines |
 | `design/localization.md` | i18n spec, key naming, enforcement |

@@ -1,100 +1,195 @@
 # Feature: Expenses
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-14
+**Last Updated:** 2026-03-19
 
 ---
 
 ## Overview
 
-The expenses module allows trip participants to record shared and individual costs, track payment status, split amounts among the applicable participants, and compute a settlement plan at the end of the trip. All monetary values are stored in their original currency with a base-currency equivalent for cross-currency comparison.
+The expenses module is a **collaborative trip ledger**. Participants record what was spent, who paid, and how to divide it. Since Chamuco does not process real money, the result is a settlement plan that participants execute outside the app. The model is inspired by Splitwise: one or more people pay for a cost, the app tracks who owes whom across the entire trip, and at the end it computes the minimum transfers needed to settle all debts.
+
+Expenses are organized in two layers:
+
+- **Planned costs** (`trip_budget_items`) — defined by the organizer before or during the trip; feed into the budget estimate.
+- **Actual expenses** (`expenses`) — recorded when money is spent; the live ledger.
+
+Planned costs and actual expenses can be linked: when a budget item is paid, an expense record is created and connected back to it.
 
 ---
 
-## Financial Model
+## Expense Timing
 
-This model is derived from real-world trip planning data. The key insight is that **expenses are scoped to a subset of participants**, not necessarily the full group.
+| Value | Description |
+|---|---|
+| `PRE_TRIP` | Recorded before departure (cruise reservation, advance payment, group insurance). Organizer marks as paid. |
+| `IN_TRIP` | Recorded during the trip (restaurant, taxi, excursion ticket). |
 
-### Core Concepts
+---
 
-**`amount`** — The total cost of the expense in its original currency, covering all applicable participants.
+## Expense Ownership
 
-**`participant_scope`** — Which specific participants this expense applies to (a subset of the trip's confirmed participants). This can be 1 person, a subgroup, or everyone.
+| Value | Split behavior | Ledger purpose |
+|---|---|---|
+| `SHARED` | Divided among a defined set of participants (all travelers or a subset). Generates debts. | Financial settlement |
+| `INDIVIDUAL` | One person paid for themselves. No split, no debt generated. | Reference — contributes to each person's total trip spend and the group's aggregate cost view. |
 
-**`participant_count`** — The number of participants in `participant_scope`. Auto-derived from the list.
+**Individual expenses appear in the group ledger.** This allows the full picture of what the trip cost to be visible to all participants at the end, even for things each person handled on their own (transport to the departure port, personal drinks). The individual payer owes nothing to anyone — their entry is informational.
 
-**`amount_per_participant`** — Auto-computed: `amount / participant_count`. The share each person in scope owes or has paid.
+---
 
-**`base_currency_equivalent`** — The `amount_per_participant` expressed in the trip's base currency (e.g., COP), computed using the trip's stored exchange rate at time of recording.
+## Planned Costs (`trip_budget_items`)
 
-**`exchange_rate_snapshot`** — The specific rate used to compute `base_currency_equivalent`, stored immutably on the record so future rate updates do not alter historical amounts.
+The organizer defines a cost schedule for the trip — anticipated expenses shown in the budget estimate. Each item is `REQUIRED` (everyone is expected to pay) or `OPTIONAL` (each participant opts in).
 
-**`is_paid`** — Whether the total amount has already been paid (e.g., a pre-booked flight). `true` = paid; `false` = pending payment or estimation only.
+### Budget Item Record
 
-**`paid_amount`** — How much has actually been paid so far (supports partial/advance payments). May differ from `amount` when a deposit was made but the full amount is outstanding.
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `trip_id` | UUID | |
+| `title` | String | e.g., "Cruise reservation", "Unlimited drinks package" |
+| `description` | Text (nullable) | |
+| `category` | Enum `ExpenseCategory` | |
+| `participation` | Enum `BudgetItemParticipation` | `REQUIRED` or `OPTIONAL` |
+| `sharing` | Enum `BudgetItemSharing` | `INDIVIDUAL` (each person independently) or `SHARED` (participants form groups to share one unit). Only meaningful for `OPTIONAL` items. |
+| `max_sharing_group_size` | Integer (nullable) | For `OPTIONAL / SHARED`: maximum participants per sharing group. Enforced on opt-in. |
+| `unit_cost` | Decimal (nullable) | Cost per person (for per-person items) or estimated group total |
+| `unit_cost_currency` | String | |
+| `is_per_person` | Boolean | Whether `unit_cost` is per person or for the whole group |
+| `timing` | Enum `ExpenseTiming` | `PRE_TRIP` or `IN_TRIP` |
+| `linked_expense_id` | UUID (nullable) | FK → `expenses.id` once this planned cost is paid and recorded |
+| `created_by` | UUID | |
+| `created_at` | Timestamp | |
+| `updated_at` | Timestamp | |
+
+### Optional Budget Items — Opt-in (`trip_budget_item_optins`)
+
+For `OPTIONAL` items, each participant (or the organizer on their behalf) registers an opt-in:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `budget_item_id` | UUID | |
+| `initiated_by` | UUID | Participant who created the opt-in, or organizer who assigned it |
+| `participants` | UUID[] (JSONB) | Who is in this opt-in. Single-element for `INDIVIDUAL` sharing; multiple for `SHARED` (max = `max_sharing_group_size`). |
+| `marked_paid` | Boolean | Organizer marks this opt-in group as paid |
+| `marked_paid_by` | UUID (nullable) | |
+| `marked_paid_at` | Timestamp (nullable) | |
+| `expense_id` | UUID (nullable) | Link to actual expense once paid |
+| `created_at` | Timestamp | |
+
+**Rules for `OPTIONAL / SHARED` items:**
+
+- A participant opts in by declaring who they share with (up to `max_sharing_group_size`).
+- An organizer can also create opt-in groups and assign participants to them.
+- Once a group reaches `max_sharing_group_size`, it is closed. A new group can be started for additional participants.
+- Multiple sharing groups per budget item are allowed (e.g., three cabins of four people each buying internet — three separate opt-in groups).
 
 ---
 
 ## Expense Record (`expenses`)
 
+The actual ledger entry. One record per cost event.
+
 | Field | Type | Description |
 |---|---|---|
 | `id` | UUID | |
-| `trip_id` | UUID | Parent trip |
-| `itinerary_item_id` | UUID (nullable) | Optional link to the itinerary item this cost belongs to |
+| `trip_id` | UUID | |
 | `title` | String | Short description (e.g., "Dinner at La Puerta Falsa") |
-| `category` | Enum `ExpenseCategory` | See categories below |
-| `expense_type` | Enum `ExpenseType` | See types below |
+| `description` | Text (nullable) | |
+| `category` | Enum `ExpenseCategory` | |
+| `ownership` | Enum `ExpenseOwnership` | `SHARED` or `INDIVIDUAL` |
 | `currency` | String (ISO 4217) | Currency in which the expense is denominated |
-| `amount` | Decimal | Total group cost in `currency` |
-| `participant_scope` | UUID[] | Which participant IDs this expense covers |
-| `participant_count` | Integer | Auto-derived from `participant_scope` length |
-| `amount_per_participant` | Decimal | Auto-computed: `amount / participant_count` |
-| `base_currency_equivalent` | Decimal | `amount_per_participant` in trip base currency |
-| `exchange_rate_snapshot` | Decimal | Exchange rate at time of recording |
-| `is_paid` | Boolean | Whether payment has been made |
-| `paid_amount` | Decimal | Amount actually paid so far (for partial/advance payments) |
-| `payment_method` | Enum `PaymentMethod` | How it was or will be paid |
-| `paid_by` | UUID (nullable) | The participant who paid on behalf of the group (for group expenses) |
+| `total_amount` | Decimal | Total amount paid in `currency` |
+| `exchange_rate_snapshot` | Decimal | Confirmed rate at time of recording. **Immutable after save.** |
+| `total_amount_base` | Decimal | Computed: `total_amount × exchange_rate_snapshot`. Stored, not recomputed. |
+| `split_type` | Enum `SplitType` | `EQUAL`, `EXACT`, `PERCENTAGE`, `SHARES`. Ignored for `INDIVIDUAL` ownership. |
+| `timing` | Enum `ExpenseTiming` | `PRE_TRIP` or `IN_TRIP` |
+| `budget_item_id` | UUID (nullable) | FK → `trip_budget_items.id` if this expense fulfills a planned cost |
+| `itinerary_item_id` | UUID (nullable) | Optional link to the itinerary item this cost belongs to |
 | `date` | Date | When the expense occurred or is expected to occur |
-| `notes` | Text | Optional free-text notes |
-| `receipt_url` | String (nullable) | URL to receipt image / PDF stored in Cloud Storage |
-| `created_by` | UUID | Who recorded this expense |
+| `receipt_url` | String (nullable) | URL to receipt image / PDF in Cloud Storage |
+| `notes` | Text (nullable) | |
+| `created_by` | UUID | Expense creator — holds edit control over payers and splits |
 | `created_at` | Timestamp | |
 | `updated_at` | Timestamp | |
 
----
+### `expense_payers`
 
-## Expense Categories (enum: `ExpenseCategory`)
+Who paid, and how much. The sum of all payer amounts must equal `total_amount`.
 
-| Value | Description | Examples |
+| Field | Type | Description |
 |---|---|---|
-| `TRANSPORT` | Any transport cost | Flight, bus, metro, ferry, transfer |
-| `ACCOMMODATION` | Lodging costs | Hotel, hostel, Airbnb |
-| `FOOD` | Meals and drinks | Restaurant, groceries, snacks |
-| `ACTIVITY` | Entrance fees, tours, excursions | Museum ticket, guided tour, catamaran excursion |
-| `CITY_PASS` | Tourist pass covering multiple attractions | London Explorer Pass |
-| `VISA` | Visa fees | Egypt e-visa |
-| `INSURANCE` | Travel or medical insurance | |
-| `CURRENCY_EXCHANGE` | Currency exchange cost or commission | Exchange office fee |
-| `GEAR` | Group merchandise or supplies | Matching t-shirts, printed itinerary |
-| `ADMINISTRATIVE` | Bank fees, card commissions | Credit card foreign transaction fee |
-| `OTHER` | Anything else | |
+| `expense_id` | UUID | |
+| `participant_id` | UUID | |
+| `amount_paid` | Decimal | How much this participant paid toward the total |
+| `payment_method` | Enum `PaymentMethod` | |
+
+### `expense_splits`
+
+How the expense is distributed among beneficiaries. Applies to `SHARED` expenses only.
+
+| Field | Type | Description |
+|---|---|---|
+| `expense_id` | UUID | |
+| `participant_id` | UUID | |
+| `owed_amount` | Decimal | This participant's share in the expense's original currency |
+| `owed_amount_base` | Decimal | `owed_amount` in trip base currency |
+
+For `EQUAL` splits, `expense_splits` records are auto-generated and stored when the expense is saved. For `EXACT`, amounts are manually entered by the creator. For `PERCENTAGE` and `SHARES`, the app computes and stores the final amounts.
 
 ---
 
-## Expense Types (enum: `ExpenseType`)
+## Participant Scope & `did_travel`
+
+A confirmed participant may not travel in the end. Expense splits must reflect who **actually traveled**.
+
+The `trip_participants` record gains a `did_travel` field:
+
+| Field | Type | Description |
+|---|---|---|
+| `did_travel` | Boolean (nullable) | `null` while trip is active. Set at trip completion — defaults to `true` for all `CONFIRMED` participants unless the organizer explicitly marks someone as `false`. |
+
+When recording a `SHARED` expense, only participants with `did_travel = true` (or `null`, while the trip is active) are eligible for the participant scope. An expense creator selects scope from this eligible list. The organizer can edit any expense to adjust scope if a participant's `did_travel` status changes.
+
+---
+
+## Split Types (Enum: `SplitType`)
 
 | Value | Description |
 |---|---|
-| `STANDARD` | A regular expense incurred during the trip. |
-| `ADVANCE_PAYMENT` | A deposit or partial payment made before the trip or before the service is rendered. The remaining balance is tracked separately. |
-| `COMMISSION` | A fee charged by a service provider (e.g., card payment commission). |
-| `REIMBURSEMENT` | A refund or reimbursement to be tracked. |
+| `EQUAL` | Divided equally among all participants in scope. Default. |
+| `EXACT` | Each participant in scope is manually assigned a specific amount. Amounts must sum to `total_amount`. |
+| `PERCENTAGE` | Each participant is assigned a percentage of the total. Must sum to 100%. |
+| `SHARES` | Participants are assigned integer share units (e.g., one person takes 2 shares vs. 1 share for everyone else). |
+
+The expense creator chooses the split type when recording the expense and can update it (along with the distribution) at any time. Organizers can override.
 
 ---
 
-## Payment Methods (enum: `PaymentMethod`)
+## Expense Categories (Enum: `ExpenseCategory`)
+
+| Value | Examples |
+|---|---|
+| `TRANSPORT` | Flight, bus, metro, ferry, transfer, taxi, car rental |
+| `ACCOMMODATION` | Hotel, hostel, Airbnb, cruise cabin |
+| `FOOD` | Restaurant, groceries, group meal |
+| `ACTIVITY` | Entrance fee, tour, excursion, guided experience |
+| `CITY_PASS` | Tourist pass covering multiple attractions |
+| `VISA` | Visa fees and processing |
+| `INSURANCE` | Travel or medical insurance |
+| `ENTERTAINMENT` | Shows, nightlife, drinks, personal leisure |
+| `COMMUNICATION` | SIM card, Wi-Fi package, data plan |
+| `CURRENCY_EXCHANGE` | Exchange office fee, card foreign transaction fee |
+| `GEAR` | Group merchandise, printed itinerary, supplies |
+| `HEALTH` | Medicine, medical expenses during trip |
+| `TIPS` | Gratuities |
+| `OTHER` | Anything else |
+
+---
+
+## Payment Methods (Enum: `PaymentMethod`)
 
 | Value | Description |
 |---|---|
@@ -109,111 +204,81 @@ This model is derived from real-world trip planning data. The key insight is tha
 
 ---
 
-## Advance Payments (`ADVANCE_PAYMENT`)
+## Multi-Currency Handling
 
-Some group expenses are paid as a deposit before the trip departs (e.g., a cruise or tour down payment). These are modeled as `ExpenseType.ADVANCE_PAYMENT` and linked to the eventual full expense record.
+Expenses are recorded in the currency they were incurred. Every trip has a **base currency** defined at creation. All balances and settlement amounts are expressed in that base currency.
 
-The outstanding balance is visible on the trip's financial dashboard until the full amount is paid and marked as `is_paid = true`.
+The full exchange rate model (two-level: trip-level reference + expense-level snapshot) is defined in [`features/pre-trip-planning.md`](./pre-trip-planning.md) — Section 5. Rules as they apply to expenses:
 
-Example from real data: A river cruise required a group deposit of COP 5,238,861 before departure. The full cruise cost was COP 2,357,100 per person. The advance payment item tracked the group total and the per-person share separately.
+1. `currency` and `total_amount` always store the original denomination — never converted or overwritten.
+2. `exchange_rate_snapshot` is user-confirmed at the moment of recording. **It is never modified afterwards.** Future changes to trip-level rates do not affect historical expenses.
+3. `total_amount_base` and `owed_amount_base` are computed once at creation and stored.
 
 ---
 
-## Expense Splits
+## Access & Edit Control
 
-For group expenses, the split defines what each participant in `participant_scope` owes. The default is equal split but can be overridden.
-
-### Split Strategies (enum: `SplitStrategy`)
-
-| Value | Description |
+| Action | Who can do it |
 |---|---|
-| `EQUAL` | Divided equally among all participants in scope. Default. |
-| `EXACT` | Each participant is assigned a specific amount. Amounts must sum to `amount`. |
-| `PERCENTAGE` | Each participant is assigned a percentage. Must sum to 100%. |
-| `SHARES` | Participants are assigned integer share units (e.g., 1 share vs. 2 shares). |
-
-### `expense_splits` table
-
-| Field | Type | Description |
-|---|---|---|
-| `expense_id` | UUID | |
-| `participant_id` | UUID | |
-| `owed_amount` | Decimal | What this participant owes (in expense's original currency) |
-| `owed_amount_base` | Decimal | `owed_amount` in trip base currency |
-| `is_settled` | Boolean | Whether this participant's share has been settled |
+| Record a new `SHARED` expense | Any confirmed traveler or organizer |
+| Record a new `INDIVIDUAL` expense | The traveler themselves (or organizer on their behalf) |
+| Edit payers, split type, and distribution | Expense creator or any organizer (co-organizer with `MANAGE_EXPENSES`) |
+| Mark a budget item opt-in as paid | Any organizer |
+| View all expenses | Confirmed travelers and organizers |
 
 ---
 
 ## Settlement
 
-At any point, the system computes each participant's net balance across all expenses. A settlement plan proposes the minimum number of transfers to zero out all balances.
+At trip completion, the app computes net balances and produces the minimal debt graph.
 
 ### Balance Calculation
 
 For each participant:
+
 ```
-net_balance = sum(expenses where they are paid_by) - sum(owed_amounts across all expense_splits)
+net_balance = SUM(expense_payers.amount_paid) − SUM(expense_splits.owed_amount)
 ```
 
-A positive balance means the participant is owed money. A negative balance means they owe money.
+Only `SHARED` expenses contribute to debts. `INDIVIDUAL` expenses appear in each person's personal total but do not generate any receivable or payable.
 
-### `expense_settlements` table
+A positive net balance means the participant is **owed** money. A negative balance means they **owe** money.
 
-Records actual payments made between participants to reduce debts:
+### Debt Simplification
+
+The app applies a debt-simplification algorithm (Splitwise-style) to produce the minimum number of `{from → to, amount}` transfers that zero out all balances.
+
+### `expense_settlements`
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | UUID | |
 | `trip_id` | UUID | |
-| `from_participant_id` | UUID | Who paid |
-| `to_participant_id` | UUID | Who received |
-| `amount` | Decimal | Amount transferred |
-| `currency` | String | Currency of the transfer |
-| `payment_method` | Enum `PaymentMethod` | |
-| `settled_at` | Date | |
-| `notes` | Text | Optional |
+| `from_participant_id` | UUID | Participant who owes |
+| `to_participant_id` | UUID | Participant who is owed |
+| `amount` | Decimal | Settlement amount in trip base currency |
+| `currency` | String | May differ from base currency if agreed between parties |
+| `payment_method` | Enum `PaymentMethod` (nullable) | |
+| `status` | Enum `SettlementStatus` | `PENDING`, `CONFIRMED` |
+| `confirmed_at` | Timestamp (nullable) | When the payee confirmed receipt |
+| `notes` | Text (nullable) | |
 | `created_at` | Timestamp | |
 
----
-
-## Multi-Currency Handling
-
-Expenses are recorded in the currency they were actually incurred. The system handles multiple currencies within one trip (real-world example: COP, USD, GBP, EUR, EGP, MAD in a single trip).
-
-Every trip has a **base currency** defined at creation. All totals, balances, and settlement amounts are consolidated in that base currency.
-
-### Two-level exchange rate model
-
-Exchange rates work in two levels. The full model is defined in `pre-trip-planning.md` (section 5). Summary as it applies to expenses:
-
-**Level 1 — Trip-level reference rate:** The organizer defines a reference rate for each currency pair at planning time (e.g., 1 EGP = 215 COP). This rate is suggested by ExchangeRate-API and confirmed manually. It serves as the default when recording expenses.
-
-**Level 2 — Expense-level effective rate (`exchange_rate_snapshot`):** Each expense records its own rate — the actual rate obtained at the moment of the transaction (ATM rate, bank rate, physical exchange office rate, credit card rate). The app pre-fills this from the trip-level rate as a convenience, but the user confirms or overrides it before saving.
-
-This reflects the reality that every transaction happens at a different time, through a different payment method, at a rate that cannot be predicted at planning time. The trip-level rate is a reference; the expense-level rate is the financial truth.
-
-### Rules
-
-1. `currency` and `amount` always store the original denomination — never converted or overwritten.
-2. `exchange_rate_snapshot` is the user-confirmed effective rate for that specific transaction. It is set at creation time and **never modified afterwards**.
-3. `base_currency_equivalent` is computed once at creation (`amount_per_participant × exchange_rate_snapshot`) and stored — it does not change if trip-level rates are updated later.
-4. Balances and settlement suggestions are always displayed in the trip's base currency but can be toggled to any other currency in the trip.
+Settlements are proposed automatically when the trip reaches `COMPLETED`. The payee confirms receipt manually. No real money moves through Chamuco — confirmation is on the honor system.
 
 ---
 
 ## Expense Visibility
 
-- All confirmed participants can view the trip's expense list by default.
-- The organizer can restrict visibility (e.g., hide individual amounts).
-- Each participant can always see their own balance and their own expense splits.
+Expense records are visible to **confirmed travelers and organizers** only. The pre-trip budget planner (budget items and estimates) follows trip visibility and is visible to anyone who can see the trip. See [`features/pre-trip-planning.md`](./pre-trip-planning.md) — Budget Visibility.
 
 ---
 
 ## Open Questions / To Be Defined
 
-- Who can add expenses — only the payer, or any participant?
-- Who can edit or delete an expense — only the creator, or organizers too?
-- Should expense settlement be enforced within the app (tracked and closed), or is it advisory only?
-- Is there a payment integration planned (Nequi, PSE, Stripe)? This changes settlement from advisory to transactional.
-- Should there be a "trip budget" feature where the organizer sets an expected total cost per person, and the app tracks variance vs. actual?
-- How are expenses handled for guest participants (non-registered travelers sponsored by a confirmed participant)?
+- Should expenses be editable after the trip is `COMPLETED` (e.g., to correct an amount after settlement is proposed)?
+- Can guests (`trip_guests`) be included in expense splits? Their cost would roll up to their sponsor participant.
+- Can non-traveling organizers (`is_traveling_participant = false`) be manually added to specific expense splits?
+- Should the settlement algorithm run automatically at `COMPLETED` or require the organizer to trigger it?
+- How are pre-trip shared expenses handled for a participant who was confirmed but `did_travel = false`? Their pre-paid portion needs to be resolved (refund or absorption) outside the app — should there be a way to annotate this in the ledger?
+- Should the `PERCENTAGE` and `SHARES` split types be exposed in the UI, or are `EQUAL` and `EXACT` sufficient for most use cases?

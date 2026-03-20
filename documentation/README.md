@@ -26,14 +26,15 @@ Technical structure and design decisions for the system.
 Feature definitions, domain models, and open design questions per feature area.
 
 - [`users.md`](./features/users.md) — User account, personal profile (identity, documents, emergency contact), loyalty programs, dietary preferences, allergies, phobias, physical limitations, and traveler stats/achievements.
-- [`trips.md`](./features/trips.md) — The central entity. Trip lifecycle, time boundaries, itinerary model, full item category/subtype taxonomy, IN_PROGRESS change policy, and post-completion gamification flow.
-- [`participants.md`](./features/participants.md) — Invitation system, confirmation rules, participant states, guest participants. Travel data is owned by the user profile.
+- [`trips.md`](./features/trips.md) — The central entity. Trip lifecycle, time boundaries, itinerary model (timeline + sequence views), budget estimate visibility, full item category/subtype taxonomy, IN_PROGRESS change policy, and post-completion gamification flow.
+- [`participants.md`](./features/participants.md) — Invitation system, confirmation rules, participant states, waitlist mechanics (including over-invitation), guest participants. Travel data is owned by the user profile.
 - [`pre-trip-planning.md`](./features/pre-trip-planning.md) — Pre-trip phase: route alternatives, task checklist with per-participant tracking & deadlines, destination budgets, exchange rates.
 - [`expenses.md`](./features/expenses.md) — Expense recording, participant scope, split strategies, advance payments, multi-currency handling, settlement.
 - [`reservations.md`](./features/reservations.md) — Booking status tracking, per-participant reservation records, metadata by transport/stay type.
 - [`community.md`](./features/community.md) — Groups, Slack-like messaging (DMs + channels), auto-channels per trip/group, roles and permissions, group member status tiers and gamification.
-- [`gamification.md`](./features/gamification.md) — Traveler Score, personal rankings, statistics, achievements, Chamuco Points economy, discovery map, group member status tiers, recognitions, and post-trip feedback system.
-- [`events.md`](./features/events.md) — Standalone, group-linked, and trip-linked events: planning sessions, celebrations, award ceremonies. RSVP, capacity, and gamification integration.
+- [`gamification.md`](./features/gamification.md) — Traveler Score, personal rankings, statistics, achievements, Chamuco Points economy, discovery map (country/city/continental views), group member status tiers, recognitions, and post-trip feedback system.
+- [`events.md`](./features/events.md) — Standalone, group-linked, and trip-linked events: planning sessions, celebrations, award ceremonies. RSVP, capacity, waitlist, and gamification integration.
+- [`calendar.md`](./features/calendar.md) — Calendar views: monthly grid and upcoming events list, aggregating trips and events from the user's full context.
 
 ### `/analysis`
 Extraction and analysis documents derived from real-world trip planning samples. These inform the feature design documents but are not design specs themselves.

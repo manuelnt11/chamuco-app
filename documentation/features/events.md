@@ -97,12 +97,28 @@ A `TRIP` event inherits the trip's participant list as the default invitee base,
 
 ---
 
-## Capacity
+## Capacity & Waitlist
 
-Events may optionally define a maximum attendee capacity. If set:
-- Once `CONFIRMED` count reaches the capacity, new RSVPs default to `TENTATIVE` and the organizer is notified.
-- The organizer may increase capacity or manually promote `TENTATIVE` attendees to `CONFIRMED`.
-- Capacity is stored as `max_attendees: Integer (nullable)` on the `events` record.
+Events may optionally define a maximum attendee capacity via `max_attendees: Integer (nullable)` on the `events` record.
+
+When capacity is defined and all spots are filled, new RSVPs that would otherwise be `CONFIRMED` instead enter a **waitlist**. The `event_attendees` record gains:
+
+| Field | Type | Description |
+|---|---|---|
+| `waitlist_position` | Integer (nullable) | Set when the attendee is waitlisted. Null if confirmed or not on waitlist. |
+| `waitlisted_at` | Timestamp (nullable) | When the attendee entered the waitlist. |
+
+### Waitlist Promotion
+
+When a `CONFIRMED` attendee changes their RSVP to `DECLINED` or is removed:
+1. The attendee at `waitlist_position = 1` is notified that a spot has opened.
+2. They have a configurable window (default: 24 hours) to confirm. If they do not respond, the next person is notified.
+3. Promoted attendees move from waitlisted to `CONFIRMED`.
+
+The event organizer can:
+- View the full waitlist with positions and timestamps.
+- Manually promote any waitlisted attendee to `CONFIRMED`.
+- Increase `max_attendees`, which triggers sequential promotion starting from position 1.
 
 ---
 
@@ -150,9 +166,9 @@ All notification strings reference i18n keys with interpolated values. No hardco
 ## Open Questions / To Be Defined
 
 - Can a `GROUP` event be made visible to users outside the group (public event)?
-- Should there be a waitlist mechanism for capacity-limited events (similar to trip participants)?
 - Can events have sub-events or agenda items (structured schedule within the event)?
 - Should events have a dedicated chat channel (similar to trip auto-channels)?
 - Can the organizer set a registration deadline separate from the event start time?
 - Are events discoverable on a public calendar/feed, or always invitation/group-gated?
 - Should recurring events be supported (e.g., "Annual Awards" repeating every December)?
+- Should the promotion response window for waitlisted event attendees be configurable per event?
