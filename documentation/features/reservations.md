@@ -11,8 +11,6 @@ The reservations module tracks the booking status of accommodations and transpor
 
 ---
 
----
-
 ## Stays (Accommodations)
 
 A **stay** is an accommodation that the group uses for one or more consecutive nights. Rather than defining the hotel for every individual night, one `stays` record covers the full date range from check-in to check-out. A trip may have any number of stays.
