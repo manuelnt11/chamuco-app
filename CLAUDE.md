@@ -159,6 +159,7 @@ All design documentation lives in `documentation/`. Key files:
 |---|---|
 | `overview/tech-stack.md` | Full stack decisions with rationale |
 | `overview/project-overview.md` | Vision, goals, principles |
+| `overview/mvp.md` | MVP scope: confirmed modules, simplified trips (pending), out-of-scope features |
 | `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger |
 | `architecture/database-design.md` | Schema philosophy, JSONB usage |
 | `architecture/monorepo-structure.md` | Directory layout |

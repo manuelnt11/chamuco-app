@@ -1,7 +1,7 @@
 # Design: Visual Identity
 
-**Status:** Pending Decisions
-**Last Updated:** 2026-03-19
+**Status:** In Progress — Color palette and icon confirmed
+**Last Updated:** 2026-03-23
 
 > This document collects all pending visual and aesthetic decisions for the Chamuco App frontend. Each section presents concrete options with rationale. Decisions should be recorded here once made and reflected in `tech-stack.md` and `preferences.md` as applicable.
 
@@ -9,112 +9,64 @@
 
 ## 1. Logo
 
-### Option A — Current proposal (`documentation/assets/logo_proposal.png`)
+### ✅ Confirmed icon — `documentation/assets/logo_icon.svg`
 
-A friendly cartoon chamuco (little devil) wearing a backwards cap with a compass embedded in it. Warm gradient background in reds and oranges, with subtle travel motifs (paper planes, trees, winding road). The character is playful and approachable — mischievous without being aggressive.
+A friendly cartoon chamuco (little devil) wearing a cap. The character is drawn in a clean vector style: warm red face, orange horns, sky-blue hat body with orange side panel and deep navy outlines. Playful and approachable — mischievous without being aggressive. Colors are fully aligned with the confirmed Horizonte palette.
 
-**Strengths:** High personality, memorable, works well as a PWA icon (reads at small sizes). The compass detail reinforces the travel domain without being cliché.
+**Source file:** `documentation/assets/logo_icon.svg` — scalable vector, Inkscape-authored, production-ready.
 
-**Concerns to evaluate:**
-- Does it work in monochrome (e.g., favicon, system notifications)?
-- Is there a version without the "App" wordmark for icon-only contexts?
-- Is there an SVG source file for scalability?
+**Note:** The full logo with wordmark and background treatment is a future deliverable. The icon is the confirmed starting point.
 
-### Pending logo variants needed
+### Logo variants required for production
 
-Regardless of which option is chosen, the following variants are required for production:
-
-| Variant | Use case |
-|---|---|
-| Full color with wordmark | App stores, loading screens, marketing |
-| Icon only (no text) | PWA home screen icon, favicon, app icon |
-| Monochrome / single color | Dark backgrounds, notification badges, system trays |
-| Maskable version | Android adaptive icons (safe zone padding required) |
-| SVG source | Any programmatic resizing |
-
-**Decision needed:** Approve current proposal as the primary direction, or commission alternatives.
+| Variant | Use case | Status |
+|---|---|---|
+| Full color with wordmark | App stores, loading screens, marketing | ⏳ Pending |
+| Icon only (no text) | PWA home screen icon, favicon, app icon | ✅ Confirmed (`logo_icon.svg`) |
+| Monochrome / single color | Dark backgrounds, notification badges, system trays | ⏳ Pending |
+| Maskable version | Android adaptive icons (safe zone padding required) | ⏳ Pending |
+| SVG source | Any programmatic resizing | ✅ Available (`logo_icon.svg`) |
 
 ---
 
-## 2. Color Palettes
+## 2. Color Palette — "Horizonte" ✅ CONFIRMED
 
-The existing logo anchors the identity in warm reds and oranges. Three palette proposals are offered: one derived from the logo, one contrasting, and one more neutral/modern.
+### Palette — "Horizonte"
 
----
+Evolved from the original "Cielos Abiertos" proposal. The dark anchor was softened from near-black (`#0C1A24`) to deep ocean blue (`#0F4C75`), reducing harsh contrast while keeping the fresh sky + warm orange identity. The primary blue was shifted from a corporate mid-blue to a vibrant sky blue for a more youthful, energetic feel.
 
-### Palette A — "Fuego Viajero" *(derived from the logo)*
+🔗 [Ver en Coolors](https://coolors.co/38bdf8-fb923c-f0f9ff-0f4c75-bae6fd)
 
-Extends the logo's warmth across the entire UI. High energy, adventurous.
+**Base palette tokens:**
 
-🔗 [Ver en Coolors — Light](https://coolors.co/palette/e8491f-f5a623-fff8f5-1a0a04-f0d5c8) · [Dark](https://coolors.co/palette/ff6b3d-ffbb4d-2a1c12-1a1008-f5ede8)
+| Token | Name | Hex | Role |
+|---|---|---|---|
+| `color-primary` | Cielo | `#38BDF8` | Primary brand color. Sky blue — vibrant, modern, energetic. |
+| `color-secondary` | Naranja | `#FB923C` | Accent / CTA. Warm orange — echoes the chamuco spirit, complementary to the blue. |
+| `color-bg-light` | Nube | `#F0F9FF` | Light mode background. Pale sky — airy and cohesive with the blue family. |
+| `color-dark` | Océano | `#0F4C75` | Dark anchor. Deep ocean blue — text, dark mode base, outlines. |
+| `color-accent-light` | Brisa | `#BAE6FD` | Light blue accent. Borders, tags, highlights, secondary backgrounds. |
+
+**Full UI token expansion (light / dark mode):**
 
 | Role | Light mode | Dark mode |
 |---|---|---|
-| **Primary** | `#E8491F` (deep orange-red) | `#FF6B3D` (lighter for contrast) |
-| **Primary hover** | `#C73A15` | `#FF855A` |
-| **Secondary** | `#F5A623` (amber) | `#FFBB4D` |
-| **Background** | `#FFFFFF` | `#1A1008` (warm near-black) |
-| **Surface** | `#FFF8F5` (warm white) | `#2A1C12` (warm dark card) |
-| **Border** | `#F0D5C8` | `#3D2A1E` |
-| **Text primary** | `#1A0A04` | `#F5EDE8` |
-| **Text secondary** | `#7A4A35` | `#B08070` |
-| **Success** | `#2E7D32` | `#4CAF50` |
-| **Warning** | `#F57C00` | `#FFB74D` |
-| **Error** | `#C62828` | `#EF9A9A` |
-
-**Personality:** Energetic, warm, on-brand. Best for a product that wants to feel bold and distinctive.
-
----
-
-### Palette B — "Cielos Abiertos" *(contrasting — sky and earth)*
-
-Steps away from the logo's reds and uses the other side of the travel emotional spectrum: open skies, freedom, clarity.
-
-🔗 [Ver en Coolors — Light](https://coolors.co/palette/0284c7-f97316-f0f9ff-0c1a24-bae6fd) · [Dark](https://coolors.co/palette/38bdf8-fb923c-132230-0c1a24-e0f2fe)
-
-| Role | Light mode | Dark mode |
-|---|---|---|
-| **Primary** | `#0284C7` (sky blue) | `#38BDF8` |
-| **Primary hover** | `#0369A1` | `#7DD3FC` |
-| **Secondary** | `#F97316` (sunset orange — echoes logo) | `#FB923C` |
-| **Background** | `#F0F9FF` (pale sky) | `#0C1A24` (deep night sky) |
-| **Surface** | `#FFFFFF` | `#132230` |
-| **Border** | `#BAE6FD` | `#1E3A4F` |
-| **Text primary** | `#0C1A24` | `#E0F2FE` |
-| **Text secondary** | `#4A7A9B` | `#7EB8D4` |
+| **Primary** | `#38BDF8` | `#38BDF8` |
+| **Primary hover** | `#0EA5E9` | `#7DD3FC` |
+| **Secondary** | `#FB923C` | `#FB923C` |
+| **Secondary hover** | `#EA7C1E` | `#FDBA74` |
+| **Background** | `#F0F9FF` | `#0F4C75` |
+| **Surface** | `#FFFFFF` | `#163E5F` |
+| **Border** | `#BAE6FD` | `#1E5A84` |
+| **Text primary** | `#0F4C75` | `#F0F9FF` |
+| **Text secondary** | `#4A7A9B` | `#BAE6FD` |
 | **Success** | `#059669` | `#34D399` |
 | **Warning** | `#D97706` | `#FCD34D` |
 | **Error** | `#DC2626` | `#FCA5A5` |
 
-**Personality:** Fresh, trustworthy, modern. The orange secondary keeps the chamuco spirit present without dominating. Works well for a product that wants to feel approachable and professional.
+**Personality:** Fresh, youthful, modern. Sky blue conveys freedom and open skies. Orange brings warmth and the chamuco's playful energy without dominating. The reduced contrast between the dark anchor and the light background makes the palette feel approachable rather than stark.
 
----
-
-### Palette C — "Noche Nómada" *(dark-first, premium)*
-
-Starts from a dark, rich base. Feels sophisticated and modern — ideal if the dark mode is expected to be the primary experience for most users.
-
-🔗 [Ver en Coolors — Light](https://coolors.co/palette/7c3aed-f59e0b-f5f3ff-12101e-ddd6fe) · [Dark](https://coolors.co/palette/a78bfa-fcd34d-1e1a30-12101e-ede9fe)
-
-| Role | Light mode | Dark mode |
-|---|---|---|
-| **Primary** | `#7C3AED` (indigo-violet) | `#A78BFA` |
-| **Primary hover** | `#6D28D9` | `#C4B5FD` |
-| **Secondary** | `#F59E0B` (gold — echoes the logo's flame) | `#FCD34D` |
-| **Background** | `#F5F3FF` (pale lavender) | `#12101E` (deep indigo-black) |
-| **Surface** | `#FFFFFF` | `#1E1A30` |
-| **Border** | `#DDD6FE` | `#2D2845` |
-| **Text primary** | `#12101E` | `#EDE9FE` |
-| **Text secondary** | `#5B4FA0` | `#9D8FCC` |
-| **Success** | `#059669` | `#34D399` |
-| **Warning** | `#D97706` | `#FCD34D` |
-| **Error** | `#DC2626` | `#FCA5A5` |
-
-**Personality:** Premium, distinctive, design-forward. The violet/gold combination is unusual in travel apps — could be a strong differentiator. The gold aligns with loyalty, reward, and adventure themes.
-
----
-
-**Decision needed:** Choose one palette as the primary direction, or mix elements across proposals.
+**Tailwind configuration:** these five base colors should be registered as a custom palette in `tailwind.config.ts` under a `chamuco` namespace (e.g., `chamuco-cielo`, `chamuco-naranja`, etc.), with each base color generating a full 50–950 shade scale for utility coverage.
 
 ---
 
@@ -357,9 +309,9 @@ Tailwind's default 4px base spacing is used. Key spacing tokens:
 
 | Topic | Options | Status |
 |---|---|---|
-| Logo direction | A (current proposal) or commission alternatives | ⏳ Pending |
-| Logo variants | Monochrome, icon-only, maskable, SVG | ⏳ Pending |
-| Color palette | A (Fuego Viajero) / B (Cielos Abiertos) / C (Noche Nomada) | ⏳ Pending |
+| Logo / icon | ✅ Chamuco diablito — `documentation/assets/logo_icon.svg` | ✅ Confirmed |
+| Logo variants | Full-color wordmark, monochrome, maskable | ⏳ Pending |
+| Color palette | ✅ **"Horizonte"** (`#38BDF8` · `#FB923C` · `#F0F9FF` · `#0F4C75` · `#BAE6FD`) | ✅ Confirmed |
 | Typography | A (Outfit+Inter) / B (Plus Jakarta Sans+DM Sans) / C (Sora+Nunito) | ⏳ Pending |
 | Icon pack | A (Phosphor) / B (Tabler) / C (Lucide) | ⏳ Pending |
 | Component framework | A (shadcn/ui) / B (HeroUI) / C (DaisyUI) | ⏳ Pending |
