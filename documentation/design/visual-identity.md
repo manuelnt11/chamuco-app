@@ -1,6 +1,6 @@
 # Design: Visual Identity
 
-**Status:** In Progress — Core system confirmed; logo variants pending (wordmark, monochrome, maskable)
+**Status:** In Progress — Core system and all logo variants confirmed; PNG rasterization pending
 **Last Updated:** 2026-03-24
 
 > This document collects all pending visual and aesthetic decisions for the Chamuco App frontend. Each section presents concrete options with rationale. Decisions should be recorded here once made and reflected in `tech-stack.md` and `preferences.md` as applicable.
@@ -17,15 +17,27 @@ A friendly cartoon chamuco (little devil) wearing a cap. The character is drawn 
 
 **Note:** The full logo with wordmark and background treatment is a future deliverable. The icon is the confirmed starting point.
 
-### Logo variants required for production
+### Logo variants
 
-| Variant | Use case | Status |
-|---|---|---|
-| Full color with wordmark | App stores, loading screens, marketing | ⏳ Pending |
-| Icon only (no text) | PWA home screen icon, favicon, app icon | ✅ Confirmed (`logo_icon.svg`) |
-| Monochrome / single color | Dark backgrounds, notification badges, system trays | ⏳ Pending |
-| Maskable version | Android adaptive icons (safe zone padding required) | ⏳ Pending |
-| SVG source | Any programmatic resizing | ✅ Available (`logo_icon.svg`) |
+All SVG variants live in `documentation/assets/`. PNG rasterization (for app stores and native icon slots) is a pending build step once the web toolchain is set up.
+
+| Variant | File | Use case | Status |
+|---|---|---|---|
+| Icon — full color | `logo_icon.svg` | PWA icon, in-app branding | ✅ Confirmed |
+| Icon — monochrome dark | `logo_icon_mono_dark.svg` | Notification badges, system tray, light backgrounds | ✅ Confirmed |
+| Icon — monochrome light | `logo_icon_mono_light.svg` | Dark backgrounds, splash overlays, print on dark | ✅ Confirmed |
+| Favicon | `favicon.svg` | Browser tab, bookmarks (SVG favicon — modern browsers) | ✅ Confirmed |
+| Maskable icon | `logo_maskable.svg` | Android adaptive icons — Cielo (`#38BDF8`) background, icon in safe zone | ✅ Confirmed |
+| Wordmark — horizontal | `logo_horizontal.svg` | Navigation headers, email signatures, wide banners | ✅ Confirmed |
+| Wordmark — vertical | `logo_vertical.svg` | Marketing materials, splash screens, app store listing | ✅ Confirmed |
+| Wordmark — square | `logo_square.svg` | Social media avatars, square ad units | ✅ Confirmed |
+| PNG rasterization | — | favicon.ico (16, 32px), apple-touch-icon (180px), og-image | ⏳ Pending |
+
+**Wordmark typographic spec:** "CHAMUCO" in Plus Jakarta Sans ExtraBold 800 · `#0F4C75`. "TRAVEL" in Plus Jakarta Sans SemiBold 600 · `#38BDF8`. All caps, tracked. Both lines left-aligned (horizontal) or centered (vertical/square).
+
+**Monochrome spec:** flat single-color silhouettes — no internal face detail lines. Dark variant: `#0F4C75`. Light variant: `#FFFFFF`. Both on transparent background; consumer chooses the backing color.
+
+**Maskable spec:** 108×108 unit canvas. Icon scaled to 66×66 (within Google's safe zone for circular crop). Background: `#38BDF8` with `rx="24"` rounding for rounded-square preview.
 
 ---
 
@@ -240,7 +252,7 @@ Skeleton screens for list views, cards, and profile pages. Spinner for point act
 | Topic | Options | Status |
 |---|---|---|
 | Logo / icon | ✅ Chamuco diablito — `documentation/assets/logo_icon.svg` | ✅ Confirmed |
-| Logo variants | Full-color wordmark, monochrome, maskable | ⏳ Pending |
+| Logo variants | ✅ All SVGs confirmed — PNG rasterization pending | ✅ Confirmed |
 | Color palette | ✅ **"Horizonte"** (`#38BDF8` · `#FB923C` · `#F0F9FF` · `#0F4C75` · `#BAE6FD`) | ✅ Confirmed |
 | Typography | ✅ **Plus Jakarta Sans** — single-family, weights 300–800 | ✅ Confirmed |
 | Icon pack | ✅ **Phosphor Icons** — `@phosphor-icons/react`, 6 weights | ✅ Confirmed |
