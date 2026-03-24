@@ -1,7 +1,7 @@
 # Infrastructure: Authentication & Authorization
 
 **Status:** Defined
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-23
 
 ---
 
@@ -9,15 +9,17 @@
 
 All authentication is handled by **Firebase Authentication** (part of Google Cloud / Firebase). The app does not implement its own identity system — token issuance, signing, refresh, revocation, and provider management are fully delegated to Firebase.
 
-This choice eliminates an entire category of implementation and maintenance risk (token key management, refresh rotation, brute force protection, provider SDK updates) and is free at any scale for Google Sign-In.
+This choice eliminates an entire category of implementation and maintenance risk (token key management, refresh rotation, brute force protection, provider SDK updates) and is free at any scale for social sign-in providers.
 
 ---
 
 ## Supported Authentication Methods
 
+Both providers are supported at launch. Users may link multiple providers to the same account via Firebase's account linking feature.
+
 ### Google Sign-In
 
-The primary authentication method at launch. Firebase handles the full OAuth 2.0 / OpenID Connect flow natively.
+Firebase handles the full OAuth 2.0 / OpenID Connect flow natively.
 
 **Frontend flow:**
 1. User clicks "Sign in with Google".
@@ -28,15 +30,23 @@ The primary authentication method at launch. Firebase handles the full OAuth 2.0
 **Backend flow:**
 1. Backend receives the Firebase ID token in the `Authorization: Bearer <token>` header.
 2. Backend verifies it using the **Firebase Admin SDK** (`admin.auth().verifyIdToken(token)`).
-3. On first login, backend creates the `users` record using the verified `uid`, `email`, and `display_name` from the decoded token.
-4. On subsequent logins, backend retrieves the existing user by `auth_provider_id = uid`.
+3. On first login, backend creates the `users` record using the verified `uid`, `email`, and `display_name` from the decoded token. See [User Provisioning](#user-provisioning) below.
+4. On subsequent logins, backend retrieves the existing user by `firebase_uid`.
 5. All subsequent API calls are authenticated by verifying the Firebase ID token — no separate Chamuco-issued JWT is needed.
 
-### Passkeys (WebAuthn / FIDO2)
+### Facebook Sign-In
 
-Firebase Authentication supports Passkeys natively. Users can enroll a passkey from their account settings after first login. On subsequent logins, they authenticate via device biometrics (Face ID, fingerprint, device PIN) without needing Google.
+Firebase Authentication supports Facebook Login natively via the Facebook OAuth flow. The integration is symmetric with Google Sign-In from the backend's perspective — Firebase abstracts the provider difference.
 
-**Planned for a post-launch release.** The architecture fully supports it — no structural changes are needed when it is enabled.
+**Frontend flow:**
+1. User clicks "Sign in with Facebook".
+2. Firebase SDK (`firebase/auth`) opens the Facebook OAuth consent dialog.
+3. On success, Firebase issues a **Firebase ID token** to the client.
+4. Identical to Google from this point forward.
+
+**Backend flow:** Identical to Google Sign-In. The `auth_provider` field on the `users` record distinguishes the source.
+
+**Requirement:** A Facebook App must be registered and configured in the Firebase Console. The App ID and App Secret are stored in GCP Secret Manager.
 
 ---
 
@@ -70,10 +80,12 @@ A custom NestJS guard that replaces the generic `JwtAuthGuard`. On each request:
 
 ### User provisioning
 
-On the first successful authentication:
-- The backend creates a `users` record with `auth_provider = GOOGLE` and `auth_provider_id = firebase_uid`.
-- The `email` and a provisional `display_name` are pre-populated from the Firebase token.
-- The user is directed to the onboarding flow to choose their `username` before proceeding.
+On the first successful authentication (either provider):
+- The backend creates a `users` record with `auth_provider = GOOGLE | FACEBOOK` and `firebase_uid` from the decoded token.
+- The `email` and `display_name` are pre-populated directly from the provider's token — no manual entry required.
+  - Google: `display_name` from the Google account name.
+  - Facebook: `display_name` from the Facebook profile name.
+- The user is directed to the onboarding flow to choose their `username` before proceeding. The `display_name` is pre-filled with the value from the provider but remains editable.
 
 ---
 
@@ -118,4 +130,4 @@ The audit log records: `admin_user_id`, `action`, `target_table`, `target_id`, `
 
 ## Cost
 
-Firebase Authentication is **free for Google Sign-In** regardless of user volume (Spark and Blaze plans). Passkeys are also free. If email/password auth is added in the future, the free tier covers 10,000 MAU/month; beyond that the cost is $0.0055/MAU — negligible for a travel coordination app.
+Firebase Authentication is **free for Google Sign-In and Facebook Sign-In** regardless of user volume (Spark and Blaze plans). If email/password auth is added in the future, the free tier covers 10,000 MAU/month; beyond that the cost is $0.0055/MAU — negligible for a travel coordination app.

@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chamuco Project — Documento de Diseño y Arquitectura</title>
+<style>
+/* ── Variables ─────────────────────────────────────────────────────────── */
+:root {
+  --brand:  #1A56DB;
+  --brand2: #1E429F;
+  --accent: #F05252;
+  --light:  #EBF5FB;
+  --gray:   #6B7280;
+  --lgray:  #E5E7EB;
+  --dgray:  #374151;
+  --black:  #111827;
+  --white:  #ffffff;
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.55;
+  color: var(--black);
+  background: #fff;
+}
+
+/* ── @page rules ───────────────────────────────────────────────────────── */
+@page {
+  size: A4;
+  margin: 2cm 2cm 2.2cm 2cm;
+  @top-center {
+    content: "CHAMUCO TRAVEL — Documento de Diseño Interno";
+    font-size: 7pt;
+    color: var(--gray);
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  @bottom-right {
+    content: "Página " counter(page);
+    font-size: 7pt;
+    color: var(--gray);
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  @bottom-left {
+    content: "Chamuco App  ·  Fase de Diseño  ·  Marzo 2026";
+    font-size: 7pt;
+    color: var(--gray);
+    font-family: Helvetica, Arial, sans-serif;
+  }
+}
+
+@page :first {
+  margin: 0;
+  @top-center { content: none; }
+  @bottom-right { content: none; }
+  @bottom-left { content: none; }
+}
+
+/* ── Screen-only helpers (hidden when printing) ────────────────────────── */
+@media screen {
+  body { background: #f0f0f0; }
+  .page {
+    background: white;
+    width: 21cm;
+    min-height: 29.7cm;
+    margin: 1cm auto;
+    padding: 2cm;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .cover { padding: 0; }
+}
+
+@media print {
+  .page { padding: 0; }
+  .cover { padding: 0; }
+}
+
+/* ── Page breaks ───────────────────────────────────────────────────────── */
+.page-break { page-break-after: always; break-after: page; }
+.section { page-break-before: always; break-before: page; }
+.keep-together { page-break-inside: avoid; break-inside: avoid; }
+h1, h2, h3 { page-break-after: avoid; break-after: avoid; }
+
+/* ── Cover ─────────────────────────────────────────────────────────────── */
+.cover {
+  background: var(--brand2);
+  width: 100%;
+  height: 29.7cm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+  padding: 3cm;
+}
+.cover-title {
+  font-size: 40pt;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 0.3cm;
+  line-height: 1.15;
+}
+.cover-sub {
+  font-size: 16pt;
+  font-weight: 300;
+  margin-bottom: 0.3cm;
+  color: #BFD7F5;
+}
+.cover-meta {
+  font-size: 10pt;
+  color: #93C5FD;
+  margin-bottom: 0.15cm;
+}
+.cover-divider {
+  width: 6cm;
+  height: 2px;
+  background: rgba(255,255,255,0.3);
+  margin: 0.6cm auto;
+}
+.cover-tagline {
+  font-size: 13pt;
+  font-style: italic;
+  color: #93C5FD;
+  margin-top: 0.4cm;
+}
+.cover-badge {
+  margin-top: 1.5cm;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 4px;
+  padding: 0.4cm 0.8cm;
+  font-size: 9pt;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ── Typography ────────────────────────────────────────────────────────── */
+h1 {
+  font-size: 17pt;
+  font-weight: 700;
+  color: var(--brand2);
+  margin-top: 0.5cm;
+  margin-bottom: 0.2cm;
+  padding-bottom: 0.1cm;
+  border-bottom: 2px solid var(--light);
+}
+h2 {
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--brand);
+  margin-top: 0.35cm;
+  margin-bottom: 0.15cm;
+}
+h3 {
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: var(--brand2);
+  margin-top: 0.25cm;
+  margin-bottom: 0.1cm;
+}
+p {
+  margin-bottom: 0.2cm;
+  text-align: justify;
+  hyphens: auto;
+}
+ul, ol {
+  margin-left: 0.5cm;
+  margin-bottom: 0.2cm;
+}
+li {
+  margin-bottom: 0.1cm;
+}
+strong { font-weight: 700; }
+em { font-style: italic; }
+code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 8pt;
+  background: #F3F4F6;
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+pre {
+  background: #F3F4F6;
+  border-left: 3px solid var(--brand);
+  padding: 0.25cm 0.35cm;
+  font-size: 7.5pt;
+  font-family: 'Courier New', Courier, monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: 0.2cm;
+  line-height: 1.45;
+}
+hr.section-rule {
+  border: none;
+  border-top: 1px solid var(--lgray);
+  margin: 0.2cm 0 0.25cm;
+}
+.note {
+  font-size: 8.5pt;
+  color: var(--gray);
+  font-style: italic;
+  margin-bottom: 0.15cm;
+}
+.status-badge {
+  display: inline-block;
+  font-size: 7.5pt;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.pending  { background: #FEF3C7; color: #92400E; }
+.done     { background: #D1FAE5; color: #065F46; }
+.design   { background: #EDE9FE; color: #4C1D95; }
+
+/* ── Tables ────────────────────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.25cm;
+  font-size: 8.5pt;
+  page-break-inside: avoid;
+}
+thead tr {
+  background: var(--brand);
+  color: white;
+}
+thead th {
+  padding: 5px 8px;
+  text-align: left;
+  font-weight: 600;
+}
+tbody tr:nth-child(even) { background: var(--light); }
+tbody tr:nth-child(odd)  { background: white; }
+tbody td {
+  padding: 4px 8px;
+  border: 1px solid var(--lgray);
+  vertical-align: top;
+}
+
+/* ── TOC ───────────────────────────────────────────────────────────────── */
+.toc-title {
+  font-size: 20pt;
+  font-weight: 700;
+  color: var(--brand2);
+  margin-bottom: 0.3cm;
+}
+.toc-h1 {
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: var(--black);
+  margin-top: 0.1cm;
+  display: flex;
+  align-items: baseline;
+}
+.toc-h1 .toc-num {
+  min-width: 0.7cm;
+  color: var(--brand);
+  font-weight: 700;
+}
+.toc-h2 {
+  font-size: 9pt;
+  color: var(--gray);
+  margin-left: 0.7cm;
+  margin-top: 2px;
+}
+.toc-h2::before { content: "· "; }
+.toc-dots {
+  flex: 1;
+  border-bottom: 1px dotted var(--lgray);
+  margin: 0 0.2cm 3px;
+}
+
+/* ── Intro table ───────────────────────────────────────────────────────── */
+.intro-table td:first-child {
+  font-weight: 600;
+  width: 35%;
+  color: var(--brand2);
+}
+
+/* ── Open Questions ────────────────────────────────────────────────────── */
+.open-questions {
+  margin-top: 0.5cm;
+  padding: 0.3cm 0.4cm;
+  background: #FFF5F5;
+  border: 1px solid #FECACA;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  page-break-inside: avoid;
+}
+.oq-title {
+  font-size: 10pt;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.2cm;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.oq-title::before { content: "✏️"; font-size: 11pt; }
+.oq-item {
+  font-size: 9.5pt;
+  margin-bottom: 0.1cm;
+  padding-left: 0.2cm;
+  color: var(--black);
+}
+.oq-item::before { content: "❓ "; }
+.writing-lines {
+  margin: 0.15cm 0 0.3cm;
+}
+.writing-line {
+  border: none;
+  border-bottom: 1px solid #D1D5DB;
+  display: block;
+  margin-bottom: 0.35cm;
+}
+.no-questions {
+  font-size: 9pt;
+  color: var(--gray);
+  font-style: italic;
+  margin-bottom: 0.15cm;
+}
+
+/* ── Color palette blocks (for visual identity section) ────────────────── */
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-bottom: 0.25cm;
+}
+.swatch {
+  height: 1.2cm;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  padding: 2px 4px;
+}
+.swatch span {
+  font-size: 6.5pt;
+  font-family: 'Courier New', monospace;
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* ── Callout box ───────────────────────────────────────────────────────── */
+.callout {
+  background: var(--light);
+  border-left: 4px solid var(--brand);
+  padding: 0.2cm 0.35cm;
+  margin-bottom: 0.2cm;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+}
+.callout.warn {
+  background: #FFFBEB;
+  border-color: #F59E0B;
+}
+.callout.success {
+  background: #ECFDF5;
+  border-color: #059669;
+}
+
+/* ── Section header band ───────────────────────────────────────────────── */
+.section-header {
+  background: var(--brand2);
+  color: white;
+  padding: 0.25cm 0.4cm;
+  margin-bottom: 0.25cm;
+  border-radius: 4px;
+}
+.section-header h1 {
+  color: white;
+  border-bottom: none;
+  margin: 0;
+  font-size: 15pt;
+}
+.section-header .section-sub {
+  font-size: 8pt;
+  color: #93C5FD;
+  margin-top: 2px;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     PORTADA
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page cover">
+  <div class="cover-title">CHAMUCO TRAVEL</div>
+  <div class="cover-sub">Documento de Diseño y Arquitectura</div>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">chamucotravel.com &nbsp;·&nbsp; Versión 1.0 &nbsp;·&nbsp; Marzo 2026</div>
+  <div class="cover-meta">Confidencial — Uso Interno</div>
+  <div class="cover-tagline">"Una app de grupos que viajan — no una app de viajes."</div>
+  <div class="cover-badge">Fase de Diseño · Sin código fuente aún</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     SOBRE ESTE DOCUMENTO
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>Sobre este Documento</h1>
+    <div class="section-sub">Introducción y metadatos del proyecto</div>
+  </div>
+  <p>Este documento consolida toda la documentación de diseño y arquitectura de <strong>Chamuco App</strong> en un único lugar de referencia. Cubre la visión del producto, las decisiones técnicas, el modelo de datos y la especificación detallada de cada funcionalidad planificada. Al final de cada sección encontrará un espacio dedicado a preguntas abiertas con renglones para anotar decisiones durante reuniones o revisiones.</p>
+
+  <table class="intro-table">
+    <tbody>
+      <tr><td>Nombre público</td><td>Chamuco Travel</td></tr>
+      <tr><td>Dominio tentativo</td><td>chamucotravel.com</td></tr>
+      <tr><td>Estado del proyecto</td><td>Fase de diseño — sin código fuente aún</td></tr>
+      <tr><td>Última actualización</td><td>Marzo 2026</td></tr>
+      <tr><td>Idioma del código</td><td>Inglés (variables, enums, tablas, comentarios, nombres de archivo)</td></tr>
+      <tr><td>Idioma de la documentación</td><td>Español</td></tr>
+      <tr><td>Repositorio</td><td>Monorepo — pnpm workspaces + Turborepo</td></tr>
+      <tr><td>Plataforma de nube</td><td>Google Cloud Platform (GCP)</td></tr>
+      <tr><td>Rastreo de trabajo</td><td>GitHub Projects v2 — github.com/users/manuelnt11/projects/4</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     TABLA DE CONTENIDO
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="toc-title">Tabla de Contenido</div>
+  <hr class="section-rule">
+
+  <!-- helper macro inline -->
+  <div class="toc-h1"><span class="toc-num">1.</span> Visión General del Proyecto</div>
+  <div class="toc-h1"><span class="toc-num">2.</span> Stack Tecnológico</div>
+  <div class="toc-h1"><span class="toc-num">3.</span> Estructura del Monorepo</div>
+  <div class="toc-h1"><span class="toc-num">4.</span> Arquitectura Backend</div>
+  <div class="toc-h1"><span class="toc-num">5.</span> Progressive Web App (PWA)</div>
+  <div class="toc-h1"><span class="toc-num">6.</span> Autenticación y Autorización</div>
+  <div class="toc-h1"><span class="toc-num">7.</span> Nube y Despliegue (GCP)</div>
+  <div class="toc-h1"><span class="toc-num">8.</span> Localización e Internacionalización</div>
+  <div class="toc-h1"><span class="toc-num">9.</span> Usuarios y Perfiles Personales</div>
+    <div class="toc-h2">9.1 Registro y username · 9.2 Preferencias · 9.3 Perfil personal · 9.4 Perfil de salud · 9.5 Roles de plataforma</div>
+  <div class="toc-h1"><span class="toc-num">10.</span> Viajes</div>
+    <div class="toc-h2">10.1 Ciclo de vida · 10.2 Visibilidad · 10.3 Itinerario · 10.4 Presupuesto · 10.5 Completación y gamificación</div>
+  <div class="toc-h1"><span class="toc-num">11.</span> Participantes e Invitaciones</div>
+    <div class="toc-h2">11.1 Caminos de entrada · 11.2 Estados · 11.3 Roles · 11.4 Permisos del co-organizador · 11.5 Lista de espera</div>
+  <div class="toc-h1"><span class="toc-num">12.</span> Planificación Previa al Viaje</div>
+    <div class="toc-h2">12.1 Tareas · 12.2 Presupuesto · 12.3 Plantillas</div>
+  <div class="toc-h1"><span class="toc-num">13.</span> Módulo de Gastos</div>
+    <div class="toc-h2">13.1 Capas · 13.2 Propiedad · 13.3 Tipos de división · 13.4 Liquidación</div>
+  <div class="toc-h1"><span class="toc-num">14.</span> Reservas</div>
+    <div class="toc-h2">14.1 Estadías · 14.2 Distribución de habitaciones · 14.3 Estados de reserva</div>
+  <div class="toc-h1"><span class="toc-num">15.</span> Comunidad y Social</div>
+    <div class="toc-h2">15.1 Grupos · 15.2 Mensajería · 15.3 Arquitectura en tiempo real</div>
+  <div class="toc-h1"><span class="toc-num">16.</span> Gamificación</div>
+    <div class="toc-h2">16.1 Puntaje del viajero · 16.2 Logros · 16.3 Chamuco Points · 16.4 Mapa · 16.5 Reconocimientos · 16.6 Retroalimentación</div>
+  <div class="toc-h1"><span class="toc-num">17.</span> Eventos</div>
+    <div class="toc-h2">17.1 Modos · 17.2 Categorías · 17.3 RSVP · 17.4 Gamificación</div>
+  <div class="toc-h1"><span class="toc-num">18.</span> Calendario</div>
+  <div class="toc-h1"><span class="toc-num">19.</span> Identidad Visual</div>
+    <div class="toc-h2">19.1 Logo · 19.2 Paletas de color · 19.3 Tipografía · 19.4 Íconos · 19.5 Framework de componentes · 19.6 Diseño responsive · 19.7 Decisiones estéticas · 19.8 UI de gamificación</div>
+  <div class="toc-h1"><span class="toc-num">20.</span> Preferencias de Diseño del Usuario</div>
+    <div class="toc-h2">20.1 Opciones · 20.2 Almacenamiento · 20.3 Sincronización al login · 20.4 Implementación frontend</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     1. VISIÓN GENERAL
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>1. Visión General del Proyecto</h1>
+    <div class="section-sub">Propuesta de valor, audiencia y principios</div>
+  </div>
+
+  <h2>1.1 La propuesta central</h2>
+  <p><strong>Chamuco no es una app de viajes. Es una app de grupos que viajan.</strong></p>
+  <p>La distinción es fundamental. El sujeto de la plataforma no es el viaje — es el grupo de personas que lo hace junto. Los viajes van y vienen, pero los grupos acumulan historia, construyen cultura, desarrollan rankings internos y crean una identidad compartida que crece con los años. La referencia más cercana es <strong>Strava</strong>: una comunidad de personas que hacen algo juntas, lo rastrean, celebran hitos, ven el progreso mutuo y sienten el tirón del grupo como motivador. Chamuco hace eso para el viaje en grupo.</p>
+
+  <h2>1.2 Problema que resuelve</h2>
+  <p>Coordinar un viaje en grupo es inherentemente caótico. La información está dispersa en hilos de WhatsApp, hojas de cálculo y cadenas de correos. Chamuco App centraliza:</p>
+  <ul>
+    <li><strong>Quién va</strong> — gestión de participantes, invitaciones y confirmación de asistencia.</li>
+    <li><strong>Cómo llegamos</strong> — reservas de transporte y seguimiento de movimientos.</li>
+    <li><strong>Dónde nos quedamos</strong> — reservas de alojamiento y gestión de estadías.</li>
+    <li><strong>Qué hacemos</strong> — planificación de actividades y construcción del itinerario.</li>
+    <li><strong>Qué gastamos</strong> — seguimiento de gastos compartidos con liquidación al final.</li>
+    <li><strong>Cómo nos comunicamos</strong> — chats grupales, canales y comunidad.</li>
+    <li><strong>Qué hemos construido juntos</strong> — historia compartida, logros, reputación y el registro de cada viaje.</li>
+  </ul>
+
+  <h2>1.3 Audiencia objetivo</h2>
+  <ul>
+    <li>Grupos de viaje recurrentes: círculos de amigos, familias, clubes de viaje que organizan múltiples viajes al año.</li>
+    <li>Viajeros individuales que quieren construir una identidad pública de viajero y conectar con otros.</li>
+    <li>Organizadores que gestionan viajes en nombre de grupos y quieren que sus aportes sean reconocidos.</li>
+  </ul>
+
+  <h2>1.4 Principios clave</h2>
+  <ul>
+    <li><strong>El grupo es el héroe</strong> — funcionalidades diseñadas alrededor de la relación a largo plazo entre personas.</li>
+    <li><strong>Simplicidad primero</strong> — la UI debe ser intuitiva; planear debe sentirse más liviano que el caos actual.</li>
+    <li><strong>Flexibilidad</strong> — un viaje puede ser tan simple como una salida de fin de semana o tan complejo como un itinerario multipaís.</li>
+    <li><strong>Confianza y transparencia</strong> — gastos y estados de reservas visibles para todos los participantes relevantes.</li>
+    <li><strong>Localización por diseño</strong> — multiidioma y multimoneda desde el primer día.</li>
+    <li><strong>Validación en el mundo real</strong> — la gamificación recompensa el viaje real, no el engagement con la app.</li>
+  </ul>
+
+  <h2>1.5 Áreas funcionales</h2>
+  <table>
+    <thead><tr><th>Área</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>Viajes</td><td>Entidad central de planificación con ciclo de vida completo.</td></tr>
+      <tr><td>Participantes</td><td>Invitaciones, solicitudes, confirmación y roles.</td></tr>
+      <tr><td>Itinerario</td><td>Vista cronológica de movimientos, estadías y actividades.</td></tr>
+      <tr><td>Gastos</td><td>Seguimiento colaborativo con división, multimoneda y liquidación.</td></tr>
+      <tr><td>Reservas</td><td>Estado de reservas de transporte y alojamiento.</td></tr>
+      <tr><td>Usuarios y Perfiles</td><td>Cuentas con privacidad e identidad pública de viajero.</td></tr>
+      <tr><td>Grupos</td><td>Colecciones de usuarios con historia compartida y rankings.</td></tr>
+      <tr><td>Mensajería</td><td>Chats grupales, canales, roles y permisos tipo Slack.</td></tr>
+      <tr><td>Gamificación</td><td>Puntaje, logros, Chamuco Points, mapa de descubrimiento, reconocimientos.</td></tr>
+      <tr><td>Eventos</td><td>Reuniones de planificación, celebraciones y ceremonias de premios.</td></tr>
+      <tr><td>Calendario</td><td>Vista agregada de viajes y eventos en una línea de tiempo.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     2. STACK TECNOLÓGICO
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>2. Stack Tecnológico</h1>
+    <div class="section-sub">Todas las decisiones tecnológicas están tomadas</div>
+  </div>
+
+  <table>
+    <thead><tr><th>Capa</th><th>Tecnología</th></tr></thead>
+    <tbody>
+      <tr><td>Runtime</td><td>Node.js + TypeScript</td></tr>
+      <tr><td>Backend framework</td><td>NestJS</td></tr>
+      <tr><td>Frontend framework</td><td>Next.js (React)</td></tr>
+      <tr><td>PWA</td><td><code>@ducanh2912/next-pwa</code> + Service Worker unificado (caché + FCM mensajes en background)</td></tr>
+      <tr><td>Gestión de temas</td><td><code>next-themes</code> — toggle dark/light/system seguro con SSR, respaldado por cookie, estrategia Tailwind <code>class</code></td></tr>
+      <tr><td>Estilos</td><td>Tailwind CSS</td></tr>
+      <tr><td>ORM</td><td>Drizzle ORM</td></tr>
+      <tr><td>Migraciones</td><td>drizzle-kit — genera archivos <code>.sql</code> versionados en Git</td></tr>
+      <tr><td>Base de datos primaria</td><td>PostgreSQL (Cloud SQL)</td></tr>
+      <tr><td>Mensajería en tiempo real</td><td>Firestore (Firebase)</td></tr>
+      <tr><td>Autenticación</td><td>Firebase Authentication (Google Sign-In + Facebook Sign-In)</td></tr>
+      <tr><td>Notificaciones push</td><td>Firebase Cloud Messaging (FCM)</td></tr>
+      <tr><td>Documentación API</td><td><code>@nestjs/swagger</code> — OpenAPI 3.0, Swagger UI en <code>/api/docs</code></td></tr>
+      <tr><td>Testing backend</td><td>Jest + <code>@swc/jest</code></td></tr>
+      <tr><td>Testing frontend</td><td>Vitest + React Testing Library</td></tr>
+      <tr><td>Testing E2E</td><td>Playwright</td></tr>
+      <tr><td>Formato de código</td><td>Prettier</td></tr>
+      <tr><td>Git hooks</td><td>Husky + lint-staged — pre-commit: lint, format, tests, 90% cobertura</td></tr>
+      <tr><td>i18n frontend</td><td><code>i18next</code> + <code>react-i18next</code></td></tr>
+      <tr><td>i18n backend</td><td><code>nestjs-i18n</code></td></tr>
+      <tr><td>Nube</td><td>Google Cloud Platform (GCP)</td></tr>
+      <tr><td>Hosting</td><td>Cloud Run (contenedores, serverless, escala a cero)</td></tr>
+      <tr><td>Almacenamiento de archivos</td><td>Cloud Storage</td></tr>
+      <tr><td>CI/CD</td><td>GitHub Actions (dos pipelines independientes: <code>api</code> y <code>web</code>)</td></tr>
+      <tr><td>Repositorio</td><td>Monorepo — pnpm workspaces + Turborepo</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Decisiones arquitectónicas críticas</h2>
+  <div class="callout"><strong>PostgreSQL es la fuente de verdad para membresías.</strong> Firestore se usa exclusivamente para entrega de mensajes en tiempo real. Cualquier cambio de membresía debe sincronizarse inmediata y sincrónicamente a Firestore por el backend NestJS vía Firebase Admin SDK.</div>
+  <div class="callout"><strong>Firebase Admin SDK es el único escritor de Firestore.</strong> El frontend nunca escribe directamente. Todas las escrituras pasan por <code>POST /api/v1/...</code> en NestJS.</div>
+  <div class="callout"><strong>Sin sistema JWT personalizado.</strong> La autenticación se delega completamente a Firebase Authentication. El backend verifica tokens de Firebase ID vía <code>admin.auth().verifyIdToken()</code>.</div>
+  <div class="callout"><strong>Orden del pipeline CI/CD:</strong> lint → type check → tests → build → imagen Docker → push → <strong>ejecutar migraciones DB</strong> → desplegar en Cloud Run.</div>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">Todas las decisiones tecnológicas están resueltas.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     3. ESTRUCTURA DEL MONOREPO
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>3. Estructura del Monorepo</h1>
+    <div class="section-sub">pnpm workspaces + Turborepo</div>
+  </div>
+
+  <pre>chamuco/
+├── apps/
+│   ├── api/          # NestJS backend
+│   └── web/          # Next.js frontend
+├── packages/
+│   ├── db/           # Drizzle schema, migraciones, cliente
+│   ├── shared-types/ # Tipos TypeScript compartidos (@chamuco/shared-types)
+│   └── shared-utils/ # Utilidades compartidas (@chamuco/shared-utils)
+├── turbo.json
+├── pnpm-workspace.yaml
+└── package.json</pre>
+
+  <h2>Aliases de importación</h2>
+  <p>Nunca se usan importaciones relativas hacia arriba (<code>../</code>). Siempre se usan aliases:</p>
+  <table>
+    <thead><tr><th>Alias</th><th>Aplica en</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><code>@/*</code></td><td>Dentro del mismo app</td><td><code>import { UsersService } from '@/modules/users/users.service'</code></td></tr>
+      <tr><td><code>@chamuco/shared-types</code></td><td>Cross-package</td><td><code>import type { ITrip } from '@chamuco/shared-types'</code></td></tr>
+      <tr><td><code>@chamuco/shared-utils</code></td><td>Cross-package</td><td><code>import { formatCurrency } from '@chamuco/shared-utils'</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Reglas de calidad (pre-commit)</h2>
+  <ul>
+    <li><strong>Format</strong> — Prettier sobre archivos staged.</li>
+    <li><strong>Lint</strong> — ESLint con auto-fix. Violaciones no auto-fixables bloquean el commit.</li>
+    <li><strong>Unit tests</strong> — <code>turbo run test --filter=[HEAD^1]</code> en paquetes afectados.</li>
+    <li><strong>Cobertura</strong> — 90% en líneas, statements, funciones y ramas. Un commit que baje cualquier métrica es rechazado.</li>
+  </ul>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     4. ARQUITECTURA BACKEND
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>4. Arquitectura Backend</h1>
+    <div class="section-sub">NestJS · OpenAPI · Módulos</div>
+  </div>
+
+  <h2>4.1 Estructura de módulos NestJS</h2>
+  <table>
+    <thead><tr><th>Módulo</th><th>Responsabilidad</th></tr></thead>
+    <tbody>
+      <tr><td><code>AuthModule</code></td><td>Verificación de Firebase ID tokens, guard global, extracción de contexto de usuario</td></tr>
+      <tr><td><code>UsersModule</code></td><td>Gestión de cuentas de usuario, perfiles, preferencias, perfil de salud</td></tr>
+      <tr><td><code>TripsModule</code></td><td>Ciclo de vida de viajes, itinerario, visibilidad, presupuesto, completación</td></tr>
+      <tr><td><code>ParticipantsModule</code></td><td>Invitaciones, solicitudes, roles, permisos de co-organizador</td></tr>
+      <tr><td><code>ExpensesModule</code></td><td>Gastos, divisiones, liquidación, multimoneda</td></tr>
+      <tr><td><code>ReservationsModule</code></td><td>Reservas de transporte y alojamiento</td></tr>
+      <tr><td><code>GroupsModule</code></td><td>Grupos, membresías, tiers, admin</td></tr>
+      <tr><td><code>MessagingModule</code></td><td>Canales, DMs, sincronización de membresías con Firestore</td></tr>
+      <tr><td><code>GamificationModule</code></td><td>Puntaje, logros, Chamuco Points, reconocimientos, retroalimentación</td></tr>
+      <tr><td><code>EventsModule</code></td><td>Eventos, RSVP, lista de espera, integración gamificación</td></tr>
+      <tr><td><code>PreTripModule</code></td><td>Tareas pre-viaje, plantillas, envelopes de presupuesto</td></tr>
+      <tr><td><code>NotificationsModule</code></td><td>FCM push notifications, gestión de tokens de dispositivo</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4.2 Diseño de API</h2>
+  <ul>
+    <li>Base path: <code>/api/v1/</code></li>
+    <li>Autenticación: Bearer token (Firebase ID token) en header <code>Authorization</code></li>
+    <li>Formato de respuesta: JSON. Errores siguen RFC 7807 (Problem Details).</li>
+    <li>Paginación: cursor-based en todos los endpoints de lista.</li>
+    <li>Swagger UI disponible en <code>/api/docs</code> (producción: protegido por IP o autenticación).</li>
+  </ul>
+
+  <h2>4.3 Reglas de documentación OpenAPI (obligatorias)</h2>
+  <p>Todo endpoint de controlador NestJS debe tener:</p>
+  <ul>
+    <li><code>@ApiTags</code>, <code>@ApiOperation</code> (con <code>summary</code>), <code>@ApiResponse</code> para cada código HTTP posible.</li>
+    <li><code>@ApiBearerAuth()</code> en endpoints autenticados.</li>
+    <li><code>@ApiProperty</code> en todos los campos de DTOs (tipo, descripción, ejemplo, requerido/opcional).</li>
+  </ul>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     5. PWA
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>5. Progressive Web App (PWA)</h1>
+    <div class="section-sub">Instalación, caché, notificaciones push</div>
+  </div>
+
+  <h2>5.1 Capacidades PWA</h2>
+  <table>
+    <thead><tr><th>Capacidad</th><th>Implementación</th></tr></thead>
+    <tbody>
+      <tr><td>Instalable</td><td>Web App Manifest (<code>manifest.json</code>) con todos los campos requeridos</td></tr>
+      <tr><td>Offline</td><td>Service Worker con estrategia cache-first para assets estáticos, network-first para datos</td></tr>
+      <tr><td>Notificaciones push</td><td>FCM + Service Worker unificado que maneja mensajes en background</td></tr>
+      <tr><td>Ícono adaptable</td><td>Variante maskable para íconos adaptativos de Android (safe zone padding requerido)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5.2 Service Worker unificado</h2>
+  <p>Un único Service Worker gestiona dos responsabilidades: caché de assets (via <code>@ducanh2912/next-pwa</code>) y recepción de mensajes FCM en background. Dos Service Workers separados causarían conflictos de registro.</p>
+
+  <h2>5.3 Variantes de íconos requeridas</h2>
+  <table>
+    <thead><tr><th>Variante</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td>Color completo con wordmark</td><td>App stores, pantallas de carga, marketing</td></tr>
+      <tr><td>Solo ícono (sin texto)</td><td>Ícono de pantalla de inicio PWA, favicon, ícono de app</td></tr>
+      <tr><td>Monocromático</td><td>Fondos oscuros, badges de notificación, bandeja del sistema</td></tr>
+      <tr><td>Maskable</td><td>Íconos adaptativos de Android</td></tr>
+      <tr><td>SVG fuente</td><td>Cualquier redimensionamiento programático</td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     6. AUTENTICACIÓN Y AUTORIZACIÓN
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>6. Autenticación y Autorización</h1>
+    <div class="section-sub">Firebase Authentication · Sin JWT personalizado</div>
+  </div>
+
+  <h2>6.1 Firebase Authentication</h2>
+  <p>La autenticación está completamente delegada a Firebase Authentication. El backend verifica Firebase ID tokens vía <code>admin.auth().verifyIdToken()</code>. No hay sistema JWT propio de Chamuco.</p>
+
+  <h2>6.2 Métodos de login soportados (al lanzamiento)</h2>
+  <ul>
+    <li><strong>Google Sign-In</strong> — OAuth 2.0 / OpenID Connect vía Firebase.</li>
+    <li><strong>Facebook Sign-In</strong> — OAuth vía Firebase. Requiere una Facebook App registrada; el App ID y App Secret se almacenan en GCP Secret Manager.</li>
+  </ul>
+  <p>Los usuarios pueden vincular ambos proveedores a la misma cuenta mediante el <em>account linking</em> de Firebase.</p>
+
+  <h2>6.3 Flujo de verificación</h2>
+  <ol>
+    <li>El cliente completa el flujo OAuth con Google o Facebook vía Firebase SDK.</li>
+    <li>Firebase emite un Firebase ID token al cliente (idéntico independientemente del proveedor).</li>
+    <li>El cliente envía el token en el header <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+    <li>El guard global de NestJS llama a <code>admin.auth().verifyIdToken()</code>.</li>
+    <li>Si el token es válido, el UID de Firebase se usa para buscar el usuario en PostgreSQL.</li>
+    <li>En el primer login, se crea el registro del usuario con <code>auth_provider = GOOGLE | FACEBOOK</code> y el <code>display_name</code> se pre-llena desde el nombre de la cuenta del proveedor.</li>
+    <li>El objeto usuario se inyecta en el contexto de la request (<code>req.user</code>).</li>
+  </ol>
+
+  <h2>6.4 Roles de plataforma</h2>
+  <table>
+    <thead><tr><th>Rol</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>USER</code></td><td>Rol por defecto. Acceso normal a la plataforma.</td></tr>
+      <tr><td><code>SUPPORT_ADMIN</code></td><td>Cuenta de servicio para soporte técnico. Bypasa todas las restricciones de acceso a viajes y grupos (autenticación siempre requerida). Nunca se cuenta como participante. Cada escritura que realiza queda registrada inmutablemente en <code>support_admin_audit_log</code>. No asignable desde dentro de la app.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     7. NUBE Y DESPLIEGUE
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>7. Nube y Despliegue (GCP)</h1>
+    <div class="section-sub">Google Cloud Platform · GitHub Actions CI/CD</div>
+  </div>
+
+  <h2>7.1 Servicios GCP</h2>
+  <table>
+    <thead><tr><th>Servicio</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td>Cloud Run</td><td>Hosting de backend y frontend (contenedores, serverless, escala a cero)</td></tr>
+      <tr><td>Cloud SQL (PostgreSQL)</td><td>Base de datos primaria</td></tr>
+      <tr><td>Cloud Storage</td><td>Archivos de usuario (fotos de perfil, adjuntos, recursos de viaje)</td></tr>
+      <tr><td>Firebase (Firestore)</td><td>Mensajería en tiempo real</td></tr>
+      <tr><td>Firebase (FCM)</td><td>Notificaciones push</td></tr>
+      <tr><td>Firebase Authentication</td><td>Autenticación de usuarios</td></tr>
+      <tr><td>Artifact Registry</td><td>Registro de imágenes Docker</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7.2 Pipelines CI/CD (GitHub Actions)</h2>
+  <p>Dos pipelines independientes: <code>api</code> (backend) y <code>web</code> (frontend).</p>
+  <div class="callout"><strong>Orden pipeline backend:</strong> lint → type check → tests → build → imagen Docker → push a Artifact Registry → <strong>ejecutar migraciones DB</strong> → desplegar en Cloud Run. Si las migraciones fallan, el despliegue se omite.</div>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     8. LOCALIZACIÓN
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>8. Localización e Internacionalización</h1>
+    <div class="section-sub">i18next · nestjs-i18n · Cumplimiento estricto</div>
+  </div>
+
+  <h2>8.1 Idiomas soportados</h2>
+  <table>
+    <thead><tr><th>Código</th><th>Idioma</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td><code>es</code></td><td>Español</td><td>Principal (default)</td></tr>
+      <tr><td><code>en</code></td><td>English</td><td>Soportado</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8.2 Reglas de localización (no negociables)</h2>
+  <ul>
+    <li><strong>Todo el código en inglés</strong>: nombres de variables, funciones, enums, tablas, columnas, tipos TypeScript, comentarios, nombres de archivo. Sin excepciones.</li>
+    <li><strong>Sin strings hardcodeados en el frontend.</strong> Cada texto visible debe usar referencias <code>t()</code> de <code>i18next</code>. Esto es un requisito duro, no una guía — se hace cumplir con <code>eslint-plugin-i18next</code> en lint y CI.</li>
+  </ul>
+
+  <h2>8.3 Convención de nombres de claves</h2>
+  <table>
+    <thead><tr><th>Patrón</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><code>feature.component.element</code></td><td><code>trips.card.startDate</code></td></tr>
+      <tr><td><code>common.*</code></td><td><code>common.actions.save</code></td></tr>
+      <tr><td><code>errors.*</code></td><td><code>errors.notFound</code></td></tr>
+      <tr><td><code>enums.*</code></td><td><code>enums.tripStatus.IN_PROGRESS</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     9. USUARIOS Y PERFILES
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>9. Usuarios y Perfiles Personales</h1>
+    <div class="section-sub">Registro · Username · Perfil personal · Perfil de salud</div>
+  </div>
+
+  <h2>9.1 Registro de usuario</h2>
+  <p>Al crear una cuenta vía Firebase Authentication, el backend provisiona automáticamente: un registro en <code>users</code>, un registro en <code>user_preferences</code> (con defaults), un registro en <code>user_profiles</code> y un registro en <code>user_gamification_stats</code>.</p>
+
+  <h2>9.2 Reglas del username</h2>
+  <ul>
+    <li>Debe ser único en la plataforma.</li>
+    <li>3–30 caracteres. Solo <code>a-z</code>, <code>0-9</code>, <code>_</code>, <code>-</code>. Sin mayúsculas.</li>
+    <li>Almacenado sin <code>@</code>, mostrado con <code>@</code>.</li>
+    <li>Obligatorio elegirlo en el registro — no se asigna automáticamente.</li>
+  </ul>
+
+  <h2>9.3 Datos personales (nunca duplicados por viaje)</h2>
+  <table>
+    <thead><tr><th>Tabla</th><th>Datos</th></tr></thead>
+    <tbody>
+      <tr><td><code>user_profiles</code></td><td>Nombre, foto, bio, pasaporte, contacto de emergencia, necesidades dietarias, alergias</td></tr>
+      <tr><td><code>user_health_profiles</code></td><td>Fobias, limitaciones físicas, condiciones médicas relevantes para viajes</td></tr>
+    </tbody>
+  </table>
+  <p>Estos datos viven una sola vez en el perfil del usuario. Los organizadores con permiso <code>VIEW_TRAVEL_PROFILES</code> pueden consultarlos.</p>
+
+  <h2>9.4 Visibilidad del perfil</h2>
+  <table>
+    <thead><tr><th>Campo</th><th>Opciones</th></tr></thead>
+    <tbody>
+      <tr><td>Perfil público</td><td><code>PUBLIC</code> / <code>CONNECTIONS_ONLY</code> / <code>PRIVATE</code></td></tr>
+      <tr><td>Mapa de descubrimiento</td><td>Visible públicamente o solo para conexiones</td></tr>
+      <tr><td>Historial de viajes</td><td>Visible públicamente o solo para conexiones</td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="oq-item">¿Cómo se deberían registrar los viajes pasados (antes de usar Chamuco)?</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     10. VIAJES
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>10. Viajes</h1>
+    <div class="section-sub">Ciclo de vida · Itinerario · Presupuesto · Completación</div>
+  </div>
+
+  <h2>10.1 Ciclo de vida</h2>
+  <table>
+    <thead><tr><th>Estado</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>DRAFT</code></td><td>En planificación. Editable libremente.</td></tr>
+      <tr><td><code>PUBLISHED</code></td><td>Abierto a participantes. Invitaciones y solicitudes activas.</td></tr>
+      <tr><td><code>IN_PROGRESS</code></td><td>Viaje iniciado (00:00 del <code>start_date</code>). Cambios requieren confirmación del organizador y notificación a participantes.</td></tr>
+      <tr><td><code>COMPLETED</code></td><td>Viaje terminado (24:00 del <code>end_date</code>). Dispara flujo de completación: stats, logros, puntos, ventana de retroalimentación.</td></tr>
+      <tr><td><code>CANCELLED</code></td><td>Viaje cancelado. Registrado pero inactivo.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>10.2 Visibilidad</h2>
+  <p>La visibilidad controla la <em>descubribilidad</em>, no quién puede ser invitado. Un organizador siempre puede invitar a cualquier usuario independientemente de la visibilidad.</p>
+  <table>
+    <thead><tr><th>Valor</th><th>Comportamiento</th></tr></thead>
+    <tbody>
+      <tr><td><code>PUBLIC</code></td><td>Aparece en búsquedas y listados públicos.</td></tr>
+      <tr><td><code>LINK_ONLY</code></td><td>Accesible solo con enlace directo.</td></tr>
+      <tr><td><code>PRIVATE</code></td><td>No es buscable. Solo visible para miembros de grupos listados en <code>trip_visible_to_groups</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>10.3 Itinerario — Categorías de ítems</h2>
+  <table>
+    <thead><tr><th>Categoría</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>TRANSPORT</code></td><td>Vuelos, buses, trenes, traslados, carros, barcos</td></tr>
+      <tr><td><code>AIRPORT</code></td><td>Llegada, salida, escala, recogida en aeropuerto</td></tr>
+      <tr><td><code>PLACE</code></td><td>Sitios turísticos, naturaleza, monumentos, miradores</td></tr>
+      <tr><td><code>FOOD</code></td><td>Restaurantes, bares, mercados, degustaciones</td></tr>
+      <tr><td><code>OTHER</code></td><td>Cualquier ítem que no encaje en las categorías anteriores</td></tr>
+    </tbody>
+  </table>
+  <p>El <strong>Día 0</strong> es el día previo a la salida para ítems logísticos antes del inicio oficial del viaje.</p>
+
+  <h2>10.4 Recursos del viaje</h2>
+  <p>Todo viaje puede tener una sección de <strong>notas, documentos y/o links de interés</strong> asociados (packing lists, visas, documentación de referencia, etc.).</p>
+
+  <h2>10.5 Presupuesto — Visibilidad</h2>
+  <table>
+    <thead><tr><th>Rol</th><th>Puede ver estimado</th><th>Puede ver gastos reales</th></tr></thead>
+    <tbody>
+      <tr><td>Cualquiera que pueda ver el viaje</td><td>✓</td><td>✗</td></tr>
+      <tr><td>Viajeros confirmados</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Organizadores</td><td>✓</td><td>✓</td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     11. PARTICIPANTES
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>11. Participantes e Invitaciones</h1>
+    <div class="section-sub">Caminos de entrada · Roles · Permisos · Lista de espera</div>
+  </div>
+
+  <h2>11.1 Dos caminos de entrada</h2>
+  <table>
+    <thead><tr><th>Camino</th><th>Iniciado por</th><th>Requiere visibilidad</th></tr></thead>
+    <tbody>
+      <tr><td>Solicitud de unión</td><td>Usuario</td><td>Sí — el usuario debe poder ver el viaje</td></tr>
+      <tr><td>Invitación</td><td>Organizador</td><td>No — siempre disponible para cualquier usuario</td></tr>
+    </tbody>
+  </table>
+  <p>Solo puede haber una solicitud activa <em>o</em> una invitación activa por usuario por viaje al mismo tiempo. Ambas pueden crearse y cancelarse a voluntad por quien las creó (el usuario retira su solicitud; el organizador revoca su invitación). Al cancelar, el registro se elimina.</p>
+
+  <h2>11.2 Estados del participante</h2>
+  <table>
+    <thead><tr><th>Estado</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>PENDING_REQUEST</code></td><td>Solicitud enviada por el usuario, esperando aprobación del organizador.</td></tr>
+      <tr><td><code>INVITED</code></td><td>Invitación enviada por el organizador, esperando respuesta del usuario.</td></tr>
+      <tr><td><code>CONFIRMED</code></td><td>Participación confirmada.</td></tr>
+      <tr><td><code>REJECTED</code></td><td>Solicitud rechazada por el organizador.</td></tr>
+      <tr><td><code>DECLINED</code></td><td>Invitación declinada por el usuario.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>11.3 Roles de viaje</h2>
+  <table>
+    <thead><tr><th>Rol</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>ORGANIZER</code></td><td>Control total. Puede haber múltiples organizadores simultáneamente.</td></tr>
+      <tr><td><code>CO_ORGANIZER</code></td><td>Permisos granulares definidos al asignar el rol.</td></tr>
+      <tr><td><code>PARTICIPANT</code></td><td>Participante estándar del viaje.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Rol vs. participación son independientes:</strong> un organizador puede o no viajar (<code>is_traveling_participant</code>). Los no-viajeros se excluyen de capacidad, división de gastos y presupuesto per-cápita.</p>
+
+  <h2>11.4 Permisos del co-organizador</h2>
+  <p>Al asignar <code>CO_ORGANIZER</code>, el organizador define explícitamente un conjunto <code>CoOrganizerPermission[]</code>:</p>
+  <ul>
+    <li><code>MANAGE_ITINERARY</code> · <code>MANAGE_EXPENSES</code> · <code>MANAGE_PARTICIPANTS</code></li>
+    <li><code>MANAGE_RESERVATIONS</code> · <code>EDIT_TRIP_DETAILS</code> · <code>MANAGE_PRE_TRIP_TASKS</code></li>
+    <li><code>MODERATE_CHANNEL</code> · <code>VIEW_TRAVEL_PROFILES</code> · <code>AWARD_RECOGNITIONS</code></li>
+  </ul>
+
+  <h2>11.5 Invitaciones de rol</h2>
+  <p>Cuando un organizador quiere agregar otro organizador o co-organizador, debe hacerlo mediante una invitación de rol (<code>trip_role_invitations</code>). Si el invitado ya es participante confirmado, la invitación solo actualiza su rol. Si no es participante aún, el organizador declara <code>will_travel</code>. Una invitación de rol con <code>will_travel = true</code> bypasa el modo lista de espera.</p>
+
+  <h2>11.6 Modo lista de espera</h2>
+  <p>La lista de espera no es una entidad separada — es una vista de registros <code>PENDING_REQUEST</code> ordenados por <code>initiated_at</code>. Cuando <code>WAITLIST_MODE</code> está activo y la capacidad está llena, el organizador debe aceptar solicitudes en orden cronológico (puede rechazar cualquier solicitud en cualquier momento, pero no puede saltarse una para aceptar una posterior).</p>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     12. PLANIFICACIÓN PREVIA
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>12. Planificación Previa al Viaje</h1>
+    <div class="section-sub">Tareas · Presupuesto planificado · Plantillas</div>
+  </div>
+
+  <h2>12.1 Checklist pre-viaje</h2>
+  <p>Cada viaje puede tener una lista de tareas previas al inicio. Cada tarea tiene:</p>
+  <table>
+    <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>Título y descripción</td><td>Qué debe hacerse</td></tr>
+      <tr><td>Categoría</td><td><code>DOCUMENT</code>, <code>BOOKING</code>, <code>PAYMENT</code>, <code>COMMUNICATION</code>, <code>LOGISTICS</code>, <code>OTHER</code></td></tr>
+      <tr><td>Asignado a</td><td>Participante(s) responsables</td></tr>
+      <tr><td>Fecha límite</td><td>Deadline relativo (<code>N days before departure</code>) o absoluto</td></tr>
+      <tr><td>Estado</td><td><code>PENDING</code>, <code>IN_PROGRESS</code>, <code>DONE</code>, <code>BLOCKED</code></td></tr>
+      <tr><td>Visibilidad</td><td><code>ALL_PARTICIPANTS</code> o <code>ORGANIZERS_ONLY</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>12.2 Presupuesto planificado (envelopes)</h2>
+  <p>Los organizadores pueden definir envelopes de presupuesto por categoría antes del viaje. Esto alimenta el estimado visible para quienes pueden ver el viaje.</p>
+  <table>
+    <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>Categoría</td><td><code>TRANSPORT</code>, <code>ACCOMMODATION</code>, <code>FOOD</code>, <code>ACTIVITIES</code>, <code>OTHER</code></td></tr>
+      <tr><td>Monto estimado</td><td>Con moneda y tipo de cambio al momento de la definición</td></tr>
+      <tr><td>Participación</td><td><code>REQUIRED</code> (todos) u <code>OPTIONAL</code> (opt-in por participante)</td></tr>
+      <tr><td>Compartición (OPTIONAL)</td><td><code>INDIVIDUAL</code> o <code>SHARED</code> (grupo de máx. N personas)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>12.3 Tasas de cambio</h2>
+  <p>El campo <code>exchange_rate_snapshot</code> se captura al momento de registrar el ítem y es inmutable — nunca se sobreescribe. Esto preserva la intención original del presupuesto aunque las tasas cambien.</p>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     13. GASTOS
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>13. Módulo de Gastos</h1>
+    <div class="section-sub">Libro contable colaborativo · Sin dinero real · Estilo Splitwise</div>
+  </div>
+
+  <div class="callout"><strong>Chamuco no procesa dinero real.</strong> El módulo de gastos es un libro contable colaborativo. La liquidación se calcula al cierre del viaje y los participantes la ejecutan fuera de la app.</div>
+
+  <h2>13.1 Dos capas</h2>
+  <table>
+    <thead><tr><th>Capa</th><th>Tabla</th><th>Propósito</th></tr></thead>
+    <tbody>
+      <tr><td>Costos planificados</td><td><code>trip_budget_items</code></td><td>Definidos antes/durante el viaje. Alimentan el estimado de presupuesto.</td></tr>
+      <tr><td>Gastos reales</td><td><code>expenses</code></td><td>Registrados cuando se gasta dinero. El libro en vivo.</td></tr>
+    </tbody>
+  </table>
+  <p>Cuando un ítem planificado se paga, se vincula al gasto real correspondiente.</p>
+
+  <h2>13.2 Propiedad del gasto</h2>
+  <table>
+    <thead><tr><th>Valor</th><th>División</th><th>Genera deuda</th></tr></thead>
+    <tbody>
+      <tr><td><code>SHARED</code></td><td>Dividido entre un conjunto de participantes</td><td>Sí</td></tr>
+      <tr><td><code>INDIVIDUAL</code></td><td>Una persona pagó por sí misma</td><td>No (referencia en el libro)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>13.3 Tipos de división</h2>
+  <table>
+    <thead><tr><th>Tipo</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>EQUAL</code></td><td>Monto total dividido por igual entre todos los incluidos.</td></tr>
+      <tr><td><code>EXACT</code></td><td>Cada participante tiene un monto exacto asignado.</td></tr>
+      <tr><td><code>PERCENTAGE</code></td><td>Cada participante tiene un porcentaje asignado (suma = 100%).</td></tr>
+      <tr><td><code>SHARES</code></td><td>División por unidades proporcionales (ej. 1, 2, 3 partes).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>13.4 Reglas de liquidación</h2>
+  <ul>
+    <li>Solo participantes con <code>did_travel = true</code> se incluyen en divisiones y liquidación.</li>
+    <li>Múltiples pagadores por gasto soportados (<code>expense_payers</code>). La suma de montos de pagadores debe igualar el total.</li>
+    <li>El campo <code>exchange_rate_snapshot</code> es inmutable — capturado al momento del registro.</li>
+    <li>Al completar el viaje, se calcula un grafo de deuda mínima (estilo Splitwise).</li>
+  </ul>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     14. RESERVAS
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>14. Reservas</h1>
+    <div class="section-sub">Transporte · Alojamiento · Distribución de habitaciones</div>
+  </div>
+
+  <h2>14.1 Tipos de reserva</h2>
+  <table>
+    <thead><tr><th>Tipo</th><th>Aplica a</th><th>Campos específicos</th></tr></thead>
+    <tbody>
+      <tr><td>Transporte</td><td>Vuelos, buses, trenes, traslados</td><td>Número de vuelo/servicio, aerolínea/operador, número de confirmación, asientos</td></tr>
+      <tr><td>Alojamiento</td><td>Hoteles, hostales, Airbnb, casas</td><td>Nombre del lugar, dirección, check-in/out, tipo de habitación, distribución</td></tr>
+    </tbody>
+  </table>
+
+  <h2>14.2 Distribución de habitaciones</h2>
+  <p>Aplica para todos los tipos de hospedaje. El organizador define la distribución de cuartos (quién comparte con quién). Los participantes son notificados cuando cambia su asignación y pueden ver la distribución completa, el costo total y cuánto les corresponde.</p>
+
+  <h2>14.3 Estados de reserva</h2>
+  <table>
+    <thead><tr><th>Estado</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>PENDING</code></td><td>Reserva en proceso de confirmación.</td></tr>
+      <tr><td><code>CONFIRMED</code></td><td>Reserva confirmada por el proveedor.</td></tr>
+      <tr><td><code>CANCELLED</code></td><td>Reserva cancelada.</td></tr>
+      <tr><td><code>COMPLETED</code></td><td>Servicio consumido (viaje completado).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>14.4 Múltiples referencias</h2>
+  <p>Una reserva puede tener múltiples códigos de referencia (ej. número de confirmación de aerolínea + número de agencia de viajes). La tabla <code>reservation_references</code> soporta esto con <code>reference_type</code> y <code>reference_value</code>.</p>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     15. COMUNIDAD Y SOCIAL
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>15. Comunidad y Social</h1>
+    <div class="section-sub">Grupos · Mensajería tipo Slack · Firestore en tiempo real</div>
+  </div>
+
+  <h2>15.1 Grupos</h2>
+  <p>Los grupos son la unidad de identidad social de largo plazo. Un grupo puede tener múltiples viajes a lo largo del tiempo y su membresía es independiente de la de cada viaje.</p>
+  <table>
+    <thead><tr><th>Rol en grupo</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>ADMIN</code></td><td>Control total sobre el grupo. El último admin no puede salir sin transferir el rol.</td></tr>
+      <tr><td><code>MEMBER</code></td><td>Miembro estándar.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>15.2 Sistema de mensajería (tipo Slack)</h2>
+  <table>
+    <thead><tr><th>Tipo</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>DM (1:1)</td><td>Conversación directa entre dos usuarios.</td></tr>
+      <tr><td>Canal PUBLIC</td><td>Cualquiera puede entrar como VIEWER (solo lectura) o unirse como MEMBER (puede publicar).</td></tr>
+      <tr><td>Canal PRIVATE</td><td>Solo miembros invitados. Los viajes y grupos auto-crean un canal privado que espeja su membresía.</td></tr>
+    </tbody>
+  </table>
+  <p>Todos los miembros ven el historial completo de mensajes sin importar cuándo se unieron.</p>
+
+  <h2>15.3 Arquitectura en tiempo real</h2>
+  <div class="callout"><strong>Principio fundamental:</strong> La membresía en Firestore es siempre derivada de PostgreSQL — nunca se gestiona de forma independiente. El frontend lee de Firestore en tiempo real; nunca escribe directamente. Todas las escrituras pasan por la API NestJS.</div>
+
+  <h2>15.4 Recursos del grupo</h2>
+  <p>Al igual que los viajes, los grupos pueden tener una sección de <strong>notas, documentos y/o links de interés</strong> asociados.</p>
+
+  <h2>15.5 Tiers de miembro de grupo</h2>
+  <table>
+    <thead><tr><th>Tier</th><th>Requisito</th></tr></thead>
+    <tbody>
+      <tr><td><code>NEWCOMER</code></td><td>Recién unido</td></tr>
+      <tr><td><code>NOVICE</code></td><td>1 viaje completado con el grupo</td></tr>
+      <tr><td><code>EXPLORER</code></td><td>5 viajes completados con el grupo</td></tr>
+      <tr><td><code>VETERAN</code></td><td>10+ viajes completados con el grupo</td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     16. GAMIFICACIÓN
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>16. Gamificación</h1>
+    <div class="section-sub">Puntaje · Logros · Chamuco Points · Mapa · Reconocimientos · Retroalimentación</div>
+  </div>
+
+  <h2>16.1 Traveler Score (Puntaje del Viajero)</h2>
+  <p>Métrica compuesta calculada a partir de: viajes completados, países visitados, km recorridos, logros desbloqueados y retroalimentación recibida. Usado para el ranking global. Nunca editable directamente.</p>
+
+  <h2>16.2 Logros (Achievements)</h2>
+  <p>Badges automáticos disparados al alcanzar hitos definidos (número de viajes, geografía, distancia, actividad social). Se ganan una vez y nunca se pierden.</p>
+
+  <h2>16.3 Chamuco Points</h2>
+  <ul>
+    <li>Moneda blanda dentro de la app. Sin valor monetario real.</li>
+    <li>Se ganan al completar viajes y desbloquear logros.</li>
+    <li>Se gastan en personalizaciones cosméticas del perfil.</li>
+    <li>No transferibles. No expiran.</li>
+  </ul>
+
+  <h2>16.4 Mapa de Descubrimiento</h2>
+  <p>Visualización geográfica personal derivada de los ítems <code>PLACE</code> en viajes completados. Se muestra en el perfil público (si la visibilidad lo permite).</p>
+
+  <h2>16.5 Reconocimientos (Recognitions)</h2>
+  <p>Badges otorgados por pares. Fuentes posibles:</p>
+  <ul>
+    <li>Organizador del viaje al completarlo.</li>
+    <li>Admin del grupo, una vez al año por miembro.</li>
+    <li>Organizador del evento al completarlo.</li>
+  </ul>
+
+  <h2>16.6 Retroalimentación de viaje</h2>
+  <p>Retroalimentación estructurada post-viaje (puntuada + comentario opcional) dirigida a organizadores, más notas opcionales entre pares. Ventana de 7 días después del estado <code>COMPLETED</code>.</p>
+
+  <h2>16.7 Flujo de completación de viaje</h2>
+  <p>Cuando un viaje pasa a <code>COMPLETED</code>: se actualizan stats, se evalúan logros, se distribuyen puntos, se abre la ventana de retroalimentación y se desbloquea la ventana de reconocimientos para organizadores.</p>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     17. EVENTOS
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>17. Eventos</h1>
+    <div class="section-sub">Reuniones · Celebraciones · RSVP · Gamificación opcional</div>
+  </div>
+
+  <h2>17.1 Modos de evento</h2>
+  <table>
+    <thead><tr><th>Modo</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>FREE</code></td><td>Evento independiente, no vinculado a grupo ni viaje.</td></tr>
+      <tr><td><code>GROUP</code></td><td>Vinculado a un grupo.</td></tr>
+      <tr><td><code>TRIP</code></td><td>Vinculado a un viaje.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>17.2 Categorías</h2>
+  <table>
+    <thead><tr><th>Categoría</th><th>Uso típico</th></tr></thead>
+    <tbody>
+      <tr><td><code>PRESENTATION</code></td><td>Sesión de presentación de destinos o itinerario.</td></tr>
+      <tr><td><code>PLANNING</code></td><td>Sesión de planificación colaborativa.</td></tr>
+      <tr><td><code>CELEBRATION</code></td><td>Celebración del grupo.</td></tr>
+      <tr><td><code>AWARDS</code></td><td>Ceremonia de reconocimientos y premios.</td></tr>
+      <tr><td><code>OTHER</code></td><td>Cualquier otro tipo de evento.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>17.3 RSVP</h2>
+  <table>
+    <thead><tr><th>Estado</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>CONFIRMED</code></td><td>Asistencia confirmada.</td></tr>
+      <tr><td><code>TENTATIVE</code></td><td>Asistencia tentativa.</td></tr>
+      <tr><td><code>DECLINED</code></td><td>No asistirá.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>17.4 Gamificación opcional</h2>
+  <p>Los eventos pueden opcionalmente otorgar Chamuco Points y/o desbloquear una ventana de reconocimientos para el organizador al completarse. Esto es una decisión por evento, no global.</p>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     18. CALENDARIO
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>18. Calendario</h1>
+    <div class="section-sub">Vista agregada de viajes y eventos</div>
+  </div>
+
+  <h2>18.1 Fuentes de datos</h2>
+  <ul>
+    <li>Viajes en los que el usuario es participante confirmado u organizador.</li>
+    <li>Eventos a los que el usuario tiene RSVP <code>CONFIRMED</code> o <code>TENTATIVE</code>.</li>
+    <li>Opcionalmente: viajes de grupos del usuario (según configuración de privacidad).</li>
+  </ul>
+
+  <h2>18.2 Modos de vista</h2>
+  <table>
+    <thead><tr><th>Vista</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>Cuadrícula mensual</td><td>Cuadro de mes clásico con indicadores de viajes y eventos en cada día.</td></tr>
+      <tr><td>Lista próximos</td><td>Lista cronológica hacia adelante de viajes y eventos, agrupados por mes.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>18.3 Comportamiento de viajes multi-día</h2>
+  <p>Los viajes que abarcan varios días se muestran como bloques continuos en la vista de cuadrícula. En la vista de lista aparecen como un único ítem con rango de fechas.</p>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="no-questions">No hay preguntas abiertas en esta sección.</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     19. IDENTIDAD VISUAL
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>19. Identidad Visual</h1>
+    <div class="section-sub">Logo · Paletas · Tipografía · Íconos · Componentes · Decisiones estéticas</div>
+  </div>
+
+  <div class="callout warn"><strong>Estado:</strong> Decisiones pendientes <span class="status-badge pending">⏳ Pendiente</span>. Este documento presenta las opciones con su justificación. Las decisiones deben registrarse aquí una vez tomadas.</div>
+
+  <h2>19.1 Logo — Propuesta actual</h2>
+  <p>Un chamuco caricaturesco (diablito simpático) con una gorra hacia atrás con una brújula incrustada. Fondo de gradiente cálido en rojos y naranjas, con motivos de viaje sutiles (aviones de papel, árboles, camino sinuoso). El personaje es juguetón y accesible — travieso sin ser agresivo.</p>
+  <p><strong>Fortalezas:</strong> Alta personalidad, memorable, funciona bien como ícono de PWA. El detalle de la brújula refuerza el dominio del viaje sin ser un cliché.</p>
+  <p><strong>Variantes requeridas para producción:</strong></p>
+  <table>
+    <thead><tr><th>Variante</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td>Color completo con wordmark</td><td>App stores, pantallas de carga, marketing</td></tr>
+      <tr><td>Solo ícono (sin texto)</td><td>Ícono de pantalla de inicio PWA, favicon</td></tr>
+      <tr><td>Monocromático</td><td>Fondos oscuros, badges de notificación, bandeja del sistema</td></tr>
+      <tr><td>Maskable</td><td>Íconos adaptativos de Android (safe zone padding requerido)</td></tr>
+      <tr><td>SVG fuente</td><td>Cualquier redimensionamiento programático</td></tr>
+    </tbody>
+  </table>
+
+  <h2>19.2 Paletas de color</h2>
+
+  <h3>Paleta A — "Fuego Viajero" (derivada del logo)</h3>
+  <p>Extiende el calor del logo por toda la UI. Alta energía, aventurera. Personalidad: enérgica, cálida, on-brand.</p>
+  <table>
+    <thead><tr><th>Rol</th><th>Light mode</th><th>Dark mode</th></tr></thead>
+    <tbody>
+      <tr><td>Primary</td><td><code>#E8491F</code> naranja-rojo profundo</td><td><code>#FF6B3D</code></td></tr>
+      <tr><td>Secondary</td><td><code>#F5A623</code> ámbar</td><td><code>#FFBB4D</code></td></tr>
+      <tr><td>Background</td><td><code>#FFFFFF</code></td><td><code>#1A1008</code> negro cálido</td></tr>
+      <tr><td>Surface</td><td><code>#FFF8F5</code> blanco cálido</td><td><code>#2A1C12</code></td></tr>
+      <tr><td>Text primary</td><td><code>#1A0A04</code></td><td><code>#F5EDE8</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Paleta B — "Cielos Abiertos" (contrastante — cielo y tierra)</h3>
+  <p>Usa el otro lado del espectro emocional del viaje: cielos abiertos, libertad, claridad. El secundario naranja mantiene el espíritu del chamuco. Personalidad: fresco, confiable, moderno.</p>
+  <table>
+    <thead><tr><th>Rol</th><th>Light mode</th><th>Dark mode</th></tr></thead>
+    <tbody>
+      <tr><td>Primary</td><td><code>#0284C7</code> azul cielo</td><td><code>#38BDF8</code></td></tr>
+      <tr><td>Secondary</td><td><code>#F97316</code> naranja atardecer</td><td><code>#FB923C</code></td></tr>
+      <tr><td>Background</td><td><code>#F0F9FF</code> cielo pálido</td><td><code>#0C1A24</code> cielo nocturno</td></tr>
+      <tr><td>Surface</td><td><code>#FFFFFF</code></td><td><code>#132230</code></td></tr>
+      <tr><td>Text primary</td><td><code>#0C1A24</code></td><td><code>#E0F2FE</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Paleta C — "Noche Nómada" (dark-first, premium)</h3>
+  <p>Empieza desde una base oscura y rica. Sofisticado y moderno. La combinación violeta/oro es inusual en apps de viaje — puede ser un diferenciador fuerte.</p>
+  <table>
+    <thead><tr><th>Rol</th><th>Light mode</th><th>Dark mode</th></tr></thead>
+    <tbody>
+      <tr><td>Primary</td><td><code>#7C3AED</code> índigo-violeta</td><td><code>#A78BFA</code></td></tr>
+      <tr><td>Secondary</td><td><code>#F59E0B</code> oro</td><td><code>#FCD34D</code></td></tr>
+      <tr><td>Background</td><td><code>#F5F3FF</code> lavanda pálido</td><td><code>#12101E</code> índigo-negro</td></tr>
+      <tr><td>Surface</td><td><code>#FFFFFF</code></td><td><code>#1E1A30</code></td></tr>
+      <tr><td>Text primary</td><td><code>#12101E</code></td><td><code>#EDE9FE</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>19.3 Tipografía</h2>
+  <table>
+    <thead><tr><th>Opción</th><th>Headings</th><th>Body</th><th>Mejor con</th></tr></thead>
+    <tbody>
+      <tr><td>A — Moderno/juguetón</td><td>Outfit — geométrico, redondeado</td><td>Inter — estándar de la industria</td><td>Paleta A o B</td></tr>
+      <tr><td>B — Premium/limpio</td><td>Plus Jakarta Sans</td><td>DM Sans — cálido, muy legible</td><td>Paleta B o C</td></tr>
+      <tr><td>C — Redondeado/expresivo</td><td>Sora — terminales redondeados, personalidad</td><td>Nunito — muy redondeado, amigable</td><td>Paleta A (alinea con el estilo cartoon del chamuco)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Escala tipográfica (base 16px)</h3>
+  <table>
+    <thead><tr><th>Token</th><th>Tamaño</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><code>display</code></td><td>36–48px</td><td>Títulos hero, splash screens</td></tr>
+      <tr><td><code>h1</code></td><td>28px</td><td>Títulos de página</td></tr>
+      <tr><td><code>h2</code></td><td>22px</td><td>Encabezados de sección</td></tr>
+      <tr><td><code>h3</code></td><td>18px</td><td>Títulos de card, subsecciones</td></tr>
+      <tr><td><code>body-lg</code></td><td>16px</td><td>Texto de cuerpo por defecto</td></tr>
+      <tr><td><code>body</code></td><td>14px</td><td>Texto secundario, labels</td></tr>
+      <tr><td><code>caption</code></td><td>12px</td><td>Timestamps, metadata, hints</td></tr>
+    </tbody>
+  </table>
+
+  <h2>19.4 Pack de íconos</h2>
+  <table>
+    <thead><tr><th>Opción</th><th>Descripción</th><th>Recomendado</th></tr></thead>
+    <tbody>
+      <tr><td>A — Phosphor Icons</td><td>9,000+ íconos, 6 pesos incluyendo duotone, MIT. Excelente cobertura de íconos de viaje. <code>@phosphor-icons/react</code></td><td>✓ Recomendado</td></tr>
+      <tr><td>B — Tabler Icons</td><td>5,900+ íconos, trazo consistente de 2px, MIT. Más limpio/dashboard. <code>@tabler/icons-react</code></td><td>—</td></tr>
+      <tr><td>C — Lucide React</td><td>1,450+ íconos, el bundle más pequeño, ya referenciado en el stack. <code>lucide-react</code></td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h2>19.5 Framework de componentes React</h2>
+  <table>
+    <thead><tr><th>Opción</th><th>Descripción</th><th>Recomendado</th></tr></thead>
+    <tbody>
+      <tr><td>A — shadcn/ui</td><td>No es una dependencia — los componentes se copian al proyecto. Construido sobre Radix UI (accesible). Tailwind-nativo. Ya referenciado. Sin overhead en runtime.</td><td>✓ Recomendado</td></tr>
+      <tr><td>B — HeroUI (NextUI)</td><td>Librería completa como dependencia npm. Buenas animaciones móviles (Framer Motion). Agrega peso al bundle.</td><td>—</td></tr>
+      <tr><td>C — DaisyUI</td><td>Plugin de Tailwind CSS. 63+ componentes, CSS puro, sin JavaScript. Ideal para prototipar. Menos compositional.</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h2>19.6 Diseño responsive y PWA</h2>
+  <table>
+    <thead><tr><th>Breakpoint</th><th>Patrón de navegación</th></tr></thead>
+    <tbody>
+      <tr><td>&lt; 768px (móvil)</td><td>Barra de navegación inferior, fija (4–5 ítems máx.)</td></tr>
+      <tr><td>≥ 768px (tablet/desktop)</td><td>Sidebar izquierda, colapsable</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>Touch targets:</strong> mínimo 44×44px en todos los elementos interactivos.</li>
+    <li><strong>Bottom sheet vs. modal:</strong> en móvil, preferir bottom sheet (slide desde abajo) sobre modal centrado.</li>
+  </ul>
+
+  <h2>19.7 Decisiones estéticas adicionales</h2>
+  <table>
+    <thead><tr><th>Elemento</th><th>Recomendación</th></tr></thead>
+    <tbody>
+      <tr><td>Border radius</td><td>Redondeado: <code>rounded-xl</code> (12px) para cards, <code>rounded-full</code> para botones de acción primaria.</td></tr>
+      <tr><td>Estilo de ilustración</td><td>Híbrido: íconos Phosphor duotone para estados vacíos funcionales; mascota chamuco para momentos emocionales clave (onboarding, celebración).</td></tr>
+      <tr><td>Sombras</td><td>Sombras suaves en light mode; flat (solo bordes) en dark mode. Sombras de color solo en botones CTA primarios.</td></tr>
+      <tr><td>Estados de carga</td><td>Skeleton screens para listas y cards; spinner solo para acciones puntuales; UI optimista para envío de mensajes y adición de gastos.</td></tr>
+      <tr><td>Animaciones</td><td>150ms micro-interacciones, 300ms transiciones de página, 500ms onboarding. Siempre respetar <code>prefers-reduced-motion</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>19.8 UI de gamificación</h2>
+  <ul>
+    <li><strong>Badges:</strong> variantes locked (gris, con hint), unlocked (color completo), featured (ligeramente agrandado). El lenguaje visual debe ser consistente con el pack de íconos elegido.</li>
+    <li><strong>Tiers de grupo:</strong> Novicio → Explorador → Veterano. Diseño evocador de rangos militares o de aventura, no de videojuego.</li>
+    <li><strong>Mapa de descubrimiento:</strong> territorios visitados en color primario al 60–80% de opacidad; no visitados en gris neutro. Fondo del mapa mínimo y desaturado.</li>
+    <li><strong>Pantallas de celebración:</strong> overlay full-screen o sheet con el badge/reconocimiento grande, animación de confeti (respeta <code>prefers-reduced-motion</code>) y botón de compartir.</li>
+  </ul>
+
+  <h2>19.9 Resumen de decisiones pendientes</h2>
+  <table>
+    <thead><tr><th>Tema</th><th>Opciones</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Dirección del logo</td><td>Aprobar propuesta actual / encargar alternativas</td><td><span class="status-badge pending">⏳ Pendiente</span></td></tr>
+      <tr><td>Paleta de colores</td><td>A (Fuego Viajero) / B (Cielos Abiertos) / C (Noche Nómada)</td><td><span class="status-badge pending">⏳ Pendiente</span></td></tr>
+      <tr><td>Tipografía</td><td>A (Outfit+Inter) / B (Plus Jakarta Sans+DM Sans) / C (Sora+Nunito)</td><td><span class="status-badge pending">⏳ Pendiente</span></td></tr>
+      <tr><td>Pack de íconos</td><td>A (Phosphor) / B (Tabler) / C (Lucide)</td><td><span class="status-badge pending">⏳ Pendiente</span></td></tr>
+      <tr><td>Framework de componentes</td><td>A (shadcn/ui) / B (HeroUI) / C (DaisyUI)</td><td><span class="status-badge pending">⏳ Pendiente</span></td></tr>
+      <tr><td>Ítem de nav primario</td><td>4 ítems / 5 ítems</td><td><span class="status-badge pending">⏳ Pendiente</span></td></tr>
+      <tr><td>Estilo de bordes</td><td>Redondeado / Pill / Sharp</td><td><span class="status-badge pending">⏳ Pendiente</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="oq-item">¿Cuál paleta de color se elige como dirección principal?</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+    <div class="oq-item">¿Se aprueba la propuesta actual del logo o se encargan alternativas?</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+    <div class="oq-item">¿Cuál combinación tipográfica se elige?</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+    <div class="oq-item">¿Se confirma shadcn/ui como sistema de componentes principal?</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     20. PREFERENCIAS DE DISEÑO
+════════════════════════════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-header">
+    <h1>20. Preferencias de Diseño del Usuario</h1>
+    <div class="section-sub">Idioma · Moneda · Tema · Almacenamiento en dos capas</div>
+  </div>
+
+  <h2>20.1 Opciones de preferencia</h2>
+  <table>
+    <thead><tr><th>Preferencia</th><th>Valores</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr><td>Idioma (<code>AppLanguage</code>)</td><td><code>ES</code> Español · <code>EN</code> English</td><td><code>ES</code></td></tr>
+      <tr><td>Moneda de display (<code>AppCurrency</code>)</td><td><code>COP</code> Peso Colombiano · <code>USD</code> US Dollar</td><td><code>COP</code></td></tr>
+      <tr><td>Tema (<code>AppTheme</code>)</td><td><code>LIGHT</code> · <code>DARK</code> · <code>SYSTEM</code> (sigue el OS)</td><td><code>SYSTEM</code></td></tr>
+    </tbody>
+  </table>
+  <p class="note">La moneda de display solo afecta cómo se muestran los montos — no cómo se almacenan. Los montos siempre se guardan en su moneda original.</p>
+
+  <h2>20.2 Almacenamiento en dos capas</h2>
+  <h3>Capa 1 — Preferencias de invitado (cookie)</h3>
+  <p>Para usuarios no autenticados, las preferencias se almacenan en la cookie <strong><code>chamuco_prefs</code></strong>. Se usa cookie (no localStorage) porque se envía en cada request HTTP, permitiendo que Next.js la lea durante SSR y renderice el tema/idioma/moneda correctos en la primera respuesta sin flash.</p>
+  <table>
+    <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr><td>Nombre</td><td><code>chamuco_prefs</code></td></tr>
+      <tr><td>Contenido</td><td>JSON: <code>&#123;"lang":"es","currency":"COP","theme":"system"&#125;</code></td></tr>
+      <tr><td>Expiración</td><td>1 año desde la última actualización</td></tr>
+      <tr><td>Flags</td><td><code>SameSite=Lax</code>, <code>Secure</code> (HTTPS only)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Capa 2 — Preferencias autenticadas (base de datos)</h3>
+  <p>Para usuarios con sesión, las preferencias se guardan en la tabla <code>user_preferences</code> de PostgreSQL. Se cargan una vez tras la autenticación y se cachean en el estado del cliente. Los cambios se persisten vía <code>PATCH /api/v1/users/me/preferences</code>.</p>
+
+  <h2>20.3 Prioridad de resolución</h2>
+  <table>
+    <thead><tr><th>Contexto</th><th>Orden de prioridad</th></tr></thead>
+    <tbody>
+      <tr><td>Usuario autenticado</td><td>1. DB → 2. Cookie (solo si DB no tiene registro) → 3. Hint del navegador → 4. Default de la app</td></tr>
+      <tr><td>Usuario no autenticado</td><td>1. Cookie → 2. Hint del navegador → 3. Default de la app</td></tr>
+    </tbody>
+  </table>
+
+  <h2>20.4 Sincronización al login</h2>
+  <table>
+    <thead><tr><th>Situación</th><th>Comportamiento</th></tr></thead>
+    <tbody>
+      <tr><td>Cookie tiene valores no-default + DB tiene defaults</td><td>Sincronizar cookie → DB silenciosamente. El usuario configuró preferencias antes de loguearse.</td></tr>
+      <tr><td>DB ya tiene valores no-default</td><td>DB gana. La cookie se sobreescribe con valores de DB.</td></tr>
+      <tr><td>Ambas tienen valores no-default distintos</td><td>DB gana (refleja una elección deliberada previa del usuario autenticado).</td></tr>
+    </tbody>
+  </table>
+  <p>La sincronización es silenciosa y automática — no se muestra ningún prompt al usuario.</p>
+
+  <h2>20.5 Implementación frontend</h2>
+  <table>
+    <thead><tr><th>Preferencia</th><th>Librería/Mecanismo</th><th>Notas</th></tr></thead>
+    <tbody>
+      <tr><td>Tema</td><td><code>next-themes</code></td><td>Lee cookie durante SSR. Estrategia Tailwind: <code>darkMode: 'class'</code>. Hook <code>useTheme()</code> para el toggle.</td></tr>
+      <tr><td>Idioma</td><td><code>i18next</code> + middleware Next.js</td><td>Lee cookie en rutas públicas. Valor de DB tras hidratación en rutas autenticadas.</td></tr>
+      <tr><td>Moneda</td><td>React Context / Zustand</td><td>Inicializado desde cookie (invitado) o perfil de usuario (autenticado). Hook <code>useCurrency()</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="open-questions">
+    <div class="oq-title">Preguntas Abiertas</div>
+    <div class="oq-item">¿Se agregarán más idiomas en el futuro (ej. PT, FR)? ¿Cuándo?</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+    <div class="oq-item">¿Se agregarán más monedas de display además de COP y USD?</div>
+    <div class="writing-lines">
+      <hr class="writing-line"><hr class="writing-line"><hr class="writing-line">
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

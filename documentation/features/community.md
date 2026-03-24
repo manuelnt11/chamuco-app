@@ -1,7 +1,7 @@
 # Feature: Community & Social
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-23
 
 ---
 
@@ -72,11 +72,24 @@ In both cases, once a request or invitation reaches a terminal state, a new one 
 | `id` | UUID | |
 | `name` | String | |
 | `description` | Text | Optional |
-| `avatar_url` | String | Optional |
-| `visibility` | Enum `GroupVisibility` | `PUBLIC` or `PRIVATE` |
+| `cover_type` | Enum `CoverType` | `IMAGE` or `EMOJI`. Determines which cover field is active. |
+| `cover_image_url` | String (nullable) | URL in Cloud Storage. Required when `cover_type = IMAGE`. |
+| `cover_emoji` | String (nullable) | A single Unicode emoji character (e.g., `🏔️`, `🌴`, `🎒`). Required when `cover_type = EMOJI`. |
+| `visibility` | Enum `GroupVisibility` | `PUBLIC` or `PRIVATE`. **Required at creation** — no default is applied. The creator must make an explicit choice. |
 | `created_by` | UUID | The user who created the group. Receives `OWNER` role. |
 | `created_at` | Timestamp | |
 | `updated_at` | Timestamp | |
+
+### Cover Image / Emoji (`CoverType`)
+
+Groups and trips share the same `CoverType` enum. Exactly one cover must always be set — `cover_image_url` and `cover_emoji` are mutually exclusive.
+
+| Value | Behavior |
+|---|---|
+| `IMAGE` | A user-uploaded image stored in Cloud Storage. Displayed as a full or cropped cover. `cover_image_url` is required; `cover_emoji` is null. |
+| `EMOJI` | A single emoji character rendered at large scale as the group's visual identity. Useful when no image is available or the user prefers a symbolic representation. `cover_emoji` is required; `cover_image_url` is null. |
+
+The default at creation time is `EMOJI` with a contextually suggested emoji (e.g., based on the group name or left to the user to pick). The admin can change it at any time.
 
 ### Group Member Roles (enum: `GroupRole`)
 

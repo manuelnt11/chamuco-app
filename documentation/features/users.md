@@ -1,7 +1,7 @@
 # Feature: Users & Personal Profile
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-23
 
 ---
 
@@ -9,7 +9,7 @@
 
 A **User** is the system account of a registered person. It covers authentication identity and the **personal profile** — data that belongs to the person themselves, independent of any specific trip or group.
 
-This distinction matters: most information traditionally associated with "travel profiles" (passport, emergency contact, dietary needs, allergies) is intrinsic to the individual and should not be duplicated or scoped per trip. The user profile is the single source of truth for this data. Trip and group records reference the user rather than replicate it.
+This distinction matters: most information traditionally associated with "travel profiles" (passports, emergency contacts, dietary needs, health data) is intrinsic to the individual and should not be duplicated or scoped per trip. The user profile is the single source of truth for this data. Trip and group records reference the user rather than replicate it.
 
 ---
 
@@ -21,13 +21,14 @@ The core identity and authentication record.
 |---|---|---|
 | `id` | UUID | |
 | `email` | String | Primary identifier. Used for login and notifications. |
-| `username` | String | Unique handle chosen by the user. Lowercase, no spaces, no special characters except underscores and hyphens (e.g., `ana_gomez`, `juantravel`). Used for search and `@mentions` across the app. Immutable after a grace period post-registration (TBD). Unique across the entire system. |
-| `display_name` | String | The name shown across the app in non-legal contexts (chat, itinerary, group lists). Does not need to be unique. |
+| `username` | String | Unique handle chosen by the user. See Username Rules below. |
+| `display_name` | String | The name shown across the app in non-legal contexts (chat, itinerary, group lists). Pre-filled from the OAuth provider at registration. Does not need to be unique. |
 | `avatar_url` | String | Profile picture URL (stored in Cloud Storage). |
-| `auth_provider` | Enum `AuthProvider` | `GOOGLE`, `PASSKEY` |
-| `auth_provider_id` | String | External ID from the auth provider. |
+| `auth_provider` | Enum `AuthProvider` | `GOOGLE`, `FACEBOOK` |
+| `firebase_uid` | String | Firebase UID from the verified ID token. Unique. |
 | `timezone` | String (IANA) | User's home timezone. Used for date/time display defaults. |
 | `platform_role` | Enum `PlatformRole` | `USER` (default) or `SUPPORT_ADMIN`. See Platform Roles below. |
+| `agency_id` | UUID (nullable) | FK → `agencies.id`. Set if the user belongs to a travel agency. See [`features/agencies.md`](./agencies.md). |
 | `created_at` | Timestamp | |
 | `updated_at` | Timestamp | |
 | `last_active_at` | Timestamp | |
@@ -62,39 +63,133 @@ A 1:1 extension of the `users` table that holds display and UX preferences. Crea
 
 Extended personal data for the person behind the account. This is a 1:1 extension of the `users` table, kept separate to avoid bloating the core auth record.
 
-### Identity & Contact
-
 | Field | Type | Description |
 |---|---|---|
 | `user_id` | UUID | FK → `users.id` |
 | `first_name` | String | Legal first name (as on travel document). |
 | `last_name` | String | Legal last name. |
-| `date_of_birth` | Date | |
-| `nationality` | String | ISO 3166-1 alpha-2 country code (e.g., `CO`, `US`). |
+| `date_of_birth` | JSONB | `{ day, month, year, year_visible }`. See format below. |
+| `birth_country` | String (nullable) | ISO 3166-1 alpha-2. Country of birth. |
+| `birth_city` | String (nullable) | City of birth. |
+| `home_country` | String | ISO 3166-1 alpha-2. Country of current residence. May differ from any declared nationality. |
+| `home_city` | String (nullable) | City of current residence. Used as the origin point for LP distance calculations (see [`features/gamification.md`](./gamification.md)). Falls back to the centroid of `home_country` if not set. |
 | `phone_number` | String | Mobile number in international format (e.g., `+573001234567`). |
+| `bio` | Text (nullable) | Short public bio shown on the user's public profile. |
 
-### Identity Documents
+### Date of Birth Format
+
+`date_of_birth` is stored as JSONB with the following shape:
+
+```json
+{ "day": 14, "month": 5, "year": 1990, "year_visible": false }
+```
+
+When `year_visible = false`, the birth year is hidden on the public profile. Day and month are always visible to confirmed organizers with `VIEW_TRAVEL_PROFILES`. Age calculation at the application layer extracts the three numeric fields from the JSONB object.
+
+---
+
+## Nationalities & Travel Documents (`user_nationalities`)
+
+A user must have **at least one nationality**. Multiple nationalities (dual, triple citizenship) are supported. Each record captures both the nationality itself and the travel document — national ID and passport — associated with that citizenship.
+
+**Constraints:**
+- **Unique nationality per user:** no two records for the same user may share the same `country_code`. Enforced by a unique index on `(user_id, country_code)`.
+- **Passport data consistency:** if `passport_status ≠ OMITTED`, all three passport fields are required. Enforced at two levels:
+  - **Application layer (NestJS):** the DTO rejects the request with a descriptive error before the DB is reached.
+  - **DB CHECK constraint:** guarantees integrity regardless of write origin (migrations, SUPPORT_ADMIN, direct DB access).
+
+```sql
+CONSTRAINT passport_data_consistency CHECK (
+  (passport_status = 'OMITTED'
+    AND passport_number     IS NULL
+    AND passport_issue_date IS NULL
+    AND passport_expiry_date IS NULL)
+  OR
+  (passport_status <> 'OMITTED'
+    AND passport_number     IS NOT NULL
+    AND passport_issue_date IS NOT NULL
+    AND passport_expiry_date IS NOT NULL)
+)
+```
 
 | Field | Type | Description |
 |---|---|---|
-| `national_id_number` | String | National ID / Cédula / DNI. |
-| `passport_number` | String | |
-| `passport_expiry_date` | Date | Used to auto-trigger a `DOCUMENTS` pre-trip task when a trip approaches and the passport expires within 6 months of departure. |
-| `passport_issuing_country` | String | ISO 3166-1 alpha-2 country code. |
+| `id` | UUID | |
+| `user_id` | UUID | FK → `users.id` |
+| `country_code` | String | ISO 3166-1 alpha-2 (e.g., `CO`, `ES`). Unique per user. |
+| `is_primary` | Boolean | The nationality/passport to use as default for international trips. Exactly one per user must be `true`. |
+| `national_id_number` | String (nullable) | National ID / Cédula / DNI / SSN for this citizenship. |
+| `passport_number` | String (nullable) | Passport document number. |
+| `passport_issue_date` | Date (nullable) | Date the passport was issued. |
+| `passport_expiry_date` | Date (nullable) | Expiry date. Used for alerts and trip validation. |
+| `passport_status` | Enum `PassportStatus` | Pre-computed status. See lifecycle below. |
+| `updated_at` | Timestamp | |
 
-### Emergency Contact
+### PassportStatus Enum
+
+| Value | Meaning |
+|---|---|
+| `OMITTED` | No passport data has been provided for this nationality yet. |
+| `ACTIVE` | Passport is valid and not expiring within 6 months. |
+| `EXPIRING_SOON` | Passport expires within the next 6 months. |
+| `EXPIRED` | Passport expiry date is in the past. |
+
+### Status Lifecycle
+
+The status flag is a **pre-computed cache** — it exists so that trip validation reads a single column instead of recomputing dates at query time. The 6-month `EXPIRING_SOON` threshold comfortably covers the 1-month post-trip-end safety margin required for international travel.
+
+| Transition | Trigger |
+|---|---|
+| → `OMITTED` | Record created without passport data |
+| `OMITTED` → `ACTIVE` / `EXPIRING_SOON` | User saves passport data for the first time. App sets status immediately. |
+| `ACTIVE` → `EXPIRING_SOON` | Daily job |
+| `EXPIRING_SOON` → `EXPIRED` | Daily job |
+| Any → `ACTIVE` | User updates passport with a new future expiry date |
+
+**Daily job behavior:** the job filters on `passport_status <> 'OMITTED'`. The CHECK constraint guarantees that any non-`OMITTED` record has a non-null `passport_expiry_date`, so no additional null check is needed. Only rows whose status actually changes are returned, so every row in the result set warrants a notification.
+
+Status transitions to `EXPIRING_SOON` or `EXPIRED` **trigger a push notification to the user**:
+
+```sql
+UPDATE user_nationalities
+SET passport_status = CASE
+  WHEN passport_expiry_date < CURRENT_DATE                        THEN 'EXPIRED'
+  WHEN passport_expiry_date < CURRENT_DATE + INTERVAL '180 days' THEN 'EXPIRING_SOON'
+  ELSE                                                                 'ACTIVE'
+END
+WHERE passport_status <> 'OMITTED'
+  AND passport_status <> CASE
+    WHEN passport_expiry_date < CURRENT_DATE                        THEN 'EXPIRED'
+    WHEN passport_expiry_date < CURRENT_DATE + INTERVAL '180 days' THEN 'EXPIRING_SOON'
+    ELSE                                                                 'ACTIVE'
+  END
+RETURNING user_id, country_code, passport_status;
+```
+
+The NestJS job iterates the returned rows and queues an FCM notification for each affected user.
+
+---
+
+## Emergency Contacts (`user_emergency_contacts`)
+
+A user must have **at least one emergency contact**. Multiple contacts are supported.
 
 | Field | Type | Description |
 |---|---|---|
-| `emergency_contact_name` | String | Full name. |
-| `emergency_contact_phone` | String | International format. |
-| `emergency_contact_relationship` | String | Free text (e.g., "mother", "spouse"). |
+| `id` | UUID | |
+| `user_id` | UUID | FK → `users.id` |
+| `full_name` | String | |
+| `phone_number` | String | International format. |
+| `relationship` | String | Free text (e.g., "mother", "spouse", "best friend"). |
+| `is_primary` | Boolean | Marks the contact to show first in emergency situations. Exactly one per user must be `true`. |
+
+**Rule:** A user with zero emergency contacts cannot be marked as a confirmed participant on international trips (enforced by the pre-trip checklist, not as a hard DB constraint).
 
 ---
 
 ## Loyalty Programs (`user_loyalty_programs`)
 
-A user may hold membership in multiple loyalty programs (airlines, hotels, etc.). Each program is a separate record.
+Reference data only — loyalty program IDs are stored on the user profile as a convenience for manual entry when making reservations. They are **not linked to reservation records** in the system.
 
 | Field | Type | Description |
 |---|---|---|
@@ -102,13 +197,22 @@ A user may hold membership in multiple loyalty programs (airlines, hotels, etc.)
 | `user_id` | UUID | FK → `users.id` |
 | `program_name` | String | Name of the program (e.g., "LifeMiles", "Delta SkyMiles", "Marriott Bonvoy"). |
 | `member_id` | String | The membership / account number in that program. |
-| `notes` | String | Optional. Tier level, expiry, or other notes. |
+| `notes` | String (nullable) | Tier level, expiry, or other notes. |
 
 ---
 
-## Dietary & Health Profile (`user_health_profiles`)
+## Health Profile (`user_health_profiles`)
 
-Personal health and dietary data used by organizers to plan meals, activities, and emergency situations. Visible to confirmed trip organizers.
+Health and dietary data used by organizers to plan meals, activities, and manage emergency situations. Each category uses a **structured selection list** so organizers can filter and search effectively. Every category includes an `OTHER` option with a required `description` field for cases not covered by the standard list.
+
+### `user_health_profiles` (1:1 — dietary baseline)
+
+| Field | Type | Description |
+|---|---|---|
+| `user_id` | UUID | PK + FK → `users.id` |
+| `dietary_preference` | Enum `DietaryPreference` | Declared baseline diet. |
+| `dietary_notes` | Text (nullable) | Additional dietary context (e.g., "no pork for religious reasons", "keto"). |
+| `general_medical_notes` | Text (nullable) | Free text for any other medical context the user chooses to share that does not fit the structured categories. Opt-in sharing per trip — see Visibility below. |
 
 ### Dietary Preference (enum: `DietaryPreference`)
 
@@ -118,24 +222,23 @@ Personal health and dietary data used by organizers to plan meals, activities, a
 | `VEGETARIAN` | No meat or fish. May consume eggs and dairy. |
 | `VEGAN` | No animal products of any kind. |
 | `PESCATARIAN` | No meat, but eats fish and seafood. |
+| `GLUTEN_FREE` | Requires gluten-free options. |
 | `OTHER` | Non-standard restriction. Described in `dietary_notes`. |
 
-### `user_health_profiles` Table
+---
+
+### Food Allergies (`user_food_allergies`)
 
 | Field | Type | Description |
 |---|---|---|
+| `id` | UUID | |
 | `user_id` | UUID | FK → `users.id` |
-| `dietary_preference` | Enum `DietaryPreference` | Declared baseline diet. |
-| `dietary_notes` | Text | Free text for additional context (e.g., "no pork for religious reasons", "keto"). |
-| `food_allergies` | `FoodAllergen`[] | Structured list of known allergens. See enum below. |
-| `food_allergy_notes` | Text | Free text for detail not captured by the enum (e.g., "severe anaphylactic reaction to tree nuts — carries EpiPen"). |
-| `phobias` | Text[] | Free text list. Each entry is a phobia or strong aversion (e.g., "heights", "enclosed spaces", "snakes"). |
-| `physical_limitations` | Text[] | Free text list. Mobility, accessibility, or endurance constraints (e.g., "cannot walk more than 3 km", "wheelchair user", "cannot climb stairs"). |
-| `medical_notes` | Text | Sensitive free text for any other relevant medical context the user chooses to share. |
+| `allergen` | Enum `FoodAllergen` | Selected allergen from the standard list. |
+| `description` | Text (nullable) | Additional detail or severity note. Required when `allergen = OTHER`. |
 
 ### Food Allergens (enum: `FoodAllergen`)
 
-Covers the most common internationally recognized allergens. The `food_allergy_notes` field handles anything outside this list.
+Covers the most common internationally recognized allergens.
 
 | Value |
 |---|
@@ -153,26 +256,116 @@ Covers the most common internationally recognized allergens. The `food_allergy_n
 | `SULPHITES` |
 | `LUPIN` |
 | `MOLLUSCS` |
+| `OTHER` |
+
+---
+
+### Phobias (`user_phobias`)
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `user_id` | UUID | FK → `users.id` |
+| `phobia` | Enum `PhobiaType` | Selected phobia from the standard list. |
+| `description` | Text (nullable) | Additional context. Required when `phobia = OTHER`. |
+
+### Phobia Types (enum: `PhobiaType`)
+
+Travel-relevant phobias and strong aversions.
+
+| Value | Description |
+|---|---|
+| `HEIGHTS` | Acrophobia — heights, high viewpoints, mountain trails |
+| `ENCLOSED_SPACES` | Claustrophobia — caves, tunnels, small rooms |
+| `FLYING` | Aviophobia — aircraft, helicopters |
+| `DEEP_WATER` | Fear of deep or dark water bodies |
+| `OPEN_WATER` | Fear of large open bodies of water |
+| `ANIMALS` | General zoophobia |
+| `INSECTS` | Entomophobia |
+| `SNAKES` | Ophidiophobia |
+| `SPIDERS` | Arachnophobia |
+| `DARKNESS` | Nyctophobia |
+| `CROWDS` | Ochlophobia — crowded markets, festivals, public transport |
+| `MOTION_SICKNESS` | Severe motion sickness (cars, boats, planes) |
+| `OTHER` | Not on the list. Described in `description`. |
+
+---
+
+### Physical Limitations (`user_physical_limitations`)
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `user_id` | UUID | FK → `users.id` |
+| `limitation` | Enum `PhysicalLimitationType` | Selected limitation from the standard list. |
+| `description` | Text (nullable) | Specifics (e.g., "can walk max 2 km", "uses hearing aids"). Required when `limitation = OTHER`. |
+
+### Physical Limitation Types (enum: `PhysicalLimitationType`)
+
+| Value | Description |
+|---|---|
+| `WHEELCHAIR_USER` | Full-time wheelchair user. Requires accessible infrastructure. |
+| `REDUCED_MOBILITY` | Can walk but with limited range or pace. |
+| `CANNOT_USE_STAIRS` | Requires ramps, lifts, or ground-floor accommodation. |
+| `HEARING_IMPAIRMENT` | Partial or complete hearing loss. |
+| `VISUAL_IMPAIRMENT` | Partial or complete vision loss. |
+| `REQUIRES_OXYGEN` | Requires supplemental oxygen. |
+| `REQUIRES_CPAP` | Requires CPAP machine for sleep apnea. |
+| `CHRONIC_PAIN` | Chronic pain condition affecting mobility or endurance. |
+| `JOINT_CONDITION` | Arthritis, joint replacement, or similar. |
+| `CARDIAC_CONDITION` | Heart condition with physical activity restrictions. |
+| `RESPIRATORY_CONDITION` | Asthma, COPD, or similar. |
+| `PREGNANCY` | Current pregnancy. |
+| `OTHER` | Not on the list. Described in `description`. |
+
+---
+
+### Medical Conditions (`user_medical_conditions`)
+
+Conditions relevant to emergency response or trip planning.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `user_id` | UUID | FK → `users.id` |
+| `condition` | Enum `MedicalConditionType` | Selected condition from the standard list. |
+| `description` | Text (nullable) | Specifics (e.g., "carries EpiPen", "insulin-dependent"). Required when `condition = OTHER`. |
+
+### Medical Condition Types (enum: `MedicalConditionType`)
+
+| Value | Description |
+|---|---|
+| `DIABETES` | Type 1 or Type 2 diabetes. |
+| `EPILEPSY` | Seizure disorder. |
+| `SEVERE_ALLERGY_EPIPEN` | Severe allergy requiring an EpiPen (anaphylaxis risk). |
+| `ASTHMA` | Asthma requiring medication. |
+| `HEART_CONDITION` | Cardiac condition beyond general fitness level. |
+| `HYPERTENSION` | High blood pressure under treatment. |
+| `BLOOD_CLOTTING_DISORDER` | Conditions affecting clotting (relevant for long flights). |
+| `IMMUNODEFICIENCY` | Weakened immune system (autoimmune, transplant, etc.). |
+| `MENTAL_HEALTH_CONDITION` | Anxiety disorder, depression, PTSD, or similar that may affect travel. |
+| `OTHER` | Not on the list. Described in `description`. |
 
 ---
 
 ## Profile Visibility & Access
 
-User profile data has tiered visibility:
-
 | Data | Who can see it |
 |---|---|
-| `display_name`, `avatar_url` | Any user in the same trip or group |
-| `first_name`, `last_name`, `phone_number`, `nationality` | Confirmed trip organizers and co-organizers |
-| Identity documents (`passport_number`, etc.) | Confirmed trip organizers and co-organizers |
-| `emergency_contact_*` | Confirmed trip organizers and co-organizers |
-| Loyalty programs | User only (used for auto-fill in reservations, not exposed to organizers) |
-| `dietary_preference`, `food_allergies`, `phobias`, `physical_limitations` | Confirmed trip organizers and co-organizers |
-| `medical_notes` | User only (opt-in sharing per trip — see below) |
+| `display_name`, `avatar_url`, `bio` | Any user in the same trip or group |
+| `first_name`, `last_name`, `phone_number`, `date_of_birth` (day + month), `birth_country`, `birth_city` | Confirmed trip organizers and co-organizers with `VIEW_TRAVEL_PROFILES` |
+| Nationality records (`user_nationalities`) — country, document numbers, passport status | Confirmed trip organizers and co-organizers with `VIEW_TRAVEL_PROFILES` |
+| Emergency contacts | Confirmed trip organizers and co-organizers with `VIEW_TRAVEL_PROFILES` |
+| Loyalty programs | User only (reference data, not exposed to organizers) |
+| Dietary preference, food allergies | Confirmed trip organizers and co-organizers |
+| Phobias, physical limitations | Confirmed trip organizers and co-organizers |
+| Medical conditions | Confirmed trip organizers and co-organizers |
+| `general_medical_notes` | User only by default — opt-in sharing per trip (see below) |
+| Traveler stats, achievements, recognitions, discovery map | Per `ProfileVisibility` setting (same as the profile — no independent toggle) |
 
-### Opt-in Medical Sharing
+### Opt-in General Medical Notes Sharing
 
-`medical_notes` is private by default. A user may choose to share it with the organizer of a specific trip via a per-trip flag (`share_medical_notes: boolean`) on the trip participant record. The organizer cannot request access — only the user can grant it.
+`general_medical_notes` is private by default. A user may choose to share it with the organizer of a specific trip via a per-trip flag (`share_general_medical_notes: boolean`) on the trip participant record. The organizer cannot request access — only the user can grant it.
 
 ---
 
@@ -180,9 +373,7 @@ User profile data has tiered visibility:
 
 When a user is a confirmed participant on a trip, the app surfaces a **profile checklist** indicating which fields are filled and which are missing. This is informational — it does not block participation. The pre-trip task system handles hard blockers (see `pre-trip-planning.md`).
 
-The checklist is scoped to what the organizer needs for that specific trip type (domestic vs. international, activities with physical requirements, etc.).
-
----
+The checklist is scoped to what the organizer needs for that specific trip type (domestic vs. international, activities with physical requirements, etc.). Missing emergency contact is always flagged regardless of trip type.
 
 ---
 
@@ -204,6 +395,8 @@ A 1:1 extension of the `users` table that stores the user's computed travel stat
 | `traveler_score` | Integer | Composite score for global ranking (auto-computed) |
 | `updated_at` | Timestamp | |
 
+**Visibility:** Traveler statistics are as public as the user's profile. They follow the same `ProfileVisibility` setting — no independent toggle. This includes the discovery map.
+
 ---
 
 ## Achievements (`user_achievements`)
@@ -214,7 +407,7 @@ Records which achievements the user has unlocked and when. Created by the system
 |---|---|---|
 | `id` | UUID | |
 | `user_id` | UUID | FK → `users.id` |
-| `achievement` | Enum `Achievement` | Identifier of the unlocked achievement (e.g., `FIRST_TRIP`, `EXPLORER_10_COUNTRIES`) |
+| `achievement` | Enum `Achievement` | Identifier of the unlocked achievement |
 | `unlocked_at` | Timestamp | |
 | `trip_id` | UUID (nullable) | The trip that triggered the unlock |
 
@@ -224,25 +417,23 @@ See [`features/gamification.md`](./gamification.md) for the full `Achievement` e
 
 ## Chamuco Points
 
-The user's point balance is never stored as a single column — it is derived by summing all `chamuco_point_transactions` records for the user. See [`features/gamification.md`](./gamification.md) for the transaction schema, earn events, spending catalog, and rules.
+The user's point balance is derived by summing all `chamuco_point_transactions` records for the user — never stored as a single column. See [`features/gamification.md`](./gamification.md) for the transaction schema, earn events, spending catalog, and rules.
 
 ---
 
 ## Recognitions Received
 
-Recognitions received by the user are stored in the `recognitions` table, keyed by `recipient_user_id`. They appear on the user's public profile, grouped by context (trip / group / event). See [`features/gamification.md`](./gamification.md) for the full `recognitions` schema.
+Recognitions received by the user are stored in the `recognitions` table, keyed by `recipient_user_id`. They appear on the user's public profile, grouped by context (trip / group / event). See [`features/gamification.md`](./gamification.md) for the full schema.
 
 ---
 
 ## Discovery Map
 
-The discovery map is a personal geographic visualization derived from `itinerary_items` of type `PLACE` in completed trips where the user was a confirmed participant. No separate table is needed — it is computed on demand from existing trip data. See [`features/gamification.md`](./gamification.md) for map behavior, granularity, and visibility rules.
+A personal geographic visualization derived from `itinerary_items` of type `PLACE` in completed trips where the user was a confirmed participant. Computed on demand from existing trip data — no separate table needed. Visibility follows the main `ProfileVisibility` setting. See [`features/gamification.md`](./gamification.md).
 
 ---
 
-## Public Profile Additions (Gamification)
-
-The following gamification fields are added to the user's public-facing profile:
+## Public Profile (Gamification Data)
 
 | Data | Visibility |
 |---|---|
@@ -251,7 +442,15 @@ The following gamification fields are added to the user's public-facing profile:
 | Achievements (badge collection) | Per `ProfileVisibility` setting |
 | Recognitions received | Per `ProfileVisibility` setting |
 | Key stats (trips, countries, km) | Per `ProfileVisibility` setting |
-| Discovery map | Per `ProfileVisibility` setting (independent toggle TBD) |
+| Discovery map | Per `ProfileVisibility` setting |
+
+All gamification-related data is bundled with the profile — one visibility setting controls all of it.
+
+---
+
+## Agencies
+
+A **travel agency** is a higher-level entity that groups users who are professional trip organizers. Agency coordinators can create and manage trips on behalf of the agency. See [`features/agencies.md`](./agencies.md) for the full specification.
 
 ---
 
@@ -259,7 +458,7 @@ The following gamification fields are added to the user's public-facing profile:
 
 | Value | Description |
 |---|---|
-| `USER` | A standard Chamuco user. Subject to all trip, group, and permission rules. Default for all registered accounts. |
+| `USER` | A standard Chamuco Travel user. Subject to all trip, group, and permission rules. Default for all registered accounts. |
 | `SUPPORT_ADMIN` | A service account for platform support and troubleshooting. Bypasses all access restrictions. Not a traveler, has no group membership, and holds no trip roles. |
 
 ### Support Admin
@@ -267,28 +466,20 @@ The following gamification fields are added to the user's public-facing profile:
 The `SUPPORT_ADMIN` role is a **platform-level service account** used exclusively for troubleshooting and operational support. It is not a feature for end users.
 
 **Capabilities:**
-
 - Can access any trip or group regardless of visibility, membership, or invitation status.
-- Can read and write any record, bypassing all role and permission checks (trip organizer permissions, group admin rules, participant status requirements, co-organizer permission sets).
-- Can act on behalf of the platform to resolve data inconsistencies, correct stuck states, or assist users who cannot help themselves due to app failures.
+- Can read and write any record, bypassing all role and permission checks.
+- Can act on behalf of the platform to resolve data inconsistencies or assist users blocked by app failures.
 
 **Restrictions:**
+- Never counted as a participant on any trip or group. Does not occupy capacity, is not included in expense splits, does not trigger membership side effects.
+- No travel profile, group memberships, or gamification records.
+- Not assignable from within the app. Can only be granted by directly updating `platform_role` at the database level.
 
-- A `SUPPORT_ADMIN` user is **never counted as a participant** on any trip or group. They do not occupy capacity, are not included in expense splits, and do not trigger membership side effects (Firestore sync, channel access, etc.).
-- They do not have a travel profile, group memberships, or gamification records. `user_stats`, `user_achievements`, `group_member_stats`, and all associated records are not created for this role.
-- The `SUPPORT_ADMIN` role is **not assignable from within the app**. It can only be granted by directly updating the `platform_role` column at the database level (or by another `SUPPORT_ADMIN` via a restricted internal interface if one exists).
-
-**Audit trail:**
-
-Every write action performed by a `SUPPORT_ADMIN` is recorded in a dedicated `support_admin_audit_log` table with: `id`, `admin_user_id`, `action` (description of what was done), `target_table`, `target_id`, `before_state` (JSONB snapshot), `after_state` (JSONB snapshot), `performed_at`. This log is immutable — records cannot be updated or deleted.
+**Audit trail:** Every write action is recorded in `support_admin_audit_log` with: `id`, `admin_user_id`, `action`, `target_table`, `target_id`, `before_state` (JSONB), `after_state` (JSONB), `performed_at`. Immutable.
 
 ---
 
-## Open Questions / To Be Defined
+## Open Questions
 
-- Should multiple passport records be supported (e.g., dual nationality)?
-- Can the user define more than one emergency contact?
-- Should loyalty programs be linked to specific reservations, or just stored on the profile for manual reference?
-- Is `medical_notes` the right granularity, or should it be further split (conditions, medications, blood type)?
-- Should phobias and physical limitations use a structured tag system for better organizer filtering, or remain free text?
-- Should the discovery map have its own visibility toggle independent of the main `ProfileVisibility` setting?
+- Should the username be changeable after the grace period? If so, what is the grace period duration?
+- Should the profile completeness checklist score be visible to organizers (e.g., "7/10 profile complete")?

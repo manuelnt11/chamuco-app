@@ -1,275 +1,478 @@
 # Feature: Gamification
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-23
 
 ---
 
 ## Overview
 
-Chamuco App is not just a trip planner — it is a platform for groups that travel together. Gamification reinforces this identity: achievements are richer when shared, reputation is built in front of people who were actually there, and recognitions carry weight because they come from real co-travelers. The reference model is closer to Strava than to a standard loyalty program. The goal is not to reward engagement with the app, but to celebrate real-world travel.
+Gamification is a core pillar of Chamuco Travel, not an afterthought. The reference model is Strava: a system that celebrates real-world activity, builds social reputation over time, and creates the feeling that every trip adds something permanent to who you are as a traveler. The goal is never to reward time spent in the app — it is to reward trips taken in the real world.
 
-Gamification in Chamuco operates across three scopes:
+Gamification operates across three scopes:
 
-- **Personal** — A traveler's public reputation, statistics, achievements, and discovery map.
+- **Personal** — Level, Traveler Score, statistics, achievements, discovery map, and Chamuco Points.
 - **Group** — A member's standing within a specific group: status tier, seniority, and peer recognitions.
 - **Trip** — Post-trip feedback and reward distribution at the end of each completed journey.
 
 ---
 
-## 1. Traveler Score & Personal Rankings
+## Two Distinct Resources
 
-### Traveler Score
+It is critical to distinguish these two resources — they are separate, serve different purposes, and cannot be exchanged:
 
-Every user has a single composite score used for global ranking: the **Traveler Score**. It is computed automatically from verified activity (completed trips). It is not manually editable or purchasable.
+| Resource | Purpose | Earnable | Spendable |
+|---|---|---|---|
+| **Level Points (LP)** | Advance player level. Reflect travel experience. | ✓ | ✗ Never spent |
+| **Chamuco Points (CP)** | Soft cosmetic currency. Spend on profile customizations. | ✓ | ✓ In the cosmetic catalog |
 
-The score formula weights the following inputs:
-
-| Input | Weight rationale |
-|---|---|
-| Total completed trips | Base progression |
-| Countries visited (unique) | Geographic breadth |
-| Total distance traveled (km) | Depth of exploration |
-| Total area explored (km²) | Coverage of destinations |
-| Achievements unlocked | Milestone depth |
-| Positive feedback received | Social validation |
-| Recognitions received | Peer acknowledgment |
-
-The exact formula coefficients are an implementation decision. The key invariant is that **the score reflects real-world travel, not app activity**.
-
-### Personal Rankings
-
-- **Global ranking** — All users sorted by Traveler Score. Paginated and publicly visible on each user's profile.
-- **Country ranking** — Filtered by the user's declared country of residence. Allows comparison with local travelers.
-- Rankings are recalculated asynchronously after each trip completion event.
+Both are earned through travel activity, but a player's LP balance only ever grows. Chamuco Points go up and down as items are purchased.
 
 ---
 
-## 2. Personal Statistics
+## 1. Player Level
 
-Statistics are computed automatically from completed trips. They are displayed on the user's public profile and feed into the Traveler Score.
+### Concept
 
-| Statistic | Description |
+Every user has a single **global player level** (1–50) that grows throughout their lifetime on the platform. The level reflects accumulated travel experience across all trips, achievements, and recognitions. It is always visible on the user's public profile alongside their name and tier badge.
+
+The level system is designed around **real travel frequency**. A regular traveler (roughly one trip every two months) should progress naturally through the level tiers over years of use. Reaching the highest tier requires sustained commitment over many years — it is a mark of a genuinely experienced traveler, not a power user who logs in daily.
+
+### Level Tiers
+
+Levels are grouped into five named tiers, each spanning ten levels. The tier name and badge are displayed on the profile; the specific level within the tier shows as a numeric label or progress bar.
+
+| Tier | Levels | Name | Spirit |
+|---|---|---|---|
+| 1 | 1–10 | **Nómada** | Starting the journey — every trip is new. |
+| 2 | 11–20 | **Explorador** | Building history, expanding horizons. |
+| 3 | 21–30 | **Aventurero** | Experienced traveler, organizer of memories. |
+| 4 | 31–40 | **Viajero** | Veteran of many roads, respected companion. |
+| 5 | 41–50 | **Leyenda** | An icon of the community. |
+
+### Level Progression Formula
+
+The XP required to advance from level **n** to level **n+1** follows a polynomial curve:
+
+```
+LP_required(n → n+1) = floor(A × n^B)
+```
+
+**Proposed constants:** `A = 50`, `B = 1.3`
+
+These constants are fine-tuned during implementation to meet the progression targets below. The shape of the curve (polynomial with exponent > 1) is intentional: early levels are quick to reach so new users feel immediate progress, while later levels become progressively harder to sustain engagement over time.
+
+**Sample values with A=50, B=1.3:**
+
+| Level transition | LP required |
 |---|---|
-| `trips_completed` | Total count of trips where the user was a confirmed participant and the trip reached `COMPLETED` status |
-| `countries_visited` | Count of unique countries covered by at least one itinerary item in a completed trip |
-| `cities_visited` | Count of unique cities/towns visited across completed trips (used for the discovery map city view) |
-| `km_traveled` | Sum of `distance_km` across all transport itinerary items in completed trips |
-| `km2_explored` | Approximate area covered by visited places, computed from coordinates of `PLACE` itinerary items |
-| `trips_per_year` | Historical breakdown: trips completed per calendar year |
-| `unique_travel_companions` | Count of distinct users who were confirmed participants on the same completed trip |
-| `trips_as_organizer` | Count of trips where the user held the `ORGANIZER` role |
-| `longest_trip_days` | Duration in days of the longest completed trip |
+| 1 → 2 | 50 |
+| 5 → 6 | 406 |
+| 10 → 11 | 998 |
+| 20 → 21 | 2,462 |
+| 30 → 31 | 4,409 |
+| 40 → 41 | 6,840 |
+| 49 → 50 | 9,098 |
+| **Total to reach level 50** | **≈ 167,000 LP** |
 
-Statistics are stored in a dedicated `user_stats` table (1:1 with `users`) and updated as part of the trip completion flow. See `database-design.md` for schema.
+### Progression Targets
+
+These are the design targets that validate the formula constants. If constants change, they must continue to satisfy these targets:
+
+| User type | Trips/year | Target level 20 | Target level 50 |
+|---|---|---|---|
+| Casual (4 trips/year) | 4 | ~2 years | ~12 years |
+| Regular (6 trips/year) | 6 | ~1 year | ~7 years |
+| Active (12 trips/year) | 12 | ~6 months | ~3.5 years |
+| Super-active (24 trips/year) | 24 | ~3 months | ~1.5 years |
+
+Estimated annual LP by traveler profile (based on the multi-factor trip formula + achievements + recognitions):
+
+| Profile | Trips/year | LP from trips | LP from logros/reconocimientos | **Total/year** |
+|---|---|---|---|---|
+| Casual | 4 | ~14,000 | ~2,000 | **~16,000** |
+| Regular | 6 | ~21,000 | ~3,000 | **~24,000** |
+| Active | 10 | ~35,000 | ~5,000 | **~40,000** |
+| Super-active | 24 | ~84,000 | ~8,000 | **~92,000** |
+
+Trip LP estimates assume a mid-range trip profile (5–7 days, medium distance, 6–8 participants). Higher bonuses (long-haul, international, organizer) push individual trip yields up; local solo day trips push them down.
+
+### Level-Up Mechanics
+
+- A user may advance **multiple levels at once** if a large LP gain crosses multiple thresholds (e.g., after completing a long trip with several achievements unlocked simultaneously).
+- The level stored in `user_stats.level` is updated atomically during the trip completion flow.
+- There is no level decay — levels never go down.
+- There is no level cap beyond 50; if the system is extended in the future, level 50 becomes the entry to a new tier.
+
+### Level Rewards
+
+Levels are **purely cosmetic and social** — they carry no functional advantages in trip participation, expense access, channel permissions, or any other operational mechanic. This is a deliberate design choice: a first-time traveler and a Leyenda participate in the same trip on equal footing.
+
+What levels unlock:
+- Tier badge displayed on profile and in group/trip member lists.
+- Specific level milestones (10, 20, 30, 40, 50) unlock exclusive cosmetic items in the Chamuco Points catalog.
+- Higher-tier profiles may receive visual distinction in community search results (platform decision at implementation).
+
+---
+
+## 2. Level Points — Sources
+
+Level Points are awarded when travel activity is verified and completed. The primary source is completing trips; achievements and recognitions amplify progression.
+
+### Primary sources
+
+LP awarded for completing a trip is computed from a **multi-factor formula**. The base trip reward always dominates — the act of completing a trip is the most valuable single action in the system. Bonuses reward the nature and context of the journey without overshadowing it.
+
+**Formula:**
+
+```
+LP = LP_base + LP_duration + LP_distance + LP_international + LP_participants + LP_organizer
+```
+
+| Component | Value | Notes |
+|---|---|---|
+| `LP_base` | **2,500 LP** | Awarded for completing any trip |
+| `LP_duration` | 60 × min(duration_days, 30) | Max +1,800 LP at 30+ days |
+| `LP_distance` | Tier-based (see below) | Distance from user's home location |
+| `LP_international` | +400 LP | If any destination is outside the user's home country |
+| `LP_participants` | floor(100 × ln(n_travelers)) | n_travelers = confirmed participants with `did_travel = true` |
+| `LP_organizer` | +1,000 LP | Only if role is `ORGANIZER` or `CO_ORGANIZER` **and** `is_traveling_participant = true` |
+
+**Distance tiers** (from the user's `home_city`; falls back to country centroid if not set):
+
+| Distance to destination | Bonus |
+|---|---|
+| < 200 km | +0 LP |
+| 200–999 km | +200 LP |
+| 1,000–2,999 km | +500 LP |
+| ≥ 3,000 km | +900 LP |
+
+**Participant bonus — logarithmic curve:**
+
+| Confirmed travelers | LP bonus |
+|---|---|
+| 1 (solo) | 0 |
+| 2 | +69 |
+| 5 | +161 |
+| 10 | +230 |
+| 20 | +300 |
+| 50 | +391 |
+
+**Complete examples:**
+
+| Trip | Base | Duration | Distance | Intl. | Participants | Organizer | **Total** |
+|---|---|---|---|---|---|---|---|
+| 1 day, local, solo | 2,500 | 60 | 0 | 0 | 0 | — | **2,560** |
+| 5 days, 600 km, domestic, 6 people | 2,500 | 300 | +200 | 0 | +179 | — | **3,179** |
+| 7 days, 1,500 km, international, 8 people | 2,500 | 420 | +500 | +400 | +208 | — | **4,028** |
+| 21 days, 8,000 km, international, 15 people, organizer | 2,500 | 1,260 | +900 | +400 | +270 | +1,000 | **6,330** |
+
+In the most extreme realistic trip (last row), the base still represents ~38% of total LP — and for a minimal solo local trip it is 98%. **The fact of traveling is always the dominant reward.**
+
+### Achievements
+
+Achievement LP rewards scale by rarity. See Section 3 for the full rarity classification.
+
+| Achievement rarity | Level Points |
+|---|---|
+| `COMMON` | 500 LP |
+| `UNCOMMON` | 1,000 LP |
+| `RARE` | 2,500 LP |
+| `EPIC` | 5,000 LP |
+
+### Recognitions and feedback
+
+| Event | Level Points |
+|---|---|
+| Receive a recognition (any source) | 750 LP |
+| Submit trip feedback (organizer or peer) | 200 LP |
+
+### Rules
+
+- LP is awarded only on verified, completed trips (`TripStatus = COMPLETED`).
+- LP from a cancelled trip is not awarded, even if partially completed.
+- LP from achievements is awarded once per achievement, at the moment of unlock.
+- LP for feedback is awarded at the moment of submission, within the feedback window.
+- LP cannot be manually adjusted, awarded by organizers, or transferred between users.
 
 ---
 
 ## 3. Achievements
 
-Achievements (Logros) are **badges awarded automatically** when a user crosses a defined milestone. Each achievement is earned once and never lost. They appear on the user's public profile as a collection of badges, sorted by earn date.
+Achievements are **badges awarded automatically** when a user crosses a defined milestone. Each achievement is earned once and never lost. They appear on the user's public profile as a badge collection, sorted by unlock date.
 
-Achievements are grouped into categories:
+### Achievement Rarity
+
+Every achievement has a rarity level that determines its Level Points reward (see Section 2) and the visual weight of its badge.
+
+| Rarity | Description |
+|---|---|
+| `COMMON` | Accessible milestones reachable in the first year of active use. |
+| `UNCOMMON` | Require consistent effort over 1–2 years. |
+| `RARE` | Significant milestones that most users won't reach quickly. |
+| `EPIC` | Reserved for truly exceptional travel histories. |
 
 ### Trip Frequency
 
-| Achievement | Trigger |
-|---|---|
-| `FIRST_TRIP` | First completed trip |
-| `TRAVELER_5` | 5 completed trips |
-| `TRAVELER_10` | 10 completed trips |
-| `TRAVELER_25` | 25 completed trips |
-| `TRAVELER_50` | 50 completed trips |
-| `TRAVELER_100` | 100 completed trips |
+| Achievement | Trigger | Rarity |
+|---|---|---|
+| `FIRST_TRIP` | First completed trip | COMMON |
+| `TRAVELER_5` | 5 completed trips | COMMON |
+| `TRAVELER_10` | 10 completed trips | COMMON |
+| `TRAVELER_25` | 25 completed trips | UNCOMMON |
+| `TRAVELER_50` | 50 completed trips | RARE |
+| `TRAVELER_100` | 100 completed trips | EPIC |
 
 ### Geographic Breadth
 
-| Achievement | Trigger |
-|---|---|
-| `FIRST_ABROAD` | First completed trip outside the user's declared home country |
-| `EXPLORER_5_COUNTRIES` | 5 unique countries visited |
-| `EXPLORER_10_COUNTRIES` | 10 unique countries visited |
-| `EXPLORER_25_COUNTRIES` | 25 unique countries visited |
-| `EXPLORER_50_COUNTRIES` | 50 unique countries visited |
-| `CONTINENT_AMERICA` | Completed a trip in South or North America |
-| `CONTINENT_EUROPE` | Completed a trip in Europe |
-| `CONTINENT_AFRICA` | Completed a trip in Africa |
-| `CONTINENT_ASIA` | Completed a trip in Asia |
-| `CONTINENT_OCEANIA` | Completed a trip in Oceania |
-| `ALL_CONTINENTS` | Completed at least one trip on all 6 inhabited continents |
+| Achievement | Trigger | Rarity |
+|---|---|---|
+| `FIRST_ABROAD` | First trip outside home country | COMMON |
+| `EXPLORER_5_COUNTRIES` | 5 unique countries visited | COMMON |
+| `EXPLORER_10_COUNTRIES` | 10 unique countries visited | UNCOMMON |
+| `EXPLORER_25_COUNTRIES` | 25 unique countries visited | RARE |
+| `EXPLORER_50_COUNTRIES` | 50 unique countries visited | EPIC |
+| `CONTINENT_AMERICA` | Trip in North or South America | COMMON |
+| `CONTINENT_EUROPE` | Trip in Europe | COMMON |
+| `CONTINENT_AFRICA` | Trip in Africa | UNCOMMON |
+| `CONTINENT_ASIA` | Trip in Asia | UNCOMMON |
+| `CONTINENT_OCEANIA` | Trip in Oceania | RARE |
+| `ALL_CONTINENTS` | At least one trip on all 6 inhabited continents | EPIC |
 
 ### Distance & Coverage
 
-| Achievement | Trigger |
-|---|---|
-| `KM_1000` | 1,000 km traveled |
-| `KM_10000` | 10,000 km traveled |
-| `KM_50000` | 50,000 km traveled |
-| `KM_100000` | 100,000 km traveled |
+| Achievement | Trigger | Rarity |
+|---|---|---|
+| `KM_1000` | 1,000 km traveled | COMMON |
+| `KM_10000` | 10,000 km traveled | UNCOMMON |
+| `KM_50000` | 50,000 km traveled | RARE |
+| `KM_100000` | 100,000 km traveled | EPIC |
 
 ### Intensity
 
-| Achievement | Trigger |
-|---|---|
-| `TRIPS_3_IN_A_YEAR` | 3 completed trips in a single calendar year |
-| `TRIPS_5_IN_A_YEAR` | 5 completed trips in a single calendar year |
-| `LONG_HAUL` | Completed a trip lasting 14+ days |
-| `EPIC_JOURNEY` | Completed a trip lasting 30+ days |
+| Achievement | Trigger | Rarity |
+|---|---|---|
+| `TRIPS_3_IN_A_YEAR` | 3 trips in a single calendar year | COMMON |
+| `TRIPS_5_IN_A_YEAR` | 5 trips in a single calendar year | UNCOMMON |
+| `LONG_HAUL` | Trip lasting 14+ days | UNCOMMON |
+| `EPIC_JOURNEY` | Trip lasting 30+ days | RARE |
 
 ### Social
 
-| Achievement | Trigger |
-|---|---|
-| `TRAVEL_SQUAD_10` | Traveled with 10 unique companions across trips |
-| `TRAVEL_SQUAD_50` | Traveled with 50 unique companions |
-| `TRAVEL_SQUAD_100` | Traveled with 100 unique companions |
-| `BIG_GROUP` | Participated in a trip with 20+ confirmed participants |
-| `FIRST_ORGANIZER` | Organized and completed a trip as `ORGANIZER` |
-| `SERIAL_ORGANIZER` | Organized and completed 5 trips |
+| Achievement | Trigger | Rarity |
+|---|---|---|
+| `TRAVEL_SQUAD_10` | Traveled with 10 unique companions | COMMON |
+| `TRAVEL_SQUAD_50` | Traveled with 50 unique companions | UNCOMMON |
+| `TRAVEL_SQUAD_100` | Traveled with 100 unique companions | RARE |
+| `BIG_GROUP` | Trip with 20+ confirmed participants | UNCOMMON |
+| `FIRST_ORGANIZER` | Organized and completed a trip | COMMON |
+| `SERIAL_ORGANIZER` | Organized and completed 5 trips | UNCOMMON |
+| `VETERAN_ORGANIZER` | Organized and completed 20 trips | RARE |
 
 ---
 
-## 4. Chamuco Points
+## 4. Traveler Score & Rankings
 
-**Chamuco Points** are a soft in-app currency with no real monetary value. They are earned through travel activity and spent on profile customizations.
+### Traveler Score
 
-### Earning Points
+The **Traveler Score** is a composite metric computed from verified travel activity. It is separate from the player level: the score reflects the *breadth and depth* of real-world travel, while the level reflects *accumulated participation*. Both coexist and serve different purposes.
 
-| Event | Points awarded |
+| Input | Weight rationale |
 |---|---|
-| Trip completed (base) | 100 points per trip |
-| Trip duration bonus | +10 points per day beyond day 1 |
-| Achievement unlocked | Varies per achievement (10–200 points) |
-| Recognition received | 15 points per recognition |
-| Event participation (if event awards points) | As defined by the event organizer |
-| Positive peer feedback received | 5 points per positive feedback |
+| Total completed trips | Base progression |
+| Countries visited (unique) | Geographic breadth |
+| Total distance traveled (km) | Physical reach |
+| Total area explored (km²) | Coverage density |
+| Achievements unlocked | Milestone depth |
+| Positive feedback received as organizer | Social validation |
+| Recognitions received | Peer acknowledgment |
 
-The base trip award is scaled by the platform and may be adjusted. Points are distributed at the moment the trip status transitions to `COMPLETED`.
+The exact formula coefficients are implementation decisions. The key invariant: **the score reflects real-world travel, not app activity or level**.
 
-### Spending Points
+### Rankings
 
-Chamuco Points are spent exclusively on **cosmetic profile customizations**. They carry no functional advantage. Examples of redeemable items:
+- **Global ranking** — All users sorted by Traveler Score. Publicly visible.
+- **Country ranking** — Filtered by declared home country. Allows local comparison.
+- Rankings are recalculated asynchronously after each trip completion event.
+
+---
+
+## 5. Personal Statistics
+
+Computed automatically from completed trips. Stored in `user_stats`. Displayed on the public profile and used as inputs to the Traveler Score.
+
+| Statistic | Description |
+|---|---|
+| `level` | Current player level (1–50) |
+| `level_points_total` | Cumulative LP earned since account creation (never decreases) |
+| `trips_completed` | Total trips where the user was a confirmed participant and trip reached `COMPLETED` |
+| `countries_visited` | Unique countries covered by at least one `PLACE` item in completed trips |
+| `cities_visited` | Unique cities visited across completed trips |
+| `km_traveled` | Sum of `distance_km` across all transport items in completed trips |
+| `km2_explored` | Approximate area covered by visited place coordinates |
+| `trips_per_year` | Historical breakdown: trips completed per calendar year |
+| `unique_travel_companions` | Count of distinct co-travelers across all completed trips |
+| `trips_as_organizer` | Count of trips completed in the `ORGANIZER` role |
+| `longest_trip_days` | Duration in days of the longest completed trip |
+| `travel_frequency_index` | Computed on-the-fly — see TFI section below |
+| `traveler_score` | Composite score for global ranking |
+
+---
+
+### Travel Frequency Index (TFI)
+
+The **Travel Frequency Index** is a snapshot metric of recent travel momentum. Unlike `trips_completed` (a lifetime count) or `trips_per_year` (a calendar aggregate), the TFI reflects how actively a user has been traveling in the recent past. It decays naturally toward zero if travel stops — a user who traveled intensively two years ago but has not traveled since will eventually converge to 0.
+
+#### Algorithm
+
+```
+TFI(t) = C × Σ_{i ∈ trips_365(t)} contribution(D_i) × decay(d_i)
+```
+
+| Symbol | Meaning |
+|---|---|
+| `trips_365(t)` | Trips where `did_travel = true` and ended within the 365 days before time t |
+| `d_i` | Days elapsed since trip i ended, at time t |
+| `D_i` | Duration of trip i in days |
+| `contribution(D)` | `1 + 0.04 × min(D, 30)` — ranges from 1.0 (short trip) to 2.2 (30+ day trip) |
+| `decay(d)` | `exp(−d × ln(2) / 120)` — exponential decay with a **120-day half-life** |
+| `C` | `0.45` — normalization constant calibrated to the reference profiles below |
+
+The half-life of 120 days means a trip from 4 months ago contributes exactly half as much as a trip completed today. A trip from 1 year ago still contributes ~12% — old travel history fades but does not vanish instantly.
+
+#### Decay reference
+
+| Days since trip ended | Remaining weight |
+|---|---|
+| 0 (today) | 100% |
+| 60 days | 71% |
+| 120 days (half-life) | 50% |
+| 240 days | 25% |
+| 365 days | 12% |
+| > 365 days | 0% (excluded from window) |
+
+#### Calibration and reference profiles
+
+| Profile | Trips/year | Total days/year | Approximate TFI |
+|---|---|---|---|
+| Inactive | 0 | 0 | 0.0 |
+| Normal traveler | 3 | 10 | ~0.7 |
+| Frequent traveler | 5 | 15 | ~1.1 |
+| Avid traveler | 8 | 30 | ~1.9 |
+
+The TFI is a **snapshot**, not a calendar-year average. Two users with the same annual trip count but different recent timing will have different TFI values. A user who just returned from a trip will see a spike; one who last traveled 8 months ago will show decay even if their total count is high. Constants `C`, the half-life, and the duration coefficient may be fine-tuned during implementation without changing the algorithm's structure.
+
+#### Implementation
+
+The TFI is **not stored** in `user_stats` — it is computed on-the-fly at display time. The query fetches `trip_participants` records where `did_travel = true` and the trip ended within the past 365 days. For the vast majority of users this means fewer than 20 rows. The result may be cached per session or invalidated daily.
+
+---
+
+## 6. Chamuco Points
+
+**Chamuco Points (CP)** are a soft in-app currency with no real monetary value. They are earned through travel activity and spent on cosmetic profile customizations. They are entirely separate from Level Points.
+
+### Earning CP
+
+| Event | Chamuco Points |
+|---|---|
+| Trip completed (base) | 100 CP |
+| Trip duration bonus | +5 CP per day beyond day 1 |
+| Achievement unlocked (COMMON) | 25 CP |
+| Achievement unlocked (UNCOMMON) | 50 CP |
+| Achievement unlocked (RARE) | 100 CP |
+| Achievement unlocked (EPIC) | 200 CP |
+| Recognition received | 15 CP |
+| Submit trip feedback | 10 CP |
+| Event participation (if event awards CP) | As defined by the event organizer |
+
+### Spending CP
+
+Chamuco Points are spent on **cosmetic profile customizations** only. No functional advantage is ever sold. Examples of redeemable items:
 
 - Avatar frame variants
 - Discovery map color themes
 - Profile badge display style
 - Custom profile title or tagline
 - Animated profile elements
+- Exclusive cosmetic unlocks at level milestones (see Section 1)
 
-The catalog of redeemable items is a product decision deferred to the implementation phase.
+The cosmetic catalog is a product decision deferred to the implementation phase.
 
 ### Rules
 
-- Points do not expire.
-- Points cannot be transferred between users.
-- Points cannot be purchased with real money.
-- The spending catalog is defined by the platform, not by users or organizers.
+- CP do not expire.
+- CP cannot be transferred between users.
+- CP cannot be purchased with real money.
+- The spending catalog is defined by the platform.
 
 ### Data Model (`chamuco_point_transactions`)
 
-Each earn or spend event creates an immutable transaction record. The current balance is the sum of all transactions for a user.
+Each earn or spend event creates an immutable transaction record. The current balance is the sum of all transactions.
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | UUID | |
 | `user_id` | UUID | FK → `users.id` |
 | `amount` | Integer | Positive = earned, negative = spent |
-| `reason` | Enum `PointReason` | `TRIP_COMPLETED`, `ACHIEVEMENT_UNLOCKED`, `RECOGNITION_RECEIVED`, `PEER_FEEDBACK`, `EVENT_AWARD`, `COSMETIC_PURCHASE` |
-| `reference_id` | UUID (nullable) | FK to the triggering entity (trip, achievement, recognition, etc.) |
+| `reason` | Enum `PointReason` | `TRIP_COMPLETED`, `ACHIEVEMENT_UNLOCKED`, `RECOGNITION_RECEIVED`, `FEEDBACK_SUBMITTED`, `EVENT_AWARD`, `COSMETIC_PURCHASE` |
+| `reference_id` | UUID (nullable) | FK to the triggering entity |
 | `created_at` | Timestamp | |
-
-The computed balance is never stored directly — it is always derived from the transaction log.
 
 ---
 
-## 5. Discovery Map
+## 7. Discovery Map
 
-Every user has a **personal discovery map**: an interactive geographic visualization of all places they have visited across completed trips.
+Every user has a **personal discovery map**: an interactive geographic visualization of all places visited across completed trips.
 
-### Granularity Levels
+### Granularity
 
-The map has two primary zoom levels and two aggregate statistical views. There is deliberately **no intermediate level** (states, departments, counties, municipalities) — political subdivisions vary too much across countries to be meaningful or consistent.
+**Country view (default):** World map with visited countries highlighted. A country is visited when at least one `PLACE` itinerary item in a completed trip is located there.
 
-**Level 1 — Country view (default)**
-The world map with every visited country highlighted. A country is considered visited when at least one itinerary `PLACE` item in a completed trip is located in that country. This is the primary view.
+**City view:** Tapping a visited country shows individual cities as point markers, derived from the city metadata on `PLACE` items.
 
-**Level 2 — City/town view**
-Accessible by tapping/clicking a highlighted country. Shows individual cities and towns visited within that country as point markers or small clusters, derived from the city-level metadata on `PLACE` itinerary items. No further subdivision (no states, no provinces).
-
-**Statistical view A — Continental summary**
-A panel (not a geographic map) showing all 6 inhabited continents with:
-- Number of countries visited per continent
-- Total countries in that continent
-- Percentage visited (e.g., "Europe: 8 / 44 countries — 18%")
-
-This view is always available alongside the map as a summary card.
-
-**Statistical view B — Country coverage**
-When viewing a specific country at Level 2, a summary shows: "X cities visited in {country}". No percentage is shown since "total cities in a country" is not a meaningful or universal figure — count is more honest.
+**Continental summary panel:** Always visible alongside the map. Shows per-continent count (e.g., "Europe: 8 / 44 countries — 18%").
 
 ### Behavior
 
-- Visited countries are filled with the primary color at 60–80% opacity. Unvisited countries are neutral gray.
-- City-level markers use a small dot; clusters expand on zoom/tap.
-- Tapping a highlighted country (Level 1) or a city marker (Level 2) opens a panel listing the trips that covered that location, with links to each trip's detail page.
-- The map respects the user's active map theme from the Chamuco Points cosmetic catalog; the default theme uses the chosen app palette's primary color.
-- The map is displayed on the user's public profile if their profile visibility permits it.
+- Visited countries: filled with the primary color at 60–80% opacity.
+- Unvisited countries: neutral gray.
+- Tapping a country or city opens a panel listing the trips that covered that location.
+- Map respects the user's active cosmetic theme (Chamuco Points catalog).
+- Visibility follows the main `ProfileVisibility` setting — no independent toggle.
 
 ### Data Source
 
-The map is computed on demand from `itinerary_items` of type `PLACE` in completed trips where the user was a confirmed participant. Each `PLACE` item carries:
-- `address` — used to extract country and city name
-- `coordinates` — used for map pinpoint placement
-
-No separate geographic database table is required. Country and city extraction relies on the place's address fields populated at trip planning time.
+Computed on demand from `itinerary_items` of type `PLACE` in completed trips where the user was a confirmed participant. No separate geographic table required.
 
 ---
 
-## 6. Group Member Status
+## 8. Group Member Tier
 
-Each user has an independent status in every group they belong to. This is separate from the user's global reputation and from their `GroupRole` (admin/member). Status reflects **experience within that specific group**.
-
-### Status Tiers (enum: `GroupMemberTier`)
+Each user has an independent tier in every group they belong to. This is **separate from the global player level** — it reflects experience with that specific group of people, not global travel breadth.
 
 | Value | Display name | Requirement |
 |---|---|---|
-| `NEWCOMER` | Novicio | Joined the group but has not yet completed a trip with it |
-| `NOVICE` | Novicio | 1 completed trip within this group |
-| `EXPLORER` | Explorador | 5 completed trips within this group |
-| `VETERAN` | Veterano | 10+ completed trips within this group |
+| `NEWCOMER` | Nómada | Joined but no completed trip with this group |
+| `NOVICE` | Novicio | 1 completed trip with this group |
+| `EXPLORER` | Explorador | 5 completed trips with this group |
+| `VETERAN` | Veterano | 10+ completed trips with this group |
 
-"Completed trip within this group" means: the user was a confirmed participant on a trip that (a) was organized by or associated with the group and (b) reached `COMPLETED` status.
-
-### Additional Group Stats
-
-Stored in `group_member_stats` (see `database-design.md`):
-
-| Field | Description |
-|---|---|
-| `group_trips_completed` | Count of trips completed as a member of this group |
-| `joined_at` | Date the user's membership became `ACTIVE` — used to display seniority |
-| `active_streak` | Consecutive trips participated in without skipping any group trip |
-| `recognitions_received` | Count of recognitions received within this group |
-
-Group seniority (years as a member) is displayed alongside the tier badge in the group member list and in the group channel.
-
-### Status Visibility
-
-Within the group context (member list, group channel, group trip participants), the user's tier badge and seniority label are visible to all group members. Outside the group, only the user's global reputation is visible.
+Group tier is visible within the group context (member list, group channel, trip participants). Outside the group, only global level and Traveler Score are visible.
 
 ---
 
-## 7. Recognitions
+## 9. Recognitions
 
-**Recognitions** are social badges awarded by people, not by the system. They are distinct from Achievements (which are auto-triggered by milestones). A recognition carries the name of who gave it, the context in which it was given, and a title chosen by the giver.
+Recognitions are social badges awarded by people, not the system. They are distinct from Achievements (system-triggered). A recognition carries the giver's name, context, and a title chosen by the giver.
 
 ### Sources
 
 | Source | Who can award | When |
 |---|---|---|
-| Trip completion | Trip `ORGANIZER` or `CO_ORGANIZER` | Within a configurable window after the trip reaches `COMPLETED` (e.g., 7 days) |
+| Trip completion | Trip `ORGANIZER` or `CO_ORGANIZER` with `AWARD_RECOGNITIONS` | Within 7 days of trip reaching `COMPLETED` |
 | Annual group award | Group `OWNER` or `ADMIN` | Once per calendar year per group |
-| Event award | Event organizer | When the event is marked as completed, if the event was configured to award recognitions |
+| Event award | Event organizer | When the event completes, if configured to award recognitions |
 
 ### Recognition Record (`recognitions`)
 
@@ -278,89 +481,79 @@ Within the group context (member list, group channel, group trip participants), 
 | `id` | UUID | |
 | `recipient_user_id` | UUID | FK → `users.id` |
 | `awarded_by_user_id` | UUID | FK → `users.id` |
-| `title` | String | Short label chosen by the giver (e.g., "Best Navigator", "Soul of the Group") |
-| `description` | Text (optional) | Longer message from the giver |
+| `title` | String | Short label chosen by the giver (e.g., "Mejor Navegador", "Alma del Grupo") |
+| `description` | Text (nullable) | Optional longer message from the giver |
 | `source` | Enum `RecognitionSource` | `TRIP_COMPLETION`, `GROUP_ANNUAL`, `EVENT` |
-| `trip_id` | UUID (nullable) | Set if source is `TRIP_COMPLETION` |
-| `group_id` | UUID (nullable) | Set if source is `GROUP_ANNUAL` |
-| `event_id` | UUID (nullable) | Set if source is `EVENT` |
+| `trip_id` | UUID (nullable) | |
+| `group_id` | UUID (nullable) | |
+| `event_id` | UUID (nullable) | |
 | `awarded_at` | Timestamp | |
-
-Recognitions appear on the recipient's public profile, grouped by source context. Each recognition displays the giver's name and the context ("Received on Trip: Egypt 2024" or "Awarded by Grupo Aventureros — 2025").
 
 ---
 
-## 8. Trip Feedback
+## 10. Trip Feedback
 
-At the end of every completed trip, a **feedback window** opens for all confirmed participants. The window remains open for a configurable period (default: 7 days after `COMPLETED`).
+At the end of every completed trip, a **feedback window** opens for all confirmed participants. The window remains open for 7 days after `COMPLETED`. Feedback is optional for all participants.
 
-Feedback is **optional** for all participants. No participant is penalized for not leaving feedback.
-
-### Trip Feedback (about the trip overall)
-
-Directed at the organizer(s). Covers: planning quality, itinerary accuracy, communication, logistics. Uses a structured rating (1–5 stars per dimension) plus an optional free-text comment.
+### Trip Feedback (about the trip / organizer)
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | UUID | |
-| `trip_id` | UUID | FK → `trips.id` |
-| `reviewer_user_id` | UUID | FK → `users.id` (the reviewer) |
-| `target_user_id` | UUID | FK → `users.id` (the organizer being reviewed) |
+| `trip_id` | UUID | |
+| `reviewer_user_id` | UUID | |
+| `target_user_id` | UUID | The organizer being reviewed |
 | `planning_score` | Integer (1–5) | Itinerary quality and accuracy |
-| `communication_score` | Integer (1–5) | Clarity and responsiveness before and during the trip |
+| `communication_score` | Integer (1–5) | Clarity and responsiveness |
 | `logistics_score` | Integer (1–5) | Coordination of transport, stays, activities |
 | `overall_score` | Integer (1–5) | Summary score |
-| `comment` | Text (optional) | |
-| `is_anonymous` | Boolean | If true, the organizer sees the scores but not the reviewer's name |
+| `comment` | Text (nullable) | |
+| `is_anonymous` | Boolean | If true, organizer sees scores but not the reviewer's name |
 | `created_at` | Timestamp | |
-
-Aggregate scores from trip feedback contribute to the organizer's **Traveler Score** (specifically, the positive feedback received component).
 
 ### Peer Feedback (traveler to traveler)
 
-Each participant can leave a brief acknowledgment for any other participant on the same trip. This is entirely optional and positive-only — there is no mechanism for negative peer feedback.
+Optional, positive-only. Each participant can leave a brief acknowledgment for any co-traveler.
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | UUID | |
-| `trip_id` | UUID | FK → `trips.id` |
-| `from_user_id` | UUID | FK → `users.id` |
-| `to_user_id` | UUID | FK → `users.id` |
-| `note` | Text (optional) | Short message (max 280 characters) |
+| `trip_id` | UUID | |
+| `from_user_id` | UUID | |
+| `to_user_id` | UUID | |
+| `note` | Text (nullable) | Max 280 characters |
 | `created_at` | Timestamp | |
 
-Peer feedback received contributes to the recipient's Chamuco Points and Traveler Score. The feedback note is visible on the recipient's trip summary view (for that specific trip) and optionally on their public profile (user-controlled).
-
 ---
 
-## 9. Trip Completion Flow
+## 11. Trip Completion Flow
 
-When a trip transitions to `COMPLETED` status (automatically at `end_date` boundary or manually by the organizer), the following sequence is triggered by the NestJS backend:
+When a trip transitions to `COMPLETED`, the NestJS backend executes the following sequence atomically (PostgreSQL transaction where possible, idempotent if re-run):
 
-1. **Update trip status** in PostgreSQL to `COMPLETED`.
+1. **Update trip status** to `COMPLETED` in PostgreSQL.
 2. **Archive the trip's auto-channel** in Firestore (set to read-only).
 3. **Compute and store stats updates** for each confirmed participant:
-   - Increment `trips_completed`, update `countries_visited`, `km_traveled`, etc. in `user_stats`.
-   - Increment `group_trips_completed` and recalculate tier in `group_member_stats` for each group associated with the trip.
-4. **Evaluate achievements** for each participant: check all milestone conditions and create new `user_achievements` records for any newly met thresholds.
-5. **Distribute Chamuco Points** to each participant: create a `chamuco_point_transactions` record for base trip award + duration bonus + any achievement point bonuses.
-6. **Open the feedback window**: set `feedback_open_until` on the trip record (current timestamp + 7 days).
-7. **Notify all participants** that the trip is complete and the feedback window is open.
-8. **Unlock organizer recognition window**: organizers receive a prompt to award recognitions to participants, valid until `feedback_open_until`.
-
-This entire sequence is atomic where possible (PostgreSQL operations in a single transaction) and idempotent (safe to re-run if partially failed).
+   - Update `user_stats`: `trips_completed`, `countries_visited`, `km_traveled`, etc.
+   - Update `group_member_stats` and recalculate group tier for each group associated with the trip.
+4. **Evaluate achievements**: check all milestone conditions for each participant. Create `user_achievements` records for newly met thresholds.
+5. **Distribute Level Points (LP)**:
+   - For each participant with `did_travel = true`, compute LP using the multi-factor formula: base (2,500) + duration + distance + international + participant count + organizer bonus. See Section 2 for the full formula.
+   - Award achievement LP for any achievements unlocked in step 4.
+6. **Evaluate level-ups**: for each participant, check if accumulated `level_points_total` crosses one or more level thresholds. Advance `level` accordingly (may be multiple levels at once). Notify the user of each level-up (and tier advancement if applicable).
+7. **Distribute Chamuco Points (CP)**: award base trip CP + duration bonus + achievement CP for newly unlocked achievements.
+8. **Open the feedback window**: set `feedback_open_until = now() + 7 days` on the trip record.
+9. **Notify all participants** that the trip is complete and the feedback window is open.
+10. **Unlock organizer recognition window**: organizers receive a prompt to award recognitions, valid until `feedback_open_until`.
 
 ---
 
-## Open Questions / To Be Defined
+## Open Questions
 
 - What is the exact Traveler Score formula and coefficient weighting?
-- Should the discovery map also be viewable as a group aggregate ("places our group has been")?
-- Is peer feedback completely anonymous, or does the recipient see who sent it?
-- Should there be any negative feedback mechanism for peer-to-peer, or is the system positive-only by design?
 - Can an organizer award a recognition to themselves?
 - Is there a maximum number of recognitions an organizer can give per trip?
-- Should achievements have associated Chamuco Point rewards of varying amounts, or a flat rate?
-- Is the `km2_explored` metric feasible to compute accurately from itinerary place coordinates? (May need to simplify to a point-count or radius-based approximation.)
-- Should the discovery map have a public/private toggle independent of the main profile visibility setting?
+- Should peer feedback notes be visible on the recipient's public profile, or only in the trip context?
+- Is the `km2_explored` metric feasible to compute from itinerary coordinates? (May need to simplify to a radius-based approximation.)
+- Should there be a group aggregate discovery map ("places our group has collectively been")?
 - What happens to accumulated Chamuco Points if a user account is deleted?
+- Should the level system have a "prestige" mechanic (reset to level 1 after 50, with a special badge), or is level 50 the permanent ceiling?

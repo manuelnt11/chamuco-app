@@ -6,6 +6,8 @@ This file provides essential context for working on Chamuco App. Read it in full
 
 ## What Is Chamuco App
 
+**Public name:** Chamuco Travel · **Domain:** chamucotravel.com (tentative)
+
 **Chamuco is not a travel app. It is an app for groups that travel.**
 
 It covers the full lifecycle of a group's journey together: trip planning, itinerary, participant management, shared expenses, reservations, real-time communication, and — crucially — the long-term social identity of the group: achievements, reputation, rankings, recognitions, and a personal travel history that grows with every trip. The closest reference is Strava, applied to group travel.
@@ -36,7 +38,7 @@ The project is currently in the **design and documentation phase** — no source
 | Migrations | drizzle-kit — generates `.sql` files committed to Git |
 | Primary database | PostgreSQL (Cloud SQL) |
 | Real-time messaging | Firestore (Firebase) |
-| Authentication | Firebase Authentication (Google Sign-In + Passkeys) |
+| Authentication | Firebase Authentication (Google Sign-In + Facebook Sign-In) |
 | Push notifications | Firebase Cloud Messaging (FCM) |
 | API documentation | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs` |
 | Backend testing | Jest + `@swc/jest` — unit and integration tests |
@@ -77,8 +79,16 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 
 ### Users
 - Every user must choose a unique `@username` at registration: lowercase, 3–30 chars, `a-z 0-9 _ -` only, stored without `@`, displayed with `@`.
-- Personal data (passport, emergency contact, dietary needs, allergies, phobias, physical limitations) lives on the user profile (`user_profiles`, `user_health_profiles`) — never duplicated per trip.
+- **Authentication providers** (`auth_provider` on `users`): `GOOGLE` or `FACEBOOK`. The `display_name` is pre-filled from the OAuth provider at registration and is editable.
+- **Nationalities & travel documents** — stored in `user_nationalities` (1:many, min 1). Each record represents one citizenship and optionally holds the national ID, passport number, issue date, expiry date, and a pre-computed `PassportStatus` (`OMITTED` | `ACTIVE` | `EXPIRING_SOON` | `EXPIRED`). Unique index on `(user_id, country_code)`. Status is set immediately by the app when passport data is saved; a daily job updates `ACTIVE` → `EXPIRING_SOON` → `EXPIRED` for records with a non-null expiry date (skips `OMITTED`).
+- **Date of birth** — stored as JSONB `{ day, month, year, year_visible }` on `user_profiles`. The `year_visible` flag controls public profile display.
+- **Birth and residence location** — `user_profiles` stores `birth_country`, `birth_city`, `home_country`, and `home_city`. `home_city` is used as the departure origin for LP distance calculations; falls back to country centroid if not set.
+- **Emergency contacts** — stored in `user_emergency_contacts` (1:many). At least one is mandatory. Each has `full_name`, `phone_number`, `relationship`, and `is_primary`.
+- **Loyalty programs** (`user_loyalty_programs`) — reference data only, not linked to reservation records.
+- **Structured health data** — phobias, physical limitations, food allergies, and medical conditions each have a dedicated table (`user_phobias`, `user_physical_limitations`, `user_food_allergies`, `user_medical_conditions`) with a selection enum per category. Every category includes `OTHER` + required `description` for non-standard entries.
+- **Traveler stats and discovery map** visibility follows the main `ProfileVisibility` setting — no independent toggle.
 - **Platform roles** (`platform_role` on `users`): `USER` (default) or `SUPPORT_ADMIN`. A `SUPPORT_ADMIN` is a service account for troubleshooting — it bypasses all trip and group access restrictions (authentication still required), is never counted as a participant, has no travel profile or gamification records, and every write it performs is logged immutably in `support_admin_audit_log`. The role is not assignable from within the app.
+- **Agencies** — a higher-level entity (`agencies` table) that groups professional trip organizers under a common brand. A user may belong to at most one agency (`agency_id` on `users`). Agency coordinators can create and manage trips on behalf of the agency. See `features/agencies.md`.
 
 ### Trips
 - A trip starts at **00:00 on `start_date`** and ends at **24:00 on `end_date`** (`end_date >= start_date`, same day is valid).
@@ -87,6 +97,8 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - An organizer can **always** invite any user regardless of trip visibility.
 - If a user can see the trip (by any visibility path), they can submit a join request. Changing visibility does not affect pending requests or invitations already in flight.
 - The trip creator must declare `is_traveling_participant` at creation time.
+- **`participant_capacity` is required** (not nullable). Must be ≥ 1. May be updated while the trip is `DRAFT` or `OPEN`; cannot be reduced below the current confirmed participant count.
+- **Group visibility is required at creation** (`PUBLIC` or `PRIVATE`) — no default is applied.
 
 ### Participants & Groups
 - Two entry paths: **join request** (user-initiated, requires the user to be able to see the trip) and **invitation** (organizer-initiated, always available). Both may coexist.
@@ -150,7 +162,8 @@ All design documentation lives in `documentation/`. Key files:
 | `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger |
 | `architecture/database-design.md` | Schema philosophy, JSONB usage |
 | `architecture/monorepo-structure.md` | Directory layout |
-| `features/users.md` | User account, personal profile, health profile, loyalty programs, traveler stats, achievements |
+| `features/users.md` | User account, personal profile, passports, emergency contacts, health profile, loyalty programs, traveler stats, achievements |
+| `features/agencies.md` | Travel agencies: coordinators, agency trips, public profile |
 | `features/trips.md` | Trip lifecycle, itinerary model (timeline + sequence views), budget estimate visibility, full taxonomy, post-completion gamification flow |
 | `features/participants.md` | Membership flows, states, waitlist mechanics, guest participants |
 | `features/community.md` | Groups, Slack-like messaging, Firestore architecture, group member tiers |

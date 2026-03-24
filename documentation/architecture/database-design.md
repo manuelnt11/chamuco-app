@@ -1,7 +1,7 @@
 # Chamuco App — Database Design
 
 **Status:** Proposed
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-23
 
 ---
 
@@ -10,6 +10,53 @@
 **PostgreSQL** with JSONB support.
 
 The design philosophy balances relational integrity for core entities with document-style flexibility for sub-entities that naturally belong to a single parent. This avoids over-normalization without sacrificing the queryability and consistency of relational data.
+
+---
+
+## Encoding and Collation
+
+### Database-level encoding
+
+The Cloud SQL PostgreSQL instance **must be created with `UTF8` encoding**. This is set once at instance creation and cannot be changed afterward.
+
+```sql
+-- Cloud SQL flag (set at instance creation, not per-DB)
+-- Encoding: UTF8
+-- Locale: en_US.UTF8 (or C.UTF-8)
+```
+
+`UTF8` in PostgreSQL stores every Unicode code point, including the full Basic Multilingual Plane and supplementary planes — which includes emoji (U+1F600 and above). No additional column-level configuration is needed to store emoji in `text` or `varchar` columns.
+
+### Collation strategy
+
+Sorting and comparison behavior is defined per column via ICU collations, available in PostgreSQL 10+ and fully supported on Cloud SQL.
+
+| Context | Collation | Reason |
+|---|---|---|
+| Default (most columns) | `und-x-icu` | Unicode-correct ordering for any language, no locale assumption |
+| User-facing text sorted for display (`display_name`, `trip name`, group `name`) | `und-x-icu` | Handles accented characters, CJK, Arabic, etc. correctly |
+| `username` | `C` (binary) | Always lowercase ASCII `a-z 0-9 _ -`; binary ordering is sufficient and faster |
+| Full-text search columns (future) | `pg_catalog.simple` | Language-agnostic stemming via `tsvector`; collation handled by FTS |
+
+The default collation for the database is set to `und-x-icu` so that any column without an explicit override inherits Unicode-correct behavior automatically.
+
+```sql
+CREATE DATABASE chamuco
+  ENCODING 'UTF8'
+  LC_COLLATE = 'und-x-icu'
+  LC_CTYPE   = 'en_US.UTF-8'
+  TEMPLATE   = template0;
+```
+
+### Emoji in `cover_emoji` and similar columns
+
+The `cover_emoji` column on `groups` and `trips` stores a single emoji character. A standard `text` column with `UTF8` encoding handles this without any special type. No length constraint is applied — `varchar(1)` would incorrectly reject multi-codepoint emoji sequences (e.g., flags: 🇲🇽 = U+1F1F2 + U+1F1FD).
+
+### Drizzle ORM notes
+
+- Drizzle uses `text` / `varchar` PostgreSQL types. No ORM-level encoding setting is needed — encoding is inherited from the database.
+- When generating migrations with `drizzle-kit generate`, the `CREATE DATABASE` statement is **not** produced by drizzle-kit. It must be part of the Cloud SQL provisioning script (Terraform or `gcloud sql databases create`).
+- The migration runner (`drizzle-kit migrate`) connects to an already-provisioned database and assumes `UTF8` is in place.
 
 ---
 

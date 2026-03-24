@@ -1,13 +1,41 @@
 # Feature: Trips
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-23
 
 ---
 
 ## Overview
 
 The **Trip** is the central entity of Chamuco App. Everything else — participants, itinerary, expenses, reservations, communications — is organized around a trip. A trip can range from a simple weekend outing to a multi-leg international journey.
+
+---
+
+## Trip Record (`trips`) — Core Fields
+
+The primary fields of a trip that apply regardless of lifecycle state.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | |
+| `name` | String | Trip name (e.g., "Cartagena Long Weekend"). |
+| `description` | Text (nullable) | Optional public description shown on the trip page. |
+| `cover_type` | Enum `CoverType` | `IMAGE` or `EMOJI`. Determines the visual identity of the trip. |
+| `cover_image_url` | String (nullable) | URL in Cloud Storage. Required when `cover_type = IMAGE`. |
+| `cover_emoji` | String (nullable) | A single Unicode emoji character. Required when `cover_type = EMOJI`. |
+| `status` | Enum `TripStatus` | Current lifecycle state. |
+| `visibility` | Enum `TripVisibility` | Discoverability setting. |
+| `start_date` | Date | Trip start date (trip begins at 00:00). |
+| `end_date` | Date | Trip end date (trip ends at 24:00). |
+| `primary_timezone` | String (IANA) | Timezone used for date/time display. |
+| `base_currency` | String (ISO 4217) | The reference currency for budget estimates and expense aggregation. |
+| `participant_capacity` | Integer | **Required.** Maximum number of confirmed traveling participants. Must be ≥ 1. May be updated by the organizer while the trip is in `DRAFT` or `OPEN` status. Reducing below the current confirmed participant count is not allowed. |
+| `agency_id` | UUID (nullable) | FK → `agencies.id`. Set if the trip is managed by a travel agency. |
+| `created_by` | UUID | FK → `users.id`. The user who created the trip (first ORGANIZER). |
+| `created_at` | Timestamp | |
+| `updated_at` | Timestamp | |
+
+The `CoverType` enum and the mutual exclusivity rule between `cover_image_url` and `cover_emoji` are shared with the `groups` table. See the [Groups section in `community.md`](./community.md) for the full definition.
 
 ---
 
