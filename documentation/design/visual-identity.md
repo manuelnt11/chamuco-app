@@ -1,7 +1,7 @@
 # Design: Visual Identity
 
-**Status:** In Progress — Color palette and icon confirmed
-**Last Updated:** 2026-03-23
+**Status:** In Progress — Core system confirmed; logo variants pending (wordmark, monochrome, maskable)
+**Last Updated:** 2026-03-24
 
 > This document collects all pending visual and aesthetic decisions for the Chamuco App frontend. Each section presents concrete options with rationale. Decisions should be recorded here once made and reflected in `tech-stack.md` and `preferences.md` as applicable.
 
@@ -70,126 +70,67 @@ Evolved from the original "Cielos Abiertos" proposal. The dark anchor was soften
 
 ---
 
-## 3. Typography
+## 3. Typography — Plus Jakarta Sans ✅ CONFIRMED
 
-All proposals use Google Fonts (free, self-hostable, no licensing concerns). Each option pairs a display/heading typeface with a body typeface.
+🔗 [fonts.google.com/specimen/Plus+Jakarta+Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans) · [npm: @next/font/google](https://nextjs.org/docs/app/building-your-application/optimizing/fonts)
 
-### Option A — "Outfit + Inter" *(modern, slightly playful)*
+A single-family system using Plus Jakarta Sans across all weights (Light 300 → ExtraBold 800). Modern geometric with distinctive terminals, slightly upscale feel without being corporate. Performs well across the full range of Chamuco UI contexts: display headings at trip hero screens, bold labels on achievement cards, readable body at group descriptions and expense notes, tight captions at 12px for timestamps and metadata.
 
-- **Headings:** [Outfit](https://fonts.google.com/specimen/Outfit) — geometric, rounded corners, friendly without being childish. Excellent at large sizes. Pairs well with the chamuco's cartoon aesthetic without mimicking it.
-- **Body:** [Inter](https://fonts.google.com/specimen/Inter) — the industry-standard UI typeface. Optimized for screens, excellent legibility at small sizes, massive language support.
+**Weight usage:**
 
-Best with: Palettes A or B.
-
-### Option B — "Plus Jakarta Sans + DM Sans" *(premium, clean)*
-
-- **Headings:** [Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans) — modern geometric with a slightly upscale feel. Used by several successful SaaS and fintech products.
-- **Body:** [DM Sans](https://fonts.google.com/specimen/DM+Sans) — low-contrast, warm, very readable. Feels less corporate than Inter.
-
-Best with: Palettes B or C.
-
-### Option C — "Sora + Nunito" *(rounded, expressive)*
-
-- **Headings:** [Sora](https://fonts.google.com/specimen/Sora) — rounded terminals, bold personality. Less common than Poppins/Outfit, which gives it distinctiveness.
-- **Body:** [Nunito](https://fonts.google.com/specimen/Nunito) — very rounded, friendly, excellent for mobile UIs where softness signals approachability.
-
-Best with: Palette A. Aligns most closely with the chamuco mascot's rounded cartoon style.
-
-### Type scale
-
-Whichever pair is chosen, the recommended scale (based on a 16px base):
-
-| Token | Size | Usage |
+| Weight | Token | Usage |
 |---|---|---|
-| `display` | 36–48px | Hero titles, splash screens |
-| `h1` | 28px | Page titles |
-| `h2` | 22px | Section headings |
-| `h3` | 18px | Card titles, subsections |
-| `body-lg` | 16px | Default body text |
-| `body` | 14px | Secondary text, labels |
-| `caption` | 12px | Timestamps, metadata, hints |
+| ExtraBold 800 | `font-extrabold` | Display headings, achievement names, hero titles |
+| Bold 700 | `font-bold` | Page titles (h1), card titles, navigation active state |
+| SemiBold 600 | `font-semibold` | Section headings (h2), button labels, stat values |
+| Medium 500 | `font-medium` | Sub-headings (h3), list item labels, tab labels |
+| Regular 400 | `font-normal` | Body text, descriptions, message content |
+| Light 300 | `font-light` | Captions, hints, secondary metadata |
 
-**Decision needed:** Choose one typographic pairing.
+**Type scale (16px base):**
+
+| Token | Size | Weight | Usage |
+|---|---|---|---|
+| `display` | 36–48px | 800 | Hero titles, splash screens, celebration screens |
+| `h1` | 28px | 700 | Page titles |
+| `h2` | 22px | 600 | Section headings |
+| `h3` | 18px | 500 | Card titles, subsections |
+| `body-lg` | 16px | 400 | Default body text |
+| `body` | 14px | 400 | Secondary text, labels |
+| `caption` | 12px | 300 | Timestamps, metadata, hints |
+
+**Next.js configuration:** load via `next/font/google` with `subsets: ['latin']` and `display: 'swap'`. Declare all required weights in a single import to avoid multiple round-trips. Variable font (`variable: '--font-pjs'`) is available and preferred — enables smooth weight transitions in gamification animations.
+
+**Tailwind configuration:** register the CSS variable as `fontFamily.sans` override so all Tailwind text utilities resolve to Plus Jakarta Sans automatically.
 
 ---
 
-## 4. Icon Pack
-
-**Context:** The app needs icons across: navigation, trip actions, itinerary categories (transport, airport, food, place, etc.), expenses, participants, messaging, and settings.
-
-### Option A — Phosphor Icons *(recommended)*
+## 4. Icon Pack — Phosphor Icons ✅ CONFIRMED
 
 🔗 [phosphoricons.com](https://phosphoricons.com) · [npm: @phosphor-icons/react](https://www.npmjs.com/package/@phosphor-icons/react)
 
-- 9,000+ icons, 6 weights (thin, light, regular, bold, fill, duotone)
-- MIT license, React package: `@phosphor-icons/react`
-- Exceptional coverage of travel-specific icons (airplane, compass, map pin, tent, boat, currency, passport, etc.)
-- Duotone weight adds visual richness for feature illustrations
-- Slight downside: larger package than Lucide (mitigated by tree-shaking)
+9,000+ icons across 6 weights: thin, light, regular, bold, fill, and duotone. MIT license. Exceptional travel-specific coverage (airplane, compass, map pin, tent, boat, currency, passport, and more). The duotone weight serves double duty as hero illustrations for empty states, onboarding, and feature highlights — reducing the need for a separate illustration library in most cases. Bundle size is larger than Lucide but fully mitigated by tree-shaking; only imported icons are included in the final bundle.
 
-### Option B — Tabler Icons
+**Weight usage in Chamuco:**
 
-🔗 [tabler.io/icons](https://tabler.io/icons) · [npm: @tabler/icons-react](https://www.npmjs.com/package/@tabler/icons-react)
-
-- 5,900+ icons, consistent 2px stroke, MIT license
-- React package: `@tabler/icons-react`
-- Very clean, dashboard-friendly. Less personality than Phosphor but extremely complete.
-- Best choice if the UI ends up leaning toward a more structured, data-heavy feel.
-
-### Option C — Lucide React *(already in proto stack)*
-
-🔗 [lucide.dev](https://lucide.dev) · [npm: lucide-react](https://www.npmjs.com/package/lucide-react)
-
-- 1,450+ icons, MIT, smallest bundle, React-native
-- Already referenced in the project (used in skill examples)
-- Excellent default choice if icon variety is not a priority. Lowest risk of bundle bloat.
-- May feel insufficient for the richer travel-specific icon needs.
-
-**Recommendation:** Phosphor Icons for the full product. The duotone weight is particularly useful for empty states, onboarding illustrations, and feature highlights — avoiding the need for a separate illustration library in many cases.
-
-**Decision needed:** Confirm icon library.
+| Weight | Usage |
+|---|---|
+| `regular` | Navigation icons, action buttons, list items |
+| `bold` | Active navigation state, primary CTAs |
+| `fill` | Selected state, toggles, status indicators |
+| `duotone` | Empty states, onboarding illustrations, achievement badges |
 
 ---
 
-## 5. React Component Framework
+## 5. React Component Framework — shadcn/ui ✅ CONFIRMED
 
-**Context:** The stack uses Next.js + Tailwind CSS. The component framework must be Tailwind-compatible, SSR-safe (no hydration mismatches), accessible, and work well on mobile (PWA).
+🔗 [ui.shadcn.com](https://ui.shadcn.com) · [npx shadcn@latest add \<component\>](https://ui.shadcn.com/docs/installation/next)
 
-### Option A — shadcn/ui *(recommended)*
+Not a dependency — components are copied into the project via CLI and owned by the codebase. Built on Radix UI primitives (fully accessible, keyboard navigable, ARIA-compliant). Tailwind-native: every component is plain TSX with Tailwind classes, fully customizable to the Horizonte palette without fighting a third-party theme system. Zero runtime overhead, no version conflicts.
 
-🔗 [ui.shadcn.com](https://ui.shadcn.com) · [npm: shadcn](https://www.npmjs.com/package/shadcn)
+The `Drawer` component (built on Vaul) provides the bottom-sheet pattern required by the PWA navigation spec. The `Dialog`, `Sheet`, `Popover`, and `Command` primitives cover the core overlay patterns across the app without additional libraries.
 
-- Not a dependency — components are copied into the project via CLI (`npx shadcn@latest add button`)
-- Built on Radix UI primitives (fully accessible, keyboard navigable)
-- Tailwind-native: components are plain TSX with Tailwind classes — fully customizable
-- Zero runtime overhead, no version conflicts
-- Active ecosystem, huge community
-- Already referenced in the project's artifact tooling
-- **Downside:** More manual setup; each component must be added and potentially customized
-
-### Option B — HeroUI (formerly NextUI)
-
-🔗 [heroui.com](https://heroui.com) · [npm: @heroui/react](https://www.npmjs.com/package/@heroui/react)
-
-- Full component library as an npm dependency
-- Beautiful defaults with strong mobile/touch interactions (ripple effects, smooth animations)
-- Uses Framer Motion for animations — adds bundle weight
-- Good dark mode support
-- **Downside:** Less control over markup; dependency version management
-
-### Option C — DaisyUI
-
-🔗 [daisyui.com](https://daisyui.com) · [npm: daisyui](https://www.npmjs.com/package/daisyui)
-
-- Tailwind CSS plugin — adds semantic class names (`btn`, `card`, `badge`, etc.)
-- 63+ components, zero JavaScript, pure CSS
-- Extremely fast to prototype with
-- Built-in themes (including dark mode) via data attributes
-- **Downside:** Less compositional than shadcn; harder to deviate from the default look; components feel more generic
-
-**Recommendation:** shadcn/ui as the primary component foundation. It pairs naturally with the existing Tailwind + TypeScript stack, produces no runtime overhead, and gives full control over the visual result. DaisyUI can supplement for rapid prototyping of specific pages.
-
-**Decision needed:** Confirm primary component system.
+**Integration notes:** initialize with `shadcn init`, configure `tailwind.config.ts` to use the `chamuco` color namespace defined in section 2, and set the CSS variable prefix to `--chamuco` to avoid conflicts. All added components live in `apps/web/src/components/ui/`.
 
 ---
 
@@ -219,16 +160,25 @@ Sites that share a similar spirit: group-oriented, travel-focused, social, mobil
 
 These are non-negotiable given the PWA requirement, but style decisions within them are open.
 
-### Navigation pattern
+### Navigation pattern ✅ CONFIRMED
 
-On mobile, the primary navigation must use a **bottom navigation bar** (4–5 items max). On desktop, a **left sidebar** is the standard pattern. The app should switch between these based on screen width.
+On mobile, the primary navigation uses a **bottom navigation bar** with 4 items. On desktop, a **left sidebar** is the standard pattern. The app switches between these based on screen width.
 
 | Breakpoint | Navigation pattern |
 |---|---|
 | `< 768px` (mobile) | Bottom tab bar, fixed |
 | `≥ 768px` (tablet/desktop) | Left sidebar, collapsible |
 
-**Decision needed:** Maximum number of primary navigation items (recommended: 4 — Trips, Explore, Messages, Profile).
+**Primary navigation items (MVP):**
+
+| # | Tab | Scope |
+|---|---|---|
+| 1 | **Trips** | Trip feed, my trips, create trip |
+| 2 | **Groups** | My groups, group activity |
+| 3 | **Explore** | Discover public trips and groups |
+| 4 | **Profile** | User profile, stats, achievements, Chamuco Points |
+
+Messaging is out of scope for MVP and is not included. When added in a future version, the nav structure will be re-evaluated — a 5th item or a repositioning of Explore may be considered at that point.
 
 ### Touch targets
 
@@ -240,42 +190,32 @@ On mobile, dialogs and overlays should prefer a **bottom sheet** (slides up from
 
 ---
 
-## 8. Additional Aesthetic Decisions Pending
+## 8. Aesthetic System ✅ CONFIRMED
 
-### Border radius style
+### Border radius
 
-| Option | Token value | Feel |
-|---|---|---|
-| **Rounded** | `rounded-xl` (12px) — `rounded-2xl` (16px) for cards | Friendly, modern, matches the chamuco mascot |
-| **Pill** | `rounded-full` for buttons, `rounded-xl` for cards | Playful, consumer-app feel |
-| **Sharp** | `rounded-md` (6px) — `rounded-lg` (8px) | More professional, less playful |
-
-**Recommendation:** Rounded (12–16px for cards, full-pill for primary action buttons) — consistent with the logo's rounded cartoon style.
+`rounded-xl` (12px) for cards, inputs, and containers. `rounded-2xl` (16px) for larger cards and modals. `rounded-full` (pill) for primary action buttons and badges. Consistent with the chamuco mascot's rounded visual language and the consumer-app energy of the gamification layer.
 
 ### Illustration style
 
-For empty states, onboarding slides, and feature highlights:
-
-| Option | Description |
-|---|---|
-| **Mascot-based** | Use the chamuco character in various poses/contexts. High brand consistency. Requires custom illustration work. |
-| **Phosphor duotone icons at large scale** | Use icon library icons as hero illustrations. Zero extra assets. Slightly less personality. |
-| **Abstract geometric shapes** | Colored blobs and gradients. Easy to produce, low personality. |
-
-**Recommendation:** A hybrid — Phosphor duotone icons for functional empty states (e.g., "no trips yet"), chamuco mascot for key emotional moments (onboarding, celebration screens).
+Hybrid approach: Phosphor Icons duotone weight at large scale for functional empty states (no trips yet, no messages, no expenses). Chamuco mascot illustrations for high-stakes emotional moments — onboarding, achievement unlocks, trip completion, recognition received. The mascot is reserved precisely because gamification generates many such moments; its presence signals that something meaningful happened.
 
 ### Motion & animation
 
-| Principle | Recommendation |
+| Principle | Value |
 |---|---|
-| Duration | Short: 150ms (micro-interactions), Medium: 300ms (page transitions), Long: 500ms (onboarding) |
-| Easing | `ease-out` for entrances, `ease-in` for exits |
+| Micro-interactions | 150ms |
+| Page transitions | 300ms |
+| Onboarding / celebration screens | 500ms |
+| Particle effects (confetti, achievement burst) | 600–800ms |
+| Easing — entrances | `ease-out` |
+| Easing — exits | `ease-in` |
 | Reduced motion | Always respect `prefers-reduced-motion` — disable non-essential animations |
-| Library | Framer Motion (if HeroUI is chosen, it's already included; otherwise add selectively) |
+| Library | Framer Motion — added selectively via `apps/web` dependency. Justified by celebration screens, achievement animations, and gamification transitions. |
 
 ### Spacing system
 
-Tailwind's default 4px base spacing is used. Key spacing tokens:
+Tailwind's default 4px base. Key tokens:
 
 | Token | Value | Usage |
 |---|---|---|
@@ -287,21 +227,11 @@ Tailwind's default 4px base spacing is used. Key spacing tokens:
 
 ### Shadow style
 
-| Option | Description |
-|---|---|
-| **Soft shadows** | `shadow-sm` / `shadow-md` — subtle depth, modern feel |
-| **Colored shadows** | Shadow color matches the primary (e.g., orange-tinted drop shadow on primary buttons) — adds warmth and uniqueness |
-| **Flat / no shadows** | Borders-only for card separation — cleaner, easier in dark mode |
-
-**Recommendation:** Soft shadows in light mode; flat (borders only) in dark mode. Optionally: colored shadows on primary CTA buttons only.
+Soft shadows (`shadow-sm` / `shadow-md`) in light mode. Flat borders-only in dark mode. Colored shadow (warm orange tint) on primary CTA buttons only — the orange glow reinforces the gamification energy at the main action point without bleeding into the rest of the UI.
 
 ### Loading states
 
-| Pattern | Usage |
-|---|---|
-| **Skeleton screens** | List views, cards, profile pages — preferred over spinners for perceived performance |
-| **Spinner** | Point actions only (submitting a form, sending a message) |
-| **Optimistic UI** | For message send and expense add — show result immediately, revert on error |
+Skeleton screens for list views, cards, and profile pages. Spinner for point actions only (form submit, message send). Optimistic UI for message send and expense add — show the result immediately and revert on error. In a social, live-feeling app, optimistic UI is what makes the product feel alive.
 
 ---
 
@@ -312,13 +242,16 @@ Tailwind's default 4px base spacing is used. Key spacing tokens:
 | Logo / icon | ✅ Chamuco diablito — `documentation/assets/logo_icon.svg` | ✅ Confirmed |
 | Logo variants | Full-color wordmark, monochrome, maskable | ⏳ Pending |
 | Color palette | ✅ **"Horizonte"** (`#38BDF8` · `#FB923C` · `#F0F9FF` · `#0F4C75` · `#BAE6FD`) | ✅ Confirmed |
-| Typography | A (Outfit+Inter) / B (Plus Jakarta Sans+DM Sans) / C (Sora+Nunito) | ⏳ Pending |
-| Icon pack | A (Phosphor) / B (Tabler) / C (Lucide) | ⏳ Pending |
-| Component framework | A (shadcn/ui) / B (HeroUI) / C (DaisyUI) | ⏳ Pending |
-| Primary nav item count | 4 or 5 | ⏳ Pending |
-| Border radius style | Rounded / Pill / Sharp | ⏳ Pending |
-| Illustration style | Mascot / Phosphor duotone / Geometric | ⏳ Pending |
-| Shadow style | Soft / Colored / Flat | ⏳ Pending |
+| Typography | ✅ **Plus Jakarta Sans** — single-family, weights 300–800 | ✅ Confirmed |
+| Icon pack | ✅ **Phosphor Icons** — `@phosphor-icons/react`, 6 weights | ✅ Confirmed |
+| Component framework | ✅ **shadcn/ui** — Radix primitives, Tailwind-native, owned components | ✅ Confirmed |
+| Primary nav item count | ✅ 4 items — Trips · Groups · Explore · Profile | ✅ Confirmed |
+| Border radius style | ✅ Rounded — `rounded-xl` cards, `rounded-full` primary buttons | ✅ Confirmed |
+| Illustration style | ✅ Hybrid — Phosphor duotone (functional) + mascot (emotional moments) | ✅ Confirmed |
+| Motion & animation | ✅ Framer Motion selective — 150/300/500ms, ease-out/ease-in | ✅ Confirmed |
+| Spacing system | ✅ Tailwind 4px base, tokens space-2 → space-16 | ✅ Confirmed |
+| Shadow style | ✅ Soft (light) · Flat (dark) · Orange-tinted on primary CTA | ✅ Confirmed |
+| Loading states | ✅ Skeletons + spinner + optimistic UI | ✅ Confirmed |
 
 ---
 
