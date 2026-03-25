@@ -371,6 +371,37 @@ Work is tracked in a **GitHub Projects v2** kanban board:
 | Priority | Single select | High, Medium, Low |
 | Size | Single select | XS, S, M, L, XL |
 
+### Epics
+
+Epics are represented as **GitHub Issues with sub-issues**. GitHub's native parent-child issue relationship is used — no custom field or label is required.
+
+**Conventions:**
+
+- An epic is a regular issue with the label `epic` and a title that names the feature or initiative (e.g., `Epic: Trip entity — MVP`).
+- Child issues (tasks) are linked to the epic using GitHub's **Add sub-issue** button on the parent issue page.
+- Every sub-issue should also be added to the project board and assigned the appropriate Status, Area, Priority, and Size fields.
+- An epic is considered done when all its sub-issues are in `Done` status. The epic issue itself is closed at that point.
+- Epics are not assigned a Size field — sizing applies to individual sub-issues only.
+
+**CLI reference (epics):**
+
+```bash
+# Create an epic issue in the repo
+gh issue create --title "Epic: <name>" --label "epic" --body "<description>"
+
+# List open epics
+gh issue list --label epic
+
+# Add a sub-issue (requires the sub-issue feature; use the GitHub UI or API)
+gh api graphql -f query='
+  mutation {
+    addSubIssue(input: { issueId: "<parent_node_id>", subIssueId: "<child_node_id>" }) {
+      issue { title }
+    }
+  }
+'
+```
+
 ### CLI reference
 
 ```bash
