@@ -1,7 +1,7 @@
 # Chamuco App — Backend Architecture
 
 **Status:** Proposed
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-25
 
 ---
 
@@ -32,6 +32,7 @@ Each feature domain is encapsulated in its own NestJS module. A module owns ever
 | `ExpensesModule` | Shared expense recording, splitting, and settlement |
 | `CommunityModule` | Chats, channels, broadcast messaging |
 | `NotificationsModule` | Push/email/in-app notifications |
+| `SchedulerModule` | Scheduled job endpoints triggered by Cloud Scheduler |
 | `LocalizationModule` | i18n and currency utilities |
 
 > Module boundaries are intentionally strict. If a module needs data from another module's domain, it accesses it through an exported service — never by importing the other module's repository directly.
@@ -133,6 +134,58 @@ DTOs (`create-trip.dto.ts`, `trip-response.dto.ts`, etc.) are the single source 
 ### OpenAPI spec export
 
 The raw `openapi.json` spec is exportable programmatically (`SwaggerModule.createDocument()`), enabling future tooling such as client SDK generation or contract testing.
+
+---
+
+## Scheduled Jobs
+
+Because the backend runs on **Cloud Run** (which scales to zero), in-process schedulers like `@nestjs/schedule` are unreliable — a job does not fire if no instance is running. The correct pattern for GCP is to use **Cloud Scheduler** as the external trigger.
+
+### Architecture
+
+```
+Cloud Scheduler
+  └── HTTP POST → /api/v1/jobs/<job-name>   (NestJS, Cloud Run)
+                       └── SchedulerModule handler
+                             └── service logic + FCM / DB writes
+```
+
+Each scheduled job is a dedicated HTTP endpoint in the `SchedulerModule`. Cloud Scheduler calls the endpoint on its configured interval, which wakes up the Cloud Run instance if needed.
+
+### Security
+
+Job endpoints are not authenticated via Firebase ID tokens. They are secured with a **shared secret header**:
+
+```
+X-Scheduler-Secret: <secret>
+```
+
+The secret is stored as a Cloud Run environment variable and injected into Cloud Scheduler requests. Any request missing or presenting the wrong header is rejected with `403`.
+
+### Jobs in MVP
+
+| Job | Endpoint | Schedule | Description |
+|---|---|---|---|
+| Passport expiry check | `POST /api/v1/jobs/passport-expiry` | Daily at 02:00 UTC | Scans `user_nationalities` for records with non-null `passport_expiry_date`. Transitions `ACTIVE` → `EXPIRING_SOON` (≤ 30 days) and `EXPIRING_SOON` → `EXPIRED` (≤ 0 days). Sends FCM notification for each affected user. |
+| Trip lifecycle transitions | `POST /api/v1/jobs/trip-transitions` | Every 30 minutes | Transitions `OPEN`/`CONFIRMED` → `IN_PROGRESS` for trips whose `start_date` boundary has passed, and `IN_PROGRESS` → `COMPLETED` for trips whose `end_date` boundary has passed. Triggers the post-trip completion flow for each newly completed trip. |
+| Key date reminders | `POST /api/v1/jobs/key-date-reminders` | Daily at 09:00 UTC | Scans `trip_key_dates` where `reminder_enabled = true` and `date = tomorrow`. Sends FCM push notification to all confirmed participants of each matching trip. |
+
+### Job Handler Structure
+
+Each job handler lives in `SchedulerModule` and follows the same pattern:
+
+```
+src/modules/scheduler/
+├── scheduler.module.ts
+├── scheduler.controller.ts       # Exposes POST /api/v1/jobs/* endpoints
+├── jobs/
+│   ├── passport-expiry.job.ts
+│   ├── trip-transitions.job.ts
+│   └── key-date-reminders.job.ts
+└── scheduler.guard.ts            # Validates X-Scheduler-Secret header
+```
+
+Job handlers are idempotent — running a job twice for the same data produces the same result. Each handler logs its outcome (rows affected, notifications sent) as structured logs visible in Cloud Logging.
 
 ---
 
