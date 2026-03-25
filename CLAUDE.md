@@ -407,6 +407,81 @@ When the `/take_issue <issue_number>` command is invoked, prepare the workspace 
 - Status update result (success or note to update manually)
 - Brief summary of what needs to be done based on the issue description
 
+### 9. `/to_review` command
+
+When the `/to_review` command is invoked, create a pull request with all changes and move the associated issue to "In Review" status. This command should be used when work on an issue is complete and ready for code review.
+
+**Prerequisites:** Must be on an issue branch created with `gh issue develop` (branch name format: `<issue_number>-<slug>`).
+
+**Steps:**
+
+1. **Extract issue number from current branch:**
+   ```bash
+   BRANCH_NAME=$(git branch --show-current)
+   ISSUE_NUMBER=$(echo "$BRANCH_NAME" | grep -oE '^[0-9]+')
+   ```
+   If the branch name doesn't start with a number, abort and report that this command requires an issue branch.
+
+2. **Check for uncommitted changes:**
+   ```bash
+   git status --porcelain
+   ```
+   If there are uncommitted changes, inform the user and ask if they want to commit them first. If yes, use the standard commit process from Standing Rule 1 (git commit instructions).
+
+3. **Push the branch to remote:**
+   ```bash
+   git push -u origin "$BRANCH_NAME"
+   ```
+
+4. **Generate PR title and body:**
+   Use the same process as `/write_pr` command (Standing Rule 7):
+   - Run `git diff main...HEAD --name-only` for changed files
+   - Run `git log main...HEAD --oneline` for commit history
+   - Run `git diff main...HEAD` for the full diff
+   - Review the current conversation context
+   - Generate title (max 72 chars, Conventional Commits format)
+   - Generate body with Summary, Changes, Breaking Changes (if any), Testing, and Notes sections
+   - **IMPORTANT:** Add `Closes #<issue_number>` at the end of the body to automatically link and close the issue when the PR is merged
+
+5. **Create the pull request:**
+   ```bash
+   gh pr create --title "<generated_title>" --body "<generated_body>"
+   ```
+   Save the PR URL from the output.
+
+6. **Update issue status to "In Review":**
+   ```bash
+   # Get project ID
+   PROJECT_ID=$(gh api graphql -f query='
+     query($owner: String!, $number: Int!) {
+       user(login: $owner) {
+         projectV2(number: $number) {
+           id
+         }
+       }
+     }
+   ' -f owner="manuelnt11" -F number=4 --jq '.data.user.projectV2.id')
+
+   # Get Status field ID
+   FIELD_ID=$(gh project field-list 4 --owner manuelnt11 --format json --jq '.fields[] | select(.name=="Status") | .id')
+
+   # Get "In Review" option ID
+   OPTION_ID=$(gh project field-list 4 --owner manuelnt11 --format json --jq '.fields[] | select(.name=="Status") | .options[] | select(.name=="In Review") | .id')
+
+   # Get the issue's project item ID
+   ITEM_ID=$(gh project item-list 4 --owner manuelnt11 --format json --jq --arg issue "$ISSUE_NUMBER" '.items[] | select(.content.number==($issue|tonumber)) | .id')
+
+   # Update the field
+   gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" --field-id "$FIELD_ID" --single-select-option-id "$OPTION_ID"
+   ```
+   Note: If any of these commands fail, report the error and continue. The status can be updated manually in the GitHub UI.
+
+**Output:** A confirmation message indicating:
+- Branch pushed to remote
+- PR created with URL
+- Issue status updated to "In Review" (or note to update manually if failed)
+- The PR is now ready for code review
+
 ---
 
 ## Open Decisions (Still Pending)
