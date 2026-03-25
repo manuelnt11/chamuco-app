@@ -1,8 +1,30 @@
-# Nestjs specific
-/dist
-/node_modules
-/build
-/tmp
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+.next
+out
+*.tsbuildinfo
+
+# Turbo
+.turbo
+
+# Testing
+coverage
+*.lcov
+.nyc_output
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
 
 # Logs
 logs
@@ -13,18 +35,30 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# dotenv environment variable files
-.env
-.env.development
-.env.test
-.env.production
-
-# temp directory
+# Temporary files
 .temp
 .tmp
+tmp
+*.swp
+*.swo
+*~
 
-# MacOS specific
+# OS-specific
 .DS_Store
+Thumbs.db
+Desktop.ini
 
-# VS Code specific
+# IDE-specific
 .vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Misc
+.cache
+.parcel-cache
