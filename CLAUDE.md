@@ -344,6 +344,69 @@ Examples: ⚠️ includes a DB migration, OpenAPI updated, follow-up PR needed.
 
 **Output:** raw markdown only. First line is the title, blank line, then the body. No code fences, no preamble, no explanation after.
 
+### 8. `/take_issue` command
+
+When the `/take_issue <issue_number>` command is invoked, prepare the workspace to work on the specified issue by performing the following steps:
+
+1. **Get GitHub username and assign the issue:**
+   ```bash
+   GITHUB_USER=$(gh api user --jq .login)
+   gh issue edit <issue_number> --add-assignee "$GITHUB_USER"
+   ```
+
+2. **Create and checkout a branch for the issue:**
+   ```bash
+   gh issue develop <issue_number> --checkout
+   ```
+
+3. **Read the issue and parse its content:**
+   ```bash
+   gh issue view <issue_number> --json title,body,labels,assignees
+   ```
+   Provide a brief summary confirming you understand the task.
+
+4. **Update the project status to "In Progress":**
+
+   First, ensure the issue is added to the project (if not already):
+   ```bash
+   gh issue edit <issue_number> --add-project "manuelnt11/4"
+   ```
+
+   Then update the Status field. This requires multiple steps to get the necessary IDs:
+
+   ```bash
+   # Get project ID
+   PROJECT_ID=$(gh api graphql -f query='
+     query($owner: String!, $number: Int!) {
+       user(login: $owner) {
+         projectV2(number: $number) {
+           id
+         }
+       }
+     }
+   ' -f owner="manuelnt11" -F number=4 --jq '.data.user.projectV2.id')
+
+   # Get Status field ID
+   FIELD_ID=$(gh project field-list 4 --owner manuelnt11 --format json --jq '.fields[] | select(.name=="Status") | .id')
+
+   # Get "In Progress" option ID
+   OPTION_ID=$(gh project field-list 4 --owner manuelnt11 --format json --jq '.fields[] | select(.name=="Status") | .options[] | select(.name=="In Progress") | .id')
+
+   # Get the issue's project item ID
+   ITEM_ID=$(gh project item-list 4 --owner manuelnt11 --format json --jq --arg issue "<issue_number>" '.items[] | select(.content.number==($issue|tonumber)) | .id')
+
+   # Update the field
+   gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" --field-id "$FIELD_ID" --single-select-option-id "$OPTION_ID"
+   ```
+
+   Note: If any of these commands fail or if the issue is not yet in the project, report the error and continue. The status can be updated manually in the GitHub UI.
+
+**Output:** A confirmation message indicating:
+- Issue assigned to the current user
+- Branch created and checked out
+- Status update result (success or note to update manually)
+- Brief summary of what needs to be done based on the issue description
+
 ---
 
 ## Open Decisions (Still Pending)
@@ -366,7 +429,7 @@ Work is tracked in a **GitHub Projects v2** kanban board:
 
 | Field | Type | Options |
 |---|---|---|
-| Status | Single select | Backlog, Ready, In Progress, In Review, Done |
+| Status | Single select | Backlog, In Progress, In Review, Done |
 | Area | Single select | Backend, Frontend, Infrastructure, Database, Documentation, Testing |
 | Priority | Single select | High, Medium, Low |
 | Size | Single select | XS, S, M, L, XL |
