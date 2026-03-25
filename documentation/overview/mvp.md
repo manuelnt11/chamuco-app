@@ -1,7 +1,7 @@
 # Chamuco Travel — MVP Scope
 
 **Status:** Draft
-**Last Updated:** 2026-03-23
+**Last Updated:** 2026-03-25
 
 ---
 
@@ -49,34 +49,52 @@ Full implementation of the user profile module as designed.
 
 ### ✅ Traveler Groups
 
-Full implementation of the groups module as designed.
+Full implementation of the groups module as designed, **excluding messaging**.
 
 - Group creation with name, description, cover (image or emoji), and visibility (PUBLIC or PRIVATE — required at creation)
 - Group membership: roles (`OWNER`, `ADMIN`, `MEMBER`), join requests and invitations
-- Group auto-channel (PRIVATE messaging channel mirroring group membership)
-- Direct messages (1:1) between users
 - Group member tiers (`NEWCOMER` → `NOVICE` → `EXPLORER` → `VETERAN`) computed from shared completed trips
 - Group resources (notes, documents, links)
+- Group announcements: admins can send a one-way broadcast notification to all group members (see Notifications)
+
+> Real-time messaging (group channels and 1:1 DMs) is out of scope for MVP. The Firestore dependency is therefore deferred — it is not needed until messaging is implemented.
 
 **Reference:** [`features/community.md`](../features/community.md)
 
 ---
 
-### 🔲 Trips (Simplified) — Scope Pending Definition
+### ✅ Trips (Simplified)
 
-The full trips module covers the complete lifecycle of a journey: creation, participant management, itinerary, expenses, reservations, pre-trip tasks, and post-trip gamification flow. For the MVP, a **simplified version** of trips will be shipped.
+The full trips module covers the complete lifecycle of a journey: creation, participant management, itinerary, expenses, reservations, pre-trip tasks, and post-trip gamification. For the MVP, a **simplified version** is shipped with the following scope:
 
-The exact scope of the simplified trip module is **pending definition**. The following questions must be resolved before implementation begins:
+**Core lifecycle** — All statuses are supported: `DRAFT`, `OPEN`, `CONFIRMED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`. Roles (ORGANIZER, CO_ORGANIZER, PARTICIPANT) and visibility (PUBLIC, LINK_ONLY, PRIVATE) are fully implemented.
 
-- Which phases of the trip lifecycle are included? (DRAFT, OPEN, IN_PROGRESS, COMPLETED — or a subset?)
-- Is the itinerary builder included in MVP, or is a trip just metadata + participants?
-- Are expenses included in MVP?
-- Are reservations included in MVP?
-- Is the pre-trip task system included?
-- What does the post-trip flow look like if the itinerary is simplified? (affects gamification inputs: distance, countries visited)
-- Is the participant capacity system included in full, or simplified?
+**Departure & return locations** — Every trip declares a `departure_country` + `departure_city` and an optional `return_country` + `return_city` (null = same as departure). These define the trip route for distance calculation.
 
-**Reference (full spec):** [`features/trips.md`](../features/trips.md), [`features/participants.md`](../features/participants.md), [`features/expenses.md`](../features/expenses.md), [`features/reservations.md`](../features/reservations.md), [`features/pre-trip-planning.md`](../features/pre-trip-planning.md)
+**Ordered destinations** (`trip_destinations`) — At least one destination required. Ordered by `position`. Used in route computation for LP distance: departure → destinations (in order) → return.
+
+**Free-text itinerary** — The full structured itinerary builder is post-MVP. In MVP, a single `itinerary_notes` text field on the `trips` record replaces it.
+
+**Budget items** (`trip_budget_items`) — A simple named list of cost items (name, description, amount, currency). Not linked to participants or expense splits. Currency defaults to the trip's `base_currency`.
+
+**Notes** (`trip_notes`) — A collaborative list of notes any confirmed participant or organizer can add.
+
+**Key dates** (`trip_key_dates`) — A list of important dates (deadline, milestone, payment date) with a description and an optional reminder flag. When `reminder_enabled = true`, a FCM push notification is sent to all confirmed participants 24 hours before the date.
+
+**Announcements** — Organizers can send one-way broadcast announcements to all confirmed participants via FCM (see Notifications section).
+
+**Gamification** — Full post-trip completion flow is included: stats, achievements, Chamuco Points, feedback window, and recognition window. Distance is computed from the trip route (departure → destinations → return). Countries visited are derived from `trip_destinations` + return location.
+
+**Out of scope for MVP (trips):**
+- Structured itinerary builder (items, categories, subtypes)
+- Expense tracking (`expenses`, `expense_payers`, splits, settlement)
+- Reservations
+- Pre-trip tasks
+- Budget estimate computation and `budget_visibility`
+- Trip resources (NOTE/DOCUMENT/LINK)
+- Activity sequence view
+
+**Reference:** [`features/trips.md`](../features/trips.md), [`features/participants.md`](../features/participants.md)
 
 ---
 
@@ -106,20 +124,26 @@ Full implementation of the gamification module as designed.
 
 Push notification delivery via Firebase Cloud Messaging (FCM) integrated with a unified Service Worker (shared with PWA caching).
 
-MVP notification events:
+FCM is the only Firebase service used in MVP. Firestore is not required (messaging is post-MVP).
 
-| Event | Recipient |
-|---|---|
-| Trip invitation received | Invited user |
-| Join request accepted / declined | Requesting user |
-| Trip status changed (IN_PROGRESS, COMPLETED) | All confirmed participants |
-| Feedback window opened | All confirmed participants |
-| Passport `EXPIRING_SOON` | User who owns the passport |
-| Passport `EXPIRED` | User who owns the passport |
-| Level-up | User |
-| Achievement unlocked | User |
-| New recognition received | Recipient user |
-| New message in a channel or DM | Channel/DM participants |
+**MVP notification events:**
+
+| Event | Trigger | Recipient |
+|---|---|---|
+| Trip invitation received | Organizer invites user | Invited user |
+| Join request accepted / declined | Organizer acts on request | Requesting user |
+| Trip status changed (`IN_PROGRESS`, `COMPLETED`) | Organizer transitions status | All confirmed participants |
+| Feedback window opened | Trip reaches `COMPLETED` | All confirmed participants |
+| Passport `EXPIRING_SOON` | Daily job | User who owns the record |
+| Passport `EXPIRED` | Daily job | User who owns the record |
+| Level-up | Trip completion flow | User |
+| Achievement unlocked | Trip completion flow | User |
+| New recognition received | Organizer or admin awards recognition | Recipient user |
+| Key date reminder | 24 hours before a key date with `reminder_enabled = true` | All confirmed participants of the trip |
+| Trip announcement | Organizer sends broadcast | All confirmed participants of the trip |
+| Group announcement | Group admin sends broadcast | All members of the group |
+
+**Announcements** are one-way broadcasts. An organizer or admin writes a short message that is delivered as a push notification to all recipients. There is no reply mechanism and no persistent chat thread — the notification is the message. Announcements are stored in PostgreSQL for an audit trail and displayed in a simple read-only feed within the trip or group detail screen.
 
 **Reference:** [`infrastructure/cloud.md`](../infrastructure/cloud.md)
 
@@ -129,19 +153,18 @@ MVP notification events:
 
 The following modules are designed and documented but will not be built in the MVP:
 
-| Module | Reference |
-|---|---|
-| Agencies | [`features/agencies.md`](../features/agencies.md) |
-| Reservations | [`features/reservations.md`](../features/reservations.md) |
-| Pre-trip planning (tasks, route planning, budget envelopes) | [`features/pre-trip-planning.md`](../features/pre-trip-planning.md) |
-| Events system | [`features/events.md`](../features/events.md) |
-| Calendar views | [`features/calendar.md`](../features/calendar.md) |
+| Module | Notes | Reference |
+|---|---|---|
+| Real-time messaging | Group channels, DMs, Firestore integration — deferred until post-MVP | [`features/community.md`](../features/community.md) |
+| Agencies | — | [`features/agencies.md`](../features/agencies.md) |
+| Reservations | — | [`features/reservations.md`](../features/reservations.md) |
+| Pre-trip planning | Tasks, route planning, budget envelopes | [`features/pre-trip-planning.md`](../features/pre-trip-planning.md) |
+| Events system | — | [`features/events.md`](../features/events.md) |
+| Calendar views | — | [`features/calendar.md`](../features/calendar.md) |
 
 ---
 
 ## Open Questions
 
-- What is the exact scope of the simplified trips module? (see Trips section above)
-- Does the MVP include expense tracking, or is it deferred?
-- If the itinerary is deferred, how are gamification inputs (distance, countries) collected at trip completion?
 - Is there a target user count or pilot group for the MVP launch?
+- Should past trips (pre-Chamuco travel history) be supported in MVP? If so, which entry path: full retroactive trip creation, lightweight history entry, or a streamlined past-trip flow?

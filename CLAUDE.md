@@ -93,12 +93,20 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 ### Trips
 - A trip starts at **00:00 on `start_date`** and ends at **24:00 on `end_date`** (`end_date >= start_date`, same day is valid).
 - Once `IN_PROGRESS`: all edits require organizer confirmation and all confirmed participants are notified.
-- **Trip visibility controls discoverability only**, not who can be invited. `PUBLIC` = listed publicly; `LINK_ONLY` = accessible via direct link; `PRIVATE` = not searchable, visible only to members of groups explicitly listed in `trip_visible_to_groups`.
+- **Trip visibility controls discoverability only**, not who can be invited. `PUBLIC` = listed publicly; `PRIVATE` = not searchable, visible only to members of groups explicitly listed in `trip_visible_to_groups`.
 - An organizer can **always** invite any user regardless of trip visibility.
 - If a user can see the trip (by any visibility path), they can submit a join request. Changing visibility does not affect pending requests or invitations already in flight.
+- **Invite links** (`trip_invite_links`) — a separate mechanism from visibility. An organizer generates a shareable link with a unique token. A non-registered user who follows the link is directed to registration; upon completing it, an `INVITED` record is automatically created for them. A registered user who follows the link receives an invitation directly, bypassing visibility restrictions. Links support optional expiry (`expires_at`), use cap (`max_uses`), and organizer revocation (`revoked_at`).
 - The trip creator must declare `is_traveling_participant` at creation time.
 - **`participant_capacity` is required** (not nullable). Must be ≥ 1. May be updated while the trip is `DRAFT` or `OPEN`; cannot be reduced below the current confirmed participant count.
 - **Group visibility is required at creation** (`PUBLIC` or `PRIVATE`) — no default is applied.
+- **Departure & return locations** — Every trip has `departure_country` (char 2) and `departure_city` (text), both required. `return_country` and `return_city` are nullable; null means the group returns to the departure location (round trip).
+- **Trip route** — The trip route for LP distance calculation is: `departure_location → trip_destinations (ordered by position) → return_location`. `return_location` falls back to `departure_location` when null. Distance is the sum of great-circle distances between consecutive points.
+- **Destinations** (`trip_destinations`) — At least one required. Each record has `position` (integer, 1-based), `country_code` (char 2), `city` (text), and optional `label`. Countries visited for gamification are derived from `trip_destinations` + return location.
+- **Itinerary notes** — `itinerary_notes` is a nullable `text` column on the `trips` table. Free text only. The full structured itinerary builder is post-MVP.
+- **Budget items** (`trip_budget_items`) — Simple named list: `name`, `description` (nullable), `amount` (numeric), `currency` (char 3, defaults to `base_currency`). Not linked to expense splits. Post-MVP the full expense module replaces this.
+- **Notes** (`trip_notes`) — Collaborative list: `content` (text), `created_by`, timestamps. Any confirmed participant or organizer may add notes.
+- **Key dates** (`trip_key_dates`) — List of important dates: `date`, `description` (text), `reminder_enabled` (boolean, default false). When `reminder_enabled = true`, a FCM push notification is sent to all confirmed participants 24 hours before the date.
 
 ### Participants & Groups
 - Two entry paths: **join request** (user-initiated, requires the user to be able to see the trip) and **invitation** (organizer-initiated, always available). Both may coexist.
@@ -111,17 +119,26 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - **Role promotion requires a role invitation** (`trip_role_invitations`): if the invitee is already a confirmed participant, the invitation only upgrades their role (`is_traveling_participant` stays `true`); if not yet a participant, the organizer declares `will_travel`. A role invitation with `will_travel = true` bypasses `WAITLIST_MODE`. Role invitations follow the same create/revoke-at-will lifecycle as participant invitations. If the invitee has an active participant request or invitation, it is deleted when the role invitation is created.
 - **Role downgrade is a direct organizer action** (no invitation): never affects `is_traveling_participant`.
 
-### Messaging (Slack-like)
+### Announcements
+- Organizers can send a one-way broadcast announcement to all confirmed participants of a trip. Group admins can send a one-way broadcast announcement to all group members.
+- Announcements are delivered as push notifications (FCM). There is no reply mechanism and no persistent chat thread.
+- Announcements are stored in PostgreSQL (`trip_announcements` / `group_announcements`) and displayed in a read-only feed within the trip or group detail screen.
+- **MVP scope**: announcements are included in the MVP as the primary communication mechanism between organizers and participants.
+
+### Messaging (Slack-like) — Post-MVP
 - DMs (1:1) and Channels (named, PUBLIC or PRIVATE).
 - Every trip and group auto-creates a PRIVATE channel mirroring its membership and roles.
 - PUBLIC channels: anyone can enter as VIEWER (read-only, no approval) or join as MEMBER (can post, no approval).
 - All members see full message history regardless of when they joined.
 - Channel membership in Firestore is always derived from PostgreSQL — never managed independently.
+- **Firestore is not used until messaging is implemented.** The MVP does not require Firestore; FCM is the only Firebase service active in MVP.
 
-### Itinerary
+### Itinerary (Post-MVP)
+- The full structured itinerary builder is **post-MVP**. MVP uses `itinerary_notes` (free text) instead.
 - Five item categories: `TRANSPORT`, `AIRPORT`, `PLACE`, `FOOD`, `OTHER` — each with detailed subtype enums.
 - Day 0 is the pre-departure day for logistical items before the official trip start.
 - Items have `duration_minutes`, `participant_ids` (subset scoping), multi-currency fields with `exchange_rate_snapshot`.
+- Discovery Map in MVP is derived from `trip_destinations` (country + city) of completed trips, not from `PLACE` itinerary items (which are post-MVP).
 
 ### Expenses
 - **No real money is processed.** The expense module is a collaborative ledger. Settlement is computed at trip end (Splitwise-style minimal debt graph) and participants settle outside the app.
@@ -137,7 +154,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - **Traveler Score** — composite metric computed from completed trips, countries visited, km traveled, achievements, and feedback received. Used for global ranking. Never editable.
 - **Achievements** — auto-triggered badges at defined milestones (trips, geography, distance, social). Earned once, never lost.
 - **Chamuco Points** — soft in-app currency. Earned at trip completion and achievement unlocks. Spent on cosmetic profile customizations. No real monetary value; non-transferable; non-expiring.
-- **Discovery Map** — personal geographic visualization derived from `PLACE` items in completed trips. Displayed on the public profile.
+- **Discovery Map** — personal geographic visualization of visited places. In MVP, derived from `trip_destinations` (country + city) of completed trips. Post-MVP: enriched from `PLACE` itinerary items. Displayed on the public profile.
 - **Group Member Tier** — per-group progression: `NEWCOMER` → `NOVICE` (1 trip) → `EXPLORER` (5 trips) → `VETERAN` (10+ trips). Independent of global reputation and of `GroupRole`.
 - **Recognitions** — peer-awarded badges. Sources: trip organizer at completion, group admin annually, event organizer at event completion.
 - **Trip Feedback** — structured post-trip feedback (scored + optional comment) directed at organizers, plus optional peer-to-peer notes. Window: 7 days after `COMPLETED`.
@@ -159,13 +176,13 @@ All design documentation lives in `documentation/`. Key files:
 |---|---|
 | `overview/tech-stack.md` | Full stack decisions with rationale |
 | `overview/project-overview.md` | Vision, goals, principles |
-| `overview/mvp.md` | MVP scope: confirmed modules, simplified trips (pending), out-of-scope features |
+| `overview/mvp.md` | MVP scope: confirmed modules, simplified trips, out-of-scope features |
 | `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger |
 | `architecture/database-design.md` | Schema philosophy, JSONB usage |
 | `architecture/monorepo-structure.md` | Directory layout |
 | `features/users.md` | User account, personal profile, passports, emergency contacts, health profile, loyalty programs, traveler stats, achievements |
 | `features/agencies.md` | Travel agencies: coordinators, agency trips, public profile |
-| `features/trips.md` | Trip lifecycle, itinerary model (timeline + sequence views), budget estimate visibility, full taxonomy, post-completion gamification flow |
+| `features/trips.md` | MVP trip entity: lifecycle, roles, visibility, departure/return locations, destinations, itinerary notes, budget items, notes, key dates, completion flow. Post-MVP: full itinerary builder, expense tracking, budget estimate, trip resources |
 | `features/participants.md` | Membership flows, states, waitlist mechanics, guest participants |
 | `features/community.md` | Groups, Slack-like messaging, Firestore architecture, group member tiers |
 | `features/expenses.md` | Expense model, splits, settlements, multi-currency |
