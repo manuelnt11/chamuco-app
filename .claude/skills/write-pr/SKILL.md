@@ -25,6 +25,7 @@ Also review the current session conversation (if available) — the "why" is oft
 ## Step 2 — Draft the title
 
 Rules:
+
 - **Maximum 72 characters**
 - **Conventional Commits prefix** with optional scope: `feat(trips):`, `fix(auth):`, `docs:`, `refactor:`, `chore:`, `ci:`, `test:`
 - **Imperative mood**: "add", "fix", "update", "remove" — not past tense
@@ -32,6 +33,7 @@ Rules:
 - **Capitalize only the first word after the colon**
 
 Examples:
+
 - `feat(users): add username field with uniqueness constraints`
 - `docs: establish OpenAPI, migration, and CI/CD standards`
 
@@ -40,9 +42,11 @@ Examples:
 Use exactly this structure. Omit sections that don't apply — never include empty section headers.
 
 ### Summary
+
 One paragraph explaining the **motivation** — the "why". Not the "what" (that is in Changes and in Files Changed).
 
 ### Changes
+
 Grouped by logical intent, not by file. Each bullet answers "what changed and why it matters". Keep bullets concise (1-2 lines each).
 
 - **Area or concept**: description of the change and its purpose
@@ -50,6 +54,7 @@ Grouped by logical intent, not by file. Each bullet answers "what changed and wh
 Do not list files. Do not say "updated X.md" — describe what conceptually changed.
 
 ### Breaking Changes
+
 > Only include this section if the PR introduces breaking changes
 
 - Description of what breaks and what consumers need to do
@@ -59,24 +64,29 @@ Do not list files. Do not say "updated X.md" — describe what conceptually chan
 Adapt to the type of change. Always include edge cases at the end regardless of type.
 
 **For backend changes:**
+
 - Exact commands to run: `pnpm --filter api test`, specific test files if relevant
 - Endpoints to exercise via Swagger UI at `/api/docs`
 - Specific happy-path scenarios to validate manually
 
 **For frontend changes:**
+
 - Steps to reproduce the affected flow from scratch (e.g., "1. Log in, 2. Navigate to X, 3. Do Y")
 - Visual or behavioral outcomes to verify (e.g., "the button should be disabled until the form is valid")
 - Responsive / locale behavior if the change touches layout or text
 
 **For schema changes:**
+
 - Confirm the migration file is present in `packages/db/migrations/`
 - Run `drizzle-kit migrate` locally and verify it applies cleanly
 - Seed or insert test data that exercises the new/modified columns
 
 **For documentation changes:**
+
 - What to read and verify for internal consistency and cross-reference accuracy
 
 **Edge cases (always include, for every type of change):**
+
 - Invalid or boundary inputs (empty strings, null, values outside allowed ranges, special characters)
 - Unsupported enum values or types
 - Actions performed by a user without the required role or permission
@@ -84,6 +94,7 @@ Adapt to the type of change. Always include edge cases at the end regardless of 
 - Any scenario that should be rejected — confirm the correct error is returned
 
 ### Notes
+
 > Only include this section if there is something the reviewer must know that isn't obvious from the diff
 
 Examples: ⚠️ includes a DB migration, OpenAPI updated, follow-up PR needed

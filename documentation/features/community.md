@@ -14,25 +14,28 @@ Chamuco App is not just a trip planner — it also supports a lightweight social
 ## Users & Profiles
 
 ### User Account
+
 A user account is created via **Google SSO** (primary authentication method). Each account has:
+
 - Display name
 - Email (from Google account)
 - Avatar (from Google or custom upload)
 - Linked authentication provider(s) (Google, Passkey)
 
 ### User Profile
+
 The profile is the social-facing layer of the user. It is **separate from the account** and has adjustable privacy settings.
 
 Profile fields: bio / description, location (city/country), travel interests / tags, travel stats (computed), social links.
 
 Profile privacy levels (enum: `ProfileVisibility`):
 
-| Value | Visibility |
-|---|---|
-| `PUBLIC` | Visible to anyone, including non-registered users |
-| `MEMBERS_ONLY` | Visible only to registered Chamuco users |
-| `CONNECTIONS_ONLY` | Visible only to users they're connected with |
-| `PRIVATE` | Not visible to anyone except the user themselves |
+| Value              | Visibility                                        |
+| ------------------ | ------------------------------------------------- |
+| `PUBLIC`           | Visible to anyone, including non-registered users |
+| `MEMBERS_ONLY`     | Visible only to registered Chamuco users          |
+| `CONNECTIONS_ONLY` | Visible only to users they're connected with      |
+| `PRIVATE`          | Not visible to anyone except the user themselves  |
 
 Individual profile fields can have granular visibility overrides (e.g., public bio but private location).
 
@@ -67,66 +70,66 @@ In both cases, once a request or invitation reaches a terminal state, a new one 
 
 ### Group Record (`groups`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `name` | String | |
-| `description` | Text | Optional |
-| `cover_type` | Enum `CoverType` | `IMAGE` or `EMOJI`. Determines which cover field is active. |
-| `cover_image_url` | String (nullable) | URL in Cloud Storage. Required when `cover_type = IMAGE`. |
-| `cover_emoji` | String (nullable) | A single Unicode emoji character (e.g., `🏔️`, `🌴`, `🎒`). Required when `cover_type = EMOJI`. |
-| `visibility` | Enum `GroupVisibility` | `PUBLIC` or `PRIVATE`. **Required at creation** — no default is applied. The creator must make an explicit choice. |
-| `created_by` | UUID | The user who created the group. Receives `OWNER` role. |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field             | Type                   | Description                                                                                                        |
+| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `id`              | UUID                   |                                                                                                                    |
+| `name`            | String                 |                                                                                                                    |
+| `description`     | Text                   | Optional                                                                                                           |
+| `cover_type`      | Enum `CoverType`       | `IMAGE` or `EMOJI`. Determines which cover field is active.                                                        |
+| `cover_image_url` | String (nullable)      | URL in Cloud Storage. Required when `cover_type = IMAGE`.                                                          |
+| `cover_emoji`     | String (nullable)      | A single Unicode emoji character (e.g., `🏔️`, `🌴`, `🎒`). Required when `cover_type = EMOJI`.                     |
+| `visibility`      | Enum `GroupVisibility` | `PUBLIC` or `PRIVATE`. **Required at creation** — no default is applied. The creator must make an explicit choice. |
+| `created_by`      | UUID                   | The user who created the group. Receives `OWNER` role.                                                             |
+| `created_at`      | Timestamp              |                                                                                                                    |
+| `updated_at`      | Timestamp              |                                                                                                                    |
 
 ### Cover Image / Emoji (`CoverType`)
 
 Groups and trips share the same `CoverType` enum. Exactly one cover must always be set — `cover_image_url` and `cover_emoji` are mutually exclusive.
 
-| Value | Behavior |
-|---|---|
-| `IMAGE` | A user-uploaded image stored in Cloud Storage. Displayed as a full or cropped cover. `cover_image_url` is required; `cover_emoji` is null. |
+| Value   | Behavior                                                                                                                                                                                                                |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `IMAGE` | A user-uploaded image stored in Cloud Storage. Displayed as a full or cropped cover. `cover_image_url` is required; `cover_emoji` is null.                                                                              |
 | `EMOJI` | A single emoji character rendered at large scale as the group's visual identity. Useful when no image is available or the user prefers a symbolic representation. `cover_emoji` is required; `cover_image_url` is null. |
 
 The default at creation time is `EMOJI` with a contextually suggested emoji (e.g., based on the group name or left to the user to pick). The admin can change it at any time.
 
 ### Group Member Roles (enum: `GroupRole`)
 
-| Value | Description |
-|---|---|
-| `OWNER` | Created the group. Full control, including deletion. Identical permissions to `ADMIN` plus exclusive right to delete the group. |
-| `ADMIN` | Can manage members (invite, accept/reject requests, remove, promote/demote), edit group settings, and manage channels. |
-| `MEMBER` | Standard member. Can participate in group chats and channels, and can be invited to trips as part of the group. |
+| Value    | Description                                                                                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `OWNER`  | Created the group. Full control, including deletion. Identical permissions to `ADMIN` plus exclusive right to delete the group. |
+| `ADMIN`  | Can manage members (invite, accept/reject requests, remove, promote/demote), edit group settings, and manage channels.          |
+| `MEMBER` | Standard member. Can participate in group chats and channels, and can be invited to trips as part of the group.                 |
 
 ### Group Member States (enum: `GroupMemberStatus`)
 
 Mirrors the trip participant state machine:
 
-| Value | Description |
-|---|---|
+| Value             | Description                                                               |
+| ----------------- | ------------------------------------------------------------------------- |
 | `PENDING_REQUEST` | User submitted a join request on a public group. Awaiting admin decision. |
-| `INVITED` | Admin sent an invitation on a private group. Awaiting user decision. |
-| `ACTIVE` | Membership is active. |
-| `REJECTED` | Admin rejected the join request. User may submit a new one. |
-| `DECLINED` | User declined the invitation. Admin may re-invite. |
-| `REMOVED` | Admin removed the member. |
-| `LEFT` | Member voluntarily left the group. |
+| `INVITED`         | Admin sent an invitation on a private group. Awaiting user decision.      |
+| `ACTIVE`          | Membership is active.                                                     |
+| `REJECTED`        | Admin rejected the join request. User may submit a new one.               |
+| `DECLINED`        | User declined the invitation. Admin may re-invite.                        |
+| `REMOVED`         | Admin removed the member.                                                 |
+| `LEFT`            | Member voluntarily left the group.                                        |
 
 ### Group Member Record (`group_members`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `group_id` | UUID | |
-| `user_id` | UUID | |
-| `status` | Enum `GroupMemberStatus` | |
-| `role` | Enum `GroupRole` | |
-| `join_flow` | Enum `JoinFlow` | `REQUEST` or `INVITATION` |
-| `initiated_at` | Timestamp | When the request or invitation was created |
-| `responded_at` | Timestamp | When the decision was made |
-| `initiated_by` | UUID | Who initiated (user for requests, admin for invitations) |
-| `decided_by` | UUID | Who made the accept/reject/decline decision |
+| Field          | Type                     | Description                                              |
+| -------------- | ------------------------ | -------------------------------------------------------- |
+| `id`           | UUID                     |                                                          |
+| `group_id`     | UUID                     |                                                          |
+| `user_id`      | UUID                     |                                                          |
+| `status`       | Enum `GroupMemberStatus` |                                                          |
+| `role`         | Enum `GroupRole`         |                                                          |
+| `join_flow`    | Enum `JoinFlow`          | `REQUEST` or `INVITATION`                                |
+| `initiated_at` | Timestamp                | When the request or invitation was created               |
+| `responded_at` | Timestamp                | When the decision was made                               |
+| `initiated_by` | UUID                     | Who initiated (user for requests, admin for invitations) |
+| `decided_by`   | UUID                     | Who made the accept/reject/decline decision              |
 
 ---
 
@@ -150,10 +153,10 @@ Real-time message delivery is handled by **Firebase Firestore**. The frontend su
 
 The system is divided into two clearly separated data stores with distinct responsibilities:
 
-| Layer | Store | Owns |
-|---|---|---|
+| Layer                     | Store      | Owns                                                                                              |
+| ------------------------- | ---------- | ------------------------------------------------------------------------------------------------- |
 | **Membership & metadata** | PostgreSQL | Who belongs to what channel, channel definitions, user roles, channel settings, DM thread records |
-| **Messages** | Firestore | Message content, reactions, read state, typing indicators |
+| **Messages**              | Firestore  | Message content, reactions, read state, typing indicators                                         |
 
 **PostgreSQL is the single source of truth for membership.** Firestore mirrors it. A user's presence in a Firestore channel document is always a consequence of their membership state in PostgreSQL — never managed independently.
 
@@ -165,18 +168,18 @@ The sync is synchronous: the API response is not returned until both the Postgre
 
 #### Events that trigger a sync
 
-| PostgreSQL event | Firestore action |
-|---|---|
-| Trip participant confirmed (`CONFIRMED`) | Add user to trip's auto-channel members in Firestore |
-| Trip participant left (`LEFT`) | Remove user from trip's auto-channel in Firestore |
-| Trip participant removed (`REMOVED`) | Remove user from trip's auto-channel in Firestore |
-| Trip status → `COMPLETED` or `CANCELLED` | Set trip's auto-channel to archived (read-only) in Firestore |
-| Group member becomes `ACTIVE` | Add user to group's auto-channel members in Firestore |
-| Group member left (`LEFT`) | Remove user from group's auto-channel in Firestore |
-| Group member removed (`REMOVED`) | Remove user from group's auto-channel in Firestore |
-| Group dissolved | Delete or archive group's auto-channel in Firestore |
-| User invited to a `PRIVATE` channel (accepted) | Add user to channel members in Firestore |
-| User removed from a `STANDARD` channel | Remove user from channel members in Firestore |
+| PostgreSQL event                                | Firestore action                                               |
+| ----------------------------------------------- | -------------------------------------------------------------- |
+| Trip participant confirmed (`CONFIRMED`)        | Add user to trip's auto-channel members in Firestore           |
+| Trip participant left (`LEFT`)                  | Remove user from trip's auto-channel in Firestore              |
+| Trip participant removed (`REMOVED`)            | Remove user from trip's auto-channel in Firestore              |
+| Trip status → `COMPLETED` or `CANCELLED`        | Set trip's auto-channel to archived (read-only) in Firestore   |
+| Group member becomes `ACTIVE`                   | Add user to group's auto-channel members in Firestore          |
+| Group member left (`LEFT`)                      | Remove user from group's auto-channel in Firestore             |
+| Group member removed (`REMOVED`)                | Remove user from group's auto-channel in Firestore             |
+| Group dissolved                                 | Delete or archive group's auto-channel in Firestore            |
+| User invited to a `PRIVATE` channel (accepted)  | Add user to channel members in Firestore                       |
+| User removed from a `STANDARD` channel          | Remove user from channel members in Firestore                  |
 | User role changed (e.g., promoted to organizer) | Update role on user's channel membership document in Firestore |
 
 #### Sync failure handling
@@ -219,6 +222,7 @@ The `members` map on each channel document is what Firestore security rules use 
 ### Message Flow
 
 **Sending a message:**
+
 1. Frontend calls `POST /api/v1/channels/:id/messages` on the NestJS backend.
 2. NestJS validates auth, verifies the user is an active member (PostgreSQL), and writes the message to Firestore via Admin SDK.
 3. Firestore delivers the message in real time to all connected subscribers (other channel members).
@@ -226,6 +230,7 @@ The `members` map on each channel document is what Firestore security rules use 
 The frontend never writes directly to Firestore. All writes go through NestJS, which is the only actor with Admin SDK write access to message collections. This keeps authorization centralized and auditable.
 
 **Receiving messages:**
+
 1. Frontend subscribes to `/channels/{channelId}/messages` using the Firebase client SDK.
 2. Firestore pushes new documents as they arrive — no polling, no WebSocket on the NestJS side.
 
@@ -252,12 +257,12 @@ A DM is a private thread between exactly two users. Either user can initiate it.
 
 ### DM Record (`direct_message_threads`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `user_a_id` | UUID | One participant |
-| `user_b_id` | UUID | The other participant |
-| `created_at` | Timestamp | |
+| Field             | Type      | Description                  |
+| ----------------- | --------- | ---------------------------- |
+| `id`              | UUID      |                              |
+| `user_a_id`       | UUID      | One participant              |
+| `user_b_id`       | UUID      | The other participant        |
+| `created_at`      | Timestamp |                              |
 | `last_message_at` | Timestamp | Used for sorting the DM list |
 
 ---
@@ -268,65 +273,65 @@ A **channel** is a named thread where multiple users can read and send messages.
 
 ### Channel Visibility (enum: `ChannelVisibility`)
 
-| Value | Description |
-|---|---|
-| `PUBLIC` | Discoverable by any registered user. Any user can enter and read the channel without approval. To post, the user must join — no approval required. |
-| `PRIVATE` | Not discoverable. Only members can see it. New members must be invited by a channel admin. |
+| Value     | Description                                                                                                                                        |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PUBLIC`  | Discoverable by any registered user. Any user can enter and read the channel without approval. To post, the user must join — no approval required. |
+| `PRIVATE` | Not discoverable. Only members can see it. New members must be invited by a channel admin.                                                         |
 
 ### Channel Types (enum: `ChannelType`)
 
-| Value | Description |
-|---|---|
-| `STANDARD` | Manually created by a user. Can be `PUBLIC` or `PRIVATE`. |
-| `TRIP_AUTO` | Automatically created when a trip is created. Visibility is `PRIVATE`. Members are the trip's confirmed participants. Roles mirror the trip's `TripRole`. Archived (read-only) when the trip reaches `COMPLETED` or `CANCELLED`. |
-| `GROUP_AUTO` | Automatically created when a group is created. Visibility is `PRIVATE`. Members are the group's active members. Roles mirror `GroupRole`. Dissolved if the group is dissolved. |
+| Value        | Description                                                                                                                                                                                                                      |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `STANDARD`   | Manually created by a user. Can be `PUBLIC` or `PRIVATE`.                                                                                                                                                                        |
+| `TRIP_AUTO`  | Automatically created when a trip is created. Visibility is `PRIVATE`. Members are the trip's confirmed participants. Roles mirror the trip's `TripRole`. Archived (read-only) when the trip reaches `COMPLETED` or `CANCELLED`. |
+| `GROUP_AUTO` | Automatically created when a group is created. Visibility is `PRIVATE`. Members are the group's active members. Roles mirror `GroupRole`. Dissolved if the group is dissolved.                                                   |
 
 Auto-created channels (`TRIP_AUTO`, `GROUP_AUTO`) cannot be deleted manually — their lifecycle is tied to the parent trip or group. Their name, visibility, and type cannot be changed.
 
 ### Channel Record (`channels`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `name` | String | Display name |
-| `description` | Text | Optional |
-| `type` | Enum `ChannelType` | `STANDARD`, `TRIP_AUTO`, `GROUP_AUTO` |
-| `visibility` | Enum `ChannelVisibility` | `PUBLIC` or `PRIVATE` |
-| `linked_trip_id` | UUID (nullable) | Set for `TRIP_AUTO` channels |
-| `linked_group_id` | UUID (nullable) | Set for `GROUP_AUTO` channels |
-| `created_by` | UUID | The user who created the channel (null for auto-created) |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
-| `archived_at` | Timestamp | Null if active. Set to read-only when archived. |
+| Field             | Type                     | Description                                              |
+| ----------------- | ------------------------ | -------------------------------------------------------- |
+| `id`              | UUID                     |                                                          |
+| `name`            | String                   | Display name                                             |
+| `description`     | Text                     | Optional                                                 |
+| `type`            | Enum `ChannelType`       | `STANDARD`, `TRIP_AUTO`, `GROUP_AUTO`                    |
+| `visibility`      | Enum `ChannelVisibility` | `PUBLIC` or `PRIVATE`                                    |
+| `linked_trip_id`  | UUID (nullable)          | Set for `TRIP_AUTO` channels                             |
+| `linked_group_id` | UUID (nullable)          | Set for `GROUP_AUTO` channels                            |
+| `created_by`      | UUID                     | The user who created the channel (null for auto-created) |
+| `created_at`      | Timestamp                |                                                          |
+| `updated_at`      | Timestamp                |                                                          |
+| `archived_at`     | Timestamp                | Null if active. Set to read-only when archived.          |
 
 ### Channel Member Record (`channel_members`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `channel_id` | UUID | |
-| `user_id` | UUID | |
-| `role` | Enum `ChannelRole` | See below |
-| `joined_at` | Timestamp | |
-| `added_by` | UUID (nullable) | Who added this member (null if self-joined on a public channel) |
+| Field        | Type               | Description                                                     |
+| ------------ | ------------------ | --------------------------------------------------------------- |
+| `id`         | UUID               |                                                                 |
+| `channel_id` | UUID               |                                                                 |
+| `user_id`    | UUID               |                                                                 |
+| `role`       | Enum `ChannelRole` | See below                                                       |
+| `joined_at`  | Timestamp          |                                                                 |
+| `added_by`   | UUID (nullable)    | Who added this member (null if self-joined on a public channel) |
 
 ### Channel Roles (enum: `ChannelRole`)
 
-| Value | Description |
-|---|---|
-| `ADMIN` | Can manage members (invite, remove, promote/demote), edit channel settings, and post. For auto-channels, this role is assigned to whoever holds `ORGANIZER` / `OWNER` / `ADMIN` in the parent entity. |
-| `MEMBER` | Can read and post messages. |
-| `VIEWER` | Can read but not post. Applies to users who have entered a public channel without formally joining. |
+| Value    | Description                                                                                                                                                                                           |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ADMIN`  | Can manage members (invite, remove, promote/demote), edit channel settings, and post. For auto-channels, this role is assigned to whoever holds `ORGANIZER` / `OWNER` / `ADMIN` in the parent entity. |
+| `MEMBER` | Can read and post messages.                                                                                                                                                                           |
+| `VIEWER` | Can read but not post. Applies to users who have entered a public channel without formally joining.                                                                                                   |
 
 ### Membership Flow by Visibility
 
-| Scenario | What happens |
-|---|---|
-| User opens a `PUBLIC` channel | They enter as `VIEWER` and can read all history immediately. No approval needed. |
-| User joins a `PUBLIC` channel | They become a `MEMBER` and can post. No approval needed. |
-| Admin invites a user to a `PRIVATE` channel | User receives an invitation. Accepting makes them a `MEMBER`. |
-| Trip/Group member added to auto-channel | Automatically added as `MEMBER` (or `ADMIN` if organizer/group admin). |
-| Trip/Group member leaves or is removed | Automatically removed from the corresponding auto-channel. |
+| Scenario                                    | What happens                                                                     |
+| ------------------------------------------- | -------------------------------------------------------------------------------- |
+| User opens a `PUBLIC` channel               | They enter as `VIEWER` and can read all history immediately. No approval needed. |
+| User joins a `PUBLIC` channel               | They become a `MEMBER` and can post. No approval needed.                         |
+| Admin invites a user to a `PRIVATE` channel | User receives an invitation. Accepting makes them a `MEMBER`.                    |
+| Trip/Group member added to auto-channel     | Automatically added as `MEMBER` (or `ADMIN` if organizer/group admin).           |
+| Trip/Group member leaves or is removed      | Automatically removed from the corresponding auto-channel.                       |
 
 ---
 
@@ -336,18 +341,18 @@ All messages — whether in a DM or a channel — share the same structure.
 
 ### Message Record (`messages`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `channel_id` | UUID (nullable) | Set if message belongs to a channel |
-| `dm_thread_id` | UUID (nullable) | Set if message belongs to a DM |
-| `sender_id` | UUID | |
-| `content` | Text | Text body |
-| `type` | Enum `MessageType` | `TEXT`, `IMAGE`, `FILE`, `SYSTEM` |
-| `sent_at` | Timestamp | |
-| `edited_at` | Timestamp | Null if never edited |
-| `deleted_at` | Timestamp | Soft delete — content is replaced with a deletion notice |
-| `reply_to_id` | UUID (nullable) | Reference to another message in the same thread |
+| Field          | Type               | Description                                              |
+| -------------- | ------------------ | -------------------------------------------------------- |
+| `id`           | UUID               |                                                          |
+| `channel_id`   | UUID (nullable)    | Set if message belongs to a channel                      |
+| `dm_thread_id` | UUID (nullable)    | Set if message belongs to a DM                           |
+| `sender_id`    | UUID               |                                                          |
+| `content`      | Text               | Text body                                                |
+| `type`         | Enum `MessageType` | `TEXT`, `IMAGE`, `FILE`, `SYSTEM`                        |
+| `sent_at`      | Timestamp          |                                                          |
+| `edited_at`    | Timestamp          | Null if never edited                                     |
+| `deleted_at`   | Timestamp          | Soft delete — content is replaced with a deletion notice |
+| `reply_to_id`  | UUID (nullable)    | Reference to another message in the same thread          |
 
 `SYSTEM` messages are auto-generated by the app for events such as "Ana joined the trip" or "The itinerary was updated." They are never hardcoded — they reference i18n keys with interpolated variable names.
 
@@ -366,11 +371,11 @@ All messages — whether in a DM or a channel — share the same structure.
 
 The app uses a layered permission model. Each layer is independent — a user's role in one context does not inherit to another.
 
-| Layer | Enum | Values |
-|---|---|---|
-| Platform | `PlatformRole` | `USER`, `MODERATOR`, `ADMIN` |
-| Group | `GroupRole` | `OWNER`, `ADMIN`, `MEMBER` |
-| Trip | `TripRole` | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT` |
+| Layer    | Enum           | Values                                     |
+| -------- | -------------- | ------------------------------------------ |
+| Platform | `PlatformRole` | `USER`, `MODERATOR`, `ADMIN`               |
+| Group    | `GroupRole`    | `OWNER`, `ADMIN`, `MEMBER`                 |
+| Trip     | `TripRole`     | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT` |
 
 Permissions are enforced at the API layer via NestJS guards. A detailed permissions matrix per action and role will be defined in a dedicated document under `/architecture`.
 
@@ -386,12 +391,12 @@ Groups accumulate their own gamification layer, separate from any individual use
 
 Each member earns a **status tier** within the group based on the number of completed trips taken as part of that group:
 
-| Tier | Display name | Requirement |
-|---|---|---|
-| `NEWCOMER` | Novicio | Joined but no completed group trips yet |
-| `NOVICE` | Novicio | 1 completed group trip |
-| `EXPLORER` | Explorador | 5 completed group trips |
-| `VETERAN` | Veterano | 10+ completed group trips |
+| Tier       | Display name | Requirement                             |
+| ---------- | ------------ | --------------------------------------- |
+| `NEWCOMER` | Novicio      | Joined but no completed group trips yet |
+| `NOVICE`   | Novicio      | 1 completed group trip                  |
+| `EXPLORER` | Explorador   | 5 completed group trips                 |
+| `VETERAN`  | Veterano     | 10+ completed group trips               |
 
 The tier badge is displayed next to the member's name in the group member list and in the group's auto-channel. It does not affect moderation permissions (those are governed by `GroupRole`).
 
@@ -399,17 +404,17 @@ The tier badge is displayed next to the member's name in the group member list a
 
 A per-member-per-group record tracking gamification data within the group context:
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `group_id` | UUID | FK → `groups.id` |
-| `user_id` | UUID | FK → `users.id` |
-| `tier` | Enum `GroupMemberTier` | `NEWCOMER`, `NOVICE`, `EXPLORER`, `VETERAN` |
-| `group_trips_completed` | Integer | Trips completed as a confirmed participant in this group |
-| `joined_at` | Timestamp | When the membership became `ACTIVE` (seniority anchor) |
-| `active_streak` | Integer | Consecutive group trips participated in without skipping |
-| `recognitions_received` | Integer | Count of recognitions received in the context of this group |
-| `updated_at` | Timestamp | |
+| Field                   | Type                   | Description                                                 |
+| ----------------------- | ---------------------- | ----------------------------------------------------------- |
+| `id`                    | UUID                   |                                                             |
+| `group_id`              | UUID                   | FK → `groups.id`                                            |
+| `user_id`               | UUID                   | FK → `users.id`                                             |
+| `tier`                  | Enum `GroupMemberTier` | `NEWCOMER`, `NOVICE`, `EXPLORER`, `VETERAN`                 |
+| `group_trips_completed` | Integer                | Trips completed as a confirmed participant in this group    |
+| `joined_at`             | Timestamp              | When the membership became `ACTIVE` (seniority anchor)      |
+| `active_streak`         | Integer                | Consecutive group trips participated in without skipping    |
+| `recognitions_received` | Integer                | Count of recognitions received in the context of this group |
+| `updated_at`            | Timestamp              |                                                             |
 
 ### Group Rankings
 
@@ -423,12 +428,12 @@ Once per calendar year, group `OWNER` or `ADMIN` roles may award named recogniti
 
 The `groups` table (or a companion `group_stats` record) tracks aggregate group-level statistics:
 
-| Field | Description |
-|---|---|
-| `trips_completed` | Total trips completed by the group |
-| `countries_visited` | Unique countries visited across all group trips |
+| Field                | Description                                                |
+| -------------------- | ---------------------------------------------------------- |
+| `trips_completed`    | Total trips completed by the group                         |
+| `countries_visited`  | Unique countries visited across all group trips            |
 | `total_members_ever` | Cumulative count of all users who were ever active members |
-| `founding_date` | Date the group was created (`groups.created_at`) |
+| `founding_date`      | Date the group was created (`groups.created_at`)           |
 
 These stats are displayed on the group's public profile page.
 
@@ -442,20 +447,20 @@ The resource types and schema mirror those of trip resources. See [`features/tri
 
 ### Schema (`group_resources`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `group_id` | UUID | FK → `groups.id` |
-| `type` | Enum `ResourceType` | `NOTE`, `DOCUMENT`, or `LINK` |
-| `title` | String (nullable) | Optional for notes; required for documents and links |
-| `body` | Text (nullable) | Markdown content for `NOTE`; optional description for `LINK` |
-| `url` | String (nullable) | External URL (`LINK`) or Cloud Storage URL (`DOCUMENT`) |
-| `file_name` | String (nullable) | Original filename for `DOCUMENT` type |
-| `file_size` | Integer (nullable) | Size in bytes for `DOCUMENT` type |
-| `mime_type` | String (nullable) | MIME type for `DOCUMENT` type |
-| `added_by` | UUID | FK → `users.id` — the user who created this resource |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field        | Type                | Description                                                  |
+| ------------ | ------------------- | ------------------------------------------------------------ |
+| `id`         | UUID                |                                                              |
+| `group_id`   | UUID                | FK → `groups.id`                                             |
+| `type`       | Enum `ResourceType` | `NOTE`, `DOCUMENT`, or `LINK`                                |
+| `title`      | String (nullable)   | Optional for notes; required for documents and links         |
+| `body`       | Text (nullable)     | Markdown content for `NOTE`; optional description for `LINK` |
+| `url`        | String (nullable)   | External URL (`LINK`) or Cloud Storage URL (`DOCUMENT`)      |
+| `file_name`  | String (nullable)   | Original filename for `DOCUMENT` type                        |
+| `file_size`  | Integer (nullable)  | Size in bytes for `DOCUMENT` type                            |
+| `mime_type`  | String (nullable)   | MIME type for `DOCUMENT` type                                |
+| `added_by`   | UUID                | FK → `users.id` — the user who created this resource         |
+| `created_at` | Timestamp           |                                                              |
+| `updated_at` | Timestamp           |                                                              |
 
 ### Access Rules
 

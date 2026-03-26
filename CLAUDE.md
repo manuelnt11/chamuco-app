@@ -26,51 +26,56 @@ The project is currently in the **design and documentation phase** — no source
 
 ## Tech Stack (All Decided)
 
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js + TypeScript |
-| Backend framework | NestJS |
-| Frontend framework | Next.js (React) |
-| PWA | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background messages) |
-| Theme management | `next-themes` — SSR-safe dark/light/system toggle, cookie-backed, Tailwind `class` strategy |
-| Styling | Tailwind CSS |
-| ORM | Drizzle ORM |
-| Migrations | drizzle-kit — generates `.sql` files committed to Git |
-| Primary database | PostgreSQL (Cloud SQL) |
-| Real-time messaging | Firestore (Firebase) |
-| Authentication | Firebase Authentication (Google Sign-In + Facebook Sign-In) |
-| Push notifications | Firebase Cloud Messaging (FCM) |
-| API documentation | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs` |
-| Backend testing | Jest + `@swc/jest` — unit and integration tests |
-| Frontend testing | Vitest + React Testing Library — unit and component tests |
-| E2E testing | Playwright — cross-browser end-to-end tests |
-| Code formatting | Prettier — indentation, quotes, trailing commas; config at `.prettierrc` |
-| Git hooks | Husky + lint-staged — pre-commit enforces lint, format, unit tests, and 90% coverage |
-| Frontend i18n | `i18next` + `react-i18next` |
-| Backend i18n | `nestjs-i18n` |
-| Cloud | Google Cloud Platform (GCP) |
-| Hosting | Cloud Run (containerized, serverless, scales to zero) |
-| File storage | Cloud Storage |
-| CI/CD | GitHub Actions (two independent pipelines: `api` and `web`) |
-| Repository | Monorepo — pnpm workspaces + Turborepo |
+| Layer               | Technology                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| Runtime             | Node.js + TypeScript                                                                        |
+| Backend framework   | NestJS                                                                                      |
+| Frontend framework  | Next.js (React)                                                                             |
+| PWA                 | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background messages)         |
+| Theme management    | `next-themes` — SSR-safe dark/light/system toggle, cookie-backed, Tailwind `class` strategy |
+| Styling             | Tailwind CSS                                                                                |
+| ORM                 | Drizzle ORM                                                                                 |
+| Migrations          | drizzle-kit — generates `.sql` files committed to Git                                       |
+| Primary database    | PostgreSQL (Cloud SQL)                                                                      |
+| Real-time messaging | Firestore (Firebase)                                                                        |
+| Authentication      | Firebase Authentication (Google Sign-In + Facebook Sign-In)                                 |
+| Push notifications  | Firebase Cloud Messaging (FCM)                                                              |
+| API documentation   | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs`                                  |
+| Backend testing     | Jest + `@swc/jest` — unit and integration tests                                             |
+| Frontend testing    | Vitest + React Testing Library — unit and component tests                                   |
+| E2E testing         | Playwright — cross-browser end-to-end tests                                                 |
+| Code formatting     | Prettier — indentation, quotes, trailing commas; config at `.prettierrc`                    |
+| Git hooks           | Husky + lint-staged — pre-commit enforces lint, format, unit tests, and 90% coverage        |
+| Frontend i18n       | `i18next` + `react-i18next`                                                                 |
+| Backend i18n        | `nestjs-i18n`                                                                               |
+| Cloud               | Google Cloud Platform (GCP)                                                                 |
+| Hosting             | Cloud Run (containerized, serverless, scales to zero)                                       |
+| File storage        | Cloud Storage                                                                               |
+| CI/CD               | GitHub Actions (two independent pipelines: `api` and `web`)                                 |
+| Repository          | Monorepo — pnpm workspaces + Turborepo                                                      |
 
 ---
 
 ## Critical Architectural Decisions
 
 ### PostgreSQL is the source of truth for memberships
+
 Firestore is used exclusively for real-time message delivery. Who belongs to which channel is always determined by PostgreSQL. Any membership change (join trip, leave group, remove participant, etc.) must be **immediately and synchronously synced to Firestore** by the NestJS backend via the Firebase Admin SDK. The frontend never writes to Firestore directly — all writes go through the NestJS API.
 
 ### Migrations are explicit SQL files
+
 Never use schema push or auto-sync. Every schema change produces a `.sql` file via `drizzle-kit generate`, which is committed to Git and reviewed in PRs. Destructive operations (column drops, renames) require a multi-step migration strategy.
 
 ### Firebase Admin SDK is the only Firestore writer
+
 The frontend reads from Firestore in real time via the Firebase client SDK. It never writes. All writes (messages, membership updates) go through `POST /api/v1/...` on the NestJS backend, which validates auth and membership in PostgreSQL before writing to Firestore.
 
 ### CI/CD pipeline order for backend
+
 On push to `main`: lint → type check → tests → build → Docker image → push image → **run DB migrations** → deploy to Cloud Run. Migrations run before deploy. If migrations fail, deployment is skipped.
 
 ### No custom JWT system
+
 Authentication is fully delegated to Firebase Authentication. The backend verifies Firebase ID tokens via `admin.auth().verifyIdToken()`. There is no Chamuco-issued JWT.
 
 ---
@@ -78,6 +83,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 ## Key Domain Rules
 
 ### Users
+
 - Every user must choose a unique `@username` at registration: lowercase, 3–30 chars, `a-z 0-9 _ -` only, stored without `@`, displayed with `@`.
 - **Authentication providers** (`auth_provider` on `users`): `GOOGLE` or `FACEBOOK`. The `display_name` is pre-filled from the OAuth provider at registration and is editable.
 - **Nationalities & travel documents** — stored in `user_nationalities` (1:many, min 1). Each record represents one citizenship and optionally holds the national ID, passport number, issue date, expiry date, and a pre-computed `PassportStatus` (`OMITTED` | `ACTIVE` | `EXPIRING_SOON` | `EXPIRED`). Unique index on `(user_id, country_code)`. Status is set immediately by the app when passport data is saved; a daily job updates `ACTIVE` → `EXPIRING_SOON` → `EXPIRED` for records with a non-null expiry date (skips `OMITTED`).
@@ -91,6 +97,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - **Agencies** — a higher-level entity (`agencies` table) that groups professional trip organizers under a common brand. A user may belong to at most one agency (`agency_id` on `users`). Agency coordinators can create and manage trips on behalf of the agency. See `features/agencies.md`.
 
 ### Trips
+
 - A trip starts at **00:00 on `start_date`** and ends at **24:00 on `end_date`** (`end_date >= start_date`, same day is valid).
 - Once `IN_PROGRESS`: all edits require organizer confirmation and all confirmed participants are notified.
 - **Trip visibility controls discoverability only**, not who can be invited. `PUBLIC` = listed publicly; `PRIVATE` = not searchable, visible only to members of groups explicitly listed in `trip_visible_to_groups`.
@@ -109,6 +116,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - **Key dates** (`trip_key_dates`) — List of important dates: `date`, `description` (text), `reminder_enabled` (boolean, default false). When `reminder_enabled = true`, a FCM push notification is sent to all confirmed participants 24 hours before the date.
 
 ### Participants & Groups
+
 - Two entry paths: **join request** (user-initiated, requires the user to be able to see the trip) and **invitation** (organizer-initiated, always available). Both may coexist.
 - Only one active request **or** invitation per user per trip/group at a time.
 - **Requests and invitations can be cancelled at any time by their creator**: a user may withdraw their `PENDING_REQUEST`; an organizer may revoke an `INVITED` invitation. The record is deleted (no terminal status set) and the slot is freed immediately.
@@ -120,12 +128,14 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - **Role downgrade is a direct organizer action** (no invitation): never affects `is_traveling_participant`.
 
 ### Announcements
+
 - Organizers can send a one-way broadcast announcement to all confirmed participants of a trip. Group admins can send a one-way broadcast announcement to all group members.
 - Announcements are delivered as push notifications (FCM). There is no reply mechanism and no persistent chat thread.
 - Announcements are stored in PostgreSQL (`trip_announcements` / `group_announcements`) and displayed in a read-only feed within the trip or group detail screen.
 - **MVP scope**: announcements are included in the MVP as the primary communication mechanism between organizers and participants.
 
 ### Messaging (Slack-like) — Post-MVP
+
 - DMs (1:1) and Channels (named, PUBLIC or PRIVATE).
 - Every trip and group auto-creates a PRIVATE channel mirroring its membership and roles.
 - PUBLIC channels: anyone can enter as VIEWER (read-only, no approval) or join as MEMBER (can post, no approval).
@@ -134,6 +144,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - **Firestore is not used until messaging is implemented.** The MVP does not require Firestore; FCM is the only Firebase service active in MVP.
 
 ### Itinerary (Post-MVP)
+
 - The full structured itinerary builder is **post-MVP**. MVP uses `itinerary_notes` (free text) instead.
 - Five item categories: `TRANSPORT`, `AIRPORT`, `PLACE`, `FOOD`, `OTHER` — each with detailed subtype enums.
 - Day 0 is the pre-departure day for logistical items before the official trip start.
@@ -141,6 +152,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - Discovery Map in MVP is derived from `trip_destinations` (country + city) of completed trips, not from `PLACE` itinerary items (which are post-MVP).
 
 ### Expenses
+
 - **No real money is processed.** The expense module is a collaborative ledger. Settlement is computed at trip end (Splitwise-style minimal debt graph) and participants settle outside the app.
 - Two layers: **planned costs** (`trip_budget_items` — required or optional, defined by organizer) and **actual expenses** (`expenses` — the live ledger). Planned and actual can be linked.
 - Expense ownership: `SHARED` (split among participants, generates debt) or `INDIVIDUAL` (personal spend, no debt, recorded in the group ledger for reference and aggregate totals).
@@ -151,6 +163,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - Splits and settlement only include participants with `did_travel = true`. Confirmed participants who did not travel (`did_travel = false`) are excluded from expense splits.
 
 ### Gamification
+
 - **Traveler Score** — composite metric computed from completed trips, countries visited, km traveled, achievements, and feedback received. Used for global ranking. Never editable.
 - **Achievements** — auto-triggered badges at defined milestones (trips, geography, distance, social). Earned once, never lost.
 - **Chamuco Points** — soft in-app currency. Earned at trip completion and achievement unlocks. Spent on cosmetic profile customizations. No real monetary value; non-transferable; non-expiring.
@@ -161,6 +174,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - **Trip Completion Flow** — when a trip reaches `COMPLETED`: stats updated, achievements evaluated, points distributed, feedback window opened, recognition window unlocked for organizers.
 
 ### Events
+
 - Three modes: `FREE` (standalone), `GROUP` (linked to a group), `TRIP` (linked to a trip).
 - Five categories: `PRESENTATION`, `PLANNING`, `CELEBRATION`, `AWARDS`, `OTHER`.
 - Optional gamification: events may award Chamuco Points and/or unlock a recognition window for the organizer.
@@ -172,28 +186,28 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 
 All design documentation lives in `documentation/`. Key files:
 
-| File | Contents |
-|---|---|
-| `overview/tech-stack.md` | Full stack decisions with rationale |
-| `overview/project-overview.md` | Vision, goals, principles |
-| `overview/mvp.md` | MVP scope: confirmed modules, simplified trips, out-of-scope features |
-| `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger |
-| `architecture/database-design.md` | Schema philosophy, JSONB usage |
-| `architecture/monorepo-structure.md` | Directory layout |
-| `features/users.md` | User account, personal profile, passports, emergency contacts, health profile, loyalty programs, traveler stats, achievements |
-| `features/agencies.md` | Travel agencies: coordinators, agency trips, public profile |
-| `features/trips.md` | MVP trip entity: lifecycle, roles, visibility, departure/return locations, destinations, itinerary notes, budget items, notes, key dates, completion flow. Post-MVP: full itinerary builder, expense tracking, budget estimate, trip resources |
-| `features/participants.md` | Membership flows, states, waitlist mechanics, guest participants |
-| `features/community.md` | Groups, Slack-like messaging, Firestore architecture, group member tiers |
-| `features/expenses.md` | Expense model, splits, settlements, multi-currency |
-| `features/reservations.md` | Booking records, metadata by type |
-| `features/pre-trip-planning.md` | Pre-trip tasks, route planning, budget envelopes |
-| `features/gamification.md` | Traveler Score, achievements, Chamuco Points, discovery map, recognitions, feedback |
-| `features/events.md` | Events system: modes, categories, RSVP, waitlist, gamification integration |
-| `features/calendar.md` | Calendar views: monthly grid + upcoming list, aggregating trips and events |
-| `infrastructure/auth.md` | Firebase Authentication integration |
-| `infrastructure/cloud.md` | GCP services, CI/CD pipelines |
-| `design/localization.md` | i18n spec, key naming, enforcement |
+| File                                   | Contents                                                                                                                                                                                                                                       |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `overview/tech-stack.md`               | Full stack decisions with rationale                                                                                                                                                                                                            |
+| `overview/project-overview.md`         | Vision, goals, principles                                                                                                                                                                                                                      |
+| `overview/mvp.md`                      | MVP scope: confirmed modules, simplified trips, out-of-scope features                                                                                                                                                                          |
+| `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger                                                                                                                                                                                                    |
+| `architecture/database-design.md`      | Schema philosophy, JSONB usage                                                                                                                                                                                                                 |
+| `architecture/monorepo-structure.md`   | Directory layout                                                                                                                                                                                                                               |
+| `features/users.md`                    | User account, personal profile, passports, emergency contacts, health profile, loyalty programs, traveler stats, achievements                                                                                                                  |
+| `features/agencies.md`                 | Travel agencies: coordinators, agency trips, public profile                                                                                                                                                                                    |
+| `features/trips.md`                    | MVP trip entity: lifecycle, roles, visibility, departure/return locations, destinations, itinerary notes, budget items, notes, key dates, completion flow. Post-MVP: full itinerary builder, expense tracking, budget estimate, trip resources |
+| `features/participants.md`             | Membership flows, states, waitlist mechanics, guest participants                                                                                                                                                                               |
+| `features/community.md`                | Groups, Slack-like messaging, Firestore architecture, group member tiers                                                                                                                                                                       |
+| `features/expenses.md`                 | Expense model, splits, settlements, multi-currency                                                                                                                                                                                             |
+| `features/reservations.md`             | Booking records, metadata by type                                                                                                                                                                                                              |
+| `features/pre-trip-planning.md`        | Pre-trip tasks, route planning, budget envelopes                                                                                                                                                                                               |
+| `features/gamification.md`             | Traveler Score, achievements, Chamuco Points, discovery map, recognitions, feedback                                                                                                                                                            |
+| `features/events.md`                   | Events system: modes, categories, RSVP, waitlist, gamification integration                                                                                                                                                                     |
+| `features/calendar.md`                 | Calendar views: monthly grid + upcoming list, aggregating trips and events                                                                                                                                                                     |
+| `infrastructure/auth.md`               | Firebase Authentication integration                                                                                                                                                                                                            |
+| `infrastructure/cloud.md`              | GCP services, CI/CD pipelines                                                                                                                                                                                                                  |
+| `design/localization.md`               | i18n spec, key naming, enforcement                                                                                                                                                                                                             |
 
 ---
 
@@ -204,6 +218,7 @@ These rules apply to every session, regardless of what task is being performed.
 ### 1. Documentation cross-reference integrity
 
 When any file under `documentation/` is modified, before closing the task:
+
 - Scan all other documentation files for references to the modified file (by name or by the concepts it owns).
 - If any reference is stale, incorrect, or inconsistent with the change just made, update it in the same session.
 - This includes `CLAUDE.md` itself — if a decision or rule changes, update the relevant section here too.
@@ -217,11 +232,11 @@ When writing or modifying any TypeScript file, **never use relative imports that
 
 ```ts
 // ✅ Correct
-import { UsersService } from '@/modules/users/users.service'
-import type { ITrip } from '@chamuco/shared-types'
+import { UsersService } from "@/modules/users/users.service";
+import type { ITrip } from "@chamuco/shared-types";
 
 // ❌ Wrong
-import { UsersService } from '../../users/users.service'
+import { UsersService } from "../../users/users.service";
 ```
 
 See `documentation/architecture/monorepo-structure.md` — "Import Aliases" section for the full spec.
@@ -229,11 +244,13 @@ See `documentation/architecture/monorepo-structure.md` — "Import Aliases" sect
 ### 3. OpenAPI documentation on every backend change
 
 Every NestJS controller endpoint must be fully documented with `@nestjs/swagger` decorators. When any of the following are modified:
+
 - A controller method (new endpoint, changed path, changed HTTP method)
 - A request DTO or response DTO
 - An enum used in a request or response
 
 Then verify and update:
+
 - `@ApiTags`, `@ApiOperation`, `@ApiResponse` on the controller
 - `@ApiProperty` on all DTO fields (type, description, example, required/optional)
 - `@ApiBearerAuth()` if the endpoint requires authentication
@@ -250,6 +267,7 @@ Every commit must pass all four gates enforced by the Husky pre-commit hook:
 4. **Coverage** — 90% threshold on lines, statements, functions, and branches for affected packages. A commit that drops any metric below 90% is rejected.
 
 When writing new code:
+
 - Every new function, service method, or component must have corresponding unit tests.
 - New tests must be added in the same commit as the code they cover — never defer test writing to a later commit.
 - Coverage thresholds are configured in `apps/api/jest.config.ts` (backend) and `apps/web/vitest.config.ts` (frontend).
@@ -276,20 +294,20 @@ All major technical and architectural decisions have been resolved. No open item
 
 Work is tracked in a **GitHub Projects v2** kanban board:
 
-| Field | Value |
-|---|---|
-| URL | https://github.com/users/manuelnt11/projects/4 |
-| Project number | 4 |
-| Owner | `manuelnt11` |
+| Field          | Value                                          |
+| -------------- | ---------------------------------------------- |
+| URL            | https://github.com/users/manuelnt11/projects/4 |
+| Project number | 4                                              |
+| Owner          | `manuelnt11`                                   |
 
 ### Fields
 
-| Field | Type | Options |
-|---|---|---|
-| Status | Single select | Backlog, In Progress, In Review, Done |
-| Area | Single select | Backend, Frontend, Infrastructure, Database, Documentation, Testing |
-| Priority | Single select | High, Medium, Low |
-| Size | Single select | XS, S, M, L, XL |
+| Field    | Type          | Options                                                             |
+| -------- | ------------- | ------------------------------------------------------------------- |
+| Status   | Single select | Backlog, In Progress, In Review, Done                               |
+| Area     | Single select | Backend, Frontend, Infrastructure, Database, Documentation, Testing |
+| Priority | Single select | High, Medium, Low                                                   |
+| Size     | Single select | XS, S, M, L, XL                                                     |
 
 ### Epics
 

@@ -27,7 +27,12 @@
     "declarationMap": true,
     "sourceMap": true,
     "composite": true,
-    "incremental": true
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@chamuco/shared-types": ["./packages/shared-types/src"],
+      "@chamuco/shared-utils": ["./packages/shared-utils/src"]
+    }
   },
   "exclude": ["node_modules", "dist", ".next", "coverage"]
 }

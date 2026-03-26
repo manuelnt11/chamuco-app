@@ -19,15 +19,15 @@ Chamuco App uses a modern, Node.js-first stack optimized for modular backend dev
 
 ## Backend
 
-| Concern | Technology | Rationale |
-|---|---|---|
-| Runtime | Node.js | Defined project requirement |
-| Framework | NestJS | Modular architecture, decorator-driven, built-in DI container, strong TypeScript support, aligns with domain-driven modular design goals |
-| API Style | REST (primary) | Standard, well-understood; GraphQL can be evaluated later if query flexibility becomes a need |
-| Validation | class-validator + class-transformer | Native to NestJS ecosystem |
-| ORM | Drizzle ORM | See rationale below |
-| Migrations | drizzle-kit | Generates auditable `.sql` migration files versioned in Git |
-| API documentation | `@nestjs/swagger` | OpenAPI 3.0 spec auto-generated from decorators; Swagger UI served at `/api/docs` |
+| Concern           | Technology                          | Rationale                                                                                                                                |
+| ----------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime           | Node.js                             | Defined project requirement                                                                                                              |
+| Framework         | NestJS                              | Modular architecture, decorator-driven, built-in DI container, strong TypeScript support, aligns with domain-driven modular design goals |
+| API Style         | REST (primary)                      | Standard, well-understood; GraphQL can be evaluated later if query flexibility becomes a need                                            |
+| Validation        | class-validator + class-transformer | Native to NestJS ecosystem                                                                                                               |
+| ORM               | Drizzle ORM                         | See rationale below                                                                                                                      |
+| Migrations        | drizzle-kit                         | Generates auditable `.sql` migration files versioned in Git                                                                              |
+| API documentation | `@nestjs/swagger`                   | OpenAPI 3.0 spec auto-generated from decorators; Swagger UI served at `/api/docs`                                                        |
 
 ### Drizzle ORM
 
@@ -41,6 +41,7 @@ Migration workflow via `drizzle-kit`:
 4. `drizzle-kit migrate` applies pending migrations in order against the target database.
 
 **Why not the alternatives:**
+
 - **TypeORM** — deepest NestJS integration but a history of unreliable migrations and inconsistent maintenance; not recommended for a schema that will evolve heavily.
 - **Prisma** — solid migration tooling and familiar, but requires maintaining a separate `.prisma` schema file (a third language in the project) and generates an opaque client that makes complex SQL awkward.
 - **MikroORM** — technically strong and has a reliable migration story, but smaller ecosystem and fewer resources for the team to draw on.
@@ -52,6 +53,7 @@ Drizzle is injected into NestJS as a standard provider — there is no official 
 ### NestJS Module Philosophy
 
 The backend is organized around **well-defined domain modules**. Each module owns its own:
+
 - Entities / models
 - Services (business logic)
 - Repositories (data access)
@@ -64,14 +66,14 @@ Modules should not reach into each other's internals. Cross-module communication
 
 ## Frontend
 
-| Concern | Technology | Rationale |
-|---|---|---|
-| Framework | Next.js (React) | SSR/SSG out of the box, fits naturally in a Node.js monorepo, large ecosystem, strong Tailwind and i18next integration |
-| PWA | `@ducanh2912/next-pwa` + unified Service Worker | Installable on desktop and mobile; background push notifications via FCM; offline-capable. Single SW combines `next-pwa` caching with the FCM background message handler. See [`architecture/pwa.md`](../architecture/pwa.md). |
-| Theme management | `next-themes` | SSR-safe dark / light / system theme toggling. Reads preference from `chamuco_prefs` cookie during SSR to prevent flash of incorrect theme. Works with Tailwind's `class` dark mode strategy. |
-| Styling | Tailwind CSS | Utility-first, highly composable, consistent design system without writing custom CSS. Dark mode via `class` strategy — controlled by `next-themes`. |
-| i18n | `i18next` + `react-i18next` | Industry standard, supports nested JSON locale files, interpolation, pluralization, and lazy loading of language bundles |
-| i18n enforcement | `eslint-plugin-i18next` | Lint rule `i18next/no-literal-string` prevents any raw string literal from being rendered in a component |
+| Concern          | Technology                                      | Rationale                                                                                                                                                                                                                      |
+| ---------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Framework        | Next.js (React)                                 | SSR/SSG out of the box, fits naturally in a Node.js monorepo, large ecosystem, strong Tailwind and i18next integration                                                                                                         |
+| PWA              | `@ducanh2912/next-pwa` + unified Service Worker | Installable on desktop and mobile; background push notifications via FCM; offline-capable. Single SW combines `next-pwa` caching with the FCM background message handler. See [`architecture/pwa.md`](../architecture/pwa.md). |
+| Theme management | `next-themes`                                   | SSR-safe dark / light / system theme toggling. Reads preference from `chamuco_prefs` cookie during SSR to prevent flash of incorrect theme. Works with Tailwind's `class` dark mode strategy.                                  |
+| Styling          | Tailwind CSS                                    | Utility-first, highly composable, consistent design system without writing custom CSS. Dark mode via `class` strategy — controlled by `next-themes`.                                                                           |
+| i18n             | `i18next` + `react-i18next`                     | Industry standard, supports nested JSON locale files, interpolation, pluralization, and lazy loading of language bundles                                                                                                       |
+| i18n enforcement | `eslint-plugin-i18next`                         | Lint rule `i18next/no-literal-string` prevents any raw string literal from being rendered in a component                                                                                                                       |
 
 ### Import Aliases (No Relative Paths)
 
@@ -90,11 +92,11 @@ See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md
 
 ## Database
 
-| Concern | Technology | Rationale |
-|---|---|---|
-| Primary DB | PostgreSQL | Mature relational database with strong JSON support |
-| JSON Support | JSONB columns | Used for sub-entities within a domain to avoid over-atomization of the schema |
-| Schema definition | Drizzle ORM schema files (TypeScript) | One source of truth — the TypeScript schema and the actual DB stay in sync via generated migrations |
+| Concern           | Technology                             | Rationale                                                                                            |
+| ----------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Primary DB        | PostgreSQL                             | Mature relational database with strong JSON support                                                  |
+| JSON Support      | JSONB columns                          | Used for sub-entities within a domain to avoid over-atomization of the schema                        |
+| Schema definition | Drizzle ORM schema files (TypeScript)  | One source of truth — the TypeScript schema and the actual DB stay in sync via generated migrations  |
 | Schema versioning | `drizzle-kit` (`.sql` migration files) | Produces explicit, auditable SQL files committed to Git. Applied in order; no destructive auto-sync. |
 
 ### Migration Philosophy
@@ -119,16 +121,16 @@ The database design balances relational integrity with document flexibility:
 
 ## Infrastructure & Cloud
 
-| Concern | Technology |
-|---|---|
-| Cloud Provider | Google Cloud Platform (GCP) |
-| Authentication | Firebase Authentication — Google Sign-In (launch) + Passkeys (planned) |
-| Real-time messaging | Firestore (Firebase) — message storage and real-time delivery |
-| Push notifications | Firebase Cloud Messaging (FCM) |
-| Hosting | Cloud Run (containerized, serverless, auto-scaling, scales to zero) |
-| Database Hosting | Cloud SQL (PostgreSQL managed) |
-| Storage | Cloud Storage (for assets, attachments) |
-| CI/CD | GitHub Actions — two independent pipelines (api + web), auto-triggered on push to `main` |
+| Concern             | Technology                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Cloud Provider      | Google Cloud Platform (GCP)                                                              |
+| Authentication      | Firebase Authentication — Google Sign-In (launch) + Passkeys (planned)                   |
+| Real-time messaging | Firestore (Firebase) — message storage and real-time delivery                            |
+| Push notifications  | Firebase Cloud Messaging (FCM)                                                           |
+| Hosting             | Cloud Run (containerized, serverless, auto-scaling, scales to zero)                      |
+| Database Hosting    | Cloud SQL (PostgreSQL managed)                                                           |
+| Storage             | Cloud Storage (for assets, attachments)                                                  |
+| CI/CD               | GitHub Actions — two independent pipelines (api + web), auto-triggered on push to `main` |
 
 See [`infrastructure/cloud.md`](../infrastructure/cloud.md) and [`infrastructure/auth.md`](../infrastructure/auth.md) for details.
 
@@ -138,10 +140,10 @@ See [`infrastructure/cloud.md`](../infrastructure/cloud.md) and [`infrastructure
 
 The entire project lives in a single Git repository structured as a monorepo, managed with **pnpm workspaces** and **Turborepo**.
 
-| Concern | Technology |
-|---|---|
-| Package manager | pnpm — fast installs, strict dependency isolation, native workspace support |
-| Build orchestration | Turborepo — task pipelines, local and remote caching, parallel execution |
+| Concern             | Technology                                                                  |
+| ------------------- | --------------------------------------------------------------------------- |
+| Package manager     | pnpm — fast installs, strict dependency isolation, native workspace support |
+| Build orchestration | Turborepo — task pipelines, local and remote caching, parallel execution    |
 
 See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md) for the full directory layout and Turborepo pipeline configuration.
 
@@ -149,11 +151,11 @@ See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md
 
 ## Testing
 
-| Scope | Tool | Rationale |
-|---|---|---|
-| Backend unit & integration | Jest + `@swc/jest` | `@nestjs/testing` is built around Jest — first-class NestJS support with no workarounds. `@swc/jest` replaces `ts-jest` as the transpiler, delivering 3–5× faster test runs with an identical API. |
-| Frontend unit & component | Vitest + React Testing Library | ESM-native and Vite-powered — no extra config to handle Next.js App Router's ESM output. Jest-compatible API means zero retraining. Significantly faster than Jest for large component suites. |
-| End-to-end | Playwright | Cross-browser (Chromium, Firefox, WebKit), parallel execution by default, first-class TypeScript, and Trace Viewer for debugging CI failures. |
+| Scope                      | Tool                           | Rationale                                                                                                                                                                                          |
+| -------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend unit & integration | Jest + `@swc/jest`             | `@nestjs/testing` is built around Jest — first-class NestJS support with no workarounds. `@swc/jest` replaces `ts-jest` as the transpiler, delivering 3–5× faster test runs with an identical API. |
+| Frontend unit & component  | Vitest + React Testing Library | ESM-native and Vite-powered — no extra config to handle Next.js App Router's ESM output. Jest-compatible API means zero retraining. Significantly faster than Jest for large component suites.     |
+| End-to-end                 | Playwright                     | Cross-browser (Chromium, Firefox, WebKit), parallel execution by default, first-class TypeScript, and Trace Viewer for debugging CI failures.                                                      |
 
 ### Conventions
 
@@ -166,11 +168,11 @@ See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md
 
 ## Code Quality & Pre-commit Hooks
 
-| Tool | Purpose |
-|---|---|
-| **Prettier** | Opinionated code formatter — enforces consistent indentation, quotes, trailing commas, and line length across the entire monorepo. Config lives at `.prettierrc` in the root. |
-| **Husky** | Git hooks manager. Installs and manages the pre-commit hook. |
-| **lint-staged** | Runs linters and formatters only on Git-staged files — keeps the pre-commit hook fast even as the codebase grows. |
+| Tool            | Purpose                                                                                                                                                                       |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prettier**    | Opinionated code formatter — enforces consistent indentation, quotes, trailing commas, and line length across the entire monorepo. Config lives at `.prettierrc` in the root. |
+| **Husky**       | Git hooks manager. Installs and manages the pre-commit hook.                                                                                                                  |
+| **lint-staged** | Runs linters and formatters only on Git-staged files — keeps the pre-commit hook fast even as the codebase grows.                                                             |
 
 ### Pre-commit Hook
 
@@ -191,6 +193,7 @@ Every commit must pass the following gates before it is accepted:
 **Auto-fix on format:** `prettier --write` and `eslint --fix` modify staged files in place. Husky re-stages the fixed files before the commit is finalized — the developer sees their code committed already formatted, with no manual intervention required.
 
 **Coverage configuration:**
+
 - Backend (`apps/api/jest.config.ts`): `coverageThreshold: { global: { lines: 90, functions: 90, branches: 90, statements: 90 } }`
 - Frontend (`apps/web/vitest.config.ts`): `coverage: { thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 } }`
 
@@ -198,12 +201,12 @@ Every commit must pass the following gates before it is accepted:
 
 ## Localization & Internationalization
 
-| Concern | Technology / Approach |
-|---|---|
-| Language support | Spanish (default), English |
-| Currency support | COP (default), USD |
-| Frontend i18n library | `i18next` + `react-i18next` |
-| Backend i18n library | `nestjs-i18n` |
-| Enforcement | `eslint-plugin-i18next` — blocks hardcoded strings at lint time |
+| Concern               | Technology / Approach                                           |
+| --------------------- | --------------------------------------------------------------- |
+| Language support      | Spanish (default), English                                      |
+| Currency support      | COP (default), USD                                              |
+| Frontend i18n library | `i18next` + `react-i18next`                                     |
+| Backend i18n library  | `nestjs-i18n`                                                   |
+| Enforcement           | `eslint-plugin-i18next` — blocks hardcoded strings at lint time |
 
 See [`design/localization.md`](../design/localization.md) for details.

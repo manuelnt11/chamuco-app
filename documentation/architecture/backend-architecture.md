@@ -17,23 +17,23 @@ Each feature domain is encapsulated in its own NestJS module. A module owns ever
 
 ### Module Boundaries
 
-| Module | Domain Responsibility |
-|---|---|
-| `AuthModule` | Authentication, token issuance, session management |
-| `UsersModule` | User accounts, profiles, privacy settings |
-| `GroupsModule` | User groups, group membership |
-| `TripsModule` | Trip creation, lifecycle, status management |
-| `ParticipantsModule` | Trip participant management, invitation logic, confirmation rules |
-| `ItineraryModule` | Ordered sequence of movements, stays, and activities within a trip |
-| `MovementsModule` | Transport segments (flights, buses, cars, etc.) |
-| `StaysModule` | Accommodation bookings and stay details |
-| `ActivitiesModule` | Planned activities and experiences |
-| `ReservationsModule` | Booking status tracking for stays and movements |
-| `ExpensesModule` | Shared expense recording, splitting, and settlement |
-| `CommunityModule` | Chats, channels, broadcast messaging |
-| `NotificationsModule` | Push/email/in-app notifications |
-| `SchedulerModule` | Scheduled job endpoints triggered by Cloud Scheduler |
-| `LocalizationModule` | i18n and currency utilities |
+| Module                | Domain Responsibility                                              |
+| --------------------- | ------------------------------------------------------------------ |
+| `AuthModule`          | Authentication, token issuance, session management                 |
+| `UsersModule`         | User accounts, profiles, privacy settings                          |
+| `GroupsModule`        | User groups, group membership                                      |
+| `TripsModule`         | Trip creation, lifecycle, status management                        |
+| `ParticipantsModule`  | Trip participant management, invitation logic, confirmation rules  |
+| `ItineraryModule`     | Ordered sequence of movements, stays, and activities within a trip |
+| `MovementsModule`     | Transport segments (flights, buses, cars, etc.)                    |
+| `StaysModule`         | Accommodation bookings and stay details                            |
+| `ActivitiesModule`    | Planned activities and experiences                                 |
+| `ReservationsModule`  | Booking status tracking for stays and movements                    |
+| `ExpensesModule`      | Shared expense recording, splitting, and settlement                |
+| `CommunityModule`     | Chats, channels, broadcast messaging                               |
+| `NotificationsModule` | Push/email/in-app notifications                                    |
+| `SchedulerModule`     | Scheduled job endpoints triggered by Cloud Scheduler               |
+| `LocalizationModule`  | i18n and currency utilities                                        |
 
 > Module boundaries are intentionally strict. If a module needs data from another module's domain, it accesses it through an exported service — never by importing the other module's repository directly.
 
@@ -64,16 +64,16 @@ src/modules/trips/
 
 These are handled in the `common/` folder and applied globally or selectively via NestJS interceptors, guards, and pipes.
 
-| Concern | Mechanism |
-|---|---|
-| Authentication | `JwtAuthGuard` using Google SSO / Passkeys |
-| Authorization | Role-based `RolesGuard` + permission decorators |
-| Request validation | `ValidationPipe` with class-validator |
-| Response serialization | `ClassSerializerInterceptor` |
-| Error handling | Global `HttpExceptionFilter` |
-| Logging | Custom `LoggingInterceptor` (structured logs for GCP) |
-| Pagination | Shared pagination DTO and utility |
-| API documentation | `@nestjs/swagger` — OpenAPI spec + Swagger UI |
+| Concern                | Mechanism                                             |
+| ---------------------- | ----------------------------------------------------- |
+| Authentication         | `JwtAuthGuard` using Google SSO / Passkeys            |
+| Authorization          | Role-based `RolesGuard` + permission decorators       |
+| Request validation     | `ValidationPipe` with class-validator                 |
+| Response serialization | `ClassSerializerInterceptor`                          |
+| Error handling         | Global `HttpExceptionFilter`                          |
+| Logging                | Custom `LoggingInterceptor` (structured logs for GCP) |
+| Pagination             | Shared pagination DTO and utility                     |
+| API documentation      | `@nestjs/swagger` — OpenAPI spec + Swagger UI         |
 
 ---
 
@@ -91,6 +91,7 @@ These are handled in the `common/` folder and applied globally or selectively vi
 ```
 
 Error responses:
+
 ```json
 {
   "error": {
@@ -164,11 +165,11 @@ The secret is stored as a Cloud Run environment variable and injected into Cloud
 
 ### Jobs in MVP
 
-| Job | Endpoint | Schedule | Description |
-|---|---|---|---|
-| Passport expiry check | `POST /api/v1/jobs/passport-expiry` | Daily at 02:00 UTC | Scans `user_nationalities` for records with non-null `passport_expiry_date`. Transitions `ACTIVE` → `EXPIRING_SOON` (≤ 30 days) and `EXPIRING_SOON` → `EXPIRED` (≤ 0 days). Sends FCM notification for each affected user. |
-| Trip lifecycle transitions | `POST /api/v1/jobs/trip-transitions` | Every 30 minutes | Transitions `OPEN`/`CONFIRMED` → `IN_PROGRESS` for trips whose `start_date` boundary has passed, and `IN_PROGRESS` → `COMPLETED` for trips whose `end_date` boundary has passed. Triggers the post-trip completion flow for each newly completed trip. |
-| Key date reminders | `POST /api/v1/jobs/key-date-reminders` | Daily at 09:00 UTC | Scans `trip_key_dates` where `reminder_enabled = true` and `date = tomorrow`. Sends FCM push notification to all confirmed participants of each matching trip. |
+| Job                        | Endpoint                               | Schedule           | Description                                                                                                                                                                                                                                            |
+| -------------------------- | -------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Passport expiry check      | `POST /api/v1/jobs/passport-expiry`    | Daily at 02:00 UTC | Scans `user_nationalities` for records with non-null `passport_expiry_date`. Transitions `ACTIVE` → `EXPIRING_SOON` (≤ 30 days) and `EXPIRING_SOON` → `EXPIRED` (≤ 0 days). Sends FCM notification for each affected user.                             |
+| Trip lifecycle transitions | `POST /api/v1/jobs/trip-transitions`   | Every 30 minutes   | Transitions `OPEN`/`CONFIRMED` → `IN_PROGRESS` for trips whose `start_date` boundary has passed, and `IN_PROGRESS` → `COMPLETED` for trips whose `end_date` boundary has passed. Triggers the post-trip completion flow for each newly completed trip. |
+| Key date reminders         | `POST /api/v1/jobs/key-date-reminders` | Daily at 09:00 UTC | Scans `trip_key_dates` where `reminder_enabled = true` and `date = tomorrow`. Sends FCM push notification to all confirmed participants of each matching trip.                                                                                         |
 
 ### Job Handler Structure
 

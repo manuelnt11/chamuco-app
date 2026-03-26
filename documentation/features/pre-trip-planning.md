@@ -25,25 +25,25 @@ Before the itinerary is finalized, organizers often evaluate multiple route alte
 
 ### Route Option Record
 
-| Field | Description |
-|---|---|
-| `name` | Label for the option (e.g., "Option A", "Via Athens first") |
-| `legs` | Ordered list of destination segments |
-| `estimated_cost` | Total estimated cost in base currency |
-| `notes` | Free text for observations or trade-offs |
-| `is_selected` | Whether this option was chosen as the final route |
+| Field            | Description                                                 |
+| ---------------- | ----------------------------------------------------------- |
+| `name`           | Label for the option (e.g., "Option A", "Via Athens first") |
+| `legs`           | Ordered list of destination segments                        |
+| `estimated_cost` | Total estimated cost in base currency                       |
+| `notes`          | Free text for observations or trade-offs                    |
+| `is_selected`    | Whether this option was chosen as the final route           |
 
 ### Leg Record (within a route option)
 
-| Field | Description |
-|---|---|
-| `origin` | Departure city/country |
-| `destination` | Arrival city/country |
-| `estimated_date` | Approximate travel date |
-| `estimated_cost` | Cost in base or local currency |
-| `currency` | Currency for the cost |
+| Field            | Description                                             |
+| ---------------- | ------------------------------------------------------- |
+| `origin`         | Departure city/country                                  |
+| `destination`    | Arrival city/country                                    |
+| `estimated_date` | Approximate travel date                                 |
+| `estimated_cost` | Cost in base or local currency                          |
+| `currency`       | Currency for the cost                                   |
 | `payment_method` | `CASH` or `MILES` — supports loyalty program comparison |
-| `miles_value` | Estimated value of miles redemption if applicable |
+| `miles_value`    | Estimated value of miles redemption if applicable       |
 
 ### Behavior
 
@@ -59,11 +59,11 @@ A structured checklist of preparations that must be completed before departure. 
 
 ### Task Types (Enum: `PreTripTaskType`)
 
-| Value | Created by | Completed by | Completion tracking | Visibility |
-|---|---|---|---|---|
-| `ORGANIZER` | Organizer | Organizer team | Single status on the task | All trip viewers |
-| `GROUP` | Organizer | Each assigned traveler independently | Per-participant record | Assigned participants + organizers |
-| `PERSONAL` | Any confirmed participant | The creator | Single status on the task | Creator only (organizers do not see personal tasks by default) |
+| Value       | Created by                | Completed by                         | Completion tracking       | Visibility                                                     |
+| ----------- | ------------------------- | ------------------------------------ | ------------------------- | -------------------------------------------------------------- |
+| `ORGANIZER` | Organizer                 | Organizer team                       | Single status on the task | All trip viewers                                               |
+| `GROUP`     | Organizer                 | Each assigned traveler independently | Per-participant record    | Assigned participants + organizers                             |
+| `PERSONAL`  | Any confirmed participant | The creator                          | Single status on the task | Creator only (organizers do not see personal tasks by default) |
 
 **`ORGANIZER` tasks** represent things the organizing team must handle: booking group transport, securing permits, arranging airport transfers. They are visible to all trip viewers for transparency but only organizers mark them done.
 
@@ -73,51 +73,51 @@ A structured checklist of preparations that must be completed before departure. 
 
 ### Task Record (`pre_trip_tasks`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | Parent trip |
-| `type` | Enum `PreTripTaskType` | `ORGANIZER`, `GROUP`, or `PERSONAL` |
-| `title` | String | Short description of the task |
-| `description` | Text (rich) | Detailed notes, sub-items, instructions |
-| `category` | Enum `PreTripTaskCategory` | See categories below |
-| `assigned_to` | `ALL` \| UUID[] | All travelers or a specific subset. Only meaningful for `GROUP` type. |
-| `status` | Enum `PreTripTaskStatus` | `PENDING`, `IN_PROGRESS`, `DONE`. Used directly for `ORGANIZER` and `PERSONAL` types. |
-| `start_date` | Date (nullable) | When the task becomes relevant / actionable |
-| `deadline` | Date (nullable) | Latest date by which the task should be completed |
-| `deadline_strict` | Boolean | Whether missing the deadline blocks trip confirmation. Only applicable to `ORGANIZER` and `GROUP` types. |
-| `created_by` | UUID | The user who created the task |
-| `completed_at` | Timestamp (nullable) | Set when `status = DONE`. Used for `ORGANIZER` and `PERSONAL` types. |
-| `completed_by` | UUID (nullable) | Who marked it done. Used for `ORGANIZER` type. |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field             | Type                       | Description                                                                                              |
+| ----------------- | -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `id`              | UUID                       |                                                                                                          |
+| `trip_id`         | UUID                       | Parent trip                                                                                              |
+| `type`            | Enum `PreTripTaskType`     | `ORGANIZER`, `GROUP`, or `PERSONAL`                                                                      |
+| `title`           | String                     | Short description of the task                                                                            |
+| `description`     | Text (rich)                | Detailed notes, sub-items, instructions                                                                  |
+| `category`        | Enum `PreTripTaskCategory` | See categories below                                                                                     |
+| `assigned_to`     | `ALL` \| UUID[]            | All travelers or a specific subset. Only meaningful for `GROUP` type.                                    |
+| `status`          | Enum `PreTripTaskStatus`   | `PENDING`, `IN_PROGRESS`, `DONE`. Used directly for `ORGANIZER` and `PERSONAL` types.                    |
+| `start_date`      | Date (nullable)            | When the task becomes relevant / actionable                                                              |
+| `deadline`        | Date (nullable)            | Latest date by which the task should be completed                                                        |
+| `deadline_strict` | Boolean                    | Whether missing the deadline blocks trip confirmation. Only applicable to `ORGANIZER` and `GROUP` types. |
+| `created_by`      | UUID                       | The user who created the task                                                                            |
+| `completed_at`    | Timestamp (nullable)       | Set when `status = DONE`. Used for `ORGANIZER` and `PERSONAL` types.                                     |
+| `completed_by`    | UUID (nullable)            | Who marked it done. Used for `ORGANIZER` type.                                                           |
+| `created_at`      | Timestamp                  |                                                                                                          |
+| `updated_at`      | Timestamp                  |                                                                                                          |
 
 ### Per-Participant Completion Record (`pre_trip_task_completions`)
 
 Applies only to `GROUP` type tasks. Each assigned `trip_participant` has an independent completion record:
 
-| Field | Type | Description |
-|---|---|---|
-| `task_id` | UUID | |
-| `participant_id` | UUID | |
-| `status` | Enum `PreTripTaskStatus` | `PENDING`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE` |
-| `completed_at` | Timestamp (nullable) | |
-| `notes` | Text (nullable) | Optional personal note on how they completed it |
+| Field            | Type                     | Description                                        |
+| ---------------- | ------------------------ | -------------------------------------------------- |
+| `task_id`        | UUID                     |                                                    |
+| `participant_id` | UUID                     |                                                    |
+| `status`         | Enum `PreTripTaskStatus` | `PENDING`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE` |
+| `completed_at`   | Timestamp (nullable)     |                                                    |
+| `notes`          | Text (nullable)          | Optional personal note on how they completed it    |
 
 ### Task Categories (Enum: `PreTripTaskCategory`)
 
 Applies to all three task types:
 
-| Value | Label | Typical use |
-|---|---|---|
-| `DOCUMENTS` | Documents | Passport renewal, visa application, ID copy |
-| `HEALTH` | Health & Vaccines | Yellow fever vaccine, travel insurance, medical kit |
-| `FINANCIAL` | Financial | Enable international card, buy foreign currency |
-| `GEAR` | Gear & Packing | Power adapter, luggage scale, day backpack |
-| `BOOKINGS` | Bookings | Confirm accommodation, pre-book attraction tickets |
-| `LOGISTICS` | Logistics | Print itinerary, download offline maps, buy SIM |
-| `COMMUNICATION` | Communication | Share emergency contacts, set up group chat |
-| `OTHER` | Other | Anything that doesn't fit the above |
+| Value           | Label             | Typical use                                         |
+| --------------- | ----------------- | --------------------------------------------------- |
+| `DOCUMENTS`     | Documents         | Passport renewal, visa application, ID copy         |
+| `HEALTH`        | Health & Vaccines | Yellow fever vaccine, travel insurance, medical kit |
+| `FINANCIAL`     | Financial         | Enable international card, buy foreign currency     |
+| `GEAR`          | Gear & Packing    | Power adapter, luggage scale, day backpack          |
+| `BOOKINGS`      | Bookings          | Confirm accommodation, pre-book attraction tickets  |
+| `LOGISTICS`     | Logistics         | Print itinerary, download offline maps, buy SIM     |
+| `COMMUNICATION` | Communication     | Share emergency contacts, set up group chat         |
+| `OTHER`         | Other             | Anything that doesn't fit the above                 |
 
 ### Organizer View
 
@@ -135,13 +135,14 @@ Yellow fever vaccine          |  ✓  |  ✗  |  ✓   |  ✗  |  ✗  |  ✗   
 Enable international cards    |  ✓  |  ✓  |  ✓   |  ✓  |  ✓  |  ✓   |  6/6  ✓
 ```
 
-*(Columns use participant `display_name` values. See `participants.md`.)*
+_(Columns use participant `display_name` values. See `participants.md`.)_
 
 **Personal tasks** — organizers do not see individual participants' personal tasks.
 
 ### Participant View
 
 Each participant sees:
+
 - **Organizer tasks** — read-only view; they can see what the organizing team is working on.
 - **Their own group tasks** — their completion status and deadlines. Other participants' statuses are not visible.
 - **Their own personal tasks** — their full personal checklist. Only visible to them.
@@ -154,28 +155,28 @@ Pre-trip tasks are time-sensitive. The system must actively support deadline awa
 
 ### Deadline States (derived automatically)
 
-| State | Condition | Display |
-|---|---|---|
-| `ON_TRACK` | Deadline is in the future and task is pending or in progress | Normal |
-| `DUE_SOON` | Deadline is within N days (configurable, default 7) and not done | Yellow warning |
-| `OVERDUE` | Deadline has passed and status is not `DONE` | Red alert |
-| `COMPLETED` | Status is `DONE` | Green check |
-| `NOT_APPLICABLE` | Participant marked as not applicable | Grey |
+| State            | Condition                                                        | Display        |
+| ---------------- | ---------------------------------------------------------------- | -------------- |
+| `ON_TRACK`       | Deadline is in the future and task is pending or in progress     | Normal         |
+| `DUE_SOON`       | Deadline is within N days (configurable, default 7) and not done | Yellow warning |
+| `OVERDUE`        | Deadline has passed and status is not `DONE`                     | Red alert      |
+| `COMPLETED`      | Status is `DONE`                                                 | Green check    |
+| `NOT_APPLICABLE` | Participant marked as not applicable                             | Grey           |
 
 ### Reminder Notifications
 
 Automatic notifications are sent to participants at the following trigger points:
 
-| Trigger | Recipient | Message example |
-|---|---|---|
-| Task created (assigned to them) | Assignees | "New pre-trip task: Get your medical insurance before Oct 1" |
-| `start_date` reached | Assignees with `PENDING` status | "You can now start: Enable your international card" |
-| 7 days before deadline | Assignees not yet `DONE` | "⚠ Due in 7 days: Yellow fever vaccine" |
-| 3 days before deadline | Assignees not yet `DONE` | "⚠ Due in 3 days: Yellow fever vaccine" |
-| 1 day before deadline | Assignees not yet `DONE` | "🚨 Due tomorrow: Yellow fever vaccine" |
-| Deadline passed | Assignees still `PENDING` / `IN_PROGRESS` | "⏰ Overdue: Yellow fever vaccine — please update your status" |
-| All participants complete a task | Organizer | "✓ All participants completed: Medical insurance" |
-| Participant completes a task | Organizer (if `notify_organizer = true`) | "Javi marked 'Medical insurance' as done" |
+| Trigger                          | Recipient                                 | Message example                                                |
+| -------------------------------- | ----------------------------------------- | -------------------------------------------------------------- |
+| Task created (assigned to them)  | Assignees                                 | "New pre-trip task: Get your medical insurance before Oct 1"   |
+| `start_date` reached             | Assignees with `PENDING` status           | "You can now start: Enable your international card"            |
+| 7 days before deadline           | Assignees not yet `DONE`                  | "⚠ Due in 7 days: Yellow fever vaccine"                        |
+| 3 days before deadline           | Assignees not yet `DONE`                  | "⚠ Due in 3 days: Yellow fever vaccine"                        |
+| 1 day before deadline            | Assignees not yet `DONE`                  | "🚨 Due tomorrow: Yellow fever vaccine"                        |
+| Deadline passed                  | Assignees still `PENDING` / `IN_PROGRESS` | "⏰ Overdue: Yellow fever vaccine — please update your status" |
+| All participants complete a task | Organizer                                 | "✓ All participants completed: Medical insurance"              |
+| Participant completes a task     | Organizer (if `notify_organizer = true`)  | "Javi marked 'Medical insurance' as done"                      |
 
 ### Strict Deadline Behavior
 
@@ -193,18 +194,18 @@ Per-destination cash and spending envelopes. Helps participants know how much ca
 
 ### Budget Envelope Record
 
-| Field | Description |
-|---|---|
-| `trip_id` | Parent trip |
-| `country` | Country name |
-| `city` | City or "All" for country-wide |
-| `currency` | Local currency for this destination |
-| `card_budget` | Planned card spending amount |
-| `cash_budget` | Planned cash spending amount |
-| `total_budget` | Sum of card + cash |
-| `usd_equivalent` | Informational USD equivalent |
-| `eur_equivalent` | Informational EUR equivalent |
-| `notes` | Free text (e.g., "Excludes €110 catamaran excursion") |
+| Field            | Description                                           |
+| ---------------- | ----------------------------------------------------- |
+| `trip_id`        | Parent trip                                           |
+| `country`        | Country name                                          |
+| `city`           | City or "All" for country-wide                        |
+| `currency`       | Local currency for this destination                   |
+| `card_budget`    | Planned card spending amount                          |
+| `cash_budget`    | Planned cash spending amount                          |
+| `total_budget`   | Sum of card + cash                                    |
+| `usd_equivalent` | Informational USD equivalent                          |
+| `eur_equivalent` | Informational EUR equivalent                          |
+| `notes`          | Free text (e.g., "Excludes €110 catamaran excursion") |
 
 This data is set by the organizer as a **recommendation** for participants, not a hard limit. It answers the practical question: "How much cash should I bring to Egypt?"
 
@@ -228,16 +229,16 @@ Every trip must have a **base currency** defined at creation. All financial summ
 
 At trip creation (or during planning), the organizer defines the currencies the trip will use and sets a reference rate for each. These rates are used as the **suggested default** when recording expenses.
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | Parent trip |
-| `from_currency` | String (ISO 4217) | Foreign currency (e.g., `EGP`, `EUR`, `USD`) |
-| `to_currency` | String (ISO 4217) | Trip base currency (e.g., `COP`) |
-| `rate` | Decimal | Units of base currency per 1 unit of foreign currency (e.g., 1 GBP = 4,847 COP → `rate = 4847`) |
-| `set_at` | Timestamp | When the rate was last updated |
-| `set_by` | UUID | Organizer who set it |
-| `source` | Enum `ExchangeRateSource` | `API` if pre-populated from ExchangeRate-API, `MANUAL` if set or overridden by the organizer |
+| Field           | Type                      | Description                                                                                     |
+| --------------- | ------------------------- | ----------------------------------------------------------------------------------------------- |
+| `id`            | UUID                      |                                                                                                 |
+| `trip_id`       | UUID                      | Parent trip                                                                                     |
+| `from_currency` | String (ISO 4217)         | Foreign currency (e.g., `EGP`, `EUR`, `USD`)                                                    |
+| `to_currency`   | String (ISO 4217)         | Trip base currency (e.g., `COP`)                                                                |
+| `rate`          | Decimal                   | Units of base currency per 1 unit of foreign currency (e.g., 1 GBP = 4,847 COP → `rate = 4847`) |
+| `set_at`        | Timestamp                 | When the rate was last updated                                                                  |
+| `set_by`        | UUID                      | Organizer who set it                                                                            |
+| `source`        | Enum `ExchangeRateSource` | `API` if pre-populated from ExchangeRate-API, `MANUAL` if set or overridden by the organizer    |
 
 **Enum `ExchangeRateSource`:** `API` \| `MANUAL`
 
@@ -256,6 +257,7 @@ This is the only rate that matters for financial accuracy. The trip-level rate i
 Exchange rate suggestions are powered by **ExchangeRate-API** (`exchangerate-api.com`).
 
 Chosen for:
+
 - No base currency restriction on the free tier — works for COP, USD, EUR, or any trip base currency.
 - Daily rate updates — sufficient precision for a suggested value the user will confirm manually.
 - HTTPS on the free tier.
@@ -271,22 +273,22 @@ To reduce setup friction for organizers, Chamuco App provides a **template libra
 
 ### Template Sources
 
-| Source | Description |
-|---|---|
-| **Platform templates** | Curated by Chamuco. Cover common scenarios: international trip, beach trip, mountain/hiking trip, city break, backpacking trip, group cruise, road trip. Each template contains a mix of `ORGANIZER` and `GROUP` task types with suggested categories, deadlines (expressed as "N days before departure"), and descriptions. |
-| **Saved by the organizer** | After completing a trip, any organizer can save the trip's task list as a personal template for future reuse. |
+| Source                     | Description                                                                                                                                                                                                                                                                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Platform templates**     | Curated by Chamuco. Cover common scenarios: international trip, beach trip, mountain/hiking trip, city break, backpacking trip, group cruise, road trip. Each template contains a mix of `ORGANIZER` and `GROUP` task types with suggested categories, deadlines (expressed as "N days before departure"), and descriptions. |
+| **Saved by the organizer** | After completing a trip, any organizer can save the trip's task list as a personal template for future reuse.                                                                                                                                                                                                                |
 
 ### Template Record (`pre_trip_task_templates`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `name` | String | Template name (e.g., "International Group Trip") |
-| `description` | Text (nullable) | Short description of when this template is useful |
-| `source` | Enum | `PLATFORM` or `USER` |
-| `created_by` | UUID (nullable) | Null for platform templates; FK → `users.id` for user-created |
-| `tasks` | JSONB | Array of task definitions: `type`, `title`, `description`, `category`, `days_before_deadline` (relative offset from departure date) |
-| `created_at` | Timestamp | |
+| Field         | Type            | Description                                                                                                                         |
+| ------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `id`          | UUID            |                                                                                                                                     |
+| `name`        | String          | Template name (e.g., "International Group Trip")                                                                                    |
+| `description` | Text (nullable) | Short description of when this template is useful                                                                                   |
+| `source`      | Enum            | `PLATFORM` or `USER`                                                                                                                |
+| `created_by`  | UUID (nullable) | Null for platform templates; FK → `users.id` for user-created                                                                       |
+| `tasks`       | JSONB           | Array of task definitions: `type`, `title`, `description`, `category`, `days_before_deadline` (relative offset from departure date) |
+| `created_at`  | Timestamp       |                                                                                                                                     |
 
 ### Behavior
 
@@ -301,14 +303,14 @@ To reduce setup friction for organizers, Chamuco App provides a **template libra
 
 The pre-trip phase has its own progress indicators, separate from the trip's overall status:
 
-| Indicator | Description |
-|---|---|
-| **Tasks completion** | X of Y tasks completed across all participants |
+| Indicator               | Description                                              |
+| ----------------------- | -------------------------------------------------------- |
+| **Tasks completion**    | X of Y tasks completed across all participants           |
 | **Documents readiness** | All `DOCUMENTS` category tasks done for all participants |
-| **Financial readiness** | All `FINANCIAL` category tasks done |
-| **Overdue tasks** | Count of tasks past their deadline |
-| **Budget set** | Whether the organizer has filled in destination budgets |
-| **Rates set** | Whether exchange rates have been configured |
+| **Financial readiness** | All `FINANCIAL` category tasks done                      |
+| **Overdue tasks**       | Count of tasks past their deadline                       |
+| **Budget set**          | Whether the organizer has filled in destination budgets  |
+| **Rates set**           | Whether exchange rates have been configured              |
 
 A **Pre-Trip Readiness Score** (simple percentage or traffic-light indicator) gives the organizer a quick health check of how prepared the group is before departure.
 

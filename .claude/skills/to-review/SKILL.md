@@ -17,6 +17,7 @@ ISSUE_NUMBER=$(echo "$BRANCH_NAME" | grep -oE '^[0-9]+')
 ```
 
 If the branch name doesn't start with a number, abort and report:
+
 > ❌ This command requires an issue branch (format: `<issue_number>-<slug>`). Current branch: `<branch_name>`. Please checkout an issue branch first.
 
 ## Step 2 — Check for uncommitted changes
@@ -28,6 +29,7 @@ git status --porcelain
 If there are uncommitted changes, inform the user and ask if they want to commit them first. If yes, use the standard commit process from CLAUDE.md Standing Rule 1 (git commit instructions).
 
 If they choose not to commit, abort and report:
+
 > ⚠️ There are uncommitted changes. Please commit or stash them before creating a PR.
 
 ## Step 3 — Push the branch to remote
@@ -43,6 +45,7 @@ If the branch is already pushed and up to date, this will succeed with no change
 Use the same process as documented in CLAUDE.md Standing Rule 7 (`/write_pr` command):
 
 1. Run these commands to gather context:
+
    ```bash
    git diff main...HEAD --name-only
    git log main...HEAD --oneline
@@ -107,6 +110,7 @@ If any of these commands fail, report the error and note that the status can be 
 ## Step 7 — Output confirmation
 
 Provide a clear confirmation message indicating:
+
 - ✅ Branch pushed to remote
 - ✅ Pull request created: `<PR_URL>`
 - ✅ Issue #`<issue_number>` status updated to "In Review" (or ⚠️ note to update manually if it failed)

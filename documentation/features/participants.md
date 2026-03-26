@@ -19,15 +19,16 @@ The rule is simple: **if a user can see the trip, they can submit a join request
 
 ### Visibility Levels
 
-| Visibility | Who can discover the trip | Join request available to |
-|---|---|---|
-| `PUBLIC` | Any registered user | Any registered user |
-| `LINK_ONLY` | Anyone with the direct link | Anyone with the link |
-| `PRIVATE` | Not publicly searchable. Visible only to members of groups the organizer has explicitly shared it with (see below). If no groups are defined, no one can find it. | Members of the trip's visible groups only |
+| Visibility  | Who can discover the trip                                                                                                                                         | Join request available to                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `PUBLIC`    | Any registered user                                                                                                                                               | Any registered user                       |
+| `LINK_ONLY` | Anyone with the direct link                                                                                                                                       | Anyone with the link                      |
+| `PRIVATE`   | Not publicly searchable. Visible only to members of groups the organizer has explicitly shared it with (see below). If no groups are defined, no one can find it. | Members of the trip's visible groups only |
 
 ### Private Trip — Visible Groups
 
 A private trip may define a set of groups whose members can see it. This is stored in a separate `trip_visible_to_groups` table (see `architecture/database-design.md`). Any member of a listed group can:
+
 - See the trip in the group's context.
 - Submit a join request.
 
@@ -41,10 +42,10 @@ If the organizer defines no visible groups, the trip is invisible to everyone ex
 
 ### Entry Path Summary
 
-| Flow | Who initiates | Who decides | Who can cancel | Condition |
-|---|---|---|---|---|
-| Join request | The user | Organizer (accept / reject) | The user (withdraw at any time) | User can see the trip |
-| Organizer invitation | Organizer / authorized CO_ORGANIZER | The invited user (accept / decline) | The organizer (revoke at any time) | Always available |
+| Flow                 | Who initiates                       | Who decides                         | Who can cancel                     | Condition             |
+| -------------------- | ----------------------------------- | ----------------------------------- | ---------------------------------- | --------------------- |
+| Join request         | The user                            | Organizer (accept / reject)         | The user (withdraw at any time)    | User can see the trip |
+| Organizer invitation | Organizer / authorized CO_ORGANIZER | The invited user (accept / decline) | The organizer (revoke at any time) | Always available      |
 
 ---
 
@@ -72,15 +73,15 @@ The unified state machine covers both flows:
              →  LEFT      (participant voluntarily leaves)
 ```
 
-| Value | Description |
-|---|---|
-| `PENDING_REQUEST` | User submitted a join request. Awaiting organizer decision. When capacity is full, this request is part of the request queue (ordered by `initiated_at`). |
-| `INVITED` | Organizer sent an invitation. Awaiting user decision. |
-| `CONFIRMED` | Membership is active. The participant is part of the trip. |
-| `REJECTED` | Organizer rejected the join request. The user may submit a new one — the new request will have a later `initiated_at` and will go to the back of the queue. |
-| `DECLINED` | User declined the invitation. Organizer may re-invite. |
-| `REMOVED` | Organizer removed the participant from the trip. |
-| `LEFT` | Participant voluntarily left the trip. |
+| Value             | Description                                                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PENDING_REQUEST` | User submitted a join request. Awaiting organizer decision. When capacity is full, this request is part of the request queue (ordered by `initiated_at`).   |
+| `INVITED`         | Organizer sent an invitation. Awaiting user decision.                                                                                                       |
+| `CONFIRMED`       | Membership is active. The participant is part of the trip.                                                                                                  |
+| `REJECTED`        | Organizer rejected the join request. The user may submit a new one — the new request will have a later `initiated_at` and will go to the back of the queue. |
+| `DECLINED`        | User declined the invitation. Organizer may re-invite.                                                                                                      |
+| `REMOVED`         | Organizer removed the participant from the trip.                                                                                                            |
+| `LEFT`            | Participant voluntarily left the trip.                                                                                                                      |
 
 ### One Active Request / Invitation at a Time
 
@@ -101,50 +102,51 @@ In both cases the deletion is permanent — no terminal status is set. Since nei
 
 ## Participant Record (`trip_participants`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | Parent trip |
-| `user_id` | UUID | The participant's account |
-| `status` | Enum `ParticipantStatus` | Current state (see above) |
-| `role` | Enum `TripRole` | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT` |
-| `is_traveling_participant` | Boolean | Whether this person is physically traveling on the trip. Independent of `role`. Defaults to `true`. When `false`, the person is excluded from capacity counts, expense splits, and the per-person budget estimate. |
-| `co_organizer_permissions` | `CoOrganizerPermission`[] (JSONB) | Set of capabilities granted to this co-organizer. Null for `ORGANIZER` and `PARTICIPANT` roles. Defined by the assigning organizer. |
-| `display_name` | String | Optional per-trip nickname. Defaults to `users.display_name`. |
-| `profile_confirmed_at` | Timestamp | When the participant last confirmed their personal profile is accurate for this trip. Null if never confirmed. Informational only — does not block participation. |
-| `share_medical_notes` | Boolean | Whether the participant opts in to sharing their `medical_notes` from their health profile with the trip organizer. Defaults to `false`. |
-| `did_travel` | Boolean (nullable) | `null` while the trip is active. Set at trip completion — defaults to `true` for all `CONFIRMED` participants unless the organizer explicitly marks someone as `false` (e.g., a participant who was confirmed but did not travel in the end). Participants with `did_travel = false` are excluded from expense splits and the post-trip settlement. |
-| `join_flow` | Enum `JoinFlow` | `REQUEST`, `INVITATION`, or `ROLE_INVITATION`. Records how this participant entered. `ROLE_INVITATION` applies when the user was not yet a participant and was added via a role invitation that specified `will_travel = true`. |
-| `initiated_at` | Timestamp | When the request or invitation was created. For requests, this is also the queue ordering key — earlier `initiated_at` = higher priority in the request queue. |
-| `responded_at` | Timestamp | When the organizer or user made their decision |
-| `confirmed_at` | Timestamp | When `CONFIRMED` status was set |
-| `initiated_by` | UUID | For `INVITATION`: the organizer who sent it. For `REQUEST`: the user themselves. |
-| `decided_by` | UUID | Who made the accept/reject/decline decision |
-| `organizer_notes` | Text | Internal organizer notes. Not visible to the participant. |
+| Field                      | Type                              | Description                                                                                                                                                                                                                                                                                                                                         |
+| -------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                       | UUID                              |                                                                                                                                                                                                                                                                                                                                                     |
+| `trip_id`                  | UUID                              | Parent trip                                                                                                                                                                                                                                                                                                                                         |
+| `user_id`                  | UUID                              | The participant's account                                                                                                                                                                                                                                                                                                                           |
+| `status`                   | Enum `ParticipantStatus`          | Current state (see above)                                                                                                                                                                                                                                                                                                                           |
+| `role`                     | Enum `TripRole`                   | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT`                                                                                                                                                                                                                                                                                                          |
+| `is_traveling_participant` | Boolean                           | Whether this person is physically traveling on the trip. Independent of `role`. Defaults to `true`. When `false`, the person is excluded from capacity counts, expense splits, and the per-person budget estimate.                                                                                                                                  |
+| `co_organizer_permissions` | `CoOrganizerPermission`[] (JSONB) | Set of capabilities granted to this co-organizer. Null for `ORGANIZER` and `PARTICIPANT` roles. Defined by the assigning organizer.                                                                                                                                                                                                                 |
+| `display_name`             | String                            | Optional per-trip nickname. Defaults to `users.display_name`.                                                                                                                                                                                                                                                                                       |
+| `profile_confirmed_at`     | Timestamp                         | When the participant last confirmed their personal profile is accurate for this trip. Null if never confirmed. Informational only — does not block participation.                                                                                                                                                                                   |
+| `share_medical_notes`      | Boolean                           | Whether the participant opts in to sharing their `medical_notes` from their health profile with the trip organizer. Defaults to `false`.                                                                                                                                                                                                            |
+| `did_travel`               | Boolean (nullable)                | `null` while the trip is active. Set at trip completion — defaults to `true` for all `CONFIRMED` participants unless the organizer explicitly marks someone as `false` (e.g., a participant who was confirmed but did not travel in the end). Participants with `did_travel = false` are excluded from expense splits and the post-trip settlement. |
+| `join_flow`                | Enum `JoinFlow`                   | `REQUEST`, `INVITATION`, or `ROLE_INVITATION`. Records how this participant entered. `ROLE_INVITATION` applies when the user was not yet a participant and was added via a role invitation that specified `will_travel = true`.                                                                                                                     |
+| `initiated_at`             | Timestamp                         | When the request or invitation was created. For requests, this is also the queue ordering key — earlier `initiated_at` = higher priority in the request queue.                                                                                                                                                                                      |
+| `responded_at`             | Timestamp                         | When the organizer or user made their decision                                                                                                                                                                                                                                                                                                      |
+| `confirmed_at`             | Timestamp                         | When `CONFIRMED` status was set                                                                                                                                                                                                                                                                                                                     |
+| `initiated_by`             | UUID                              | For `INVITATION`: the organizer who sent it. For `REQUEST`: the user themselves.                                                                                                                                                                                                                                                                    |
+| `decided_by`               | UUID                              | Who made the accept/reject/decline decision                                                                                                                                                                                                                                                                                                         |
+| `organizer_notes`          | Text                              | Internal organizer notes. Not visible to the participant.                                                                                                                                                                                                                                                                                           |
 
 ---
 
 ## Trip Roles (enum: `TripRole`)
 
-| Value | Description |
-|---|---|
-| `ORGANIZER` | Full administrative control over the trip. All permissions always granted. May or may not be a traveling participant — decided independently via `is_traveling_participant`. Multiple users may hold this role simultaneously. |
-| `CO_ORGANIZER` | Delegated administrative helper. Permissions are explicitly defined by an assigning `ORGANIZER` via `co_organizer_permissions`. May or may not be a traveling participant — independent of the role. |
-| `PARTICIPANT` | A confirmed traveler with standard access. No administrative capabilities. Always a traveling participant (`is_traveling_participant = true`). |
+| Value          | Description                                                                                                                                                                                                                    |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ORGANIZER`    | Full administrative control over the trip. All permissions always granted. May or may not be a traveling participant — decided independently via `is_traveling_participant`. Multiple users may hold this role simultaneously. |
+| `CO_ORGANIZER` | Delegated administrative helper. Permissions are explicitly defined by an assigning `ORGANIZER` via `co_organizer_permissions`. May or may not be a traveling participant — independent of the role.                           |
+| `PARTICIPANT`  | A confirmed traveler with standard access. No administrative capabilities. Always a traveling participant (`is_traveling_participant = true`).                                                                                 |
 
 ### Role vs. Participation — Independent Axes
 
 The administrative role (`ORGANIZER` / `CO_ORGANIZER`) and physical participation in the trip (`is_traveling_participant`) are **two independent attributes**. Any combination is valid:
 
-| Role | `is_traveling_participant` | Meaning |
-|---|---|---|
-| `ORGANIZER` | `true` | Organizes and travels on the trip |
-| `ORGANIZER` | `false` | Organizes the trip but does not travel (e.g., a professional trip coordinator) |
-| `CO_ORGANIZER` | `true` | Helps organize and also travels |
-| `CO_ORGANIZER` | `false` | Helps organize remotely without traveling |
-| `PARTICIPANT` | `true` | Travels. No organizational access. (`is_traveling_participant` is always `true` for this role.) |
+| Role           | `is_traveling_participant` | Meaning                                                                                         |
+| -------------- | -------------------------- | ----------------------------------------------------------------------------------------------- |
+| `ORGANIZER`    | `true`                     | Organizes and travels on the trip                                                               |
+| `ORGANIZER`    | `false`                    | Organizes the trip but does not travel (e.g., a professional trip coordinator)                  |
+| `CO_ORGANIZER` | `true`                     | Helps organize and also travels                                                                 |
+| `CO_ORGANIZER` | `false`                    | Helps organize remotely without traveling                                                       |
+| `PARTICIPANT`  | `true`                     | Travels. No organizational access. (`is_traveling_participant` is always `true` for this role.) |
 
 Non-traveling organizers and co-organizers (`is_traveling_participant = false`) are:
+
 - **Excluded** from capacity counts.
 - **Excluded** from the per-person budget estimate denominator.
 - **Excluded** from expense splits by default (may be manually added to specific expenses).
@@ -167,17 +169,17 @@ An `ORGANIZER` always has all permissions implicitly and is never subject to thi
 
 ### Permission Enum (`CoOrganizerPermission`)
 
-| Value | Scope |
-|---|---|
-| `MANAGE_ITINERARY` | Create, edit, and delete itinerary items |
-| `MANAGE_EXPENSES` | Record, edit, and delete expense records |
-| `MANAGE_PARTICIPANTS` | Invite users, accept/reject join requests, remove participants, manage the waitlist |
-| `MANAGE_RESERVATIONS` | Add and update reservation records |
-| `EDIT_TRIP_DETAILS` | Edit trip name, description, dates, destination, visibility, and general settings |
-| `MANAGE_PRE_TRIP_TASKS` | Add, edit, assign, and resolve pre-trip checklist tasks |
-| `MODERATE_CHANNEL` | Pin messages, delete any message, and manage members in the trip's auto-channel |
-| `VIEW_TRAVEL_PROFILES` | Access participants' documents, health data, and emergency contacts |
-| `AWARD_RECOGNITIONS` | Award recognitions to participants during the post-trip recognition window |
+| Value                   | Scope                                                                               |
+| ----------------------- | ----------------------------------------------------------------------------------- |
+| `MANAGE_ITINERARY`      | Create, edit, and delete itinerary items                                            |
+| `MANAGE_EXPENSES`       | Record, edit, and delete expense records                                            |
+| `MANAGE_PARTICIPANTS`   | Invite users, accept/reject join requests, remove participants, manage the waitlist |
+| `MANAGE_RESERVATIONS`   | Add and update reservation records                                                  |
+| `EDIT_TRIP_DETAILS`     | Edit trip name, description, dates, destination, visibility, and general settings   |
+| `MANAGE_PRE_TRIP_TASKS` | Add, edit, assign, and resolve pre-trip checklist tasks                             |
+| `MODERATE_CHANNEL`      | Pin messages, delete any message, and manage members in the trip's auto-channel     |
+| `VIEW_TRAVEL_PROFILES`  | Access participants' documents, health data, and emergency contacts                 |
+| `AWARD_RECOGNITIONS`    | Award recognitions to participants during the post-trip recognition window          |
 
 ### Assignment Rules
 
@@ -224,23 +226,24 @@ Only one active invitation or request per user per trip at a time. If the invite
 
 ### Role Invitation Record (`trip_role_invitations`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | The trip |
-| `user_id` | UUID | The user being invited to the role |
-| `invited_role` | Enum `TripRole` | `ORGANIZER` or `CO_ORGANIZER` only |
-| `co_organizer_permissions` | `CoOrganizerPermission`[] JSONB | Required when `invited_role = CO_ORGANIZER`. Null for `ORGANIZER`. |
-| `will_travel` | Boolean | Whether the invitee will travel. Always `true` — and non-configurable — when the invitee is already a confirmed participant. |
-| `invited_by` | UUID | The organizer who created the invitation |
-| `created_at` | Timestamp | When the invitation was sent |
-| `responded_at` | Timestamp | When the invitee accepted or declined |
+| Field                      | Type                            | Description                                                                                                                  |
+| -------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `id`                       | UUID                            |                                                                                                                              |
+| `trip_id`                  | UUID                            | The trip                                                                                                                     |
+| `user_id`                  | UUID                            | The user being invited to the role                                                                                           |
+| `invited_role`             | Enum `TripRole`                 | `ORGANIZER` or `CO_ORGANIZER` only                                                                                           |
+| `co_organizer_permissions` | `CoOrganizerPermission`[] JSONB | Required when `invited_role = CO_ORGANIZER`. Null for `ORGANIZER`.                                                           |
+| `will_travel`              | Boolean                         | Whether the invitee will travel. Always `true` — and non-configurable — when the invitee is already a confirmed participant. |
+| `invited_by`               | UUID                            | The organizer who created the invitation                                                                                     |
+| `created_at`               | Timestamp                       | When the invitation was sent                                                                                                 |
+| `responded_at`             | Timestamp                       | When the invitee accepted or declined                                                                                        |
 
 ---
 
 ## Group Invitations
 
 When a **group** is invited to a private trip:
+
 - A single invitation event is recorded referencing the group.
 - Individual `trip_participant` records with status `INVITED` are created for each group member at the time of invitation.
 - Members added to the group **after** the invitation is sent do not automatically receive it.
@@ -252,13 +255,13 @@ When a **group** is invited to a private trip:
 
 Confirmation rules give the organizer additional control over how requests and invitations are processed. They are stored as JSONB on the trip record and can be combined.
 
-| Rule | Description |
-|---|---|
-| `AUTO_ACCEPT` | Join requests are confirmed immediately without organizer review. Only meaningful for trips where the requesting user can see the trip (visibility permitting). |
-| `MANUAL_APPROVAL` | Each request requires explicit organizer approval before `CONFIRMED` is set. Default behavior. |
-| `DEADLINE` | Participants must accept (invitations) or request by a specific date. After the deadline, open invitations and pending requests expire. |
-| `CAPACITY_LIMIT` | Sets a maximum number of confirmed traveling participants (non-traveling organizers excluded). Once full, the organizer cannot confirm additional requests until a spot opens. |
-| `WAITLIST_MODE` | Only meaningful when `CAPACITY_LIMIT` is also set. When active, the organizer is **required to accept requests in chronological order** (by `initiated_at`). The organizer may reject any request at any time, but cannot skip a pending request to accept a later one. |
+| Rule              | Description                                                                                                                                                                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AUTO_ACCEPT`     | Join requests are confirmed immediately without organizer review. Only meaningful for trips where the requesting user can see the trip (visibility permitting).                                                                                                         |
+| `MANUAL_APPROVAL` | Each request requires explicit organizer approval before `CONFIRMED` is set. Default behavior.                                                                                                                                                                          |
+| `DEADLINE`        | Participants must accept (invitations) or request by a specific date. After the deadline, open invitations and pending requests expire.                                                                                                                                 |
+| `CAPACITY_LIMIT`  | Sets a maximum number of confirmed traveling participants (non-traveling organizers excluded). Once full, the organizer cannot confirm additional requests until a spot opens.                                                                                          |
+| `WAITLIST_MODE`   | Only meaningful when `CAPACITY_LIMIT` is also set. When active, the organizer is **required to accept requests in chronological order** (by `initiated_at`). The organizer may reject any request at any time, but cannot skip a pending request to accept a later one. |
 
 ---
 
@@ -267,6 +270,7 @@ Confirmation rules give the organizer additional control over how requests and i
 The "waitlist" is not a separate entity or status — it is a **view of `PENDING_REQUEST` records ordered by `initiated_at`**, combined with the `WAITLIST_MODE` confirmation rule.
 
 When `CAPACITY_LIMIT` is full and `WAITLIST_MODE` is active:
+
 - New join requests accumulate as `PENDING_REQUEST` entries.
 - The organizer sees them in chronological order (oldest first).
 - When a spot opens (a confirmed participant leaves or is removed, or capacity is increased), the organizer **must** confirm the oldest pending request in the queue. They cannot skip it to accept a newer one.
@@ -274,6 +278,7 @@ When `CAPACITY_LIMIT` is full and `WAITLIST_MODE` is active:
 - A rejected user may re-submit a request. The new request has a later `initiated_at` and goes to the back of the queue.
 
 When `CAPACITY_LIMIT` is full but `WAITLIST_MODE` is **not** active:
+
 - New requests accumulate as `PENDING_REQUEST`.
 - The organizer may accept any pending request in any order when a spot opens (no ordering constraint).
 
@@ -284,6 +289,7 @@ Role invitations with `will_travel = true` **always bypass `WAITLIST_MODE`**. A 
 ### Participant Invitations and the Request Queue
 
 Whether a regular organizer-sent participant invitation bypasses the request queue when `WAITLIST_MODE` is active remains an **open question**:
+
 - **Invitations bypass the queue** — the organizer's invitation is an explicit choice that takes precedence over pending requests.
 - **Invitations respect the queue** — sending an invitation while pending requests are waiting is not allowed when `WAITLIST_MODE` is active.
 
@@ -316,32 +322,32 @@ A confirmed participant may register additional non-registered travelers under t
 
 ### `trip_guests`
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | |
-| `sponsored_by` | UUID | The `trip_participant` responsible for this guest |
-| `display_name` | String | Guest's name or alias |
-| `relationship` | String | Optional (e.g., "daughter", "parent") |
-| `travel_profile` | JSONB | Optional personal data for the guest. Mirrors the fields in `user_profiles` and `user_health_profiles` (name, document numbers, dietary preference, allergies, emergency contact, etc.). JSONB is appropriate here because guests don't have system accounts. |
+| Field            | Type   | Description                                                                                                                                                                                                                                                   |
+| ---------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`             | UUID   |                                                                                                                                                                                                                                                               |
+| `trip_id`        | UUID   |                                                                                                                                                                                                                                                               |
+| `sponsored_by`   | UUID   | The `trip_participant` responsible for this guest                                                                                                                                                                                                             |
+| `display_name`   | String | Guest's name or alias                                                                                                                                                                                                                                         |
+| `relationship`   | String | Optional (e.g., "daughter", "parent")                                                                                                                                                                                                                         |
+| `travel_profile` | JSONB  | Optional personal data for the guest. Mirrors the fields in `user_profiles` and `user_health_profiles` (name, document numbers, dietary preference, allergies, emergency contact, etc.). JSONB is appropriate here because guests don't have system accounts. |
 
 ---
 
 ## Notifications
 
-| Trigger | Recipient |
-|---|---|
-| Join request submitted | Organizers |
-| Invitation sent | Invited user |
-| Role invitation sent | Invited user |
-| Request accepted | User who requested |
-| Request rejected | User who requested |
-| Invitation accepted | Organizer |
-| Invitation declined | Organizer |
-| Role invitation accepted | Organizer |
-| Role invitation declined | Organizer |
-| Participant removed | Removed participant |
-| Passport expiry warning | Participant |
+| Trigger                  | Recipient           |
+| ------------------------ | ------------------- |
+| Join request submitted   | Organizers          |
+| Invitation sent          | Invited user        |
+| Role invitation sent     | Invited user        |
+| Request accepted         | User who requested  |
+| Request rejected         | User who requested  |
+| Invitation accepted      | Organizer           |
+| Invitation declined      | Organizer           |
+| Role invitation accepted | Organizer           |
+| Role invitation declined | Organizer           |
+| Participant removed      | Removed participant |
+| Passport expiry warning  | Participant         |
 
 ---
 

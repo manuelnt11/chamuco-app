@@ -15,32 +15,32 @@ This document reflects the **MVP scope** of the trips module. The full itinerary
 
 ## Trip Record (`trips`) — Core Fields
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `name` | String | Trip name (e.g., "Cartagena Long Weekend"). |
-| `description` | Text (nullable) | Optional public description shown on the trip page. |
-| `cover_type` | Enum `CoverType` | `IMAGE` or `EMOJI`. Determines the visual identity of the trip. |
-| `cover_image_url` | String (nullable) | URL in Cloud Storage. Required when `cover_type = IMAGE`. |
-| `cover_emoji` | String (nullable) | A single Unicode emoji character. Required when `cover_type = EMOJI`. |
-| `status` | Enum `TripStatus` | Current lifecycle state. |
-| `visibility` | Enum `TripVisibility` | Discoverability setting. |
-| `start_date` | Date | Trip start date (trip begins at 00:00). |
-| `end_date` | Date | Trip end date (trip ends at 24:00). |
-| `primary_timezone` | String (IANA) | Timezone used for date/time display. |
-| `base_currency` | char(3) (ISO 4217) | The reference currency for budget items. |
-| `participant_capacity` | Integer | **Required.** Maximum number of confirmed traveling participants. Must be ≥ 1. May be updated while `DRAFT` or `OPEN`; cannot be reduced below the current confirmed participant count. |
-| `departure_country` | char(2) | ISO 3166-1 alpha-2. The country the group departs from. |
-| `departure_city` | Text | The city the group departs from. |
-| `return_country` | char(2) (nullable) | ISO 3166-1 alpha-2. The country the group returns to. `null` means the group returns to the departure country. |
-| `return_city` | Text (nullable) | The city the group returns to. `null` means the group returns to the departure city. |
-| `itinerary_notes` | Text (nullable) | Free-text itinerary field. Supports multi-line content. Not structured — intended for quick notes, agenda outlines, or day-by-day plans in plain text. |
-| `feedback_open_until` | Timestamp (nullable) | Set at `COMPLETED` transition. Feedback and recognition submissions accepted until this time. |
-| `points_distributed` | Boolean | Set to `true` after Chamuco Points have been distributed. Prevents duplicate distribution on retry. |
-| `agency_id` | UUID (nullable) | FK → `agencies.id`. Set if the trip is managed by a travel agency. |
-| `created_by` | UUID | FK → `users.id`. The user who created the trip (first ORGANIZER). |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field                  | Type                  | Description                                                                                                                                                                             |
+| ---------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | UUID                  |                                                                                                                                                                                         |
+| `name`                 | String                | Trip name (e.g., "Cartagena Long Weekend").                                                                                                                                             |
+| `description`          | Text (nullable)       | Optional public description shown on the trip page.                                                                                                                                     |
+| `cover_type`           | Enum `CoverType`      | `IMAGE` or `EMOJI`. Determines the visual identity of the trip.                                                                                                                         |
+| `cover_image_url`      | String (nullable)     | URL in Cloud Storage. Required when `cover_type = IMAGE`.                                                                                                                               |
+| `cover_emoji`          | String (nullable)     | A single Unicode emoji character. Required when `cover_type = EMOJI`.                                                                                                                   |
+| `status`               | Enum `TripStatus`     | Current lifecycle state.                                                                                                                                                                |
+| `visibility`           | Enum `TripVisibility` | Discoverability setting.                                                                                                                                                                |
+| `start_date`           | Date                  | Trip start date (trip begins at 00:00).                                                                                                                                                 |
+| `end_date`             | Date                  | Trip end date (trip ends at 24:00).                                                                                                                                                     |
+| `primary_timezone`     | String (IANA)         | Timezone used for date/time display.                                                                                                                                                    |
+| `base_currency`        | char(3) (ISO 4217)    | The reference currency for budget items.                                                                                                                                                |
+| `participant_capacity` | Integer               | **Required.** Maximum number of confirmed traveling participants. Must be ≥ 1. May be updated while `DRAFT` or `OPEN`; cannot be reduced below the current confirmed participant count. |
+| `departure_country`    | char(2)               | ISO 3166-1 alpha-2. The country the group departs from.                                                                                                                                 |
+| `departure_city`       | Text                  | The city the group departs from.                                                                                                                                                        |
+| `return_country`       | char(2) (nullable)    | ISO 3166-1 alpha-2. The country the group returns to. `null` means the group returns to the departure country.                                                                          |
+| `return_city`          | Text (nullable)       | The city the group returns to. `null` means the group returns to the departure city.                                                                                                    |
+| `itinerary_notes`      | Text (nullable)       | Free-text itinerary field. Supports multi-line content. Not structured — intended for quick notes, agenda outlines, or day-by-day plans in plain text.                                  |
+| `feedback_open_until`  | Timestamp (nullable)  | Set at `COMPLETED` transition. Feedback and recognition submissions accepted until this time.                                                                                           |
+| `points_distributed`   | Boolean               | Set to `true` after Chamuco Points have been distributed. Prevents duplicate distribution on retry.                                                                                     |
+| `agency_id`            | UUID (nullable)       | FK → `agencies.id`. Set if the trip is managed by a travel agency.                                                                                                                      |
+| `created_by`           | UUID                  | FK → `users.id`. The user who created the trip (first ORGANIZER).                                                                                                                       |
+| `created_at`           | Timestamp             |                                                                                                                                                                                         |
+| `updated_at`           | Timestamp             |                                                                                                                                                                                         |
 
 The `CoverType` enum and the mutual exclusivity rule between `cover_image_url` and `cover_emoji` are shared with the `groups` table. See [`features/community.md`](./community.md).
 
@@ -63,14 +63,14 @@ This decision can be changed later by the organizer, but declaring it upfront en
 
 A trip progresses through the following statuses (enum: `TripStatus`):
 
-| Value | Description |
-|---|---|
-| `DRAFT` | Trip is being planned. Not yet shared or open for invitations. |
-| `OPEN` | Trip is open for invitations and participant confirmations. |
-| `CONFIRMED` | Trip is confirmed and edit-restricted. All strict pre-trip tasks must be resolved (post-MVP). |
-| `IN_PROGRESS` | Trip is currently happening (departure date has passed). |
-| `COMPLETED` | Trip has ended. |
-| `CANCELLED` | Trip was cancelled. Participants are notified. |
+| Value         | Description                                                                                   |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| `DRAFT`       | Trip is being planned. Not yet shared or open for invitations.                                |
+| `OPEN`        | Trip is open for invitations and participant confirmations.                                   |
+| `CONFIRMED`   | Trip is confirmed and edit-restricted. All strict pre-trip tasks must be resolved (post-MVP). |
+| `IN_PROGRESS` | Trip is currently happening (departure date has passed).                                      |
+| `COMPLETED`   | Trip has ended.                                                                               |
+| `CANCELLED`   | Trip was cancelled. Participants are notified.                                                |
 
 ---
 
@@ -94,11 +94,11 @@ Once a trip enters `IN_PROGRESS` status, any modification (destinations, dates, 
 
 Within a trip, each member holds a role (enum: `TripRole`). See [`features/participants.md`](./participants.md) for the full role model and co-organizer permission system.
 
-| Value | Description |
-|---|---|
-| `ORGANIZER` | Full administrative control. All permissions always granted. May or may not travel. Multiple organizers allowed. |
-| `CO_ORGANIZER` | Delegated helper with a configurable set of permissions. May or may not travel. |
-| `PARTICIPANT` | Confirmed traveler. Standard access. Always counts as a traveling participant. |
+| Value          | Description                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `ORGANIZER`    | Full administrative control. All permissions always granted. May or may not travel. Multiple organizers allowed. |
+| `CO_ORGANIZER` | Delegated helper with a configurable set of permissions. May or may not travel.                                  |
+| `PARTICIPANT`  | Confirmed traveler. Standard access. Always counts as a traveling participant.                                   |
 
 `INVITED`, `DECLINED`, and `WAITLISTED` are **participant statuses** (`ParticipantStatus`), not roles. See [`features/participants.md`](./participants.md).
 
@@ -108,9 +108,9 @@ Within a trip, each member holds a role (enum: `TripRole`). See [`features/parti
 
 Enum: `TripVisibility`. **Visibility controls discoverability only** — it does not determine who can be invited. Organizers can always invite any user regardless of visibility setting.
 
-| Value | Description |
-|---|---|
-| `PUBLIC` | Listed publicly in the community feed. Any registered user can discover and view the trip. |
+| Value     | Description                                                                                                                                                                                                                  |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PUBLIC`  | Listed publicly in the community feed. Any registered user can discover and view the trip.                                                                                                                                   |
 | `PRIVATE` | Not searchable and not publicly listed. Visible only to members of groups explicitly listed in `trip_visible_to_groups`. If no groups are defined, the trip is invisible to everyone except its members and direct invitees. |
 
 **Visibility is required at creation** — no default is applied. It may be changed by the organizer at any time; changing visibility does not affect pending requests or invitations already in flight.
@@ -129,17 +129,17 @@ An organizer generates a **shareable invite link** for the trip. The link encode
 
 ### Schema (`trip_invite_links`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | FK → `trips.id` |
-| `token` | Text | Unique random token. Included in the shareable URL. |
-| `created_by` | UUID | FK → `users.id`. The organizer who generated the link. |
-| `expires_at` | Timestamp (nullable) | If set, the link is rejected after this time. |
-| `max_uses` | Integer (nullable) | If set, the link is rejected once `use_count` reaches this value. |
-| `use_count` | Integer | Number of times the link has been successfully used. Default 0. |
-| `revoked_at` | Timestamp (nullable) | Set when the organizer explicitly revokes the link. |
-| `created_at` | Timestamp | |
+| Field        | Type                 | Description                                                       |
+| ------------ | -------------------- | ----------------------------------------------------------------- |
+| `id`         | UUID                 |                                                                   |
+| `trip_id`    | UUID                 | FK → `trips.id`                                                   |
+| `token`      | Text                 | Unique random token. Included in the shareable URL.               |
+| `created_by` | UUID                 | FK → `users.id`. The organizer who generated the link.            |
+| `expires_at` | Timestamp (nullable) | If set, the link is rejected after this time.                     |
+| `max_uses`   | Integer (nullable)   | If set, the link is rejected once `use_count` reaches this value. |
+| `use_count`  | Integer              | Number of times the link has been successfully used. Default 0.   |
+| `revoked_at` | Timestamp (nullable) | Set when the organizer explicitly revokes the link.               |
+| `created_at` | Timestamp            |                                                                   |
 
 ### Behavior
 
@@ -185,15 +185,15 @@ Every trip must have at least one destination. Destinations are ordered — the 
 
 ### Schema
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | FK → `trips.id` |
-| `position` | Integer | 1-based ordering. Determines the route sequence. Min 1 record required per trip. |
-| `country_code` | char(2) | ISO 3166-1 alpha-2. |
-| `city` | Text | City name. |
-| `label` | Text (nullable) | Optional display name for this stop (e.g., "Overnight in Granada"). |
-| `created_at` | Timestamp | |
+| Field          | Type            | Description                                                                      |
+| -------------- | --------------- | -------------------------------------------------------------------------------- |
+| `id`           | UUID            |                                                                                  |
+| `trip_id`      | UUID            | FK → `trips.id`                                                                  |
+| `position`     | Integer         | 1-based ordering. Determines the route sequence. Min 1 record required per trip. |
+| `country_code` | char(2)         | ISO 3166-1 alpha-2.                                                              |
+| `city`         | Text            | City name.                                                                       |
+| `label`        | Text (nullable) | Optional display name for this stop (e.g., "Overnight in Granada").              |
+| `created_at`   | Timestamp       |                                                                                  |
 
 ### Rules
 
@@ -219,17 +219,17 @@ The budget is a **simple named list of cost items**. It is not linked to partici
 
 ### Schema
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | FK → `trips.id` |
-| `name` | Text | Item name (e.g., "Flights", "Hotel — 3 nights", "Bus to Cartagena"). |
-| `description` | Text (nullable) | Optional detail or note about this cost item. |
-| `amount` | Numeric(12,2) | Cost amount. |
-| `currency` | char(3) | ISO 4217. Defaults to the trip's `base_currency` if not specified. |
-| `created_by` | UUID | FK → `users.id`. |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field         | Type            | Description                                                          |
+| ------------- | --------------- | -------------------------------------------------------------------- |
+| `id`          | UUID            |                                                                      |
+| `trip_id`     | UUID            | FK → `trips.id`                                                      |
+| `name`        | Text            | Item name (e.g., "Flights", "Hotel — 3 nights", "Bus to Cartagena"). |
+| `description` | Text (nullable) | Optional detail or note about this cost item.                        |
+| `amount`      | Numeric(12,2)   | Cost amount.                                                         |
+| `currency`    | char(3)         | ISO 4217. Defaults to the trip's `base_currency` if not specified.   |
+| `created_by`  | UUID            | FK → `users.id`.                                                     |
+| `created_at`  | Timestamp       |                                                                      |
+| `updated_at`  | Timestamp       |                                                                      |
 
 ### Rules
 
@@ -245,14 +245,14 @@ A collaborative list of notes attached to the trip. Notes are for shared informa
 
 ### Schema
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | FK → `trips.id` |
-| `content` | Text | The note content. Supports multi-line text. |
-| `created_by` | UUID | FK → `users.id`. |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field        | Type      | Description                                 |
+| ------------ | --------- | ------------------------------------------- |
+| `id`         | UUID      |                                             |
+| `trip_id`    | UUID      | FK → `trips.id`                             |
+| `content`    | Text      | The note content. Supports multi-line text. |
+| `created_by` | UUID      | FK → `users.id`.                            |
+| `created_at` | Timestamp |                                             |
+| `updated_at` | Timestamp |                                             |
 
 ### Rules
 
@@ -268,14 +268,14 @@ A list of important dates associated with the trip — deadlines, payment dates,
 
 ### Schema
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | FK → `trips.id` |
-| `date` | Date | The date of the event or deadline. |
-| `description` | Text | What the date represents (e.g., "Passport submission deadline", "Flight check-in opens"). |
-| `reminder_enabled` | Boolean | Default `false`. When `true`, a push notification is sent to all confirmed participants 24 hours before the date. |
-| `created_at` | Timestamp | |
+| Field              | Type      | Description                                                                                                       |
+| ------------------ | --------- | ----------------------------------------------------------------------------------------------------------------- |
+| `id`               | UUID      |                                                                                                                   |
+| `trip_id`          | UUID      | FK → `trips.id`                                                                                                   |
+| `date`             | Date      | The date of the event or deadline.                                                                                |
+| `description`      | Text      | What the date represents (e.g., "Passport submission deadline", "Flight check-in opens").                         |
+| `reminder_enabled` | Boolean   | Default `false`. When `true`, a push notification is sent to all confirmed participants 24 hours before the date. |
+| `created_at`       | Timestamp |                                                                                                                   |
 
 ### Rules
 
@@ -345,30 +345,30 @@ A special day that appears before the trip's official departure date. It holds l
 
 ### Itinerary Item — Base Fields
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | Parent trip |
-| `category` | Enum `ItineraryItemCategory` | Top-level type |
-| `subtype` | Enum (per category) | Specific type within the category |
-| `name` | String | Name or description of the item |
-| `duration_minutes` | Integer | Duration in minutes |
-| `start_time` | DateTime (with timezone) | When the item begins |
-| `end_time` | DateTime (with timezone) | Computed or manually set end time |
-| `notes` | Text (rich) | Freeform notes |
-| `distance_km` | Decimal | Physical distance covered |
-| `is_paid` | Boolean | Whether the associated cost has been paid |
-| `participant_ids` | UUID[] | Which specific participants (null = all confirmed) |
-| `currency` | char(3) | Currency of the item's cost |
-| `amount` | Decimal | Total cost |
-| `amount_per_participant` | Decimal | Auto-computed |
-| `base_currency_equivalent` | Decimal | Equivalent in trip base currency |
-| `exchange_rate_snapshot` | Decimal | Snapshotted exchange rate |
-| `status` | Enum `ItineraryItemStatus` | `PLANNED`, `CONFIRMED`, `COMPLETED`, `SKIPPED` |
-| `position` | Integer | Ordering within the day |
-| `created_by` | UUID | |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field                      | Type                         | Description                                        |
+| -------------------------- | ---------------------------- | -------------------------------------------------- |
+| `id`                       | UUID                         |                                                    |
+| `trip_id`                  | UUID                         | Parent trip                                        |
+| `category`                 | Enum `ItineraryItemCategory` | Top-level type                                     |
+| `subtype`                  | Enum (per category)          | Specific type within the category                  |
+| `name`                     | String                       | Name or description of the item                    |
+| `duration_minutes`         | Integer                      | Duration in minutes                                |
+| `start_time`               | DateTime (with timezone)     | When the item begins                               |
+| `end_time`                 | DateTime (with timezone)     | Computed or manually set end time                  |
+| `notes`                    | Text (rich)                  | Freeform notes                                     |
+| `distance_km`              | Decimal                      | Physical distance covered                          |
+| `is_paid`                  | Boolean                      | Whether the associated cost has been paid          |
+| `participant_ids`          | UUID[]                       | Which specific participants (null = all confirmed) |
+| `currency`                 | char(3)                      | Currency of the item's cost                        |
+| `amount`                   | Decimal                      | Total cost                                         |
+| `amount_per_participant`   | Decimal                      | Auto-computed                                      |
+| `base_currency_equivalent` | Decimal                      | Equivalent in trip base currency                   |
+| `exchange_rate_snapshot`   | Decimal                      | Snapshotted exchange rate                          |
+| `status`                   | Enum `ItineraryItemStatus`   | `PLANNED`, `CONFIRMED`, `COMPLETED`, `SKIPPED`     |
+| `position`                 | Integer                      | Ordering within the day                            |
+| `created_by`               | UUID                         |                                                    |
+| `created_at`               | Timestamp                    |                                                    |
+| `updated_at`               | Timestamp                    |                                                    |
 
 ### Item Category & Subtype Taxonomy
 

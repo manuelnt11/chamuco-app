@@ -15,13 +15,13 @@ The calendar is personal to each user: it reflects only trips where the user is 
 
 ## Data Sources
 
-| Source | Included condition |
-|---|---|
-| Trips | User is a `CONFIRMED` participant or `ORGANIZER` / `CO_ORGANIZER` |
-| Group trips | Trip linked to a group the user belongs to, and user is confirmed on the trip |
-| Events (`FREE`) | User has been explicitly invited (any RSVP state) |
-| Events (`GROUP`) | User is an active member of the linked group |
-| Events (`TRIP`) | User is a confirmed participant on the linked trip |
+| Source           | Included condition                                                            |
+| ---------------- | ----------------------------------------------------------------------------- |
+| Trips            | User is a `CONFIRMED` participant or `ORGANIZER` / `CO_ORGANIZER`             |
+| Group trips      | Trip linked to a group the user belongs to, and user is confirmed on the trip |
+| Events (`FREE`)  | User has been explicitly invited (any RSVP state)                             |
+| Events (`GROUP`) | User is an active member of the linked group                                  |
+| Events (`TRIP`)  | User is a confirmed participant on the linked trip                            |
 
 Waitlisted participants (`WAITLISTED`) may optionally see the trip/event in the calendar as a "pending" item — separate from confirmed items.
 
@@ -53,24 +53,24 @@ A chronological list of all future and in-progress trips and events, sorted by s
 
 Available in both views:
 
-| Filter | Options |
-|---|---|
-| Type | All / Trips only / Events only |
-| Scope | All / My own / Group-linked |
+| Filter | Options                             |
+| ------ | ----------------------------------- |
+| Type   | All / Trips only / Events only      |
+| Scope  | All / My own / Group-linked         |
 | Status | All / Confirmed only / Pending RSVP |
 
 ---
 
 ## Color Coding
 
-| Item | Color treatment |
-|---|---|
-| Own trip (user is organizer or participant, not via group) | Primary color |
-| Group-linked trip | Secondary color or group's avatar color (TBD) |
-| Own-created event | Primary color, lighter shade |
-| Group event | Secondary color, lighter shade |
-| In-progress item | Accented / highlighted |
-| RSVP pending | Dashed border or reduced opacity |
+| Item                                                       | Color treatment                               |
+| ---------------------------------------------------------- | --------------------------------------------- |
+| Own trip (user is organizer or participant, not via group) | Primary color                                 |
+| Group-linked trip                                          | Secondary color or group's avatar color (TBD) |
+| Own-created event                                          | Primary color, lighter shade                  |
+| Group event                                                | Secondary color, lighter shade                |
+| In-progress item                                           | Accented / highlighted                        |
+| RSVP pending                                               | Dashed border or reduced opacity              |
 
 Exact color mapping depends on the chosen palette (see `design/visual-identity.md`).
 
@@ -80,14 +80,14 @@ Exact color mapping depends on the chosen palette (see `design/visual-identity.m
 
 Each trip in the upcoming view shows a condensed card:
 
-| Element | Source |
-|---|---|
-| Trip name | `trips.name` |
-| Date range | `trips.start_date` – `trips.end_date` |
-| Status badge | `trips.status` (`OPEN`, `CONFIRMED`, `IN_PROGRESS`) |
-| Participant count | Count of `CONFIRMED` participants |
+| Element                      | Source                                                           |
+| ---------------------------- | ---------------------------------------------------------------- |
+| Trip name                    | `trips.name`                                                     |
+| Date range                   | `trips.start_date` – `trips.end_date`                            |
+| Status badge                 | `trips.status` (`OPEN`, `CONFIRMED`, `IN_PROGRESS`)              |
+| Participant count            | Count of `CONFIRMED` participants                                |
 | Budget estimate (if visible) | From `trips.budget_visibility` setting — see `features/trips.md` |
-| Primary destination | Derived from first or most prominent itinerary location |
+| Primary destination          | Derived from first or most prominent itinerary location          |
 
 ---
 
@@ -95,13 +95,13 @@ Each trip in the upcoming view shows a condensed card:
 
 Each event shows:
 
-| Element | Source |
-|---|---|
-| Event title | `events.title` |
-| Date/time | `events.starts_at` |
-| Category badge | `events.category` |
-| RSVP state | The user's current `event_attendees.rsvp` |
-| Context | "Group: {group name}" or "Trip: {trip name}" or standalone |
+| Element        | Source                                                     |
+| -------------- | ---------------------------------------------------------- |
+| Event title    | `events.title`                                             |
+| Date/time      | `events.starts_at`                                         |
+| Category badge | `events.category`                                          |
+| RSVP state     | The user's current `event_attendees.rsvp`                  |
+| Context        | "Group: {group name}" or "Trip: {trip name}" or standalone |
 
 ---
 

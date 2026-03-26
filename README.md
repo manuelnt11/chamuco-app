@@ -14,16 +14,16 @@ The closest reference is Strava, applied to group travel.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Runtime | Node.js + TypeScript |
-| Backend | NestJS |
-| Frontend | Next.js (React) + PWA |
-| Database | PostgreSQL (Drizzle ORM) |
-| Real-time | Firestore (Firebase) |
-| Auth | Firebase Authentication |
-| Cloud | Google Cloud Platform |
-| Monorepo | pnpm workspaces + Turborepo |
+| Layer     | Technology                  |
+| --------- | --------------------------- |
+| Runtime   | Node.js + TypeScript        |
+| Backend   | NestJS                      |
+| Frontend  | Next.js (React) + PWA       |
+| Database  | PostgreSQL (Drizzle ORM)    |
+| Real-time | Firestore (Firebase)        |
+| Auth      | Firebase Authentication     |
+| Cloud     | Google Cloud Platform       |
+| Monorepo  | pnpm workspaces + Turborepo |
 
 For full stack details, see [`documentation/overview/tech-stack.md`](documentation/overview/tech-stack.md).
 
@@ -66,6 +66,7 @@ pnpm install
 ### 3. Set up environment variables
 
 Each app requires its own `.env.local` file. See the respective README files:
+
 - [`apps/api/README.md`](apps/api/README.md) — Backend setup
 - [`apps/web/README.md`](apps/web/README.md) — Frontend setup
 
@@ -82,16 +83,16 @@ pnpm --filter web dev
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start all apps in development mode |
-| `pnpm build` | Build all apps for production |
-| `pnpm lint` | Lint all packages |
-| `pnpm typecheck` | Type-check all packages |
-| `pnpm test` | Run all unit tests |
-| `pnpm test:coverage` | Run tests with coverage |
-| `pnpm format` | Format all files with Prettier |
-| `pnpm format:check` | Check formatting without writing |
+| Command              | Description                        |
+| -------------------- | ---------------------------------- |
+| `pnpm dev`           | Start all apps in development mode |
+| `pnpm build`         | Build all apps for production      |
+| `pnpm lint`          | Lint all packages                  |
+| `pnpm typecheck`     | Type-check all packages            |
+| `pnpm test`          | Run all unit tests                 |
+| `pnpm test:coverage` | Run tests with coverage            |
+| `pnpm format`        | Format all files with Prettier     |
+| `pnpm format:check`  | Check formatting without writing   |
 
 ## Documentation
 

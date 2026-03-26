@@ -15,22 +15,24 @@ Chamuco App is designed in Colombia but intended for global use. Localization (l
 
 ### Supported Languages at Launch
 
-| Code | Language | Default |
-|---|---|---|
-| `es` | Spanish | Yes (default) |
-| `en` | English | No |
+| Code | Language | Default       |
+| ---- | -------- | ------------- |
+| `es` | Spanish  | Yes (default) |
+| `en` | English  | No            |
 
 ### The No-Hardcoded-Text Rule
 
 > **This is a non-negotiable frontend constraint:** No user-facing string may be written directly in a component, template, or page. Every piece of visible text — labels, placeholders, tooltips, error messages, empty states, button text, email subjects — must be a reference to a locale file key.
 
 This applies to:
+
 - React / Next.js components (JSX/TSX)
 - Email templates
 - Push notification payloads
 - Any string that reaches the user interface
 
 This does **not** apply to:
+
 - Internal code comments
 - Log messages (server-side only, never user-facing)
 - Enum values or variable names (always English, never translated)
@@ -117,6 +119,7 @@ Keys follow **snake_case dot-notation** with a feature namespace prefix:
 ```
 
 Examples:
+
 - `trips.status.confirmed`
 - `trips.messages.invite_sent`
 - `participants.labels.travel_profile`
@@ -126,6 +129,7 @@ Examples:
 - `notifications.task_due_soon`
 
 Rules:
+
 - Keys are always in **English**, even if the translated value is in Spanish.
 - Keys are lowercase snake_case — no camelCase, no hyphens.
 - Keys should describe the **context and role** of the string, not its content (e.g., `trips.labels.departure` not `trips.labels.fecha_salida`).
@@ -133,20 +137,20 @@ Rules:
 
 ### Scope of Translation
 
-| Content | Translated | Notes |
-|---|---|---|
-| UI labels, buttons, navigation | Yes | All |
-| Placeholders and input hints | Yes | All |
-| Tooltips and helper text | Yes | All |
-| Empty state messages | Yes | All |
-| Error messages and validation feedback | Yes | Frontend + API |
-| Notification messages (in-app, push) | Yes | |
-| Email subject lines and body | Yes | |
-| System-generated messages (e.g., "User joined the trip") | Yes | |
-| Enum display labels (e.g., trip status names) | Yes | **Labels only** — enum values themselves stay in English |
-| User-generated content (trip names, messages, notes) | No | Stored and displayed as-is |
-| Server log messages | No | Internal only, always English |
-| Code comments | No | Always English |
+| Content                                                  | Translated | Notes                                                    |
+| -------------------------------------------------------- | ---------- | -------------------------------------------------------- |
+| UI labels, buttons, navigation                           | Yes        | All                                                      |
+| Placeholders and input hints                             | Yes        | All                                                      |
+| Tooltips and helper text                                 | Yes        | All                                                      |
+| Empty state messages                                     | Yes        | All                                                      |
+| Error messages and validation feedback                   | Yes        | Frontend + API                                           |
+| Notification messages (in-app, push)                     | Yes        |                                                          |
+| Email subject lines and body                             | Yes        |                                                          |
+| System-generated messages (e.g., "User joined the trip") | Yes        |                                                          |
+| Enum display labels (e.g., trip status names)            | Yes        | **Labels only** — enum values themselves stay in English |
+| User-generated content (trip names, messages, notes)     | No         | Stored and displayed as-is                               |
+| Server log messages                                      | No         | Internal only, always English                            |
+| Code comments                                            | No         | Always English                                           |
 
 ### Enforcement
 
@@ -161,10 +165,10 @@ Rules:
 
 ### Supported Currencies at Launch
 
-| Code | Name | Symbol | Default |
-|---|---|---|---|
-| `COP` | Colombian Peso | $ | Yes (default) |
-| `USD` | US Dollar | $ | No |
+| Code  | Name           | Symbol | Default       |
+| ----- | -------------- | ------ | ------------- |
+| `COP` | Colombian Peso | $      | Yes (default) |
+| `USD` | US Dollar      | $      | No            |
 
 ### Architecture
 

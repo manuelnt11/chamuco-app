@@ -22,12 +22,14 @@ Both providers are supported at launch. Users may link multiple providers to the
 Firebase handles the full OAuth 2.0 / OpenID Connect flow natively.
 
 **Frontend flow:**
+
 1. User clicks "Sign in with Google".
 2. Firebase SDK (`firebase/auth`) opens the Google OAuth consent screen.
 3. On success, Firebase issues a **Firebase ID token** to the client.
 4. The client sends the ID token to the backend on the first request to establish a session.
 
 **Backend flow:**
+
 1. Backend receives the Firebase ID token in the `Authorization: Bearer <token>` header.
 2. Backend verifies it using the **Firebase Admin SDK** (`admin.auth().verifyIdToken(token)`).
 3. On first login, backend creates the `users` record using the verified `uid`, `email`, and `display_name` from the decoded token. See [User Provisioning](#user-provisioning) below.
@@ -39,6 +41,7 @@ Firebase handles the full OAuth 2.0 / OpenID Connect flow natively.
 Firebase Authentication supports Facebook Login natively via the Facebook OAuth flow. The integration is symmetric with Google Sign-In from the backend's perspective — Firebase abstracts the provider difference.
 
 **Frontend flow:**
+
 1. User clicks "Sign in with Facebook".
 2. Firebase SDK (`firebase/auth`) opens the Facebook OAuth consent dialog.
 3. On success, Firebase issues a **Firebase ID token** to the client.
@@ -54,13 +57,13 @@ Firebase Authentication supports Facebook Login natively via the Facebook OAuth 
 
 Firebase ID tokens are short-lived (1 hour by default). The Firebase client SDK handles token refresh automatically and transparently — the client always sends a valid, non-expired token without any custom refresh logic in the app.
 
-| Concern | Handled by |
-|---|---|
-| Token issuance | Firebase Authentication |
-| Token signing & verification | Firebase (RS256, Google-managed keys) |
-| Token refresh | Firebase SDK (automatic, client-side) |
-| Token revocation | `admin.auth().revokeRefreshTokens(uid)` — called on logout or security events |
-| Brute force / rate limiting | Firebase (built-in) |
+| Concern                      | Handled by                                                                    |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| Token issuance               | Firebase Authentication                                                       |
+| Token signing & verification | Firebase (RS256, Google-managed keys)                                         |
+| Token refresh                | Firebase SDK (automatic, client-side)                                         |
+| Token revocation             | `admin.auth().revokeRefreshTokens(uid)` — called on logout or security events |
+| Brute force / rate limiting  | Firebase (built-in)                                                           |
 
 ---
 
@@ -81,6 +84,7 @@ A custom NestJS guard that replaces the generic `JwtAuthGuard`. On each request:
 ### User provisioning
 
 On the first successful authentication (either provider):
+
 - The backend creates a `users` record with `auth_provider = GOOGLE | FACEBOOK` and `firebase_uid` from the decoded token.
 - The `email` and `display_name` are pre-populated directly from the provider's token — no manual entry required.
   - Google: `display_name` from the Google account name.
@@ -93,13 +97,14 @@ On the first successful authentication (either provider):
 
 Authorization uses **Role-Based Access Control (RBAC)** layered across three scopes:
 
-| Layer | Roles | Enforced at |
-|---|---|---|
-| Platform | `USER`, `SUPPORT_ADMIN` | Global API guards |
-| Trip | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT` | Trip-scoped guards |
-| Group | `OWNER`, `ADMIN`, `MEMBER` | Group-scoped guards |
+| Layer    | Roles                                      | Enforced at         |
+| -------- | ------------------------------------------ | ------------------- |
+| Platform | `USER`, `SUPPORT_ADMIN`                    | Global API guards   |
+| Trip     | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT` | Trip-scoped guards  |
+| Group    | `OWNER`, `ADMIN`, `MEMBER`                 | Group-scoped guards |
 
 NestJS implementation:
+
 - A custom `@Roles()` decorator declares required roles on controller methods.
 - A `RolesGuard` reads the current user's roles from `req.user` and compares against the declared requirements.
 - For trip/group-scoped roles, the guard resolves the user's role within the specific resource being accessed (trip participant record or group member record).

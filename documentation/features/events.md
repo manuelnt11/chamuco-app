@@ -17,11 +17,11 @@ Events are a natural extension of the group-travel identity of the platform: gro
 
 Every event exists in one of three modes, determined at creation and immutable:
 
-| Mode | Description |
-|---|---|
-| `FREE` | Standalone event. Not linked to any group or trip. Accessible to any invited user. |
-| `GROUP` | Linked to a specific group. Visible and joinable by group members. Organized by a group member (any role). |
-| `TRIP` | Linked to a specific trip. Accessible to trip participants. Useful for pre-departure planning meetings or post-trip celebrations. |
+| Mode    | Description                                                                                                                       |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `FREE`  | Standalone event. Not linked to any group or trip. Accessible to any invited user.                                                |
+| `GROUP` | Linked to a specific group. Visible and joinable by group members. Organized by a group member (any role).                        |
+| `TRIP`  | Linked to a specific trip. Accessible to trip participants. Useful for pre-departure planning meetings or post-trip celebrations. |
 
 A `TRIP` event inherits the trip's participant list as the default invitee base, but attendance is always opt-in (no one is automatically confirmed). A `GROUP` event notifies all active group members, but again, attendance is opt-in.
 
@@ -29,49 +29,49 @@ A `TRIP` event inherits the trip's participant list as the default invitee base,
 
 ## Event Categories
 
-| Category | Description |
-|---|---|
-| `PRESENTATION` | Sharing photos, stories, or experiences (e.g., post-trip slideshow, destination pitch). |
-| `PLANNING` | Organizing logistics for an upcoming trip (route selection, task assignment, budget review). |
-| `CELEBRATION` | Social gathering with no formal agenda (trip birthday, group anniversary, farewell). |
-| `AWARDS` | Formal recognition ceremony — awarding recognitions, announcing winners of group rankings, presenting group stats. Typically scheduled annually for groups. |
-| `OTHER` | Catch-all for events that do not fit the above. |
+| Category       | Description                                                                                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PRESENTATION` | Sharing photos, stories, or experiences (e.g., post-trip slideshow, destination pitch).                                                                     |
+| `PLANNING`     | Organizing logistics for an upcoming trip (route selection, task assignment, budget review).                                                                |
+| `CELEBRATION`  | Social gathering with no formal agenda (trip birthday, group anniversary, farewell).                                                                        |
+| `AWARDS`       | Formal recognition ceremony — awarding recognitions, announcing winners of group rankings, presenting group stats. Typically scheduled annually for groups. |
+| `OTHER`        | Catch-all for events that do not fit the above.                                                                                                             |
 
 ---
 
 ## Event Record (`events`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `title` | String | Display name of the event |
-| `description` | Text (optional) | Rich text description of the agenda or purpose |
-| `mode` | Enum `EventMode` | `FREE`, `GROUP`, `TRIP` |
-| `category` | Enum `EventCategory` | See above |
-| `organizer_user_id` | UUID | FK → `users.id` — who created and manages the event |
-| `linked_group_id` | UUID (nullable) | FK → `groups.id` — set for `GROUP` mode |
-| `linked_trip_id` | UUID (nullable) | FK → `trips.id` — set for `TRIP` mode |
-| `starts_at` | Timestamp (with timezone) | Start date and time |
-| `ends_at` | Timestamp (with timezone) | End date and time (must be ≥ `starts_at`) |
-| `location` | String (optional) | Physical address or venue name |
-| `is_virtual` | Boolean | True if held online; if true, `meeting_url` may be set |
-| `meeting_url` | String (optional) | Link for online attendance (Zoom, Meet, etc.) |
-| `awards_recognitions` | Boolean | Whether the organizer intends to award recognitions at this event |
-| `awards_points` | Boolean | Whether the event will distribute Chamuco Points to attendees |
-| `points_amount` | Integer (nullable) | Points awarded per attendee if `awards_points` is true |
-| `status` | Enum `EventStatus` | See below |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field                 | Type                      | Description                                                       |
+| --------------------- | ------------------------- | ----------------------------------------------------------------- |
+| `id`                  | UUID                      |                                                                   |
+| `title`               | String                    | Display name of the event                                         |
+| `description`         | Text (optional)           | Rich text description of the agenda or purpose                    |
+| `mode`                | Enum `EventMode`          | `FREE`, `GROUP`, `TRIP`                                           |
+| `category`            | Enum `EventCategory`      | See above                                                         |
+| `organizer_user_id`   | UUID                      | FK → `users.id` — who created and manages the event               |
+| `linked_group_id`     | UUID (nullable)           | FK → `groups.id` — set for `GROUP` mode                           |
+| `linked_trip_id`      | UUID (nullable)           | FK → `trips.id` — set for `TRIP` mode                             |
+| `starts_at`           | Timestamp (with timezone) | Start date and time                                               |
+| `ends_at`             | Timestamp (with timezone) | End date and time (must be ≥ `starts_at`)                         |
+| `location`            | String (optional)         | Physical address or venue name                                    |
+| `is_virtual`          | Boolean                   | True if held online; if true, `meeting_url` may be set            |
+| `meeting_url`         | String (optional)         | Link for online attendance (Zoom, Meet, etc.)                     |
+| `awards_recognitions` | Boolean                   | Whether the organizer intends to award recognitions at this event |
+| `awards_points`       | Boolean                   | Whether the event will distribute Chamuco Points to attendees     |
+| `points_amount`       | Integer (nullable)        | Points awarded per attendee if `awards_points` is true            |
+| `status`              | Enum `EventStatus`        | See below                                                         |
+| `created_at`          | Timestamp                 |                                                                   |
+| `updated_at`          | Timestamp                 |                                                                   |
 
 ### Event Status (enum: `EventStatus`)
 
-| Value | Description |
-|---|---|
-| `DRAFT` | Created but not yet published. Only visible to the organizer. |
-| `PUBLISHED` | Visible to the target audience (group members, trip participants, or directly invited users). RSVPs are open. |
-| `IN_PROGRESS` | Event is currently happening (start time has passed). |
-| `COMPLETED` | Event has ended. Recognitions and points (if applicable) may now be distributed. |
-| `CANCELLED` | Event was cancelled by the organizer. All attendees are notified. |
+| Value         | Description                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `DRAFT`       | Created but not yet published. Only visible to the organizer.                                                 |
+| `PUBLISHED`   | Visible to the target audience (group members, trip participants, or directly invited users). RSVPs are open. |
+| `IN_PROGRESS` | Event is currently happening (start time has passed).                                                         |
+| `COMPLETED`   | Event has ended. Recognitions and points (if applicable) may now be distributed.                              |
+| `CANCELLED`   | Event was cancelled by the organizer. All attendees are notified.                                             |
 
 ---
 
@@ -79,14 +79,14 @@ A `TRIP` event inherits the trip's participant list as the default invitee base,
 
 ### Event Attendee Record (`event_attendees`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `event_id` | UUID | FK → `events.id` |
-| `user_id` | UUID | FK → `users.id` |
-| `rsvp` | Enum `EventRsvp` | `CONFIRMED`, `TENTATIVE`, `DECLINED` |
-| `responded_at` | Timestamp | |
-| `invited_by` | UUID (nullable) | FK → `users.id` — who explicitly invited this user (null if self-joined via group/trip) |
+| Field          | Type             | Description                                                                             |
+| -------------- | ---------------- | --------------------------------------------------------------------------------------- |
+| `id`           | UUID             |                                                                                         |
+| `event_id`     | UUID             | FK → `events.id`                                                                        |
+| `user_id`      | UUID             | FK → `users.id`                                                                         |
+| `rsvp`         | Enum `EventRsvp` | `CONFIRMED`, `TENTATIVE`, `DECLINED`                                                    |
+| `responded_at` | Timestamp        |                                                                                         |
+| `invited_by`   | UUID (nullable)  | FK → `users.id` — who explicitly invited this user (null if self-joined via group/trip) |
 
 ### RSVP Flow
 
@@ -103,19 +103,21 @@ Events may optionally define a maximum attendee capacity via `max_attendees: Int
 
 When capacity is defined and all spots are filled, new RSVPs that would otherwise be `CONFIRMED` instead enter a **waitlist**. The `event_attendees` record gains:
 
-| Field | Type | Description |
-|---|---|---|
-| `waitlist_position` | Integer (nullable) | Set when the attendee is waitlisted. Null if confirmed or not on waitlist. |
-| `waitlisted_at` | Timestamp (nullable) | When the attendee entered the waitlist. |
+| Field               | Type                 | Description                                                                |
+| ------------------- | -------------------- | -------------------------------------------------------------------------- |
+| `waitlist_position` | Integer (nullable)   | Set when the attendee is waitlisted. Null if confirmed or not on waitlist. |
+| `waitlisted_at`     | Timestamp (nullable) | When the attendee entered the waitlist.                                    |
 
 ### Waitlist Promotion
 
 When a `CONFIRMED` attendee changes their RSVP to `DECLINED` or is removed:
+
 1. The attendee at `waitlist_position = 1` is notified that a spot has opened.
 2. They have a configurable window (default: 24 hours) to confirm. If they do not respond, the next person is notified.
 3. Promoted attendees move from waitlisted to `CONFIRMED`.
 
 The event organizer can:
+
 - View the full waitlist with positions and timestamps.
 - Manually promote any waitlisted attendee to `CONFIRMED`.
 - Increase `max_attendees`, which triggers sequential promotion starting from position 1.
@@ -149,15 +151,15 @@ When an event transitions to `COMPLETED` (automatically at `ends_at` or manually
 
 ## Notifications
 
-| Trigger | Recipients | Content |
-|---|---|---|
-| Event published (`GROUP` mode) | All active group members | "New event: {title} — RSVP now" |
-| Event published (`TRIP` mode) | All confirmed trip participants | "New event for your trip: {title}" |
-| Event published (`FREE` mode) | All explicitly invited users | "{organizer} invited you to: {title}" |
-| RSVP received | Event organizer | "{user} confirmed / declined attendance" |
-| 24h before start | All `CONFIRMED` and `TENTATIVE` attendees | "Reminder: {title} starts tomorrow" |
-| Event completed | All `CONFIRMED` attendees | "Event completed — {title}" |
-| Event cancelled | All attendees with any RSVP | "Event cancelled: {title}" |
+| Trigger                        | Recipients                                | Content                                  |
+| ------------------------------ | ----------------------------------------- | ---------------------------------------- |
+| Event published (`GROUP` mode) | All active group members                  | "New event: {title} — RSVP now"          |
+| Event published (`TRIP` mode)  | All confirmed trip participants           | "New event for your trip: {title}"       |
+| Event published (`FREE` mode)  | All explicitly invited users              | "{organizer} invited you to: {title}"    |
+| RSVP received                  | Event organizer                           | "{user} confirmed / declined attendance" |
+| 24h before start               | All `CONFIRMED` and `TENTATIVE` attendees | "Reminder: {title} starts tomorrow"      |
+| Event completed                | All `CONFIRMED` attendees                 | "Event completed — {title}"              |
+| Event cancelled                | All attendees with any RSVP               | "Event cancelled: {title}"               |
 
 All notification strings reference i18n keys with interpolated values. No hardcoded user-facing strings.
 
