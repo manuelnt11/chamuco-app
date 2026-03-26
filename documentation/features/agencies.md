@@ -25,18 +25,18 @@ This is distinct from a **Group** (a social community of travelers who travel to
 
 ## Agency Record (`agencies`)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `name` | String | Public-facing agency name. |
-| `handle` | String | Unique agency handle for search and mentions (same rules as user `username`). Displayed with `@`. |
-| `description` | Text (nullable) | Public description of the agency. |
-| `logo_url` | String (nullable) | Agency logo (Cloud Storage). |
-| `website_url` | String (nullable) | External website. |
-| `country` | String | ISO 3166-1 alpha-2. Home country of the agency. |
-| `is_verified` | Boolean | Platform-verified agency badge. Granted by `SUPPORT_ADMIN`. Default: `false`. |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field         | Type              | Description                                                                                       |
+| ------------- | ----------------- | ------------------------------------------------------------------------------------------------- |
+| `id`          | UUID              |                                                                                                   |
+| `name`        | String            | Public-facing agency name.                                                                        |
+| `handle`      | String            | Unique agency handle for search and mentions (same rules as user `username`). Displayed with `@`. |
+| `description` | Text (nullable)   | Public description of the agency.                                                                 |
+| `logo_url`    | String (nullable) | Agency logo (Cloud Storage).                                                                      |
+| `website_url` | String (nullable) | External website.                                                                                 |
+| `country`     | String            | ISO 3166-1 alpha-2. Home country of the agency.                                                   |
+| `is_verified` | Boolean           | Platform-verified agency badge. Granted by `SUPPORT_ADMIN`. Default: `false`.                     |
+| `created_at`  | Timestamp         |                                                                                                   |
+| `updated_at`  | Timestamp         |                                                                                                   |
 
 ---
 
@@ -44,20 +44,20 @@ This is distinct from a **Group** (a social community of travelers who travel to
 
 Maps users to an agency with a defined role within the agency.
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `agency_id` | UUID | FK → `agencies.id` |
-| `user_id` | UUID | FK → `users.id` |
-| `role` | Enum `AgencyCoordinatorRole` | `OWNER` or `COORDINATOR` |
-| `joined_at` | Timestamp | |
+| Field       | Type                         | Description              |
+| ----------- | ---------------------------- | ------------------------ |
+| `id`        | UUID                         |                          |
+| `agency_id` | UUID                         | FK → `agencies.id`       |
+| `user_id`   | UUID                         | FK → `users.id`          |
+| `role`      | Enum `AgencyCoordinatorRole` | `OWNER` or `COORDINATOR` |
+| `joined_at` | Timestamp                    |                          |
 
 ### Agency Coordinator Roles (enum: `AgencyCoordinatorRole`)
 
-| Value | Description |
-|---|---|
-| `OWNER` | Full control over the agency: can manage coordinators, edit agency profile, delete the agency. Equivalent to an admin within the agency context. At least one `OWNER` must exist at all times. |
-| `COORDINATOR` | Can create and manage trips on behalf of the agency. Can be assigned as trip organizer or co-organizer on agency trips. Cannot manage agency membership or settings. |
+| Value         | Description                                                                                                                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OWNER`       | Full control over the agency: can manage coordinators, edit agency profile, delete the agency. Equivalent to an admin within the agency context. At least one `OWNER` must exist at all times. |
+| `COORDINATOR` | Can create and manage trips on behalf of the agency. Can be assigned as trip organizer or co-organizer on agency trips. Cannot manage agency membership or settings.                           |
 
 ---
 
@@ -75,6 +75,7 @@ A trip may be associated with an agency via `agency_id` (nullable FK on the `tri
 ## Agency Profile (Public Page)
 
 The public agency page displays:
+
 - Agency name, handle, logo, description, and website.
 - Verification badge (if `is_verified = true`).
 - List of coordinators (those who have opted in to public visibility).
@@ -85,11 +86,11 @@ The public agency page displays:
 
 ## Relationships with Other Entities
 
-| Entity | Relationship |
-|---|---|
-| `users` | A user may belong to at most one agency (`agency_id` on `users`). Agency membership does not affect the user's normal traveler capabilities — they can still create personal trips and groups. |
-| `trips` | A trip can be agency-owned (`agency_id` on `trips`, nullable). A trip without `agency_id` is a personal trip. |
-| `groups` | Groups are independent of agencies. An agency coordinator may also be a group admin, but these are separate entities. |
+| Entity   | Relationship                                                                                                                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`  | A user may belong to at most one agency (`agency_id` on `users`). Agency membership does not affect the user's normal traveler capabilities — they can still create personal trips and groups. |
+| `trips`  | A trip can be agency-owned (`agency_id` on `trips`, nullable). A trip without `agency_id` is a personal trip.                                                                                  |
+| `groups` | Groups are independent of agencies. An agency coordinator may also be a group admin, but these are separate entities.                                                                          |
 
 ---
 

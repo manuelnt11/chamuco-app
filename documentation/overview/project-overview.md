@@ -55,18 +55,18 @@ Coordinating group travel is inherently chaotic. Information is scattered across
 
 ## High-Level Feature Areas
 
-| Area | Description |
-|---|---|
-| **Trips** | The central planning entity. Contains movements, stays, and activities across a full trip lifecycle. |
-| **Participants** | Invitation system with configurable attendance confirmation rules. |
-| **Itinerary** | Timeline view of movements, stays, and activities for a trip. |
-| **Expenses** | Shared expense tracking with multi-currency support and settlement. |
-| **Reservations** | Status tracking for transport and accommodation bookings. |
-| **Users & Profiles** | Accounts with adjustable privacy settings and a public traveler identity. |
-| **Groups** | Collections of users with shared history, internal rankings, and a long-term community identity. |
-| **Community** | Chats, broadcast channels, roles, and permissions. |
-| **Gamification** | Traveler Score, achievements, Chamuco Points, discovery map, group status tiers, recognitions, and post-trip feedback. See `features/gamification.md`. |
-| **Events** | Standalone, group-linked, or trip-linked gatherings: planning sessions, celebrations, award ceremonies. See `features/events.md`. |
+| Area                 | Description                                                                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Trips**            | The central planning entity. Contains movements, stays, and activities across a full trip lifecycle.                                                   |
+| **Participants**     | Invitation system with configurable attendance confirmation rules.                                                                                     |
+| **Itinerary**        | Timeline view of movements, stays, and activities for a trip.                                                                                          |
+| **Expenses**         | Shared expense tracking with multi-currency support and settlement.                                                                                    |
+| **Reservations**     | Status tracking for transport and accommodation bookings.                                                                                              |
+| **Users & Profiles** | Accounts with adjustable privacy settings and a public traveler identity.                                                                              |
+| **Groups**           | Collections of users with shared history, internal rankings, and a long-term community identity.                                                       |
+| **Community**        | Chats, broadcast channels, roles, and permissions.                                                                                                     |
+| **Gamification**     | Traveler Score, achievements, Chamuco Points, discovery map, group status tiers, recognitions, and post-trip feedback. See `features/gamification.md`. |
+| **Events**           | Standalone, group-linked, or trip-linked gatherings: planning sessions, celebrations, award ceremonies. See `features/events.md`.                      |
 
 ---
 

@@ -101,11 +101,13 @@ chamuco-app/
 The monorepo uses **pnpm workspaces** as the package manager and **Turborepo** as the build orchestration layer.
 
 **pnpm** was chosen over npm and yarn for:
+
 - Significantly faster installs via content-addressable storage (packages are never duplicated on disk).
 - Strict dependency isolation — a package can only import what is declared in its own `package.json`, preventing accidental cross-package leakage.
 - Native workspace support with `pnpm-workspace.yaml`.
 
 **Turborepo** sits on top of pnpm workspaces and provides:
+
 - **Task pipelines** — defines the dependency graph between tasks across packages (e.g., `web#build` depends on `shared-types#build`).
 - **Local caching** — task outputs are cached; re-running an unchanged package skips the work entirely.
 - **Remote caching** — integrates with Vercel Remote Cache for sharing build artifacts across CI runs and team machines.
@@ -140,6 +142,7 @@ The pre-commit hook (`.husky/pre-commit`) runs two steps in sequence:
 Because `prettier --write` modifies files in place, Husky re-stages the formatted files automatically — the commit lands already clean.
 
 Coverage thresholds are defined per package:
+
 - `apps/api/jest.config.ts` — `coverageThreshold: { global: { lines: 90, functions: 90, branches: 90, statements: 90 } }`
 - `apps/web/vitest.config.ts` — `coverage: { thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 } }`
 
@@ -163,10 +166,10 @@ Relative imports (e.g., `../../../components/Button`) are **prohibited**. Every 
 
 ### Two alias namespaces
 
-| Alias prefix | Scope | Resolves to |
-|---|---|---|
-| `@/*` | App-internal | The `src/` directory of the **current app** |
-| `@chamuco/*` | Cross-package | A shared package in `packages/` |
+| Alias prefix | Scope         | Resolves to                                 |
+| ------------ | ------------- | ------------------------------------------- |
+| `@/*`        | App-internal  | The `src/` directory of the **current app** |
+| `@chamuco/*` | Cross-package | A shared package in `packages/`             |
 
 These two namespaces are completely separate. `@/` is always local to the app being compiled; `@chamuco/` always refers to a published (workspace) package.
 
@@ -181,9 +184,9 @@ Each app defines `@/*` pointing to its own `src/` in its local `tsconfig.json`:
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+      "@/*": ["./src/*"],
+    },
+  },
 }
 ```
 
@@ -191,14 +194,14 @@ Each app defines `@/*` pointing to its own `src/` in its local `tsconfig.json`:
 
 ```ts
 // ✅ Correct — alias
-import { UsersService } from '@/modules/users/users.service'
-import { FirebaseAuthGuard } from '@/common/guards/firebase-auth.guard'
-import { Button } from '@/components/Button'
-import { useTrip } from '@/hooks/useTrip'
-import { apiClient } from '@/lib/api-client'
+import { UsersService } from "@/modules/users/users.service";
+import { FirebaseAuthGuard } from "@/common/guards/firebase-auth.guard";
+import { Button } from "@/components/Button";
+import { useTrip } from "@/hooks/useTrip";
+import { apiClient } from "@/lib/api-client";
 
 // ❌ Wrong — relative path
-import { Button } from '../../../components/Button'
+import { Button } from "../../../components/Button";
 ```
 
 The alias is identical in both apps (`@/`) without conflict — TypeScript resolves it relative to each app's own `tsconfig.json`, so there is no cross-app leakage.
@@ -213,9 +216,9 @@ Shared packages are imported by their declared package name (set in `packages/*/
   "compilerOptions": {
     "paths": {
       "@chamuco/shared-types": ["./packages/shared-types/src/index.ts"],
-      "@chamuco/shared-utils": ["./packages/shared-utils/src/index.ts"]
-    }
-  }
+      "@chamuco/shared-utils": ["./packages/shared-utils/src/index.ts"],
+    },
+  },
 }
 ```
 
@@ -223,11 +226,11 @@ Shared packages are imported by their declared package name (set in `packages/*/
 
 ```ts
 // ✅ Correct — workspace package alias
-import type { ITrip, TripStatus } from '@chamuco/shared-types'
-import { formatCurrency } from '@chamuco/shared-utils'
+import type { ITrip, TripStatus } from "@chamuco/shared-types";
+import { formatCurrency } from "@chamuco/shared-utils";
 
 // ❌ Wrong — relative cross-package path
-import type { ITrip } from '../../packages/shared-types/src/trip.types'
+import type { ITrip } from "../../packages/shared-types/src/trip.types";
 ```
 
 ### Directory conventions implied by `@/*`
@@ -236,25 +239,25 @@ The alias makes directory naming load-bearing — a consistent layout ensures ev
 
 **`apps/api/src/`**
 
-| Directory | Contents |
-|---|---|
-| `modules/` | One folder per domain feature (e.g., `modules/users/`, `modules/trips/`). Each contains its controller, service, repository, DTOs, and schema file. |
-| `common/` | Cross-cutting: guards, interceptors, decorators, filters, pipes. Nothing domain-specific. |
-| `config/` | Environment variable validation and typed config providers. |
-| `database/` | Drizzle connection factory, schema barrel file, migration utilities. |
+| Directory   | Contents                                                                                                                                            |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modules/`  | One folder per domain feature (e.g., `modules/users/`, `modules/trips/`). Each contains its controller, service, repository, DTOs, and schema file. |
+| `common/`   | Cross-cutting: guards, interceptors, decorators, filters, pipes. Nothing domain-specific.                                                           |
+| `config/`   | Environment variable validation and typed config providers.                                                                                         |
+| `database/` | Drizzle connection factory, schema barrel file, migration utilities.                                                                                |
 
 **`apps/web/src/`**
 
-| Directory | Contents |
-|---|---|
-| `app/` | Next.js App Router — layouts, pages, `loading.tsx`, `error.tsx`, route groups. |
-| `components/` | Reusable, presentational UI components. No data fetching logic. |
-| `hooks/` | Custom React hooks. May call services or access stores. |
-| `lib/` | Thin wrappers around external libraries (Firebase client, date-fns, etc.) and low-level helpers. |
-| `services/` | API client functions — typed wrappers around `fetch`/HTTP calls to the NestJS backend. |
-| `store/` | Zustand stores and React contexts (auth state, preference state, etc.). |
-| `types/` | App-local TypeScript types that are not shared with other apps or packages. |
-| `locales/` | i18n locale files: `es.json`, `en.json`. |
+| Directory     | Contents                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| `app/`        | Next.js App Router — layouts, pages, `loading.tsx`, `error.tsx`, route groups.                   |
+| `components/` | Reusable, presentational UI components. No data fetching logic.                                  |
+| `hooks/`      | Custom React hooks. May call services or access stores.                                          |
+| `lib/`        | Thin wrappers around external libraries (Firebase client, date-fns, etc.) and low-level helpers. |
+| `services/`   | API client functions — typed wrappers around `fetch`/HTTP calls to the NestJS backend.           |
+| `store/`      | Zustand stores and React contexts (auth state, preference state, etc.).                          |
+| `types/`      | App-local TypeScript types that are not shared with other apps or packages.                      |
+| `locales/`    | i18n locale files: `es.json`, `en.json`.                                                         |
 
 ### ESLint enforcement
 

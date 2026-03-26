@@ -17,28 +17,28 @@ The system maintains two separate storage layers for preferences depending on th
 
 ### Language (enum: `AppLanguage`)
 
-| Value | Label |
-|---|---|
-| `ES` | Español |
-| `EN` | English |
+| Value | Label   |
+| ----- | ------- |
+| `ES`  | Español |
+| `EN`  | English |
 
 Default: `ES`
 
 ### Display Currency (enum: `AppCurrency`)
 
-| Value | Label |
-|---|---|
+| Value | Label           |
+| ----- | --------------- |
 | `COP` | Peso Colombiano |
-| `USD` | US Dollar |
+| `USD` | US Dollar       |
 
 Default: `COP`. This preference controls how monetary amounts are displayed throughout the UI. It does not affect how amounts are stored — see [`features/expenses.md`](../features/expenses.md) and [`features/pre-trip-planning.md`](../features/pre-trip-planning.md) for the storage and multi-currency model.
 
 ### Theme (enum: `AppTheme`)
 
-| Value | Behavior |
-|---|---|
-| `LIGHT` | Always light mode |
-| `DARK` | Always dark mode |
+| Value    | Behavior                                      |
+| -------- | --------------------------------------------- |
+| `LIGHT`  | Always light mode                             |
+| `DARK`   | Always dark mode                              |
 | `SYSTEM` | Follows the OS `prefers-color-scheme` setting |
 
 Default: `SYSTEM`
@@ -53,13 +53,13 @@ For unauthenticated users — anyone on a public path — preferences are stored
 
 **Cookie spec:**
 
-| Field | Value |
-|---|---|
-| Name | `chamuco_prefs` |
+| Field   | Value                                                          |
+| ------- | -------------------------------------------------------------- |
+| Name    | `chamuco_prefs`                                                |
 | Content | JSON: `{ "lang": "es", "currency": "COP", "theme": "system" }` |
-| Expiry | 1 year from last update |
-| Scope | `/` (site-wide) |
-| Flags | `SameSite=Lax`, `Secure` (HTTPS only) |
+| Expiry  | 1 year from last update                                        |
+| Scope   | `/` (site-wide)                                                |
+| Flags   | `SameSite=Lax`, `Secure` (HTTPS only)                          |
 
 The cookie is written by the frontend whenever the user changes a preference while unauthenticated. No backend involvement is needed — it is a client-side write.
 
@@ -73,13 +73,13 @@ For logged-in users, preferences are stored in the `user_preferences` table in P
 
 A 1:1 extension of the `users` table. Created automatically when the user is first provisioned (on first login via Firebase Auth).
 
-| Field | Type | Description |
-|---|---|---|
-| `user_id` | UUID | PK + FK → `users.id` |
-| `language` | Enum `AppLanguage` | `ES` or `EN`. Default: `ES`. |
-| `currency` | Enum `AppCurrency` | `COP` or `USD`. Default: `COP`. |
-| `theme` | Enum `AppTheme` | `LIGHT`, `DARK`, or `SYSTEM`. Default: `SYSTEM`. |
-| `updated_at` | Timestamp | |
+| Field        | Type               | Description                                      |
+| ------------ | ------------------ | ------------------------------------------------ |
+| `user_id`    | UUID               | PK + FK → `users.id`                             |
+| `language`   | Enum `AppLanguage` | `ES` or `EN`. Default: `ES`.                     |
+| `currency`   | Enum `AppCurrency` | `COP` or `USD`. Default: `COP`.                  |
+| `theme`      | Enum `AppTheme`    | `LIGHT`, `DARK`, or `SYSTEM`. Default: `SYSTEM`. |
+| `updated_at` | Timestamp          |                                                  |
 
 ---
 
@@ -132,9 +132,9 @@ The **`next-themes`** library handles theme management in Next.js. It:
 ```ts
 // apps/web/tailwind.config.ts
 export default {
-  darkMode: 'class',
+  darkMode: "class",
   // ...
-}
+};
 ```
 
 ### Language: `i18next`
@@ -151,12 +151,12 @@ The display currency preference is held in a React context (or Zustand store) in
 
 Public paths (login, register, terms and conditions, privacy policy, etc.) render with the preferences resolved from the `chamuco_prefs` cookie or app defaults. A preferences toggle is available in the header/footer of public pages — it writes to the cookie immediately and triggers a re-render without a page reload.
 
-| Public path behavior | Implementation |
-|---|---|
-| Theme applied before first paint | `next-themes` reads cookie during SSR |
+| Public path behavior                | Implementation                                           |
+| ----------------------------------- | -------------------------------------------------------- |
+| Theme applied before first paint    | `next-themes` reads cookie during SSR                    |
 | Language applied before first paint | Next.js middleware reads cookie, sets `i18next` language |
-| Currency applied on mount | Client reads cookie, initializes currency context |
-| Preference changes persist | Cookie written on change; no API call needed |
+| Currency applied on mount           | Client reads cookie, initializes currency context        |
+| Preference changes persist          | Cookie written on change; no API call needed             |
 
 ---
 

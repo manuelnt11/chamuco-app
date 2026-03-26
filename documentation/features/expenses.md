@@ -20,19 +20,19 @@ Planned costs and actual expenses can be linked: when a budget item is paid, an 
 
 ## Expense Timing
 
-| Value | Description |
-|---|---|
+| Value      | Description                                                                                                |
+| ---------- | ---------------------------------------------------------------------------------------------------------- |
 | `PRE_TRIP` | Recorded before departure (cruise reservation, advance payment, group insurance). Organizer marks as paid. |
-| `IN_TRIP` | Recorded during the trip (restaurant, taxi, excursion ticket). |
+| `IN_TRIP`  | Recorded during the trip (restaurant, taxi, excursion ticket).                                             |
 
 ---
 
 ## Expense Ownership
 
-| Value | Split behavior | Ledger purpose |
-|---|---|---|
-| `SHARED` | Divided among a defined set of participants (all travelers or a subset). Generates debts. | Financial settlement |
-| `INDIVIDUAL` | One person paid for themselves. No split, no debt generated. | Reference — contributes to each person's total trip spend and the group's aggregate cost view. |
+| Value        | Split behavior                                                                            | Ledger purpose                                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `SHARED`     | Divided among a defined set of participants (all travelers or a subset). Generates debts. | Financial settlement                                                                           |
+| `INDIVIDUAL` | One person paid for themselves. No split, no debt generated.                              | Reference — contributes to each person's total trip spend and the group's aggregate cost view. |
 
 **Individual expenses appear in the group ledger.** This allows the full picture of what the trip cost to be visible to all participants at the end, even for things each person handled on their own (transport to the departure port, personal drinks). The individual payer owes nothing to anyone — their entry is informational.
 
@@ -44,40 +44,40 @@ The organizer defines a cost schedule for the trip — anticipated expenses show
 
 ### Budget Item Record
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | |
-| `title` | String | e.g., "Cruise reservation", "Unlimited drinks package" |
-| `description` | Text (nullable) | |
-| `category` | Enum `ExpenseCategory` | |
-| `participation` | Enum `BudgetItemParticipation` | `REQUIRED` or `OPTIONAL` |
-| `sharing` | Enum `BudgetItemSharing` | `INDIVIDUAL` (each person independently) or `SHARED` (participants form groups to share one unit). Only meaningful for `OPTIONAL` items. |
-| `max_sharing_group_size` | Integer (nullable) | For `OPTIONAL / SHARED`: maximum participants per sharing group. Enforced on opt-in. |
-| `unit_cost` | Decimal (nullable) | Cost per person (for per-person items) or estimated group total |
-| `unit_cost_currency` | String | |
-| `is_per_person` | Boolean | Whether `unit_cost` is per person or for the whole group |
-| `timing` | Enum `ExpenseTiming` | `PRE_TRIP` or `IN_TRIP` |
-| `linked_expense_id` | UUID (nullable) | FK → `expenses.id` once this planned cost is paid and recorded |
-| `created_by` | UUID | |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field                    | Type                           | Description                                                                                                                              |
+| ------------------------ | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                     | UUID                           |                                                                                                                                          |
+| `trip_id`                | UUID                           |                                                                                                                                          |
+| `title`                  | String                         | e.g., "Cruise reservation", "Unlimited drinks package"                                                                                   |
+| `description`            | Text (nullable)                |                                                                                                                                          |
+| `category`               | Enum `ExpenseCategory`         |                                                                                                                                          |
+| `participation`          | Enum `BudgetItemParticipation` | `REQUIRED` or `OPTIONAL`                                                                                                                 |
+| `sharing`                | Enum `BudgetItemSharing`       | `INDIVIDUAL` (each person independently) or `SHARED` (participants form groups to share one unit). Only meaningful for `OPTIONAL` items. |
+| `max_sharing_group_size` | Integer (nullable)             | For `OPTIONAL / SHARED`: maximum participants per sharing group. Enforced on opt-in.                                                     |
+| `unit_cost`              | Decimal (nullable)             | Cost per person (for per-person items) or estimated group total                                                                          |
+| `unit_cost_currency`     | String                         |                                                                                                                                          |
+| `is_per_person`          | Boolean                        | Whether `unit_cost` is per person or for the whole group                                                                                 |
+| `timing`                 | Enum `ExpenseTiming`           | `PRE_TRIP` or `IN_TRIP`                                                                                                                  |
+| `linked_expense_id`      | UUID (nullable)                | FK → `expenses.id` once this planned cost is paid and recorded                                                                           |
+| `created_by`             | UUID                           |                                                                                                                                          |
+| `created_at`             | Timestamp                      |                                                                                                                                          |
+| `updated_at`             | Timestamp                      |                                                                                                                                          |
 
 ### Optional Budget Items — Opt-in (`trip_budget_item_optins`)
 
 For `OPTIONAL` items, each participant (or the organizer on their behalf) registers an opt-in:
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `budget_item_id` | UUID | |
-| `initiated_by` | UUID | Participant who created the opt-in, or organizer who assigned it |
-| `participants` | UUID[] (JSONB) | Who is in this opt-in. Single-element for `INDIVIDUAL` sharing; multiple for `SHARED` (max = `max_sharing_group_size`). |
-| `marked_paid` | Boolean | Organizer marks this opt-in group as paid |
-| `marked_paid_by` | UUID (nullable) | |
-| `marked_paid_at` | Timestamp (nullable) | |
-| `expense_id` | UUID (nullable) | Link to actual expense once paid |
-| `created_at` | Timestamp | |
+| Field            | Type                 | Description                                                                                                             |
+| ---------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `id`             | UUID                 |                                                                                                                         |
+| `budget_item_id` | UUID                 |                                                                                                                         |
+| `initiated_by`   | UUID                 | Participant who created the opt-in, or organizer who assigned it                                                        |
+| `participants`   | UUID[] (JSONB)       | Who is in this opt-in. Single-element for `INDIVIDUAL` sharing; multiple for `SHARED` (max = `max_sharing_group_size`). |
+| `marked_paid`    | Boolean              | Organizer marks this opt-in group as paid                                                                               |
+| `marked_paid_by` | UUID (nullable)      |                                                                                                                         |
+| `marked_paid_at` | Timestamp (nullable) |                                                                                                                         |
+| `expense_id`     | UUID (nullable)      | Link to actual expense once paid                                                                                        |
+| `created_at`     | Timestamp            |                                                                                                                         |
 
 **Rules for `OPTIONAL / SHARED` items:**
 
@@ -92,50 +92,50 @@ For `OPTIONAL` items, each participant (or the organizer on their behalf) regist
 
 The actual ledger entry. One record per cost event.
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | |
-| `title` | String | Short description (e.g., "Dinner at La Puerta Falsa") |
-| `description` | Text (nullable) | |
-| `category` | Enum `ExpenseCategory` | |
-| `ownership` | Enum `ExpenseOwnership` | `SHARED` or `INDIVIDUAL` |
-| `currency` | String (ISO 4217) | Currency in which the expense is denominated |
-| `total_amount` | Decimal | Total amount paid in `currency` |
-| `exchange_rate_snapshot` | Decimal | Confirmed rate at time of recording. **Immutable after save.** |
-| `total_amount_base` | Decimal | Computed: `total_amount × exchange_rate_snapshot`. Stored, not recomputed. |
-| `split_type` | Enum `SplitType` | `EQUAL`, `EXACT`, `PERCENTAGE`, `SHARES`. Ignored for `INDIVIDUAL` ownership. |
-| `timing` | Enum `ExpenseTiming` | `PRE_TRIP` or `IN_TRIP` |
-| `budget_item_id` | UUID (nullable) | FK → `trip_budget_items.id` if this expense fulfills a planned cost |
-| `itinerary_item_id` | UUID (nullable) | Optional link to the itinerary item this cost belongs to |
-| `date` | Date | When the expense occurred or is expected to occur |
-| `receipt_url` | String (nullable) | URL to receipt image / PDF in Cloud Storage |
-| `notes` | Text (nullable) | |
-| `created_by` | UUID | Expense creator — holds edit control over payers and splits |
-| `created_at` | Timestamp | |
-| `updated_at` | Timestamp | |
+| Field                    | Type                    | Description                                                                   |
+| ------------------------ | ----------------------- | ----------------------------------------------------------------------------- |
+| `id`                     | UUID                    |                                                                               |
+| `trip_id`                | UUID                    |                                                                               |
+| `title`                  | String                  | Short description (e.g., "Dinner at La Puerta Falsa")                         |
+| `description`            | Text (nullable)         |                                                                               |
+| `category`               | Enum `ExpenseCategory`  |                                                                               |
+| `ownership`              | Enum `ExpenseOwnership` | `SHARED` or `INDIVIDUAL`                                                      |
+| `currency`               | String (ISO 4217)       | Currency in which the expense is denominated                                  |
+| `total_amount`           | Decimal                 | Total amount paid in `currency`                                               |
+| `exchange_rate_snapshot` | Decimal                 | Confirmed rate at time of recording. **Immutable after save.**                |
+| `total_amount_base`      | Decimal                 | Computed: `total_amount × exchange_rate_snapshot`. Stored, not recomputed.    |
+| `split_type`             | Enum `SplitType`        | `EQUAL`, `EXACT`, `PERCENTAGE`, `SHARES`. Ignored for `INDIVIDUAL` ownership. |
+| `timing`                 | Enum `ExpenseTiming`    | `PRE_TRIP` or `IN_TRIP`                                                       |
+| `budget_item_id`         | UUID (nullable)         | FK → `trip_budget_items.id` if this expense fulfills a planned cost           |
+| `itinerary_item_id`      | UUID (nullable)         | Optional link to the itinerary item this cost belongs to                      |
+| `date`                   | Date                    | When the expense occurred or is expected to occur                             |
+| `receipt_url`            | String (nullable)       | URL to receipt image / PDF in Cloud Storage                                   |
+| `notes`                  | Text (nullable)         |                                                                               |
+| `created_by`             | UUID                    | Expense creator — holds edit control over payers and splits                   |
+| `created_at`             | Timestamp               |                                                                               |
+| `updated_at`             | Timestamp               |                                                                               |
 
 ### `expense_payers`
 
 Who paid, and how much. The sum of all payer amounts must equal `total_amount`.
 
-| Field | Type | Description |
-|---|---|---|
-| `expense_id` | UUID | |
-| `participant_id` | UUID | |
-| `amount_paid` | Decimal | How much this participant paid toward the total |
-| `payment_method` | Enum `PaymentMethod` | |
+| Field            | Type                 | Description                                     |
+| ---------------- | -------------------- | ----------------------------------------------- |
+| `expense_id`     | UUID                 |                                                 |
+| `participant_id` | UUID                 |                                                 |
+| `amount_paid`    | Decimal              | How much this participant paid toward the total |
+| `payment_method` | Enum `PaymentMethod` |                                                 |
 
 ### `expense_splits`
 
 How the expense is distributed among beneficiaries. Applies to `SHARED` expenses only.
 
-| Field | Type | Description |
-|---|---|---|
-| `expense_id` | UUID | |
-| `participant_id` | UUID | |
-| `owed_amount` | Decimal | This participant's share in the expense's original currency |
-| `owed_amount_base` | Decimal | `owed_amount` in trip base currency |
+| Field              | Type    | Description                                                 |
+| ------------------ | ------- | ----------------------------------------------------------- |
+| `expense_id`       | UUID    |                                                             |
+| `participant_id`   | UUID    |                                                             |
+| `owed_amount`      | Decimal | This participant's share in the expense's original currency |
+| `owed_amount_base` | Decimal | `owed_amount` in trip base currency                         |
 
 For `EQUAL` splits, `expense_splits` records are auto-generated and stored when the expense is saved. For `EXACT`, amounts are manually entered by the creator. For `PERCENTAGE` and `SHARES`, the app computes and stores the final amounts.
 
@@ -147,8 +147,8 @@ A confirmed participant may not travel in the end. Expense splits must reflect w
 
 The `trip_participants` record gains a `did_travel` field:
 
-| Field | Type | Description |
-|---|---|---|
+| Field        | Type               | Description                                                                                                                                                         |
+| ------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `did_travel` | Boolean (nullable) | `null` while trip is active. Set at trip completion — defaults to `true` for all `CONFIRMED` participants unless the organizer explicitly marks someone as `false`. |
 
 When recording a `SHARED` expense, only participants with `did_travel = true` (or `null`, while the trip is active) are eligible for the participant scope. An expense creator selects scope from this eligible list. The organizer can edit any expense to adjust scope if a participant's `did_travel` status changes.
@@ -157,12 +157,12 @@ When recording a `SHARED` expense, only participants with `did_travel = true` (o
 
 ## Split Types (Enum: `SplitType`)
 
-| Value | Description |
-|---|---|
-| `EQUAL` | Divided equally among all participants in scope. Default. |
-| `EXACT` | Each participant in scope is manually assigned a specific amount. Amounts must sum to `total_amount`. |
-| `PERCENTAGE` | Each participant is assigned a percentage of the total. Must sum to 100%. |
-| `SHARES` | Participants are assigned integer share units (e.g., one person takes 2 shares vs. 1 share for everyone else). |
+| Value        | Description                                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
+| `EQUAL`      | Divided equally among all participants in scope. Default.                                                      |
+| `EXACT`      | Each participant in scope is manually assigned a specific amount. Amounts must sum to `total_amount`.          |
+| `PERCENTAGE` | Each participant is assigned a percentage of the total. Must sum to 100%.                                      |
+| `SHARES`     | Participants are assigned integer share units (e.g., one person takes 2 shares vs. 1 share for everyone else). |
 
 The expense creator chooses the split type when recording the expense and can update it (along with the distribution) at any time. Organizers can override.
 
@@ -170,37 +170,37 @@ The expense creator chooses the split type when recording the expense and can up
 
 ## Expense Categories (Enum: `ExpenseCategory`)
 
-| Value | Examples |
-|---|---|
-| `TRANSPORT` | Flight, bus, metro, ferry, transfer, taxi, car rental |
-| `ACCOMMODATION` | Hotel, hostel, Airbnb, cruise cabin |
-| `FOOD` | Restaurant, groceries, group meal |
-| `ACTIVITY` | Entrance fee, tour, excursion, guided experience |
-| `CITY_PASS` | Tourist pass covering multiple attractions |
-| `VISA` | Visa fees and processing |
-| `INSURANCE` | Travel or medical insurance |
-| `ENTERTAINMENT` | Shows, nightlife, drinks, personal leisure |
-| `COMMUNICATION` | SIM card, Wi-Fi package, data plan |
-| `CURRENCY_EXCHANGE` | Exchange office fee, card foreign transaction fee |
-| `GEAR` | Group merchandise, printed itinerary, supplies |
-| `HEALTH` | Medicine, medical expenses during trip |
-| `TIPS` | Gratuities |
-| `OTHER` | Anything else |
+| Value               | Examples                                              |
+| ------------------- | ----------------------------------------------------- |
+| `TRANSPORT`         | Flight, bus, metro, ferry, transfer, taxi, car rental |
+| `ACCOMMODATION`     | Hotel, hostel, Airbnb, cruise cabin                   |
+| `FOOD`              | Restaurant, groceries, group meal                     |
+| `ACTIVITY`          | Entrance fee, tour, excursion, guided experience      |
+| `CITY_PASS`         | Tourist pass covering multiple attractions            |
+| `VISA`              | Visa fees and processing                              |
+| `INSURANCE`         | Travel or medical insurance                           |
+| `ENTERTAINMENT`     | Shows, nightlife, drinks, personal leisure            |
+| `COMMUNICATION`     | SIM card, Wi-Fi package, data plan                    |
+| `CURRENCY_EXCHANGE` | Exchange office fee, card foreign transaction fee     |
+| `GEAR`              | Group merchandise, printed itinerary, supplies        |
+| `HEALTH`            | Medicine, medical expenses during trip                |
+| `TIPS`              | Gratuities                                            |
+| `OTHER`             | Anything else                                         |
 
 ---
 
 ## Payment Methods (Enum: `PaymentMethod`)
 
-| Value | Description |
-|---|---|
-| `CREDIT_CARD` | Paid with credit card |
-| `DEBIT_CARD` | Paid with debit card |
-| `CASH` | Paid in cash |
-| `BANK_TRANSFER` | Bank transfer |
-| `NEQUI` | Nequi (Colombian mobile payment) |
-| `DAVIPLATA` | Daviplata (Colombian mobile payment) |
-| `MILES` | Paid using loyalty miles (e.g., LifeMiles) |
-| `OTHER` | Any other method |
+| Value           | Description                                |
+| --------------- | ------------------------------------------ |
+| `CREDIT_CARD`   | Paid with credit card                      |
+| `DEBIT_CARD`    | Paid with debit card                       |
+| `CASH`          | Paid in cash                               |
+| `BANK_TRANSFER` | Bank transfer                              |
+| `NEQUI`         | Nequi (Colombian mobile payment)           |
+| `DAVIPLATA`     | Daviplata (Colombian mobile payment)       |
+| `MILES`         | Paid using loyalty miles (e.g., LifeMiles) |
+| `OTHER`         | Any other method                           |
 
 ---
 
@@ -218,13 +218,13 @@ The full exchange rate model (two-level: trip-level reference + expense-level sn
 
 ## Access & Edit Control
 
-| Action | Who can do it |
-|---|---|
-| Record a new `SHARED` expense | Any confirmed traveler or organizer |
-| Record a new `INDIVIDUAL` expense | The traveler themselves (or organizer on their behalf) |
+| Action                                    | Who can do it                                                          |
+| ----------------------------------------- | ---------------------------------------------------------------------- |
+| Record a new `SHARED` expense             | Any confirmed traveler or organizer                                    |
+| Record a new `INDIVIDUAL` expense         | The traveler themselves (or organizer on their behalf)                 |
 | Edit payers, split type, and distribution | Expense creator or any organizer (co-organizer with `MANAGE_EXPENSES`) |
-| Mark a budget item opt-in as paid | Any organizer |
-| View all expenses | Confirmed travelers and organizers |
+| Mark a budget item opt-in as paid         | Any organizer                                                          |
+| View all expenses                         | Confirmed travelers and organizers                                     |
 
 ---
 
@@ -250,19 +250,19 @@ The app applies a debt-simplification algorithm (Splitwise-style) to produce the
 
 ### `expense_settlements`
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | |
-| `trip_id` | UUID | |
-| `from_participant_id` | UUID | Participant who owes |
-| `to_participant_id` | UUID | Participant who is owed |
-| `amount` | Decimal | Settlement amount in trip base currency |
-| `currency` | String | May differ from base currency if agreed between parties |
-| `payment_method` | Enum `PaymentMethod` (nullable) | |
-| `status` | Enum `SettlementStatus` | `PENDING`, `CONFIRMED` |
-| `confirmed_at` | Timestamp (nullable) | When the payee confirmed receipt |
-| `notes` | Text (nullable) | |
-| `created_at` | Timestamp | |
+| Field                 | Type                            | Description                                             |
+| --------------------- | ------------------------------- | ------------------------------------------------------- |
+| `id`                  | UUID                            |                                                         |
+| `trip_id`             | UUID                            |                                                         |
+| `from_participant_id` | UUID                            | Participant who owes                                    |
+| `to_participant_id`   | UUID                            | Participant who is owed                                 |
+| `amount`              | Decimal                         | Settlement amount in trip base currency                 |
+| `currency`            | String                          | May differ from base currency if agreed between parties |
+| `payment_method`      | Enum `PaymentMethod` (nullable) |                                                         |
+| `status`              | Enum `SettlementStatus`         | `PENDING`, `CONFIRMED`                                  |
+| `confirmed_at`        | Timestamp (nullable)            | When the payee confirmed receipt                        |
+| `notes`               | Text (nullable)                 |                                                         |
+| `created_at`          | Timestamp                       |                                                         |
 
 Settlements are proposed automatically when the trip reaches `COMPLETED`. The payee confirms receipt manually. No real money moves through Chamuco — confirmation is on the honor system.
 

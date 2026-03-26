@@ -10,11 +10,13 @@ This command is the primary documentation maintenance tool during the implementa
 ## Step 1 — Identify changed files
 
 Run:
+
 ```bash
 git diff main...HEAD --name-only
 ```
 
 Categorize each changed file into one or more of these buckets:
+
 - **Controller / DTO** — files under `apps/api/src/**/*.controller.ts` or `**/*.dto.ts`
 - **Schema** — files matching `**/*.schema.ts` (Drizzle schema definitions)
 - **Documentation** — files under `documentation/`
@@ -27,11 +29,13 @@ For each changed file, apply the relevant rule from CLAUDE.md:
 ### Rule 3: OpenAPI documentation (for controllers and DTOs)
 
 When any of the following are modified:
+
 - A controller method (new endpoint, changed path, changed HTTP method)
 - A request DTO or response DTO
 - An enum used in a request or response
 
 Then verify and update:
+
 - `@ApiTags`, `@ApiOperation`, `@ApiResponse` on the controller
 - `@ApiProperty` on all DTO fields (type, description, example, required/optional)
 - `@ApiBearerAuth()` if the endpoint requires authentication
@@ -51,6 +55,7 @@ The generated `.sql` file must be committed alongside the schema change in the s
 ### Rule 1: Documentation cross-reference integrity (for doc changes)
 
 When any file under `documentation/` is modified:
+
 - Scan all other documentation files for references to the modified file (by name or by the concepts it owns)
 - If any reference is stale, incorrect, or inconsistent with the change just made, update it in the same session
 - This includes `CLAUDE.md` itself — if a decision or rule changes, update the relevant section
@@ -58,6 +63,7 @@ When any file under `documentation/` is modified:
 ### Feature implementation vs design doc alignment
 
 For each changed source file that implements a feature:
+
 1. Identify which design document covers that feature (e.g. `documentation/features/trips.md` for trip-related code)
 2. Read the design doc
 3. Compare the implementation against the spec:

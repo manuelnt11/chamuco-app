@@ -15,13 +15,13 @@ The PWA layer sits entirely on top of the existing Next.js frontend. No separate
 
 ## Why PWA
 
-| Concern | Rationale |
-|---|---|
-| Cross-platform with one codebase | Android, iOS, macOS, Windows, Linux — no platform-specific builds |
-| No app store overhead | Instant updates without App Store review; no distribution friction |
-| Push notifications | FCM Web Push is supported on all modern platforms for installed PWAs |
-| Offline resilience | Service Worker caching allows the app to load and display cached data without a network connection |
-| Cost | No additional infrastructure beyond what is already planned (Cloud Run + Firebase) |
+| Concern                          | Rationale                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Cross-platform with one codebase | Android, iOS, macOS, Windows, Linux — no platform-specific builds                                  |
+| No app store overhead            | Instant updates without App Store review; no distribution friction                                 |
+| Push notifications               | FCM Web Push is supported on all modern platforms for installed PWAs                               |
+| Offline resilience               | Service Worker caching allows the app to load and display cached data without a network connection |
+| Cost                             | No additional infrastructure beyond what is already planned (Cloud Run + Firebase)                 |
 
 ---
 
@@ -33,23 +33,28 @@ Next.js App Router supports a native manifest file via `app/manifest.ts`. This f
 
 ```ts
 // apps/web/app/manifest.ts
-import type { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Chamuco',
-    short_name: 'Chamuco',
-    description: 'Group travel coordination',
-    start_url: '/',
-    display: 'standalone',       // hides browser chrome when installed
-    background_color: '#ffffff',
-    theme_color: '#ffffff',
+    name: "Chamuco",
+    short_name: "Chamuco",
+    description: "Group travel coordination",
+    start_url: "/",
+    display: "standalone", // hides browser chrome when installed
+    background_color: "#ffffff",
+    theme_color: "#ffffff",
     icons: [
-      { src: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
-      { src: '/icons/icon-512x512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { src: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      {
+        src: "/icons/icon-512x512-maskable.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
     ],
-  }
+  };
 }
 ```
 
@@ -74,25 +79,29 @@ The solution is a **custom unified Service Worker** that handles both responsibi
 // apps/web/public/custom-sw.js  (merged by next-pwa at build time)
 
 // --- FCM Background Message Handler ---
-importScripts('https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js')
-importScripts('https://www.gstatic.com/firebasejs/10.x.x/firebase-messaging-compat.js')
+importScripts(
+  "https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js",
+);
+importScripts(
+  "https://www.gstatic.com/firebasejs/10.x.x/firebase-messaging-compat.js",
+);
 
 firebase.initializeApp({
   apiKey: self.FIREBASE_API_KEY,
   projectId: self.FIREBASE_PROJECT_ID,
   messagingSenderId: self.FIREBASE_MESSAGING_SENDER_ID,
   appId: self.FIREBASE_APP_ID,
-})
+});
 
-const messaging = firebase.messaging()
+const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
-    icon: '/icons/icon-192x192.png',
+    icon: "/icons/icon-192x192.png",
     data: payload.data,
-  })
-})
+  });
+});
 
 // --- Caching logic is injected here by next-pwa at build time ---
 ```
@@ -105,16 +114,16 @@ Firebase config values (API key, project ID, etc.) are injected as `self.*` vari
 
 ```ts
 // apps/web/next.config.ts
-import withPWA from '@ducanh2912/next-pwa'
+import withPWA from "@ducanh2912/next-pwa";
 
 const nextConfig = withPWA({
-  dest: 'public',                        // SW output directory
-  customWorkerSrc: 'custom-sw.js',       // path to the unified SW file above
+  dest: "public", // SW output directory
+  customWorkerSrc: "custom-sw.js", // path to the unified SW file above
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
-  disable: process.env.NODE_ENV === 'development',  // disable SW in dev to avoid caching confusion
-})(baseNextConfig)
+  disable: process.env.NODE_ENV === "development", // disable SW in dev to avoid caching confusion
+})(baseNextConfig);
 ```
 
 The SW is disabled in `development` to prevent stale cache from interfering with local development.
@@ -147,12 +156,12 @@ Push notifications flow through **Firebase Cloud Messaging (FCM)**. The same FCM
 
 Each browser/device instance generates a unique **FCM registration token**. This token must be stored in PostgreSQL associated with the user, so the backend can target the right device(s) when sending a notification.
 
-| Field | Type | Description |
-|---|---|---|
-| `user_id` | UUID | The user who owns this token |
-| `fcm_token` | String | The FCM registration token |
-| `device_hint` | String | Optional label (e.g., `"Chrome / macOS"`) |
-| `created_at` | Timestamp | |
+| Field          | Type      | Description                                          |
+| -------------- | --------- | ---------------------------------------------------- |
+| `user_id`      | UUID      | The user who owns this token                         |
+| `fcm_token`    | String    | The FCM registration token                           |
+| `device_hint`  | String    | Optional label (e.g., `"Chrome / macOS"`)            |
+| `created_at`   | Timestamp |                                                      |
 | `last_seen_at` | Timestamp | Updated on each app open; used to prune stale tokens |
 
 A single user can have multiple active tokens (different browsers or devices). The backend sends the notification to all active tokens for that user. Tokens that have not been refreshed in 60+ days should be considered stale and removed.
@@ -171,14 +180,14 @@ On iOS, the permission prompt is only available **after the app has been install
 
 ## Platform Support
 
-| Platform | Install support | Push notifications |
-|---|---|---|
-| Android (Chrome) | ✅ Native install prompt | ✅ Works without installation too |
-| iOS 16.4+ (Safari) | ✅ "Add to Home Screen" | ✅ Only after installation |
-| iOS < 16.4 | ✅ "Add to Home Screen" | ❌ Not supported |
-| macOS / Windows (Chrome, Edge) | ✅ Browser install prompt | ✅ Works |
-| Firefox (desktop) | ⚠️ No install prompt | ✅ Push via Web Push API |
-| Safari (macOS 13+) | ✅ Install from Safari | ✅ Supported |
+| Platform                       | Install support           | Push notifications                |
+| ------------------------------ | ------------------------- | --------------------------------- |
+| Android (Chrome)               | ✅ Native install prompt  | ✅ Works without installation too |
+| iOS 16.4+ (Safari)             | ✅ "Add to Home Screen"   | ✅ Only after installation        |
+| iOS < 16.4                     | ✅ "Add to Home Screen"   | ❌ Not supported                  |
+| macOS / Windows (Chrome, Edge) | ✅ Browser install prompt | ✅ Works                          |
+| Firefox (desktop)              | ⚠️ No install prompt      | ✅ Push via Web Push API          |
+| Safari (macOS 13+)             | ✅ Install from Safari    | ✅ Supported                      |
 
 ### iOS install prompt strategy
 
@@ -195,12 +204,12 @@ Because iOS does not provide a native install prompt (unlike Android/Chrome), th
 
 The Service Worker caching strategy determines what the user sees without a network connection.
 
-| Resource type | Strategy | Rationale |
-|---|---|---|
-| App shell (HTML, JS, CSS) | Cache-first (precache) | The app loads instantly even offline; `next-pwa` precaches the build output |
-| Static assets (images, icons) | Cache-first with network fallback | Avatars and trip photos load from cache |
-| API calls (`/api/v1/**`) | Network-first | Always attempt fresh data; fall back to a cached response if network fails |
-| Firestore real-time connection | Offline persistence via Firestore SDK | Firestore's `enableIndexedDbPersistence()` caches recent documents locally |
+| Resource type                  | Strategy                              | Rationale                                                                   |
+| ------------------------------ | ------------------------------------- | --------------------------------------------------------------------------- |
+| App shell (HTML, JS, CSS)      | Cache-first (precache)                | The app loads instantly even offline; `next-pwa` precaches the build output |
+| Static assets (images, icons)  | Cache-first with network fallback     | Avatars and trip photos load from cache                                     |
+| API calls (`/api/v1/**`)       | Network-first                         | Always attempt fresh data; fall back to a cached response if network fails  |
+| Firestore real-time connection | Offline persistence via Firestore SDK | Firestore's `enableIndexedDbPersistence()` caches recent documents locally  |
 
 The app should indicate clearly when it is operating in offline mode (e.g., a top banner). Write operations (sending a message, updating an itinerary item) performed offline should be queued and retried when the connection is restored — this is handled by Firestore's offline persistence for message operations.
 

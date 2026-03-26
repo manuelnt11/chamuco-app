@@ -86,6 +86,7 @@ The full trips module covers the complete lifecycle of a journey: creation, part
 **Gamification** — Full post-trip completion flow is included: stats, achievements, Chamuco Points, feedback window, and recognition window. Distance is computed from the trip route (departure → destinations → return). Countries visited are derived from `trip_destinations` + return location.
 
 **Out of scope for MVP (trips):**
+
 - Structured itinerary builder (items, categories, subtypes)
 - Expense tracking (`expenses`, `expense_payers`, splits, settlement)
 - Reservations
@@ -128,20 +129,20 @@ FCM is the only Firebase service used in MVP. Firestore is not required (messagi
 
 **MVP notification events:**
 
-| Event | Trigger | Recipient |
-|---|---|---|
-| Trip invitation received | Organizer invites user | Invited user |
-| Join request accepted / declined | Organizer acts on request | Requesting user |
-| Trip status changed (`IN_PROGRESS`, `COMPLETED`) | Organizer transitions status | All confirmed participants |
-| Feedback window opened | Trip reaches `COMPLETED` | All confirmed participants |
-| Passport `EXPIRING_SOON` | Daily job | User who owns the record |
-| Passport `EXPIRED` | Daily job | User who owns the record |
-| Level-up | Trip completion flow | User |
-| Achievement unlocked | Trip completion flow | User |
-| New recognition received | Organizer or admin awards recognition | Recipient user |
-| Key date reminder | 24 hours before a key date with `reminder_enabled = true` | All confirmed participants of the trip |
-| Trip announcement | Organizer sends broadcast | All confirmed participants of the trip |
-| Group announcement | Group admin sends broadcast | All members of the group |
+| Event                                            | Trigger                                                   | Recipient                              |
+| ------------------------------------------------ | --------------------------------------------------------- | -------------------------------------- |
+| Trip invitation received                         | Organizer invites user                                    | Invited user                           |
+| Join request accepted / declined                 | Organizer acts on request                                 | Requesting user                        |
+| Trip status changed (`IN_PROGRESS`, `COMPLETED`) | Organizer transitions status                              | All confirmed participants             |
+| Feedback window opened                           | Trip reaches `COMPLETED`                                  | All confirmed participants             |
+| Passport `EXPIRING_SOON`                         | Daily job                                                 | User who owns the record               |
+| Passport `EXPIRED`                               | Daily job                                                 | User who owns the record               |
+| Level-up                                         | Trip completion flow                                      | User                                   |
+| Achievement unlocked                             | Trip completion flow                                      | User                                   |
+| New recognition received                         | Organizer or admin awards recognition                     | Recipient user                         |
+| Key date reminder                                | 24 hours before a key date with `reminder_enabled = true` | All confirmed participants of the trip |
+| Trip announcement                                | Organizer sends broadcast                                 | All confirmed participants of the trip |
+| Group announcement                               | Group admin sends broadcast                               | All members of the group               |
 
 **Announcements** are one-way broadcasts. An organizer or admin writes a short message that is delivered as a push notification to all recipients. There is no reply mechanism and no persistent chat thread — the notification is the message. Announcements are stored in PostgreSQL for an audit trail and displayed in a simple read-only feed within the trip or group detail screen.
 
@@ -153,14 +154,14 @@ FCM is the only Firebase service used in MVP. Firestore is not required (messagi
 
 The following modules are designed and documented but will not be built in the MVP:
 
-| Module | Notes | Reference |
-|---|---|---|
-| Real-time messaging | Group channels, DMs, Firestore integration — deferred until post-MVP | [`features/community.md`](../features/community.md) |
-| Agencies | — | [`features/agencies.md`](../features/agencies.md) |
-| Reservations | — | [`features/reservations.md`](../features/reservations.md) |
-| Pre-trip planning | Tasks, route planning, budget envelopes | [`features/pre-trip-planning.md`](../features/pre-trip-planning.md) |
-| Events system | — | [`features/events.md`](../features/events.md) |
-| Calendar views | — | [`features/calendar.md`](../features/calendar.md) |
+| Module              | Notes                                                                | Reference                                                           |
+| ------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Real-time messaging | Group channels, DMs, Firestore integration — deferred until post-MVP | [`features/community.md`](../features/community.md)                 |
+| Agencies            | —                                                                    | [`features/agencies.md`](../features/agencies.md)                   |
+| Reservations        | —                                                                    | [`features/reservations.md`](../features/reservations.md)           |
+| Pre-trip planning   | Tasks, route planning, budget envelopes                              | [`features/pre-trip-planning.md`](../features/pre-trip-planning.md) |
+| Events system       | —                                                                    | [`features/events.md`](../features/events.md)                       |
+| Calendar views      | —                                                                    | [`features/calendar.md`](../features/calendar.md)                   |
 
 ---
 

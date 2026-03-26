@@ -13,19 +13,19 @@
 
 ## Key GCP Services
 
-| Service | Purpose |
-|---|---|
-| **Cloud Run** | Containerized backend (NestJS API) and frontend (Next.js). Serverless, auto-scaling, pay-per-use. |
-| **Cloud SQL** | Managed PostgreSQL instance. Source of truth for all relational data. Handles backups, patching, and failover. |
-| **Cloud Storage** | File storage for user avatars, trip media, expense receipts, and booking confirmation PDFs. |
-| **Firebase Authentication** | Google Sign-In and Passkeys. Managed token issuance, refresh, and revocation. |
-| **Firestore** | Real-time message storage and delivery for DMs and channels. Synced from PostgreSQL membership data by the NestJS backend. |
-| **Firebase Cloud Messaging (FCM)** | Push notifications for mobile and web when the app is in the background. |
-| **GitHub Actions** | CI/CD pipelines for automated testing and deployment. |
-| **Secret Manager** | Secure storage for environment variables, API keys, and service account credentials. |
-| **Cloud CDN + Load Balancer** | HTTPS termination, CDN caching for the frontend, traffic routing. |
-| **Artifact Registry** | Docker image registry for backend and frontend container images. |
-| **Cloud Logging / Monitoring** | Structured log aggregation and uptime/performance monitoring. |
+| Service                            | Purpose                                                                                                                    |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Cloud Run**                      | Containerized backend (NestJS API) and frontend (Next.js). Serverless, auto-scaling, pay-per-use.                          |
+| **Cloud SQL**                      | Managed PostgreSQL instance. Source of truth for all relational data. Handles backups, patching, and failover.             |
+| **Cloud Storage**                  | File storage for user avatars, trip media, expense receipts, and booking confirmation PDFs.                                |
+| **Firebase Authentication**        | Google Sign-In and Passkeys. Managed token issuance, refresh, and revocation.                                              |
+| **Firestore**                      | Real-time message storage and delivery for DMs and channels. Synced from PostgreSQL membership data by the NestJS backend. |
+| **Firebase Cloud Messaging (FCM)** | Push notifications for mobile and web when the app is in the background.                                                   |
+| **GitHub Actions**                 | CI/CD pipelines for automated testing and deployment.                                                                      |
+| **Secret Manager**                 | Secure storage for environment variables, API keys, and service account credentials.                                       |
+| **Cloud CDN + Load Balancer**      | HTTPS termination, CDN caching for the frontend, traffic routing.                                                          |
+| **Artifact Registry**              | Docker image registry for backend and frontend container images.                                                           |
+| **Cloud Logging / Monitoring**     | Structured log aggregation and uptime/performance monitoring.                                                              |
 
 ---
 
@@ -50,11 +50,11 @@
 
 ## Environments
 
-| Environment | Description |
-|---|---|
-| `development` | Local development. Runs against a local PostgreSQL instance or Cloud SQL proxy. |
-| `staging` | A dedicated GCP project or namespace. Used for QA and pre-release testing. |
-| `production` | The live environment. Separate GCP project recommended for billing and permission isolation. |
+| Environment   | Description                                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| `development` | Local development. Runs against a local PostgreSQL instance or Cloud SQL proxy.              |
+| `staging`     | A dedicated GCP project or namespace. Used for QA and pre-release testing.                   |
+| `production`  | The live environment. Separate GCP project recommended for billing and permission isolation. |
 
 ---
 
@@ -63,6 +63,7 @@
 The NestJS API is packaged as a **Docker** container. The `Dockerfile` lives in `apps/api/`.
 
 Key considerations:
+
 - Multi-stage builds to minimize production image size.
 - Non-root user in the container for security.
 - Health check endpoint (`/health`) for Cloud Run readiness probes.
@@ -151,6 +152,7 @@ All secrets (database credentials, API keys, JWT signing keys) are stored in **G
 ## Cost Considerations
 
 GCP services used are selected with cost efficiency in mind for an early-stage product:
+
 - Cloud Run: Scales to zero when idle — no cost when there's no traffic.
 - Cloud SQL: Smallest viable instance tier at launch; can be scaled up as needed.
 - Cloud Storage: Pay-per-use; minimal cost at low usage.

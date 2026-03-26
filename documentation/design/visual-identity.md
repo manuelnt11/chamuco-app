@@ -21,17 +21,17 @@ A friendly cartoon chamuco (little devil) wearing a cap. The character is drawn 
 
 All SVG variants live in `documentation/assets/`. PNG rasterization (for app stores and native icon slots) is a pending build step once the web toolchain is set up.
 
-| Variant | File | Use case | Status |
-|---|---|---|---|
-| Icon — full color | `logo_icon.svg` | PWA icon, in-app branding | ✅ Confirmed |
-| Icon — monochrome dark | `logo_icon_mono_dark.svg` | Notification badges, system tray, light backgrounds | ✅ Confirmed |
-| Icon — monochrome light | `logo_icon_mono_light.svg` | Dark backgrounds, splash overlays, print on dark | ✅ Confirmed |
-| Favicon | `favicon.svg` | Browser tab, bookmarks (SVG favicon — modern browsers) | ✅ Confirmed |
-| Maskable icon | `logo_maskable.svg` | Android adaptive icons — Cielo (`#38BDF8`) background, icon in safe zone | ✅ Confirmed |
-| Wordmark — horizontal | `logo_horizontal.svg` | Navigation headers, email signatures, wide banners | ✅ Confirmed |
-| Wordmark — vertical | `logo_vertical.svg` | Marketing materials, splash screens, app store listing | ✅ Confirmed |
-| Wordmark — square | `logo_square.svg` | Social media avatars, square ad units | ✅ Confirmed |
-| PNG rasterization | — | favicon.ico (16, 32px), apple-touch-icon (180px), og-image | ⏳ Pending |
+| Variant                 | File                       | Use case                                                                 | Status       |
+| ----------------------- | -------------------------- | ------------------------------------------------------------------------ | ------------ |
+| Icon — full color       | `logo_icon.svg`            | PWA icon, in-app branding                                                | ✅ Confirmed |
+| Icon — monochrome dark  | `logo_icon_mono_dark.svg`  | Notification badges, system tray, light backgrounds                      | ✅ Confirmed |
+| Icon — monochrome light | `logo_icon_mono_light.svg` | Dark backgrounds, splash overlays, print on dark                         | ✅ Confirmed |
+| Favicon                 | `favicon.svg`              | Browser tab, bookmarks (SVG favicon — modern browsers)                   | ✅ Confirmed |
+| Maskable icon           | `logo_maskable.svg`        | Android adaptive icons — Cielo (`#38BDF8`) background, icon in safe zone | ✅ Confirmed |
+| Wordmark — horizontal   | `logo_horizontal.svg`      | Navigation headers, email signatures, wide banners                       | ✅ Confirmed |
+| Wordmark — vertical     | `logo_vertical.svg`        | Marketing materials, splash screens, app store listing                   | ✅ Confirmed |
+| Wordmark — square       | `logo_square.svg`          | Social media avatars, square ad units                                    | ✅ Confirmed |
+| PNG rasterization       | —                          | favicon.ico (16, 32px), apple-touch-icon (180px), og-image               | ⏳ Pending   |
 
 **Wordmark typographic spec:** "CHAMUCO" in Plus Jakarta Sans ExtraBold 800 · `#0F4C75`. "TRAVEL" in Plus Jakarta Sans SemiBold 600 · `#38BDF8`. All caps, tracked. Both lines left-aligned (horizontal) or centered (vertical/square).
 
@@ -51,30 +51,30 @@ Evolved from the original "Cielos Abiertos" proposal. The dark anchor was soften
 
 **Base palette tokens:**
 
-| Token | Name | Hex | Role |
-|---|---|---|---|
-| `color-primary` | Cielo | `#38BDF8` | Primary brand color. Sky blue — vibrant, modern, energetic. |
-| `color-secondary` | Naranja | `#FB923C` | Accent / CTA. Warm orange — echoes the chamuco spirit, complementary to the blue. |
-| `color-bg-light` | Nube | `#F0F9FF` | Light mode background. Pale sky — airy and cohesive with the blue family. |
-| `color-dark` | Océano | `#0F4C75` | Dark anchor. Deep ocean blue — text, dark mode base, outlines. |
-| `color-accent-light` | Brisa | `#BAE6FD` | Light blue accent. Borders, tags, highlights, secondary backgrounds. |
+| Token                | Name    | Hex       | Role                                                                              |
+| -------------------- | ------- | --------- | --------------------------------------------------------------------------------- |
+| `color-primary`      | Cielo   | `#38BDF8` | Primary brand color. Sky blue — vibrant, modern, energetic.                       |
+| `color-secondary`    | Naranja | `#FB923C` | Accent / CTA. Warm orange — echoes the chamuco spirit, complementary to the blue. |
+| `color-bg-light`     | Nube    | `#F0F9FF` | Light mode background. Pale sky — airy and cohesive with the blue family.         |
+| `color-dark`         | Océano  | `#0F4C75` | Dark anchor. Deep ocean blue — text, dark mode base, outlines.                    |
+| `color-accent-light` | Brisa   | `#BAE6FD` | Light blue accent. Borders, tags, highlights, secondary backgrounds.              |
 
 **Full UI token expansion (light / dark mode):**
 
-| Role | Light mode | Dark mode |
-|---|---|---|
-| **Primary** | `#38BDF8` | `#38BDF8` |
-| **Primary hover** | `#0EA5E9` | `#7DD3FC` |
-| **Secondary** | `#FB923C` | `#FB923C` |
-| **Secondary hover** | `#EA7C1E` | `#FDBA74` |
-| **Background** | `#F0F9FF` | `#0F4C75` |
-| **Surface** | `#FFFFFF` | `#163E5F` |
-| **Border** | `#BAE6FD` | `#1E5A84` |
-| **Text primary** | `#0F4C75` | `#F0F9FF` |
-| **Text secondary** | `#4A7A9B` | `#BAE6FD` |
-| **Success** | `#059669` | `#34D399` |
-| **Warning** | `#D97706` | `#FCD34D` |
-| **Error** | `#DC2626` | `#FCA5A5` |
+| Role                | Light mode | Dark mode |
+| ------------------- | ---------- | --------- |
+| **Primary**         | `#38BDF8`  | `#38BDF8` |
+| **Primary hover**   | `#0EA5E9`  | `#7DD3FC` |
+| **Secondary**       | `#FB923C`  | `#FB923C` |
+| **Secondary hover** | `#EA7C1E`  | `#FDBA74` |
+| **Background**      | `#F0F9FF`  | `#0F4C75` |
+| **Surface**         | `#FFFFFF`  | `#163E5F` |
+| **Border**          | `#BAE6FD`  | `#1E5A84` |
+| **Text primary**    | `#0F4C75`  | `#F0F9FF` |
+| **Text secondary**  | `#4A7A9B`  | `#BAE6FD` |
+| **Success**         | `#059669`  | `#34D399` |
+| **Warning**         | `#D97706`  | `#FCD34D` |
+| **Error**           | `#DC2626`  | `#FCA5A5` |
 
 **Personality:** Fresh, youthful, modern. Sky blue conveys freedom and open skies. Orange brings warmth and the chamuco's playful energy without dominating. The reduced contrast between the dark anchor and the light background makes the palette feel approachable rather than stark.
 
@@ -90,26 +90,26 @@ A single-family system using Plus Jakarta Sans across all weights (Light 300 →
 
 **Weight usage:**
 
-| Weight | Token | Usage |
-|---|---|---|
-| ExtraBold 800 | `font-extrabold` | Display headings, achievement names, hero titles |
-| Bold 700 | `font-bold` | Page titles (h1), card titles, navigation active state |
-| SemiBold 600 | `font-semibold` | Section headings (h2), button labels, stat values |
-| Medium 500 | `font-medium` | Sub-headings (h3), list item labels, tab labels |
-| Regular 400 | `font-normal` | Body text, descriptions, message content |
-| Light 300 | `font-light` | Captions, hints, secondary metadata |
+| Weight        | Token            | Usage                                                  |
+| ------------- | ---------------- | ------------------------------------------------------ |
+| ExtraBold 800 | `font-extrabold` | Display headings, achievement names, hero titles       |
+| Bold 700      | `font-bold`      | Page titles (h1), card titles, navigation active state |
+| SemiBold 600  | `font-semibold`  | Section headings (h2), button labels, stat values      |
+| Medium 500    | `font-medium`    | Sub-headings (h3), list item labels, tab labels        |
+| Regular 400   | `font-normal`    | Body text, descriptions, message content               |
+| Light 300     | `font-light`     | Captions, hints, secondary metadata                    |
 
 **Type scale (16px base):**
 
-| Token | Size | Weight | Usage |
-|---|---|---|---|
-| `display` | 36–48px | 800 | Hero titles, splash screens, celebration screens |
-| `h1` | 28px | 700 | Page titles |
-| `h2` | 22px | 600 | Section headings |
-| `h3` | 18px | 500 | Card titles, subsections |
-| `body-lg` | 16px | 400 | Default body text |
-| `body` | 14px | 400 | Secondary text, labels |
-| `caption` | 12px | 300 | Timestamps, metadata, hints |
+| Token     | Size    | Weight | Usage                                            |
+| --------- | ------- | ------ | ------------------------------------------------ |
+| `display` | 36–48px | 800    | Hero titles, splash screens, celebration screens |
+| `h1`      | 28px    | 700    | Page titles                                      |
+| `h2`      | 22px    | 600    | Section headings                                 |
+| `h3`      | 18px    | 500    | Card titles, subsections                         |
+| `body-lg` | 16px    | 400    | Default body text                                |
+| `body`    | 14px    | 400    | Secondary text, labels                           |
+| `caption` | 12px    | 300    | Timestamps, metadata, hints                      |
 
 **Next.js configuration:** load via `next/font/google` with `subsets: ['latin']` and `display: 'swap'`. Declare all required weights in a single import to avoid multiple round-trips. Variable font (`variable: '--font-pjs'`) is available and preferred — enables smooth weight transitions in gamification animations.
 
@@ -125,11 +125,11 @@ A single-family system using Plus Jakarta Sans across all weights (Light 300 →
 
 **Weight usage in Chamuco:**
 
-| Weight | Usage |
-|---|---|
-| `regular` | Navigation icons, action buttons, list items |
-| `bold` | Active navigation state, primary CTAs |
-| `fill` | Selected state, toggles, status indicators |
+| Weight    | Usage                                                      |
+| --------- | ---------------------------------------------------------- |
+| `regular` | Navigation icons, action buttons, list items               |
+| `bold`    | Active navigation state, primary CTAs                      |
+| `fill`    | Selected state, toggles, status indicators                 |
 | `duotone` | Empty states, onboarding illustrations, achievement badges |
 
 ---
@@ -150,17 +150,17 @@ The `Drawer` component (built on Vaul) provides the bottom-sheet pattern require
 
 Sites that share a similar spirit: group-oriented, travel-focused, social, mobile-first.
 
-| Site | Why it's relevant | What to borrow |
-|---|---|---|
-| [TripIt](https://www.tripit.com) | Trip itinerary and coordination | Clean trip timeline view, participant list layout |
-| [Splitwise](https://www.splitwise.com) | Group expense tracking | Expense list design, balance indicators, settle-up flow |
-| [GetYourGuide](https://www.getyourguide.com) | Activity and experience booking | Card-based activity layouts, category filtering |
-| [Airbnb](https://www.airbnb.com) | Travel marketplace | Map + list split view, photo-first cards, booking confirmation UX |
-| [Wanderlog](https://wanderlog.com) | Trip planning (most similar product) | Itinerary timeline, collaborative editing indicators, map integration |
-| [Notion](https://www.notion.so) | Collaborative workspace | Collaborative editing feel, clean empty states, breadcrumb navigation |
-| [Linear](https://linear.app) | Project task management | Task list design, keyboard shortcuts, fast interactions |
-| [Telegram](https://telegram.org) | Messaging | Chat UI patterns, channel list, message bubbles, media handling |
-| [Strava](https://www.strava.com) | Fitness activity social network | **Primary identity reference.** Athlete profile with stats, activity feed, achievement badges, segment rankings, kudos system, discovery map (heatmap). Chamuco is "Strava for group travel." |
+| Site                                         | Why it's relevant                    | What to borrow                                                                                                                                                                                |
+| -------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [TripIt](https://www.tripit.com)             | Trip itinerary and coordination      | Clean trip timeline view, participant list layout                                                                                                                                             |
+| [Splitwise](https://www.splitwise.com)       | Group expense tracking               | Expense list design, balance indicators, settle-up flow                                                                                                                                       |
+| [GetYourGuide](https://www.getyourguide.com) | Activity and experience booking      | Card-based activity layouts, category filtering                                                                                                                                               |
+| [Airbnb](https://www.airbnb.com)             | Travel marketplace                   | Map + list split view, photo-first cards, booking confirmation UX                                                                                                                             |
+| [Wanderlog](https://wanderlog.com)           | Trip planning (most similar product) | Itinerary timeline, collaborative editing indicators, map integration                                                                                                                         |
+| [Notion](https://www.notion.so)              | Collaborative workspace              | Collaborative editing feel, clean empty states, breadcrumb navigation                                                                                                                         |
+| [Linear](https://linear.app)                 | Project task management              | Task list design, keyboard shortcuts, fast interactions                                                                                                                                       |
+| [Telegram](https://telegram.org)             | Messaging                            | Chat UI patterns, channel list, message bubbles, media handling                                                                                                                               |
+| [Strava](https://www.strava.com)             | Fitness activity social network      | **Primary identity reference.** Athlete profile with stats, activity feed, achievement badges, segment rankings, kudos system, discovery map (heatmap). Chamuco is "Strava for group travel." |
 
 **Note on Wanderlog:** It is the most direct functional overlap for trip planning. Study its mobile UX for the itinerary day-by-day view and real-time collaboration indicators.
 
@@ -176,19 +176,19 @@ These are non-negotiable given the PWA requirement, but style decisions within t
 
 On mobile, the primary navigation uses a **bottom navigation bar** with 4 items. On desktop, a **left sidebar** is the standard pattern. The app switches between these based on screen width.
 
-| Breakpoint | Navigation pattern |
-|---|---|
-| `< 768px` (mobile) | Bottom tab bar, fixed |
+| Breakpoint                 | Navigation pattern        |
+| -------------------------- | ------------------------- |
+| `< 768px` (mobile)         | Bottom tab bar, fixed     |
 | `≥ 768px` (tablet/desktop) | Left sidebar, collapsible |
 
 **Primary navigation items (MVP):**
 
-| # | Tab | Scope |
-|---|---|---|
-| 1 | **Trips** | Trip feed, my trips, create trip |
-| 2 | **Groups** | My groups, group activity |
-| 3 | **Explore** | Discover public trips and groups |
-| 4 | **Profile** | User profile, stats, achievements, Chamuco Points |
+| #   | Tab         | Scope                                             |
+| --- | ----------- | ------------------------------------------------- |
+| 1   | **Trips**   | Trip feed, my trips, create trip                  |
+| 2   | **Groups**  | My groups, group activity                         |
+| 3   | **Explore** | Discover public trips and groups                  |
+| 4   | **Profile** | User profile, stats, achievements, Chamuco Points |
 
 Messaging is out of scope for MVP and is not included. When added in a future version, the nav structure will be re-evaluated — a 5th item or a repositioning of Explore may be considered at that point.
 
@@ -214,28 +214,28 @@ Hybrid approach: Phosphor Icons duotone weight at large scale for functional emp
 
 ### Motion & animation
 
-| Principle | Value |
-|---|---|
-| Micro-interactions | 150ms |
-| Page transitions | 300ms |
-| Onboarding / celebration screens | 500ms |
-| Particle effects (confetti, achievement burst) | 600–800ms |
-| Easing — entrances | `ease-out` |
-| Easing — exits | `ease-in` |
-| Reduced motion | Always respect `prefers-reduced-motion` — disable non-essential animations |
-| Library | Framer Motion — added selectively via `apps/web` dependency. Justified by celebration screens, achievement animations, and gamification transitions. |
+| Principle                                      | Value                                                                                                                                                |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Micro-interactions                             | 150ms                                                                                                                                                |
+| Page transitions                               | 300ms                                                                                                                                                |
+| Onboarding / celebration screens               | 500ms                                                                                                                                                |
+| Particle effects (confetti, achievement burst) | 600–800ms                                                                                                                                            |
+| Easing — entrances                             | `ease-out`                                                                                                                                           |
+| Easing — exits                                 | `ease-in`                                                                                                                                            |
+| Reduced motion                                 | Always respect `prefers-reduced-motion` — disable non-essential animations                                                                           |
+| Library                                        | Framer Motion — added selectively via `apps/web` dependency. Justified by celebration screens, achievement animations, and gamification transitions. |
 
 ### Spacing system
 
 Tailwind's default 4px base. Key tokens:
 
-| Token | Value | Usage |
-|---|---|---|
-| `space-2` | 8px | Tight gaps (icon + label) |
-| `space-4` | 16px | Default inner padding |
-| `space-6` | 24px | Section padding, card padding |
-| `space-8` | 32px | Between major sections |
-| `space-16` | 64px | Page-level vertical padding |
+| Token      | Value | Usage                         |
+| ---------- | ----- | ----------------------------- |
+| `space-2`  | 8px   | Tight gaps (icon + label)     |
+| `space-4`  | 16px  | Default inner padding         |
+| `space-6`  | 24px  | Section padding, card padding |
+| `space-8`  | 32px  | Between major sections        |
+| `space-16` | 64px  | Page-level vertical padding   |
 
 ### Shadow style
 
@@ -249,21 +249,21 @@ Skeleton screens for list views, cards, and profile pages. Spinner for point act
 
 ## Decision Summary Tracker
 
-| Topic | Options | Status |
-|---|---|---|
-| Logo / icon | ✅ Chamuco diablito — `documentation/assets/logo_icon.svg` | ✅ Confirmed |
-| Logo variants | ✅ All SVGs confirmed — PNG rasterization pending | ✅ Confirmed |
-| Color palette | ✅ **"Horizonte"** (`#38BDF8` · `#FB923C` · `#F0F9FF` · `#0F4C75` · `#BAE6FD`) | ✅ Confirmed |
-| Typography | ✅ **Plus Jakarta Sans** — single-family, weights 300–800 | ✅ Confirmed |
-| Icon pack | ✅ **Phosphor Icons** — `@phosphor-icons/react`, 6 weights | ✅ Confirmed |
-| Component framework | ✅ **shadcn/ui** — Radix primitives, Tailwind-native, owned components | ✅ Confirmed |
-| Primary nav item count | ✅ 4 items — Trips · Groups · Explore · Profile | ✅ Confirmed |
-| Border radius style | ✅ Rounded — `rounded-xl` cards, `rounded-full` primary buttons | ✅ Confirmed |
-| Illustration style | ✅ Hybrid — Phosphor duotone (functional) + mascot (emotional moments) | ✅ Confirmed |
-| Motion & animation | ✅ Framer Motion selective — 150/300/500ms, ease-out/ease-in | ✅ Confirmed |
-| Spacing system | ✅ Tailwind 4px base, tokens space-2 → space-16 | ✅ Confirmed |
-| Shadow style | ✅ Soft (light) · Flat (dark) · Orange-tinted on primary CTA | ✅ Confirmed |
-| Loading states | ✅ Skeletons + spinner + optimistic UI | ✅ Confirmed |
+| Topic                  | Options                                                                        | Status       |
+| ---------------------- | ------------------------------------------------------------------------------ | ------------ |
+| Logo / icon            | ✅ Chamuco diablito — `documentation/assets/logo_icon.svg`                     | ✅ Confirmed |
+| Logo variants          | ✅ All SVGs confirmed — PNG rasterization pending                              | ✅ Confirmed |
+| Color palette          | ✅ **"Horizonte"** (`#38BDF8` · `#FB923C` · `#F0F9FF` · `#0F4C75` · `#BAE6FD`) | ✅ Confirmed |
+| Typography             | ✅ **Plus Jakarta Sans** — single-family, weights 300–800                      | ✅ Confirmed |
+| Icon pack              | ✅ **Phosphor Icons** — `@phosphor-icons/react`, 6 weights                     | ✅ Confirmed |
+| Component framework    | ✅ **shadcn/ui** — Radix primitives, Tailwind-native, owned components         | ✅ Confirmed |
+| Primary nav item count | ✅ 4 items — Trips · Groups · Explore · Profile                                | ✅ Confirmed |
+| Border radius style    | ✅ Rounded — `rounded-xl` cards, `rounded-full` primary buttons                | ✅ Confirmed |
+| Illustration style     | ✅ Hybrid — Phosphor duotone (functional) + mascot (emotional moments)         | ✅ Confirmed |
+| Motion & animation     | ✅ Framer Motion selective — 150/300/500ms, ease-out/ease-in                   | ✅ Confirmed |
+| Spacing system         | ✅ Tailwind 4px base, tokens space-2 → space-16                                | ✅ Confirmed |
+| Shadow style           | ✅ Soft (light) · Flat (dark) · Orange-tinted on primary CTA                   | ✅ Confirmed |
+| Loading states         | ✅ Skeletons + spinner + optimistic UI                                         | ✅ Confirmed |
 
 ---
 
@@ -276,6 +276,7 @@ The gamification system introduces new visual patterns that need to fit cohesive
 ### Badges & Achievements
 
 Achievement badges are small visual icons displayed in a shelf/grid on the user's profile. Each badge needs variants for:
+
 - **Locked** (grayed out, with a hint of what triggers it) — encourages progression
 - **Unlocked** (full color) — celebratory state
 - **Featured** (slightly enlarged) — 3–5 badges the user pins to the top of their profile
@@ -289,6 +290,7 @@ The three tiers (Novicio → Explorador → Veterano) each need a distinct visua
 ### Discovery Map
 
 The discovery map introduces a cartographic element that must align with the app's color system:
+
 - Visited territories: primary color fill at 60–80% opacity.
 - Unvisited territories: neutral gray (`#D1D5DB` in light mode, `#374151` in dark mode).
 - Territory hover/tap: slightly darker fill + tooltip with trip names.
@@ -305,6 +307,7 @@ Redeemable map color themes (via Chamuco Points) are a product decision for the 
 ### Celebration Screens
 
 When a user unlocks a new achievement or receives a recognition, the app should display a momentary celebration screen. This is a full-screen or sheet overlay with:
+
 - The badge or recognition card (large)
 - Confetti or particle animation (respects `prefers-reduced-motion`)
 - A share button (optional — share to group chat or external)

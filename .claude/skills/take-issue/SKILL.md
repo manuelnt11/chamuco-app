@@ -32,6 +32,7 @@ gh issue view $ARGUMENTS --json title,body,labels,assignees
 ```
 
 Parse the JSON output and provide a brief summary confirming you understand:
+
 - What the issue is asking for
 - The scope of work (backend, frontend, docs, infrastructure)
 - Any key requirements or constraints mentioned
@@ -39,6 +40,7 @@ Parse the JSON output and provide a brief summary confirming you understand:
 ## Step 4 — Update the project status to "In Progress"
 
 First, ensure the issue is added to the project (if not already):
+
 ```bash
 gh issue edit $ARGUMENTS --add-project "manuelnt11/4"
 ```
@@ -75,6 +77,7 @@ If any of these commands fail or if the issue is not yet in the project, report 
 ## Step 5 — Output confirmation
 
 Provide a clear confirmation message indicating:
+
 - ✅ Issue assigned to `@<username>`
 - ✅ Branch `<branch_name>` created and checked out
 - ✅ Issue status updated to "In Progress" (or ⚠️ note to update manually if it failed)
