@@ -232,11 +232,11 @@ When writing or modifying any TypeScript file, **never use relative imports that
 
 ```ts
 // ✅ Correct
-import { UsersService } from "@/modules/users/users.service";
-import type { ITrip } from "@chamuco/shared-types";
+import { UsersService } from '@/modules/users/users.service';
+import type { ITrip } from '@chamuco/shared-types';
 
 // ❌ Wrong
-import { UsersService } from "../../users/users.service";
+import { UsersService } from '../../users/users.service';
 ```
 
 See `documentation/architecture/monorepo-structure.md` — "Import Aliases" section for the full spec.
@@ -281,6 +281,43 @@ pnpm --filter db drizzle-kit generate
 ```
 
 The generated `.sql` file must be committed alongside the schema change in the same PR. No schema change may be merged without its corresponding migration file. Destructive operations (column drops, renames) require a multi-step migration strategy — document the steps in the PR description.
+
+### 6. Truncate test and lint output to conserve context
+
+When running tests or linters via the Bash tool, always pipe the output through `tail` to display only the **last 50–100 lines**. As the codebase grows, full test suite output can consume thousands of lines, but only the final summary and any errors are actionable.
+
+**Pattern:**
+
+```bash
+# ✅ Correct — truncate output
+pnpm --filter api test 2>&1 | tail -n 100
+pnpm --filter api test:cov 2>&1 | tail -n 100
+pnpm --filter api lint:check 2>&1 | tail -n 100
+pnpm --filter web test 2>&1 | tail -n 100
+
+# ❌ Wrong — full output floods context
+pnpm --filter api test
+pnpm --filter api lint:check
+```
+
+**Lint command variants:**
+
+- `lint` — auto-fixes errors with `--fix` flag. Use during development to correct issues automatically.
+- `lint:check` — reports errors without modifying files. Use for verification, CI/CD, or when you want to see all issues before fixing.
+
+**When to use truncation:**
+
+- Running test suites (`test`, `test:cov`, `test:e2e`)
+- Running linters (`lint`, `lint:check`)
+- Running type checks (`typecheck`)
+
+**When NOT to use:**
+
+- Build commands (need to see the full output for debugging)
+- Single file operations
+- Commands with expected short output (<50 lines)
+
+The final lines contain the test summary (passed/failed counts, coverage percentages) and any error messages or stack traces. Earlier output (individual test progress, file processing) is usually noise. If an error is truncated, the user will ask for the full output explicitly.
 
 ---
 
