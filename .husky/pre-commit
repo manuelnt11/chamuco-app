@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged (format + lint)
+npx lint-staged
+
+# Run tests with coverage for changed packages
+npx turbo run test --filter='[HEAD^1]' -- --coverage

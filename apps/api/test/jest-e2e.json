@@ -1,0 +1,29 @@
+{
+  "displayName": "api:e2e",
+  "testEnvironment": "node",
+  "rootDir": "..",
+  "testMatch": ["<rootDir>/test/**/*.e2e-spec.ts"],
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "@swc/jest",
+      {
+        "jsc": {
+          "parser": {
+            "syntax": "typescript",
+            "decorators": true
+          },
+          "transform": {
+            "legacyDecorator": true,
+            "decoratorMetadata": true
+          },
+          "target": "es2022"
+        }
+      }
+    ]
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@chamuco/shared-types$": "<rootDir>/../../packages/shared-types/src",
+    "^@chamuco/shared-utils$": "<rootDir>/../../packages/shared-utils/src"
+  }
+}
