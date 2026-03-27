@@ -1,0 +1,14 @@
+{
+  "app_name": "Chamuco Travel",
+  "app_description": "Plataforma de gestión de viajes grupales",
+  "loading": "Cargando...",
+  "error": "Ocurrió un error",
+  "submit": "Enviar",
+  "cancel": "Cancelar",
+  "save": "Guardar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "close": "Cerrar",
+  "back": "Atrás",
+  "next": "Siguiente"
+}
