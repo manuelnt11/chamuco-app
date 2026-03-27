@@ -319,6 +319,82 @@ pnpm --filter api lint:check
 
 The final lines contain the test summary (passed/failed counts, coverage percentages) and any error messages or stack traces. Earlier output (individual test progress, file processing) is usually noise. If an error is truncated, the user will ask for the full output explicitly.
 
+### 7. Strict TypeScript typing — avoid `any` and `unknown`
+
+TypeScript's type system is a critical safety net. **Never use `any` or `unknown` unless absolutely necessary.** These types bypass type checking and should be treated as code smells.
+
+**When `any` or `unknown` might be acceptable:**
+
+- External library type definitions are missing or incorrect
+- Temporary workaround for version mismatches between dependencies (e.g., plugin type conflicts)
+- Interfacing with truly dynamic data where the shape cannot be known at compile time
+
+**Best practices when you must use loose types:**
+
+1. **Prefer `@ts-expect-error` over `as any`** — It documents that the issue is known and temporary, and TypeScript will warn you if the error disappears.
+
+   ```ts
+   // ✅ Correct — explicit, self-documenting, will warn when fixed
+   // @ts-expect-error - Vite version mismatch between vitest and @vitejs/plugin-react
+   plugins: [react()],
+
+   // ❌ Wrong — silences all type checking, hides the real problem
+   plugins: [react() as any],
+   ```
+
+2. **Narrow `unknown` immediately** — If you must use `unknown`, validate and narrow the type as soon as possible with type guards.
+
+   ```ts
+   // ✅ Correct — narrow unknown with type guard
+   function processData(data: unknown) {
+     if (typeof data === 'string') {
+       return data.toUpperCase();
+     }
+     throw new Error('Expected string');
+   }
+
+   // ❌ Wrong — casting without validation
+   function processData(data: unknown) {
+     return (data as string).toUpperCase();
+   }
+   ```
+
+3. **Create proper type definitions** — If a library is missing types, define them properly instead of using `any`.
+
+   ```ts
+   // ✅ Correct — define the interface
+   interface ExternalLibConfig {
+     apiKey: string;
+     timeout: number;
+   }
+   declare module 'external-lib' {
+     export function init(config: ExternalLibConfig): void;
+   }
+
+   // ❌ Wrong — escape hatch that defeats the type system
+   const externalLib: any = require('external-lib');
+   ```
+
+4. **Use generic constraints** — When writing generic functions, constrain the type parameter instead of accepting `any`.
+
+   ```ts
+   // ✅ Correct — constrained generic
+   function getValue<T extends Record<string, unknown>>(obj: T, key: keyof T): T[keyof T] {
+     return obj[key];
+   }
+
+   // ❌ Wrong — any defeats the purpose of generics
+   function getValue(obj: any, key: string): any {
+     return obj[key];
+   }
+   ```
+
+**In code reviews:**
+
+- Every use of `any` or `unknown` requires a comment explaining why it's necessary.
+- If a better-typed alternative exists, request changes.
+- Temporary workarounds with `@ts-expect-error` should reference a tracking issue or version number.
+
 ---
 
 ## Open Decisions (Still Pending)
