@@ -1,15 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { drizzleProvider } from './drizzle.provider';
 
-// TODO: Drizzle ORM integration (post-scaffold)
-// This module will provide:
-// - Database connection pool
-// - Drizzle client instance
-// - Schema barrel exports
-// - Migration utilities
-
+@Global()
 @Module({
-  imports: [],
-  providers: [],
-  exports: [],
+  providers: [drizzleProvider],
+  exports: [drizzleProvider],
 })
 export class DatabaseModule {}
