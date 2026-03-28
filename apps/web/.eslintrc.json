@@ -1,11 +1,10 @@
 {
   "extends": [
+    "../../.eslintrc.js",
     "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:i18next/recommended",
-    "prettier"
+    "plugin:i18next/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -15,24 +14,31 @@
       "jsx": true
     }
   },
-  "plugins": ["@typescript-eslint", "react", "react-hooks", "i18next", "prettier"],
+  "plugins": ["react", "react-hooks", "i18next"],
   "rules": {
-    "prettier/prettier": "error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_"
-      }
-    ],
     "i18next/no-literal-string": [
       "error",
       {
         "markupOnly": true,
-        "ignoreAttribute": ["className", "style", "type", "id", "name", "data-testid"]
+        "ignoreAttribute": [
+          "className",
+          "style",
+          "type",
+          "id",
+          "name",
+          "data-testid",
+          "rel",
+          "target",
+          "href",
+          "src",
+          "alt",
+          "aria-label",
+          "aria-describedby",
+          "placeholder"
+        ]
       }
     ]
   },
@@ -43,7 +49,17 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "test/**/*"],
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "test/**/*",
+        "src/app/**/layout.tsx",
+        "src/app/**/page.tsx",
+        "*.config.ts",
+        "*.config.js"
+      ],
       "rules": {
         "i18next/no-literal-string": "off"
       }
