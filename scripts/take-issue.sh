@@ -23,6 +23,10 @@ print_error() { echo -e "${RED}❌ $1${NC}"; }
 print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
 
+# Load shared libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/validate-gh-account.sh"
+
 # Check if issue number is provided
 if [ $# -eq 0 ]; then
   print_error "Issue number is required"
@@ -39,6 +43,13 @@ if ! [[ "$ISSUE_NUMBER" =~ ^[0-9]+$ ]]; then
 fi
 
 echo "🚀 Taking issue #${ISSUE_NUMBER}..."
+echo ""
+
+# Step 0: Verify GitHub account matches repository owner
+if ! validate_gh_account; then
+  exit 1
+fi
+
 echo ""
 
 # Step 1: Get GitHub username and assign the issue

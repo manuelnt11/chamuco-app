@@ -9,11 +9,13 @@ This directory contains shell scripts that automate common GitHub workflow opera
 Automates the workflow for starting work on a GitHub issue.
 
 **Usage:**
+
 ```bash
 ./scripts/take-issue.sh <issue-number>
 ```
 
-**What it does:**
+**What it does:** 0. Verifies the active GitHub CLI account matches the repository owner
+
 1. Assigns the issue to the current GitHub user
 2. Creates and checks out a branch named `<issue-number>-<slug>`
 3. Saves issue details to `/tmp/take-issue-<issue-number>.json`
@@ -22,6 +24,7 @@ Automates the workflow for starting work on a GitHub issue.
 **Used by:** `/take-issue` skill
 
 **Example:**
+
 ```bash
 ./scripts/take-issue.sh 42
 ```
@@ -33,11 +36,13 @@ Automates the workflow for starting work on a GitHub issue.
 Prepares work for code review by validating the branch, checking for uncommitted changes, and pushing to remote.
 
 **Usage:**
+
 ```bash
 ./scripts/to-review.sh
 ```
 
-**What it does:**
+**What it does:** 0. Verifies the active GitHub CLI account matches the repository owner
+
 1. Validates the current branch is an issue branch (format: `<issue-number>-<slug>`)
 2. Checks for uncommitted changes (exits with code 2 if found)
 3. Pushes the branch to remote with upstream tracking
@@ -46,6 +51,7 @@ Prepares work for code review by validating the branch, checking for uncommitted
 6. Exports `ISSUE_NUMBER` and `BRANCH_NAME` variables
 
 **Exit codes:**
+
 - `0`: Success, ready for PR creation
 - `2`: Uncommitted changes detected (non-blocking, caller should handle)
 - Other: Error (blocking)
@@ -53,6 +59,7 @@ Prepares work for code review by validating the branch, checking for uncommitted
 **Used by:** `/to-review` skill
 
 **Example:**
+
 ```bash
 ./scripts/to-review.sh
 ```
@@ -64,15 +71,18 @@ Prepares work for code review by validating the branch, checking for uncommitted
 Updates the status field of an issue in GitHub Projects v2. This is a shared utility used by other scripts.
 
 **Usage:**
+
 ```bash
 ./scripts/update-project-status.sh <issue-number> <status>
 ```
 
 **Arguments:**
+
 - `<issue-number>`: The GitHub issue number (numeric)
 - `<status>`: One of: `Backlog`, `In Progress`, `In Review`, `Done`
 
 **What it does:**
+
 1. Ensures the issue is added to the project (if not already)
 2. Retrieves necessary IDs from GitHub Projects v2 API
 3. Updates the Status field to the specified value
@@ -80,9 +90,45 @@ Updates the status field of an issue in GitHub Projects v2. This is a shared uti
 **Used by:** `take-issue.sh`, `to-review.sh` (via `/to-review` skill)
 
 **Example:**
+
 ```bash
 ./scripts/update-project-status.sh 42 "In Review"
 ```
+
+---
+
+## Shared Libraries
+
+### `lib/validate-gh-account.sh`
+
+Shared validation library that ensures the active GitHub CLI account matches the repository owner. Prevents permission errors when working with multiple GitHub accounts.
+
+**Usage:**
+
+```bash
+source scripts/lib/validate-gh-account.sh
+validate_gh_account
+```
+
+**What it does:**
+
+1. Extracts the repository owner from the git remote URL
+2. Gets the active GitHub CLI account from `gh auth status`
+3. Compares the two and displays an error if they don't match
+4. Provides clear instructions to switch accounts using `gh auth switch`
+
+**Return codes:**
+
+- `0`: Account matches, validation passed
+- `1`: Account mismatch or validation error
+
+**Used by:** `take-issue.sh`, `to-review.sh`
+
+**Supports multiple remote URL formats:**
+
+- SSH: `git@github.com:manuelnt11/repo.git`
+- HTTPS: `https://github.com/manuelnt11/repo.git`
+- SSH with custom host: `git@personal:manuelnt11/repo.git`
 
 ---
 
@@ -108,6 +154,9 @@ readonly STATUS_FIELD="Status"
 ## Requirements
 
 - **GitHub CLI (`gh`)** — authenticated and configured
+  - If you have multiple GitHub accounts, ensure the active account matches the repository owner
+  - Use `gh auth status` to check the active account
+  - Use `gh auth switch -u <username>` to switch accounts
 - **Git** — configured with user credentials
 - **jq** — for JSON parsing (required by `update-project-status.sh`)
 - **Bash 4+** — for array support and modern features
@@ -123,10 +172,11 @@ All scripts use `set -euo pipefail` for strict error handling:
 - `set -o pipefail`: Return the exit code of the first failing command in a pipeline
 
 Scripts provide colored output for:
+
 - ✅ Success messages (green)
 - ❌ Error messages (red)
-- ⚠️  Warnings (yellow)
-- ℹ️  Info messages (blue)
+- ⚠️ Warnings (yellow)
+- ℹ️ Info messages (blue)
 
 ---
 
