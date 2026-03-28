@@ -16,7 +16,9 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "lint:check": "eslint \"src/**/*.ts\""
   },
   "devDependencies": {
     "typescript": "^5.3.3"
