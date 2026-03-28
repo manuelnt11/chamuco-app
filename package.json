@@ -24,7 +24,9 @@
     "db:stop": "./scripts/db/stop.sh",
     "db:reset": "./scripts/db/reset.sh",
     "db:logs": "./scripts/db/logs.sh",
-    "db:psql": "./scripts/db/psql.sh"
+    "db:psql": "./scripts/db/psql.sh",
+    "db:backup": "./scripts/db/backup-prod.sh",
+    "db:restore": "./scripts/db/restore-from-prod.sh"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",
