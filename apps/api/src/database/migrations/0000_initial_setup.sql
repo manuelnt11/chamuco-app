@@ -1,0 +1,3 @@
+-- Initial migration
+-- This empty migration establishes the baseline for the migration system.
+-- The drizzle.__drizzle_migrations table will be created automatically.

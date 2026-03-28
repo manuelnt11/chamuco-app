@@ -1,5 +1,14 @@
 import { plainToClass } from 'class-transformer';
-import { IsEnum, IsNumber, IsBoolean, IsOptional, Min, Max, validateSync } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  IsUrl,
+  Min,
+  Max,
+  validateSync,
+} from 'class-validator';
 
 enum Environment {
   Development = 'development',
@@ -19,6 +28,19 @@ class EnvironmentVariables {
   @IsBoolean()
   @IsOptional()
   SWAGGER_ENABLED?: boolean = true;
+
+  @IsUrl({ require_tld: false })
+  DATABASE_URL!: string;
+
+  @IsNumber()
+  @Min(1)
+  @Max(20)
+  DATABASE_POOL_MIN: number = 2;
+
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  DATABASE_POOL_MAX: number = 10;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {
