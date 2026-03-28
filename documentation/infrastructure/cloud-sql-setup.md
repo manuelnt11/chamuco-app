@@ -50,7 +50,20 @@ Before starting, ensure you have:
    gcloud auth list
    ```
 
-3. **Required APIs Enabled**
+3. **Cloud SQL Auth Proxy Installed** (for local development access)
+
+   ```bash
+   # Install via Homebrew (macOS)
+   brew install cloud-sql-proxy
+
+   # Or download manually from:
+   # https://cloud.google.com/sql/docs/mysql/sql-proxy#install
+
+   # Verify installation
+   cloud-sql-proxy --version
+   ```
+
+4. **Required APIs Enabled**
 
    ```bash
    # Enable Cloud SQL Admin API
@@ -65,11 +78,14 @@ Before starting, ensure you have:
    # Enable Cloud Run API
    gcloud services enable run.googleapis.com
 
+   # Enable Serverless VPC Access API
+   gcloud services enable vpcaccess.googleapis.com
+
    # Verify enabled services
-   gcloud services list --enabled | grep -E 'sqladmin|compute|servicenetworking|run'
+   gcloud services list --enabled | grep -E 'sqladmin|compute|servicenetworking|run|vpcaccess'
    ```
 
-4. **IAM Permissions**
+5. **IAM Permissions**
    - You need the following roles on the project:
      - `roles/cloudsql.admin` — Manage Cloud SQL instances
      - `roles/compute.networkAdmin` — Create VPC connectors
@@ -90,9 +106,22 @@ export INSTANCE_NAME="chamuco-postgres"
 export DB_VERSION="POSTGRES_16"
 export TIER="db-f1-micro"  # Upgrade to db-custom-1-3840 for production
 
+# IMPORTANT: Configure VPC peering first (required for private IP)
+gcloud compute addresses create google-managed-services-default \
+  --global \
+  --purpose=VPC_PEERING \
+  --prefix-length=16 \
+  --network=default
+
+gcloud services vpc-peerings connect \
+  --service=servicenetworking.googleapis.com \
+  --ranges=google-managed-services-default \
+  --network=default
+
 # Create Cloud SQL instance with private IP only
 gcloud sql instances create $INSTANCE_NAME \
   --database-version=$DB_VERSION \
+  --edition=ENTERPRISE \
   --tier=$TIER \
   --region=$REGION \
   --network=default \
@@ -102,11 +131,10 @@ gcloud sql instances create $INSTANCE_NAME \
   --storage-type=SSD \
   --storage-size=10GB \
   --storage-auto-increase \
-  --storage-auto-increase-limit=100 \
   --backup-start-time=03:00 \
   --enable-point-in-time-recovery \
   --retained-backups-count=7 \
-  --transaction-log-retention-days=7
+  --retained-transaction-log-days=7
 ```
 
 **Configuration Explained:**
@@ -114,6 +142,7 @@ gcloud sql instances create $INSTANCE_NAME \
 | Flag                               | Value                 | Rationale                                                                                              |
 | ---------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------ |
 | `--database-version`               | `POSTGRES_16`         | Matches local Docker (postgres:16-alpine)                                                              |
+| `--edition`                        | `ENTERPRISE`          | Required to use db-f1-micro tier (ENTERPRISE_PLUS doesn't support shared-core machines)                |
 | `--tier`                           | `db-f1-micro`         | MVP tier (0.6 GB RAM, shared CPU). Upgrade to `db-custom-1-3840` (1 vCPU, 3.75 GB RAM) for production. |
 | `--region`                         | `us-central1`         | Choose region closest to users. Options: `us-east1`, `us-west1`, `europe-west1`, `asia-southeast1`     |
 | `--network`                        | `default`             | Use default VPC. For production, create dedicated VPC.                                                 |
