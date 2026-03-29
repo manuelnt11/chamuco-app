@@ -51,11 +51,7 @@ COPY packages/shared-utils ./packages/shared-utils
 COPY apps/api ./apps/api
 
 # Build the application
-# Force CommonJS module output
-RUN cd apps/api && \
-    echo '{"extends":"./tsconfig.json","compilerOptions":{"module":"commonjs","moduleResolution":"node","rootDir":"./src","composite":false,"incremental":false},"include":["src/**/*"],"exclude":["node_modules","test","dist","**/*spec.ts"]}' > tsconfig.build.json && \
-    cd ../.. && \
-    pnpm --filter @chamuco/api build
+RUN pnpm --filter @chamuco/api build
 
 # ==========================================
 # Stage 3: Runner
