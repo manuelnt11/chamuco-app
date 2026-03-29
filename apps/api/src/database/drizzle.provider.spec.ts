@@ -59,6 +59,29 @@ describe('drizzleProvider', () => {
 
       expect(client).toBeDefined();
     });
+
+    it('should handle standard PostgreSQL URL format', () => {
+      const standardConfig = new ConfigService({
+        DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
+        DATABASE_POOL_MAX: 5,
+      });
+
+      const client = drizzleProvider.useFactory(standardConfig);
+
+      expect(client).toBeDefined();
+    });
+
+    it('should handle Cloud SQL Unix socket URL format', () => {
+      const unixSocketConfig = new ConfigService({
+        DATABASE_URL:
+          'postgresql://service-account@/database?host=/cloudsql/project:region:instance',
+        DATABASE_POOL_MAX: 8,
+      });
+
+      const client = drizzleProvider.useFactory(unixSocketConfig);
+
+      expect(client).toBeDefined();
+    });
   });
 
   describe('DRIZZLE_CLIENT symbol', () => {

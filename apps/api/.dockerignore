@@ -1,0 +1,32 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+coverage
+.turbo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__
+__mocks__
+test
+
+# Cache
+.cache
+.eslintcache
+
+# Logs
+*.log
+
+# Misc
+.prettierrc
+.eslintrc.js
+tsconfig.tsbuildinfo
+nest-cli.json

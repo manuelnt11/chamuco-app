@@ -164,44 +164,93 @@ When ready to scale, upgrade to:
 
 ## Deployment Configuration
 
+**Status:** Deployed (Issue #19 - 2026-03-29)
+**Service URL:** `https://chamuco-api-393715267650.us-central1.run.app`
+
 ### Cloud Run Deploy Command
 
 ```bash
-gcloud run deploy api \
-  --image=gcr.io/chamuco-app-mn/api:latest \
+gcloud run deploy chamuco-api \
+  --image=us-central1-docker.pkg.dev/chamuco-app-mn/chamuco-images/api:latest \
   --region=us-central1 \
   --platform=managed \
   --service-account=chamuco-api-sa@chamuco-app-mn.iam.gserviceaccount.com \
   --add-cloudsql-instances=chamuco-app-mn:us-central1:chamuco-postgres \
   --vpc-connector=chamuco-vpc-connector \
-  --set-env-vars="DATABASE_URL=postgresql://chamuco-api-sa@/chamuco_prod?host=/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres" \
-  --set-env-vars="DATABASE_POOL_MIN=2,DATABASE_POOL_MAX=10" \
-  --set-env-vars="NODE_ENV=production" \
-  --allow-unauthenticated
+  --vpc-egress=private-ranges-only \
+  --set-secrets="DATABASE_URL=DATABASE_URL:latest,DATABASE_POOL_MIN=DATABASE_POOL_MIN:latest,DATABASE_POOL_MAX=DATABASE_POOL_MAX:latest,NODE_ENV=NODE_ENV:latest,SWAGGER_ENABLED=SWAGGER_ENABLED:latest" \
+  --memory=512Mi \
+  --cpu=1 \
+  --min-instances=0 \
+  --max-instances=10 \
+  --concurrency=80 \
+  --timeout=60s \
+  --port=3000 \
+  --allow-unauthenticated \
+  --ingress=all \
+  --no-use-http2 \
+  --execution-environment=gen2 \
+  --project=chamuco-app-mn
 ```
+
+**Key Changes from Design:**
+
+- ✅ Using **Artifact Registry** (`us-central1-docker.pkg.dev`) instead of Container Registry
+- ✅ Using **Secret Manager** (`--set-secrets`) instead of `--set-env-vars` for sensitive data
+- ✅ Added **VPC egress** control (`private-ranges-only`) for security
+- ✅ Set explicit **resource limits** (512Mi RAM, 1 CPU) and **scaling** (0-10 instances)
+- ✅ Using **gen2 execution environment** for faster cold starts
+- ✅ Service name is `chamuco-api` (not just `api`)
+
+### Database Connection from Cloud Run
+
+The NestJS API connects to Cloud SQL via **Unix socket** using the connection string stored in Secret Manager:
+
+```bash
+postgresql://chamuco-api-sa@/chamuco_prod?host=/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres
+```
+
+**Connection flow:**
+
+1. Cloud Run container starts and reads `DATABASE_URL` from Secret Manager
+2. Drizzle provider parses the connection string and detects Unix socket format
+3. `postgres.js` client connects via `/cloudsql/PROJECT:REGION:INSTANCE` socket
+4. Cloud SQL instance authenticates the service account via IAM
+5. Connection is established over encrypted Unix socket (no TCP/IP)
+
+**Benefits:**
+
+- No passwords or secrets in environment variables (IAM handles auth)
+- Lower latency than TCP connection
+- Automatic reconnection if connection drops
+- Pool management via Drizzle provider (2-10 connections per instance)
 
 ### CI/CD Pipeline
 
-Add to `.github/workflows/api.yml` before deployment step:
+Full pipeline implemented in `.github/workflows/api.yml` (Issue #19).
+
+**Migration step** (runs before deployment):
 
 ```yaml
 - name: Run Database Migrations
-  env:
-    DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
+  if: github.ref == 'refs/heads/main'
   run: |
-    # Start Cloud SQL Auth Proxy
-    cloud-sql-proxy chamuco-app-mn:us-central1:chamuco-postgres --port=5433 &
+    # Download and start Cloud SQL Proxy
+    wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
+    chmod +x cloud_sql_proxy
+    ./cloud_sql_proxy chamuco-app-mn:us-central1:chamuco-postgres --port=5433 &
     PROXY_PID=$!
-
-    # Wait for proxy to be ready
     sleep 5
 
     # Run migrations
-    pnpm --filter api db:migrate
+    DATABASE_URL=postgresql://github-actions@chamuco-app-mn.iam@localhost:5433/chamuco_prod \
+      pnpm --filter api db:migrate
 
     # Stop proxy
     kill $PROXY_PID
 ```
+
+**Note:** The `github-actions` IAM service account is used for CI/CD operations and has `roles/cloudsql.client` and `roles/iam.serviceAccountUser` permissions.
 
 ---
 

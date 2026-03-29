@@ -4,7 +4,8 @@ import {
   IsNumber,
   IsBoolean,
   IsOptional,
-  IsUrl,
+  IsString,
+  Matches,
   Min,
   Max,
   validateSync,
@@ -29,7 +30,10 @@ class EnvironmentVariables {
   @IsOptional()
   SWAGGER_ENABLED?: boolean = true;
 
-  @IsUrl({ require_tld: false })
+  @IsString()
+  @Matches(/^postgresql:\/\//, {
+    message: 'DATABASE_URL must be a valid PostgreSQL connection string',
+  })
   DATABASE_URL!: string;
 
   @IsNumber()

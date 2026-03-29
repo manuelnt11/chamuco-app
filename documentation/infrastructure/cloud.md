@@ -202,13 +202,244 @@ See [Cloud SQL Setup Guide](./cloud-sql-setup.md) for step-by-step provisioning 
 
 ## Containerization
 
-The NestJS API is packaged as a **Docker** container. The `Dockerfile` lives in `apps/api/`.
+Both the NestJS API and Next.js web application are packaged as **Docker** containers. The Dockerfiles live in `apps/api/` and `apps/web/` respectively.
 
 Key considerations:
 
 - Multi-stage builds to minimize production image size.
 - Non-root user in the container for security.
-- Health check endpoint (`/health`) for Cloud Run readiness probes.
+- Health check endpoint (`/health`) for Cloud Run readiness probes (API).
+- Next.js standalone output mode for minimal production bundles (Web).
+
+---
+
+## Cloud Run Configuration
+
+**Status:** Deployed (Issue #19)
+**Last Updated:** 2026-03-29
+
+Both services are deployed to Cloud Run in `us-central1` region with serverless, auto-scaling configuration.
+
+### API Service (`chamuco-api`)
+
+**Service URL:** `https://chamuco-api-393715267650.us-central1.run.app`
+**Current Revision:** `chamuco-api-00012-tfr` (or latest)
+
+**Configuration:**
+
+```yaml
+Image: us-central1-docker.pkg.dev/chamuco-app-mn/chamuco-images/api:latest
+Region: us-central1
+Platform: managed
+Service Account: chamuco-api-sa@chamuco-app-mn.iam.gserviceaccount.com
+Cloud SQL Instance: chamuco-app-mn:us-central1:chamuco-postgres
+VPC Connector: chamuco-vpc-connector
+VPC Egress: private-ranges-only
+
+Resources:
+  Memory: 512Mi
+  CPU: 1 vCPU
+  Min Instances: 0 (scales to zero)
+  Max Instances: 10
+  Concurrency: 80 requests/instance
+  Timeout: 60s
+  Port: 3000
+
+Access:
+  Authentication: allow-unauthenticated (auth handled by Firebase tokens)
+  Ingress: all
+  HTTP/2: disabled
+
+Environment:
+  Execution Environment: gen2 (faster cold starts)
+  PORT: 3000 (Cloud Run injects automatically)
+
+Secrets (via Secret Manager):
+  - DATABASE_URL (PostgreSQL connection string with Unix socket)
+  - DATABASE_POOL_MIN (2)
+  - DATABASE_POOL_MAX (10)
+  - NODE_ENV (production)
+  - SWAGGER_ENABLED (false)
+```
+
+**Deployment Command:**
+
+```bash
+gcloud run deploy chamuco-api \
+  --image=us-central1-docker.pkg.dev/chamuco-app-mn/chamuco-images/api:latest \
+  --region=us-central1 \
+  --platform=managed \
+  --service-account=chamuco-api-sa@chamuco-app-mn.iam.gserviceaccount.com \
+  --add-cloudsql-instances=chamuco-app-mn:us-central1:chamuco-postgres \
+  --vpc-connector=chamuco-vpc-connector \
+  --vpc-egress=private-ranges-only \
+  --set-secrets="DATABASE_URL=DATABASE_URL:latest,DATABASE_POOL_MIN=DATABASE_POOL_MIN:latest,DATABASE_POOL_MAX=DATABASE_POOL_MAX:latest,NODE_ENV=NODE_ENV:latest,SWAGGER_ENABLED=SWAGGER_ENABLED:latest" \
+  --memory=512Mi \
+  --cpu=1 \
+  --min-instances=0 \
+  --max-instances=10 \
+  --concurrency=80 \
+  --timeout=60s \
+  --port=3000 \
+  --allow-unauthenticated \
+  --ingress=all \
+  --no-use-http2 \
+  --execution-environment=gen2 \
+  --project=chamuco-app-mn
+```
+
+**Health Check:**
+
+```bash
+curl https://chamuco-api-393715267650.us-central1.run.app/health
+# Returns: {"status":"ok","info":{},"error":{},"details":{}}
+```
+
+**Configuration Rationale:**
+
+- **512Mi memory:** Sufficient for NestJS with small connection pool; can scale up if >80% utilization
+- **1 vCPU:** Balanced for CPU-light API workloads
+- **Min 0 instances:** Cost optimization for MVP; consider min-instances=1 for production to eliminate cold starts
+- **Max 10 instances:** Protects against runaway costs while allowing scale for traffic bursts
+- **80 concurrency:** NestJS handles concurrent requests well; leaves headroom for long-running queries
+- **VPC egress private-ranges-only:** Database on VPC, external APIs via internet (Firebase, OAuth)
+- **Gen2 execution:** Faster cold starts (<5s), better performance, required for VPC connector
+
+### Web Service (`chamuco-web`)
+
+**Service URL:** `https://chamuco-web-393715267650.us-central1.run.app`
+**Current Revision:** `chamuco-web-00001-4km` (or latest)
+
+**Configuration:**
+
+```yaml
+Image: us-central1-docker.pkg.dev/chamuco-app-mn/chamuco-images/web:latest
+Region: us-central1
+Platform: managed
+Service Account: default Compute Engine service account
+
+Resources:
+  Memory: 1Gi
+  CPU: 1 vCPU
+  Min Instances: 0 (scales to zero)
+  Max Instances: 5
+  Concurrency: 100 requests/instance
+  Timeout: 60s
+  Port: 3000
+
+Access:
+  Authentication: allow-unauthenticated (public web app)
+  Ingress: all
+  HTTP/2: disabled
+
+Environment:
+  Execution Environment: gen2
+  PORT: 3000 (Cloud Run injects automatically)
+  NODE_ENV: production
+  NEXT_PUBLIC_API_URL: https://chamuco-api-393715267650.us-central1.run.app
+```
+
+**Deployment Command:**
+
+```bash
+gcloud run deploy chamuco-web \
+  --image=us-central1-docker.pkg.dev/chamuco-app-mn/chamuco-images/web:latest \
+  --region=us-central1 \
+  --platform=managed \
+  --set-env-vars="NODE_ENV=production,NEXT_PUBLIC_API_URL=https://chamuco-api-393715267650.us-central1.run.app" \
+  --memory=1Gi \
+  --cpu=1 \
+  --min-instances=0 \
+  --max-instances=5 \
+  --concurrency=100 \
+  --timeout=60s \
+  --port=3000 \
+  --allow-unauthenticated \
+  --ingress=all \
+  --no-use-http2 \
+  --execution-environment=gen2 \
+  --project=chamuco-app-mn
+```
+
+**Health Check:**
+
+```bash
+curl -I https://chamuco-web-393715267650.us-central1.run.app
+# Returns: HTTP/2 200
+```
+
+**Configuration Rationale:**
+
+- **1Gi memory:** Next.js SSR requires more memory than the API; 512Mi led to OOM crashes
+- **Max 5 instances:** Web traffic typically lower than API traffic (API serves both web and mobile)
+- **100 concurrency:** Next.js handles high concurrency well with App Router
+- **No VPC connector:** Web service doesn't need direct database access (calls API instead)
+- **No service account specified:** Uses default Compute Engine SA; sufficient for public web app
+
+### Service Account Permissions
+
+**chamuco-api-sa@chamuco-app-mn.iam.gserviceaccount.com:**
+
+- `roles/cloudsql.client` — Connect to Cloud SQL via Unix socket
+- `roles/logging.logWriter` — Write logs to Cloud Logging
+- `roles/monitoring.metricWriter` — Write metrics to Cloud Monitoring
+- `roles/cloudtrace.agent` — Send trace data to Cloud Trace
+- `roles/secretmanager.secretAccessor` — Read secrets (DATABASE_URL, etc.)
+
+**Web service (default Compute Engine SA):**
+
+- `roles/logging.logWriter` — Write logs
+- `roles/monitoring.metricWriter` — Write metrics
+
+### Monitoring and Logs
+
+**View logs:**
+
+```bash
+gcloud run services logs read chamuco-api --region=us-central1 --limit=100
+gcloud run services logs read chamuco-web --region=us-central1 --limit=100
+```
+
+**View service details:**
+
+```bash
+gcloud run services describe chamuco-api --region=us-central1
+gcloud run services describe chamuco-web --region=us-central1
+```
+
+**List revisions:**
+
+```bash
+gcloud run revisions list --service=chamuco-api --region=us-central1
+gcloud run revisions list --service=chamuco-web --region=us-central1
+```
+
+### Performance Metrics (MVP Baseline)
+
+**API Service:**
+
+- Cold start: ~3-5s (gen2)
+- p95 response time: <500ms (health endpoint)
+- Memory utilization: ~150-200Mi at idle
+- CPU utilization: <5% at idle
+
+**Web Service:**
+
+- Cold start: ~5-8s (Next.js SSR startup)
+- TTFB p95: <2s (homepage SSR)
+- Memory utilization: ~400-600Mi at idle
+- CPU utilization: <10% at idle
+
+### Cost Breakdown (Actual)
+
+**Cloud Run (per month):**
+
+- API: $5-10 (light MVP traffic, scales to zero)
+- Web: $8-15 (Next.js higher memory, occasional SSR requests)
+
+**Total Cloud Run: $13-25/month**
+
+Combined with Cloud SQL (~$10/month) and VPC connector (~$12/month), total MVP infrastructure: ~$35-47/month.
 
 ---
 
