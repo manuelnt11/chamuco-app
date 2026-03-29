@@ -59,6 +59,12 @@ Desktop.ini
 firebase-debug.log
 firestore-debug.log
 
+# Database
+.postgres-data/
+backups/
+*.sql
+*.sql.gz
+
 # Misc
 .cache
 .parcel-cache

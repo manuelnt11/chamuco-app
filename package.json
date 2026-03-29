@@ -19,7 +19,14 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "prepare": "husky install",
-    "clean": "turbo run clean && rm -rf node_modules .turbo"
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "db:start": "./scripts/db/start.sh",
+    "db:stop": "./scripts/db/stop.sh",
+    "db:reset": "./scripts/db/reset.sh",
+    "db:logs": "./scripts/db/logs.sh",
+    "db:psql": "./scripts/db/psql.sh",
+    "db:backup": "./scripts/db/backup-prod.sh",
+    "db:restore": "./scripts/db/restore-from-prod.sh"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",
