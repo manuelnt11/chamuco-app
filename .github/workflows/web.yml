@@ -54,6 +54,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Audit dependencies for vulnerabilities
+        # TODO: Restore to --audit-level high after resolving vulnerabilities (see issue #45)
+        run: pnpm audit --audit-level critical
+
       - name: Lint
         run: pnpm --filter web lint:check
 
