@@ -2,6 +2,7 @@
   "name": "@chamuco/api",
   "version": "0.1.0",
   "description": "Chamuco App - NestJS Backend API",
+  "type": "commonjs",
   "private": true,
   "scripts": {
     "build": "nest build",

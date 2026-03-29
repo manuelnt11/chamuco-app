@@ -1,0 +1,181 @@
+name: Web CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - '.github/workflows/web.yml'
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - '.github/workflows/web.yml'
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ secrets.GCP_REGION }}
+  ARTIFACT_REGISTRY: ${{ secrets.ARTIFACT_REGISTRY }}
+  SERVICE_NAME: chamuco-web
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8.15.1
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter web lint:check
+
+      - name: Type check
+        run: pnpm --filter web typecheck
+
+      - name: Run tests with coverage
+        run: pnpm --filter web test:cov
+
+      - name: Build Next.js application
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: pnpm --filter web build
+
+      - name: Upload coverage to GitHub
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-web
+          path: apps/web/coverage/
+          retention-days: 7
+
+  e2e-tests:
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8.15.1
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps
+
+      - name: Run E2E tests
+        run: pnpm --filter web test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
+
+  deploy:
+    needs: [test-and-build, e2e-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f apps/web/Dockerfile \
+            -t ${{ env.ARTIFACT_REGISTRY }}/web:${{ github.sha }} \
+            -t ${{ env.ARTIFACT_REGISTRY }}/web:latest \
+            .
+
+      - name: Push Docker image to Artifact Registry
+        run: |
+          docker push ${{ env.ARTIFACT_REGISTRY }}/web:${{ github.sha }}
+          docker push ${{ env.ARTIFACT_REGISTRY }}/web:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          # Get API service URL for NEXT_PUBLIC_API_URL
+          API_URL=$(gcloud run services describe chamuco-api \
+            --region=${{ env.GCP_REGION }} \
+            --format='value(status.url)' \
+            --project=${{ env.GCP_PROJECT_ID }})
+
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=${{ env.ARTIFACT_REGISTRY }}/web:${{ github.sha }} \
+            --region=${{ env.GCP_REGION }} \
+            --platform=managed \
+            --set-env-vars="NODE_ENV=production,NEXT_PUBLIC_API_URL=${API_URL}" \
+            --quiet
+
+      - name: Verify deployment
+        run: |
+          # Get service URL
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --format='value(status.url)')
+
+          echo "Service URL: $SERVICE_URL"
+
+          # Test homepage
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL/)
+
+          if [ $HTTP_CODE -eq 200 ]; then
+            echo "✅ Homepage check passed (HTTP $HTTP_CODE)"
+          else
+            echo "❌ Homepage check failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+
+# Build outputs
+.next
+out
+dist
+coverage
+.turbo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
+__mocks__
+test
+
+# Playwright
+playwright-report
+test-results
+
+# Cache
+.cache
+.eslintcache
+
+# Logs
+*.log
+
+# Misc
+.prettierrc
+.eslintrc.js
+tsconfig.tsbuildinfo
+next-env.d.ts
