@@ -3,8 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  // TODO: Remove the @ts-expect-error once the Vite version mismatch between vitest and @vitejs/plugin-react is resolved. See
-  // @ts-expect-error - Vite version mismatch between vitest and @vitejs/plugin-react
+  // @ts-expect-error - Vite version conflict: vitest uses v5.4.21, but @vitejs/plugin-react uses v7.3.1
   plugins: [react()],
   test: {
     globals: true,
@@ -40,6 +39,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@chamuco/shared-types': path.resolve(__dirname, '../../packages/shared-types/src'),
+      '@chamuco/shared-utils': path.resolve(__dirname, '../../packages/shared-utils/src'),
     },
   },
 });

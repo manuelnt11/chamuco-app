@@ -1,13 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   output: 'standalone',
   experimental: {
     optimizePackageImports: ['react-i18next'],
-  },
-  eslint: {
-    dirs: ['src'],
   },
   typescript: {
     ignoreBuildErrors: false,
