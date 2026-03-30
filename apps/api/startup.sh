@@ -11,8 +11,10 @@ echo "  PORT: $PORT"
 
 # Run database migrations
 echo "📦 Running database migrations..."
+set +e  # Temporarily disable exit on error to capture output
 MIGRATION_OUTPUT=$(pnpm run db:migrate 2>&1)
 MIGRATION_EXIT_CODE=$?
+set -e  # Re-enable exit on error
 
 echo "$MIGRATION_OUTPUT"
 
