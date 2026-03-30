@@ -59,14 +59,10 @@ RUN pnpm --filter @chamuco/api build
 # ==========================================
 FROM node:22-alpine AS runner
 
-# Install curl for health checks, wget for downloading proxy, and enable pnpm
-RUN apk add --no-cache curl wget && \
+# Install curl for health checks and enable pnpm
+RUN apk add --no-cache curl && \
     corepack enable && \
     corepack prepare pnpm@10.33.0 --activate
-
-# Download and install Cloud SQL Auth Proxy
-RUN wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.2/cloud-sql-proxy.linux.amd64 -O /usr/local/bin/cloud-sql-proxy && \
-    chmod +x /usr/local/bin/cloud-sql-proxy
 
 WORKDIR /app
 
@@ -91,12 +87,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/drizzle.config.ts ./apps
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/migrations ./apps/api/src/database/migrations
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/schema ./apps/api/src/database/schema
 
-# Copy startup script, connection test, IAM token helper, and migration runner
-COPY --chown=nestjs:nodejs apps/api/startup.sh ./apps/api/
-COPY --chown=nestjs:nodejs apps/api/test-db-connection.js ./apps/api/
-COPY --chown=nestjs:nodejs apps/api/get-iam-token.js ./apps/api/
-COPY --chown=nestjs:nodejs apps/api/run-migrations.js ./apps/api/
-RUN chmod +x ./apps/api/startup.sh
+# Copy runtime scripts (startup, IAM token helper, and migration runner)
+COPY --chown=nestjs:nodejs apps/api/scripts ./apps/api/scripts
+RUN chmod +x ./apps/api/scripts/startup.sh
 
 # Switch to non-root user
 USER nestjs
@@ -112,4 +105,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
 # Start the application (runs migrations first, then starts the app)
-CMD ["./startup.sh"]
+CMD ["./scripts/startup.sh"]
