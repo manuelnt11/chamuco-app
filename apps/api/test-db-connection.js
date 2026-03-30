@@ -5,20 +5,44 @@ const postgres = require('postgres');
 
 async function testConnection() {
   console.log('🔍 Testing database connection...');
-  console.log('DATABASE_URL:', process.env.DATABASE_URL?.substring(0, 80));
 
-  const sql = postgres(process.env.DATABASE_URL, {
-    max: 1,
-    idle_timeout: 20,
-    connect_timeout: 10,
-  });
+  // Determine connection options
+  let connectionOptions;
+
+  // Cloud Run uses unix socket
+  if (process.env.NODE_ENV === 'production' && process.env.K_SERVICE) {
+    console.log('📍 Cloud Run environment detected');
+    connectionOptions = {
+      host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
+      database: 'chamuco_prod',
+      user: 'chamuco-api-sa',
+      max: 1,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    };
+    console.log('  Host (unix socket):', connectionOptions.host);
+    console.log('  Database:', connectionOptions.database);
+    console.log('  User:', connectionOptions.user);
+  } else {
+    // Local development
+    console.log('📍 Local development environment');
+    console.log('  DATABASE_URL:', process.env.DATABASE_URL?.substring(0, 80));
+    connectionOptions = {
+      ...postgres(process.env.DATABASE_URL).options,
+      max: 1,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    };
+  }
+
+  const sql = postgres(connectionOptions);
 
   try {
     console.log('📡 Attempting to connect...');
 
     console.log('🔍 Running test query...');
     const result = await sql`SELECT version()`;
-    console.log('✅ Query result:', result[0].version);
+    console.log('✅ Query result:', result[0].version.substring(0, 50) + '...');
 
     console.log('🔍 Checking current user...');
     const userResult = await sql`SELECT current_user, current_database()`;
