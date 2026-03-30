@@ -5,7 +5,7 @@
 FROM node:22-alpine AS deps
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@8.15.1 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 # Set working directory
 WORKDIR /app
@@ -28,7 +28,7 @@ RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 FROM node:22-alpine AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@8.15.1 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 WORKDIR /app
 
@@ -62,7 +62,7 @@ FROM node:22-alpine AS runner
 # Install curl for health checks and enable pnpm
 RUN apk add --no-cache curl && \
     corepack enable && \
-    corepack prepare pnpm@8.15.1 --activate
+    corepack prepare pnpm@10.33.0 --activate
 
 WORKDIR /app
 

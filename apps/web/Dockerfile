@@ -5,7 +5,7 @@
 FROM node:22-alpine AS deps
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@8.15.1 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 # Install libc6-compat for Next.js compatibility
 RUN apk add --no-cache libc6-compat
@@ -31,7 +31,7 @@ RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 FROM node:22-alpine AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@8.15.1 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 RUN apk add --no-cache libc6-compat
 
