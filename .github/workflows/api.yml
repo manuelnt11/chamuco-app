@@ -146,7 +146,7 @@ jobs:
 
       - name: Run database migrations
         env:
-          DATABASE_URL: postgresql://github-actions@chamuco-app-mn.iam@localhost:5433/chamuco_prod
+          DATABASE_URL: postgresql://github-actions%40chamuco-app-mn.iam@localhost:5433/chamuco_prod
         run: |
           set -e  # Exit on any error
 
@@ -158,6 +158,7 @@ jobs:
           # Start Cloud SQL Proxy v2 (connects via Cloud SQL API, no public IP needed)
           echo "🔌 Starting Cloud SQL Proxy v2..."
           ./cloud_sql_proxy \
+            --auto-iam-authn \
             --port 5433 \
             --quiet \
             chamuco-app-mn:us-central1:chamuco-postgres &
