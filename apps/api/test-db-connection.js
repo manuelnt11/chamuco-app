@@ -1,41 +1,40 @@
 #!/usr/bin/env node
 
-// In the container, pg is installed via drizzle-orm dependencies
-const { Pool } = require('pg');
+// Use postgres.js driver (same as drizzle-orm)
+const postgres = require('postgres');
 
 async function testConnection() {
   console.log('🔍 Testing database connection...');
   console.log('DATABASE_URL:', process.env.DATABASE_URL?.substring(0, 80));
 
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+  const sql = postgres(process.env.DATABASE_URL, {
+    max: 1,
+    idle_timeout: 20,
+    connect_timeout: 10,
   });
 
   try {
     console.log('📡 Attempting to connect...');
-    const client = await pool.connect();
-    console.log('✅ Connected successfully!');
 
     console.log('🔍 Running test query...');
-    const result = await client.query('SELECT version()');
-    console.log('✅ Query result:', result.rows[0].version);
+    const result = await sql`SELECT version()`;
+    console.log('✅ Query result:', result[0].version);
 
     console.log('🔍 Checking current user...');
-    const userResult = await client.query('SELECT current_user, current_database()');
-    console.log('✅ Current user:', userResult.rows[0].current_user);
-    console.log('✅ Current database:', userResult.rows[0].current_database);
+    const userResult = await sql`SELECT current_user, current_database()`;
+    console.log('✅ Current user:', userResult[0].current_user);
+    console.log('✅ Current database:', userResult[0].current_database);
 
     console.log('🔍 Checking schema permissions...');
-    const permResult = await client.query(`
+    const permResult = await sql`
       SELECT
         has_database_privilege(current_user, current_database(), 'CONNECT') as can_connect,
         has_schema_privilege(current_user, 'public', 'USAGE') as can_usage,
         has_schema_privilege(current_user, 'public', 'CREATE') as can_create
-    `);
-    console.log('✅ Permissions:', permResult.rows[0]);
+    `;
+    console.log('✅ Permissions:', permResult[0]);
 
-    client.release();
-    await pool.end();
+    await sql.end();
 
     console.log('✅ All connection tests passed!');
     process.exit(0);
@@ -44,9 +43,12 @@ async function testConnection() {
     console.error('Error name:', error.name);
     console.error('Error message:', error.message);
     console.error('Error code:', error.code);
+    if (error.cause) {
+      console.error('Error cause:', error.cause);
+    }
     console.error('Error stack:', error.stack);
 
-    await pool.end();
+    await sql.end();
     process.exit(1);
   }
 }
