@@ -155,11 +155,10 @@ jobs:
           wget -q https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.2/cloud-sql-proxy.linux.amd64 -O cloud_sql_proxy
           chmod +x cloud_sql_proxy
 
-          # Start Cloud SQL Proxy v2 (using private IP)
-          echo "🔌 Starting Cloud SQL Proxy v2 (private IP)..."
+          # Start Cloud SQL Proxy v2 (connects via Cloud SQL API, no public IP needed)
+          echo "🔌 Starting Cloud SQL Proxy v2..."
           ./cloud_sql_proxy \
             --port 5433 \
-            --private-ip \
             --quiet \
             chamuco-app-mn:us-central1:chamuco-postgres &
           PROXY_PID=$!
