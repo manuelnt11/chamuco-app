@@ -21,9 +21,6 @@ COPY packages/shared-utils/package.json ./packages/shared-utils/
 # Install dependencies
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
-# Install drizzle-kit for running migrations at startup
-RUN cd apps/api && pnpm add drizzle-kit
-
 # ==========================================
 # Stage 2: Builder
 # Build the application
