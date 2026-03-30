@@ -87,10 +87,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/drizzle.config.ts ./apps
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/migrations ./apps/api/src/database/migrations
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/schema ./apps/api/src/database/schema
 
-# Install drizzle-kit for running migrations (as nestjs user)
-USER root
-RUN cd /app/apps/api && pnpm add drizzle-kit --save-prod
-USER nestjs
+# Copy drizzle-kit from builder (it's a devDependency installed there)
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules/drizzle-kit ./node_modules/drizzle-kit
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules/.bin/drizzle-kit ./node_modules/.bin/drizzle-kit
 
 # Copy startup script
 COPY --chown=nestjs:nodejs apps/api/startup.sh ./apps/api/
