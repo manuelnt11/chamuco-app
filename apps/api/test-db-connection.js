@@ -27,7 +27,7 @@ async function testConnection() {
     poolConfig = {
       host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
       database: 'chamuco_prod',
-      user: 'chamuco-api-sa',  // Use short name for IAM auth
+      user: 'chamuco-api-sa@chamuco-app-mn.iam',  // IAM user as registered in Cloud SQL
       password: token,  // Use IAM token as password
       max: 1,
       idleTimeoutMillis: 20000,
