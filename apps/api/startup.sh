@@ -43,43 +43,16 @@ if [ "$NODE_ENV" = "production" ] && [ -n "$K_SERVICE" ]; then
   echo "✅ IAM token acquired"
 fi
 
-# Run migrations with output capture
+# Run migrations using custom script
 set +e  # Temporarily disable exit on error to capture output
-MIGRATION_LOG=$(mktemp)
-npx drizzle-kit migrate > "$MIGRATION_LOG" 2>&1
+node run-migrations.js 2>&1
 MIGRATION_EXIT_CODE=$?
-cat "$MIGRATION_LOG"
 set -e  # Re-enable exit on error
 
 if [ $MIGRATION_EXIT_CODE -eq 0 ]; then
   echo "✅ Migrations completed successfully"
-  rm -f "$MIGRATION_LOG"
 else
-  echo ""
   echo "❌ Migrations failed with exit code: $MIGRATION_EXIT_CODE"
-  echo ""
-  echo "🔍 Checking migration files:"
-  ls -la src/database/migrations/
-  echo ""
-  echo "🔍 Attempting direct pg connection test:"
-  node -e "
-    const { Pool } = require('pg');
-    const pool = new Pool({
-      host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
-      database: 'chamuco_prod',
-      user: 'chamuco-api-sa@chamuco-app-mn.iam',
-      password: process.env.PGPASSWORD,
-    });
-    pool.query('SELECT NOW()')
-      .then(() => { console.log('✅ Direct connection successful'); pool.end(); process.exit(0); })
-      .catch((err) => { console.error('❌ Direct connection failed:', err.message); pool.end(); process.exit(1); });
-  " 2>&1 || echo "Connection test failed"
-  echo ""
-  echo "🔍 Environment variables:"
-  echo "  PGPASSWORD: ${PGPASSWORD:0:20}..."
-  echo "  NODE_ENV: $NODE_ENV"
-  echo "  K_SERVICE: $K_SERVICE"
-  rm -f "$MIGRATION_LOG"
   exit 1
 fi
 
