@@ -130,96 +130,23 @@ jobs:
           docker push ${{ env.ARTIFACT_REGISTRY }}/api:${{ github.sha }}
           docker push ${{ env.ARTIFACT_REGISTRY }}/api:latest
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq netcat-openbsd postgresql-client
-
-      - name: Setup pnpm for migrations
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10.33.0
-          run_install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run database migrations
-        env:
-          DATABASE_URL: postgresql://github-actions%40chamuco-app-mn.iam@localhost:5433/chamuco_prod
-        run: |
-          set -e  # Exit on any error
-
-          # Download Cloud SQL Proxy v2
-          echo "📥 Downloading Cloud SQL Proxy v2..."
-          wget -q https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.2/cloud-sql-proxy.linux.amd64 -O cloud_sql_proxy
-          chmod +x cloud_sql_proxy
-
-          # Start Cloud SQL Proxy v2 (connects via Cloud SQL API, no public IP needed)
-          echo "🔌 Starting Cloud SQL Proxy v2..."
-          ./cloud_sql_proxy \
-            --auto-iam-authn \
-            --port 5433 \
-            --quiet \
-            chamuco-app-mn:us-central1:chamuco-postgres &
-          PROXY_PID=$!
-
-          echo "⏳ Waiting for Cloud SQL Proxy to be ready (PID: $PROXY_PID)..."
-
-          # Wait for proxy to be ready (up to 30 seconds)
-          for i in {1..30}; do
-            if nc -z localhost 5433 2>/dev/null; then
-              echo "✅ Cloud SQL Proxy is ready on port 5433"
-              break
-            fi
-            if [ $i -eq 30 ]; then
-              echo "❌ Cloud SQL Proxy failed to start within 30 seconds"
-              kill $PROXY_PID 2>/dev/null || true
-              exit 1
-            fi
-            echo "  Attempt $i/30..."
-            sleep 1
-          done
-
-          # Test database connection (non-blocking, for logging only)
-          echo "🔍 Testing database connection..."
-          if psql "$DATABASE_URL" -c "SELECT version();" 2>&1; then
-            echo "✅ Direct psql connection successful"
-          else
-            echo "⚠️  Direct psql connection failed (this is OK, IAM auth via Drizzle will work)"
-          fi
-          echo ""
-
-          # Run migrations
-          echo "🚀 Running database migrations..."
-          echo "   Connection: $DATABASE_URL"
-          echo ""
-          if pnpm --filter api db:migrate; then
-            echo ""
-            echo "✅ Migrations completed successfully"
-          else
-            echo ""
-            echo "❌ Migrations failed"
-            echo ""
-            echo "Checking proxy status..."
-            ps aux | grep cloud_sql_proxy | grep -v grep || echo "Proxy is not running"
-            echo ""
-            kill $PROXY_PID 2>/dev/null || true
-            exit 1
-          fi
-
-          # Stop proxy
-          echo "🛑 Stopping Cloud SQL Proxy..."
-          kill $PROXY_PID 2>/dev/null || true
-          wait $PROXY_PID 2>/dev/null || true
-          echo "✅ Migration step completed"
-
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.ARTIFACT_REGISTRY }}/api:${{ github.sha }} \
             --region=${{ env.GCP_REGION }} \
             --platform=managed \
+            --service-account=chamuco-api-sa@chamuco-app-mn.iam.gserviceaccount.com \
+            --add-cloudsql-instances=chamuco-app-mn:us-central1:chamuco-postgres \
+            --vpc-connector=chamuco-vpc-connector \
+            --vpc-egress=private-ranges-only \
+            --set-env-vars="NODE_ENV=production,DATABASE_URL=postgresql://chamuco-api-sa@chamuco-app-mn.iam@localhost/chamuco_prod?host=/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres" \
+            --memory=512Mi \
+            --cpu=1 \
+            --min-instances=0 \
+            --max-instances=10 \
+            --timeout=300 \
+            --allow-unauthenticated \
             --quiet
 
       - name: Verify deployment

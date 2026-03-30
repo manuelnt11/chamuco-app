@@ -85,6 +85,16 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./apps/api/
 # Copy drizzle configuration and migrations
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/drizzle.config.ts ./apps/api/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/migrations ./apps/api/src/database/migrations
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/schema ./apps/api/src/database/schema
+
+# Install drizzle-kit for running migrations (as nestjs user)
+USER root
+RUN cd /app/apps/api && pnpm add drizzle-kit --save-prod
+USER nestjs
+
+# Copy startup script
+COPY --chown=nestjs:nodejs apps/api/startup.sh ./apps/api/
+RUN chmod +x ./apps/api/startup.sh
 
 # Switch to non-root user
 USER nestjs
@@ -99,5 +109,5 @@ WORKDIR /app/apps/api
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
-# Start the application
-CMD ["pnpm", "start:prod"]
+# Start the application (runs migrations first, then starts the app)
+CMD ["./startup.sh"]
