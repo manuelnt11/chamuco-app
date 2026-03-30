@@ -9,28 +9,14 @@ echo "  DATABASE_URL: ${DATABASE_URL:0:50}..." # Show first 50 chars only
 echo "  NODE_ENV: $NODE_ENV"
 echo "  PORT: $PORT"
 
-# Start Cloud SQL Auth Proxy in background (only in Cloud Run)
+# Check if Cloud Run unix socket exists
 if [ "$NODE_ENV" = "production" ] && [ -n "$K_SERVICE" ]; then
-  echo "🔌 Starting Cloud SQL Auth Proxy..."
-  mkdir -p /cloudsql
-  cloud-sql-proxy --unix-socket /cloudsql chamuco-app-mn:us-central1:chamuco-postgres &
-  PROXY_PID=$!
-  echo "  Proxy PID: $PROXY_PID"
-
-  # Wait for proxy to be ready
-  echo "⏳ Waiting for proxy to be ready..."
-  for i in 1 2 3 4 5; do
-    if [ -S "/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres/.s.PGSQL.5432" ]; then
-      echo "✅ Proxy is ready"
-      break
-    fi
-    echo "  Attempt $i/5: socket not ready yet..."
-    sleep 2
-  done
-
-  if [ ! -S "/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres/.s.PGSQL.5432" ]; then
-    echo "❌ Proxy failed to start"
-    kill $PROXY_PID 2>/dev/null || true
+  echo "🔍 Checking for Cloud Run unix socket..."
+  if [ -S "/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres/.s.PGSQL.5432" ]; then
+    echo "✅ Cloud Run unix socket found"
+    ls -la /cloudsql/chamuco-app-mn:us-central1:chamuco-postgres/
+  else
+    echo "❌ Cloud Run unix socket not found"
     exit 1
   fi
 fi
@@ -45,6 +31,17 @@ fi
 
 # Run database migrations
 echo "📦 Running database migrations..."
+
+# Get IAM token if in Cloud Run
+if [ "$NODE_ENV" = "production" ] && [ -n "$K_SERVICE" ]; then
+  echo "🔑 Getting IAM authentication token..."
+  export PGPASSWORD=$(node get-iam-token.js)
+  if [ -z "$PGPASSWORD" ]; then
+    echo "❌ Failed to get IAM token"
+    exit 1
+  fi
+  echo "✅ IAM token acquired"
+fi
 
 # Run migrations with verbose output
 set +e  # Temporarily disable exit on error to capture output

@@ -3,12 +3,13 @@ import type { Config } from 'drizzle-kit';
 // Parse DATABASE_URL or use Cloud SQL unix socket
 const getDbCredentials = () => {
   // Cloud Run uses unix socket with IAM authentication
+  // The IAM token is passed via PGPASSWORD environment variable
   if (process.env.NODE_ENV === 'production' && process.env.K_SERVICE) {
     return {
       host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
       database: 'chamuco_prod',
       user: 'chamuco-api-sa@chamuco-app-mn.iam',
-      // pg driver handles IAM auth automatically via unix socket
+      password: process.env.PGPASSWORD || '',  // Token passed via env var
     };
   }
 

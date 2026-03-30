@@ -2,6 +2,7 @@
 
 // Use pg driver for better IAM auth support
 const { Pool } = require('pg');
+const { getIAMToken } = require('./get-iam-token');
 
 async function testConnection() {
   console.log('🔍 Testing database connection...');
@@ -12,10 +13,22 @@ async function testConnection() {
   // Cloud Run uses unix socket with IAM authentication
   if (process.env.NODE_ENV === 'production' && process.env.K_SERVICE) {
     console.log('📍 Cloud Run environment detected');
+
+    // Get IAM token for authentication (if not already set)
+    let token = process.env.PGPASSWORD;
+    if (!token) {
+      console.log('🔑 Getting IAM authentication token...');
+      token = await getIAMToken();
+      console.log('✅ Token acquired');
+    } else {
+      console.log('✅ Using existing PGPASSWORD token');
+    }
+
     poolConfig = {
       host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
       database: 'chamuco_prod',
       user: 'chamuco-api-sa@chamuco-app-mn.iam',
+      password: token,  // Use IAM token as password
       max: 1,
       idleTimeoutMillis: 20000,
       connectionTimeoutMillis: 10000,
