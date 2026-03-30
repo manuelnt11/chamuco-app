@@ -21,6 +21,9 @@ COPY packages/shared-utils/package.json ./packages/shared-utils/
 # Install dependencies
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
+# Install drizzle-kit for running migrations at startup
+RUN cd apps/api && pnpm add drizzle-kit
+
 # ==========================================
 # Stage 2: Builder
 # Build the application
@@ -86,10 +89,6 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./apps/api/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/drizzle.config.ts ./apps/api/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/migrations ./apps/api/src/database/migrations
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/schema ./apps/api/src/database/schema
-
-# Copy drizzle-kit from builder (it's a devDependency in apps/api/node_modules)
-COPY --from=builder --chown=nestjs:nodejs /app/apps/api/node_modules/drizzle-kit ./apps/api/node_modules/drizzle-kit
-COPY --from=builder --chown=nestjs:nodejs /app/apps/api/node_modules/.bin/drizzle-kit ./apps/api/node_modules/.bin/drizzle-kit
 
 # Copy startup script
 COPY --chown=nestjs:nodejs apps/api/startup.sh ./apps/api/
