@@ -18,7 +18,7 @@
     "test:coverage": "turbo run test:coverage",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
-    "prepare": "husky install",
+    "prepare": "husky init",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "db:start": "./scripts/db/start.sh",
     "db:stop": "./scripts/db/stop.sh",
