@@ -11,12 +11,17 @@ echo "  PORT: $PORT"
 
 # Run database migrations
 echo "📦 Running database migrations..."
-if pnpm run db:migrate 2>&1; then
+MIGRATION_OUTPUT=$(pnpm run db:migrate 2>&1)
+MIGRATION_EXIT_CODE=$?
+
+echo "$MIGRATION_OUTPUT"
+
+if [ $MIGRATION_EXIT_CODE -eq 0 ]; then
   echo "✅ Migrations completed successfully"
 else
-  MIGRATION_EXIT_CODE=$?
   echo "❌ Migrations failed with exit code: $MIGRATION_EXIT_CODE"
-  echo "💡 Check logs above for detailed error"
+  echo "📋 Full migration output:"
+  echo "$MIGRATION_OUTPUT"
   exit 1
 fi
 
