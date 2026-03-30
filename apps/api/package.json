@@ -33,6 +33,7 @@
     "class-validator": "^0.14.4",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
+    "pg": "^8.20.0",
     "postgres": "^3.4.8",
     "reflect-metadata": "^0.1.14",
     "rxjs": "^7.8.2"
@@ -46,6 +47,7 @@
     "@swc/jest": "^0.2.39",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.19.37",
+    "@types/pg": "^8.20.0",
     "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
