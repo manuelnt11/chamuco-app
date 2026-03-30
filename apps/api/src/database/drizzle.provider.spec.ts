@@ -71,16 +71,29 @@ describe('drizzleProvider', () => {
       expect(client).toBeDefined();
     });
 
-    it('should handle Cloud SQL Unix socket URL format', () => {
-      const unixSocketConfig = new ConfigService({
-        DATABASE_URL:
-          'postgresql://service-account@/database?host=/cloudsql/project:region:instance',
+    it('should handle Cloud Run environment with unix socket', () => {
+      // Set Cloud Run environment variables
+      const originalNodeEnv = process.env.NODE_ENV;
+      const originalKService = process.env.K_SERVICE;
+      const originalPgPassword = process.env.PGPASSWORD;
+
+      process.env.NODE_ENV = 'production';
+      process.env.K_SERVICE = 'test-service';
+      process.env.PGPASSWORD = 'test-token';
+
+      const cloudRunConfig = new ConfigService({
+        NODE_ENV: 'production',
         DATABASE_POOL_MAX: 8,
       });
 
-      const client = drizzleProvider.useFactory(unixSocketConfig);
+      const client = drizzleProvider.useFactory(cloudRunConfig);
 
       expect(client).toBeDefined();
+
+      // Restore original environment
+      process.env.NODE_ENV = originalNodeEnv;
+      process.env.K_SERVICE = originalKService;
+      process.env.PGPASSWORD = originalPgPassword;
     });
   });
 

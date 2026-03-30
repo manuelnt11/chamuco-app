@@ -14,58 +14,40 @@ export const DRIZZLE_CLIENT = Symbol('DRIZZLE_CLIENT');
 export type DrizzleClient = ReturnType<typeof drizzle<typeof schema>>;
 
 /**
- * Parse DATABASE_URL to extract connection parameters
- * Supports both standard URLs and Cloud SQL Unix socket format
- */
-function parseDatabaseUrl(
-  url: string,
-): string | { host: string; database: string; username: string } {
-  // Check if it's a Cloud SQL Unix socket connection
-  // Format: postgresql://username@/database?host=/cloudsql/instance
-  const unixSocketMatch = url.match(/^postgresql:\/\/([^@]+)@\/([^?]+)\?host=(.+)$/);
-
-  if (unixSocketMatch && unixSocketMatch[1] && unixSocketMatch[2] && unixSocketMatch[3]) {
-    // Cloud SQL Unix socket format
-    return {
-      host: unixSocketMatch[3], // /cloudsql/project:region:instance
-      database: unixSocketMatch[2],
-      username: unixSocketMatch[1],
-    };
-  }
-
-  // Standard URL format - let postgres.js parse it
-  return url;
-}
-
-/**
  * Factory function that creates and configures the Drizzle client
  */
 export const drizzleProvider = {
   provide: DRIZZLE_CLIENT,
   inject: [ConfigService],
   useFactory: (configService: ConfigService): DrizzleClient => {
-    const databaseUrl = configService.get<string>('DATABASE_URL')!;
     const poolMax = configService.get<number>('DATABASE_POOL_MAX', 10);
+    const nodeEnv = configService.get<string>('NODE_ENV');
+    const kService = process.env.K_SERVICE; // Cloud Run sets this
 
-    // Parse the DATABASE_URL
-    const connectionConfig = parseDatabaseUrl(databaseUrl);
+    let client: ReturnType<typeof postgres>;
 
-    // Create PostgreSQL connection with optimized pool settings
-    const client =
-      typeof connectionConfig === 'string'
-        ? postgres(connectionConfig, {
-            max: poolMax,
-            idle_timeout: 20, // Close idle connections after 20s (Cloud Run optimization)
-            connect_timeout: 10, // Fail fast if connection takes >10s
-            prepare: false, // Disable prepared statements (better for serverless)
-          })
-        : postgres({
-            ...connectionConfig,
-            max: poolMax,
-            idle_timeout: 20,
-            connect_timeout: 10,
-            prepare: false,
-          });
+    // Cloud Run uses unix socket with IAM authentication
+    if (nodeEnv === 'production' && kService) {
+      client = postgres({
+        host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
+        database: 'chamuco_prod',
+        user: 'chamuco-api-sa@chamuco-app-mn.iam',
+        password: process.env.PGPASSWORD || '', // IAM token set by startup script
+        max: poolMax,
+        idle_timeout: 20,
+        connect_timeout: 10,
+        prepare: false,
+      });
+    } else {
+      // Local development uses DATABASE_URL
+      const databaseUrl = configService.get<string>('DATABASE_URL')!;
+      client = postgres(databaseUrl, {
+        max: poolMax,
+        idle_timeout: 20,
+        connect_timeout: 10,
+        prepare: false,
+      });
+    }
 
     // Create Drizzle instance with schema
     return drizzle(client, { schema });
