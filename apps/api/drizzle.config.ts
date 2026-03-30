@@ -7,7 +7,7 @@ const getDbCredentials = () => {
     return {
       host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
       database: 'chamuco_prod',
-      user: 'chamuco-api-sa',
+      user: 'chamuco-api-sa@chamuco-app-mn.iam',
     };
   }
 

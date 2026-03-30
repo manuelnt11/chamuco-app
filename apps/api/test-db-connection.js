@@ -15,7 +15,7 @@ async function testConnection() {
     connectionOptions = {
       host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
       database: 'chamuco_prod',
-      user: 'chamuco-api-sa',
+      user: 'chamuco-api-sa@chamuco-app-mn.iam',
       max: 1,
       idle_timeout: 20,
       connect_timeout: 10,
