@@ -9,12 +9,19 @@ echo "  DATABASE_URL: ${DATABASE_URL:0:50}..." # Show first 50 chars only
 echo "  NODE_ENV: $NODE_ENV"
 echo "  PORT: $PORT"
 
+# Test database connection first
+echo "🔍 Testing database connection..."
+cd /app/apps/api
+if ! node test-db-connection.js 2>&1; then
+  echo "❌ Database connection test failed - exiting"
+  exit 1
+fi
+
 # Run database migrations
 echo "📦 Running database migrations..."
 
 # Run migrations with verbose output
 set +e  # Temporarily disable exit on error to capture output
-cd /app/apps/api
 npx drizzle-kit migrate 2>&1
 MIGRATION_EXIT_CODE=$?
 set -e  # Re-enable exit on error

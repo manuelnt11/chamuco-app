@@ -87,8 +87,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/drizzle.config.ts ./apps
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/migrations ./apps/api/src/database/migrations
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/src/database/schema ./apps/api/src/database/schema
 
-# Copy startup script
+# Copy startup script and connection test
 COPY --chown=nestjs:nodejs apps/api/startup.sh ./apps/api/
+COPY --chown=nestjs:nodejs apps/api/test-db-connection.js ./apps/api/
 RUN chmod +x ./apps/api/startup.sh
 
 # Switch to non-root user
