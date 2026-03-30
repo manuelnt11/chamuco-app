@@ -95,6 +95,33 @@ describe('drizzleProvider', () => {
       process.env.K_SERVICE = originalKService;
       process.env.PGPASSWORD = originalPgPassword;
     });
+
+    it('should handle Cloud Run environment without PGPASSWORD', () => {
+      // Set Cloud Run environment variables without PGPASSWORD
+      const originalNodeEnv = process.env.NODE_ENV;
+      const originalKService = process.env.K_SERVICE;
+      const originalPgPassword = process.env.PGPASSWORD;
+
+      process.env.NODE_ENV = 'production';
+      process.env.K_SERVICE = 'test-service';
+      delete process.env.PGPASSWORD; // Ensure PGPASSWORD is not set
+
+      const cloudRunConfig = new ConfigService({
+        NODE_ENV: 'production',
+        DATABASE_POOL_MAX: 8,
+      });
+
+      const client = drizzleProvider.useFactory(cloudRunConfig);
+
+      expect(client).toBeDefined();
+
+      // Restore original environment
+      process.env.NODE_ENV = originalNodeEnv;
+      process.env.K_SERVICE = originalKService;
+      if (originalPgPassword) {
+        process.env.PGPASSWORD = originalPgPassword;
+      }
+    });
   });
 
   describe('DRIZZLE_CLIENT symbol', () => {
