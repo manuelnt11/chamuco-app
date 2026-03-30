@@ -22,14 +22,14 @@ This guide covers the local development setup for Chamuco App, including the Doc
 
 ### Required Software
 
-1. **Node.js 20+**
+1. **Node.js 22+**
 
    ```bash
    # Check version
-   node --version  # Should be >= 20.0.0
+   node --version  # Should be >= 22.0.0
    ```
 
-2. **pnpm 8+**
+2. **pnpm 10+**
 
    ```bash
    # Install via npm
@@ -39,7 +39,7 @@ This guide covers the local development setup for Chamuco App, including the Doc
    brew install pnpm
 
    # Check version
-   pnpm --version  # Should be >= 8.0.0
+   pnpm --version  # Should be >= 10.0.0
    ```
 
 3. **Docker Desktop**

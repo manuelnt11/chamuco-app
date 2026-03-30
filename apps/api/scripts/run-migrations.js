@@ -41,7 +41,7 @@ async function runMigrations() {
     console.log('✅ Migrations table exists');
 
     // Read migration files
-    const migrationsDir = path.join(__dirname, 'src/database/migrations');
+    const migrationsDir = path.join(__dirname, '..', 'src/database/migrations');
     const metaPath = path.join(migrationsDir, 'meta', '_journal.json');
 
     console.log('📂 Reading migration journal...');
