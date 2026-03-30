@@ -43,11 +43,10 @@ if [ "$NODE_ENV" = "production" ] && [ -n "$K_SERVICE" ]; then
   echo "✅ IAM token acquired"
 fi
 
-# Run migrations with verbose output and enable Node.js debugging
+# Run migrations with output capture
 set +e  # Temporarily disable exit on error to capture output
-export NODE_OPTIONS="--trace-warnings"
 MIGRATION_LOG=$(mktemp)
-npx drizzle-kit migrate --verbose > "$MIGRATION_LOG" 2>&1
+npx drizzle-kit migrate > "$MIGRATION_LOG" 2>&1
 MIGRATION_EXIT_CODE=$?
 cat "$MIGRATION_LOG"
 set -e  # Re-enable exit on error
