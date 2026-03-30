@@ -21,17 +21,24 @@ async function runMigrations() {
     const client = await pool.connect();
     console.log('✅ Connected to database');
 
-    // Create drizzle schema and migrations table if not exists
-    console.log('📋 Creating drizzle schema and migrations table...');
-    await client.query(`
-      CREATE SCHEMA IF NOT EXISTS drizzle;
-      CREATE TABLE IF NOT EXISTS drizzle.__drizzle_migrations (
-        id SERIAL PRIMARY KEY,
-        hash text NOT NULL,
-        created_at bigint
-      );
+    // Verify drizzle schema and migrations table exist
+    console.log('📋 Checking drizzle migrations table...');
+    const { rows: tables } = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'drizzle'
+        AND table_name = '__drizzle_migrations'
+      ) as table_exists;
     `);
-    console.log('✅ Schema and table created');
+
+    if (!tables[0].table_exists) {
+      console.error('❌ Drizzle migrations table does not exist');
+      console.error('💡 Run scripts/setup-drizzle-schema.sql as postgres user first');
+      client.release();
+      await pool.end();
+      process.exit(1);
+    }
+    console.log('✅ Migrations table exists');
 
     // Read migration files
     const migrationsDir = path.join(__dirname, 'src/database/migrations');
