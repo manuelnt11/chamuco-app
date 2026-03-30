@@ -45,18 +45,25 @@ fi
 
 # Run migrations with verbose output
 set +e  # Temporarily disable exit on error to capture output
-npx drizzle-kit migrate 2>&1
+MIGRATION_LOG=$(mktemp)
+npx drizzle-kit migrate > "$MIGRATION_LOG" 2>&1
 MIGRATION_EXIT_CODE=$?
+cat "$MIGRATION_LOG"
 set -e  # Re-enable exit on error
 
 if [ $MIGRATION_EXIT_CODE -eq 0 ]; then
   echo "✅ Migrations completed successfully"
+  rm -f "$MIGRATION_LOG"
 else
   echo "❌ Migrations failed with exit code: $MIGRATION_EXIT_CODE"
+  echo "🔍 Full migration log:"
+  cat "$MIGRATION_LOG"
+  echo ""
   echo "🔍 Debugging information:"
   echo "  DATABASE_URL format: ${DATABASE_URL:0:80}"
   echo "  Node version: $(node --version)"
   echo "  NPM version: $(npm --version)"
+  rm -f "$MIGRATION_LOG"
   exit 1
 fi
 
