@@ -150,16 +150,17 @@ jobs:
         run: |
           set -e  # Exit on any error
 
-          # Download Cloud SQL Proxy
-          echo "📥 Downloading Cloud SQL Proxy..."
-          wget -q https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
+          # Download Cloud SQL Proxy v2
+          echo "📥 Downloading Cloud SQL Proxy v2..."
+          wget -q https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.2/cloud-sql-proxy.linux.amd64 -O cloud_sql_proxy
           chmod +x cloud_sql_proxy
 
-          # Start Cloud SQL Proxy with verbose logging
-          echo "🔌 Starting Cloud SQL Proxy..."
-          ./cloud_sql_proxy chamuco-app-mn:us-central1:chamuco-postgres \
-            --port=5433 \
-            --quiet &
+          # Start Cloud SQL Proxy v2
+          echo "🔌 Starting Cloud SQL Proxy v2..."
+          ./cloud_sql_proxy \
+            --port 5433 \
+            --quiet \
+            chamuco-app-mn:us-central1:chamuco-postgres &
           PROXY_PID=$!
 
           echo "⏳ Waiting for Cloud SQL Proxy to be ready (PID: $PROXY_PID)..."
