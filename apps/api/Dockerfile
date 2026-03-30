@@ -59,10 +59,14 @@ RUN pnpm --filter @chamuco/api build
 # ==========================================
 FROM node:22-alpine AS runner
 
-# Install curl for health checks and enable pnpm
-RUN apk add --no-cache curl && \
+# Install curl for health checks, wget for downloading proxy, and enable pnpm
+RUN apk add --no-cache curl wget && \
     corepack enable && \
     corepack prepare pnpm@10.33.0 --activate
+
+# Download and install Cloud SQL Auth Proxy
+RUN wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.2/cloud-sql-proxy.linux.amd64 -O /usr/local/bin/cloud-sql-proxy && \
+    chmod +x /usr/local/bin/cloud-sql-proxy
 
 WORKDIR /app
 
