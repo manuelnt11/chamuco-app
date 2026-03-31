@@ -1,14 +1,12 @@
 import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ThemeProvider } from './ThemeProvider';
+import type { ThemeProviderProps } from 'next-themes/dist/types';
 
-const mockThemeProvider = vi.fn(({ children }: { children: React.ReactNode }) => (
-  <div>{children}</div>
-));
+const mockThemeProvider = vi.fn(({ children }: ThemeProviderProps) => <div>{children}</div>);
 
 vi.mock('next-themes', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ThemeProvider: (props: any) => mockThemeProvider(props),
+  ThemeProvider: (props: ThemeProviderProps) => mockThemeProvider(props),
 }));
 
 describe('ThemeProvider', () => {

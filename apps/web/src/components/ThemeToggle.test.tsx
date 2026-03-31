@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeToggle, getNextTheme } from './ThemeToggle';
 
 const mockSetTheme = vi.fn();
 const mockUseTheme = vi.fn();
@@ -9,6 +9,28 @@ const mockUseTheme = vi.fn();
 vi.mock('next-themes', () => ({
   useTheme: () => mockUseTheme(),
 }));
+
+describe('getNextTheme', () => {
+  it('cycles from light to dark', () => {
+    expect(getNextTheme('light')).toBe('dark');
+  });
+
+  it('cycles from dark to system', () => {
+    expect(getNextTheme('dark')).toBe('system');
+  });
+
+  it('cycles from system to light', () => {
+    expect(getNextTheme('system')).toBe('light');
+  });
+
+  it('defaults to light for undefined', () => {
+    expect(getNextTheme(undefined)).toBe('light');
+  });
+
+  it('defaults to light for unknown theme', () => {
+    expect(getNextTheme('unknown')).toBe('light');
+  });
+});
 
 describe('ThemeToggle', () => {
   beforeEach(() => {

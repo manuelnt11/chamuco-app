@@ -3,6 +3,20 @@
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
+const THEME_CYCLE = {
+  light: 'dark',
+  dark: 'system',
+  system: 'light',
+} as const;
+
+/**
+ * Gets the next theme in the cycle: light → dark → system → light
+ */
+export const getNextTheme = (current: string | undefined): string => {
+  if (!current) return 'light';
+  return THEME_CYCLE[current as keyof typeof THEME_CYCLE] || 'light';
+};
+
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -23,13 +37,7 @@ export function ThemeToggle() {
   }
 
   const cycleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
+    setTheme(getNextTheme(theme));
   };
 
   return (
