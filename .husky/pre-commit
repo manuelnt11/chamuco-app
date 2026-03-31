@@ -1,1 +1,35 @@
-pnpm test
+echo "🔍 Running pre-commit checks..."
+
+# 1. Format and Lint staged files
+echo "📝 Formatting and linting staged files..."
+npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "❌ Lint-staged failed"
+  exit 1
+fi
+
+# 2. Type checking (only affected packages)
+echo "🔧 Type checking affected packages..."
+pnpm turbo run typecheck --filter='[HEAD^1]'
+if [ $? -ne 0 ]; then
+  echo "❌ Type check failed"
+  exit 1
+fi
+
+# 3. Unit tests (only affected packages)
+echo "🧪 Running unit tests in affected packages..."
+pnpm turbo run test --filter='[HEAD^1]'
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed"
+  exit 1
+fi
+
+# 4. Coverage check (90% threshold, only affected packages)
+echo "📊 Checking test coverage in affected packages..."
+pnpm --if-present --filter api test:cov && pnpm --if-present --filter web test:cov
+if [ $? -ne 0 ]; then
+  echo "❌ Coverage below 90% threshold"
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
