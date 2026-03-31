@@ -2,7 +2,9 @@ import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ThemeProvider } from './ThemeProvider';
 
-const mockThemeProvider = vi.fn(({ children }: { children: React.ReactNode }) => <div>{children}</div>);
+const mockThemeProvider = vi.fn(({ children }: { children: React.ReactNode }) => (
+  <div>{children}</div>
+));
 
 vi.mock('next-themes', () => ({
   ThemeProvider: (props: unknown) => mockThemeProvider(props),
@@ -21,7 +23,12 @@ describe('ThemeProvider', () => {
 
   it('passes props to NextThemesProvider', () => {
     render(
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="custom-key">
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        enableSystem={false}
+        storageKey="custom-key"
+      >
         <div>Test</div>
       </ThemeProvider>,
     );

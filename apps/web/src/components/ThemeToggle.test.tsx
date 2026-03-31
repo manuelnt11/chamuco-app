@@ -25,7 +25,10 @@ describe('ThemeToggle', () => {
 
     await waitFor(() => {
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('aria-label', 'Current theme: light. Click to cycle through themes.');
+      expect(button).toHaveAttribute(
+        'aria-label',
+        'Current theme: light. Click to cycle through themes.',
+      );
       expect(button).toHaveAttribute('title', 'Theme: light');
     });
   });
@@ -40,7 +43,10 @@ describe('ThemeToggle', () => {
 
     await waitFor(() => {
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('aria-label', 'Current theme: dark. Click to cycle through themes.');
+      expect(button).toHaveAttribute(
+        'aria-label',
+        'Current theme: dark. Click to cycle through themes.',
+      );
       expect(button).toHaveAttribute('title', 'Theme: dark');
     });
   });
@@ -55,7 +61,10 @@ describe('ThemeToggle', () => {
 
     await waitFor(() => {
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('aria-label', 'Current theme: system. Click to cycle through themes.');
+      expect(button).toHaveAttribute(
+        'aria-label',
+        'Current theme: system. Click to cycle through themes.',
+      );
       expect(button).toHaveAttribute('title', 'Theme: system');
     });
   });
