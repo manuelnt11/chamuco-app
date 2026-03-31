@@ -7,7 +7,8 @@ const mockThemeProvider = vi.fn(({ children }: { children: React.ReactNode }) =>
 ));
 
 vi.mock('next-themes', () => ({
-  ThemeProvider: (props: unknown) => mockThemeProvider(props),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ThemeProvider: (props: any) => mockThemeProvider(props),
 }));
 
 describe('ThemeProvider', () => {

@@ -1,1 +1,38 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# 1. Format and Lint staged files
+echo "📝 Formatting and linting staged files..."
+npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "❌ Lint-staged failed"
+  exit 1
+fi
+
+# 2. Type checking
+echo "🔧 Type checking..."
+pnpm typecheck
+if [ $? -ne 0 ]; then
+  echo "❌ Type check failed"
+  exit 1
+fi
+
+# 3. Unit tests
+echo "🧪 Running unit tests..."
 pnpm test
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed"
+  exit 1
+fi
+
+# 4. Coverage check (90% threshold)
+echo "📊 Checking test coverage..."
+pnpm --filter api test:cov && pnpm --filter web test:cov
+if [ $? -ne 0 ]; then
+  echo "❌ Coverage below 90% threshold"
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
