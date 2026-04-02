@@ -132,7 +132,7 @@ The **`next-themes`** library handles theme management in Next.js. It:
 ```ts
 // apps/web/tailwind.config.ts
 export default {
-  darkMode: "class",
+  darkMode: 'class',
   // ...
 };
 ```

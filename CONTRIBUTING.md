@@ -21,6 +21,7 @@ The `main` branch is protected with the following rules to ensure code quality a
 All PRs must pass the following checks before merging:
 
 #### For API Changes (`apps/api`)
+
 - ✅ `test-and-build` — CI/CD pipeline
 - ✅ Lint must pass (`pnpm --filter api lint:check`)
 - ✅ Type check must pass (`pnpm --filter api typecheck`)
@@ -28,6 +29,7 @@ All PRs must pass the following checks before merging:
 - ✅ Migration dry run validation
 
 #### For Web Changes (`apps/web`)
+
 - ✅ `test-and-build` — CI/CD pipeline
 - ✅ Lint must pass (`pnpm --filter web lint:check`)
 - ✅ Type check must pass (`pnpm --filter web typecheck`)
@@ -55,6 +57,7 @@ The following actions are **blocked** on the `main` branch:
 ### Commit Message Format
 
 When squashing, the commit message follows this format:
+
 - **Title:** PR title (keep it concise and descriptive)
 - **Body:** PR description (include context, changes, and any relevant details)
 
@@ -133,6 +136,7 @@ git push -u origin <branch-name>
 ### 7. Merge
 
 Once all checks pass and approvals are received:
+
 - Click "Squash and merge" (only option available)
 - Edit the commit message if needed
 - Confirm the merge

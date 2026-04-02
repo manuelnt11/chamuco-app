@@ -17,6 +17,7 @@ Run the automated setup script:
 ```
 
 The script will:
+
 1. Assign the issue to the current user
 2. Create and checkout a branch named `<issue_number>-<slug>`
 3. Save issue details to `/tmp/take-issue-<issue_number>.json`

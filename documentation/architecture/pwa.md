@@ -33,25 +33,25 @@ Next.js App Router supports a native manifest file via `app/manifest.ts`. This f
 
 ```ts
 // apps/web/app/manifest.ts
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Chamuco",
-    short_name: "Chamuco",
-    description: "Group travel coordination",
-    start_url: "/",
-    display: "standalone", // hides browser chrome when installed
-    background_color: "#ffffff",
-    theme_color: "#ffffff",
+    name: 'Chamuco',
+    short_name: 'Chamuco',
+    description: 'Group travel coordination',
+    start_url: '/',
+    display: 'standalone', // hides browser chrome when installed
+    background_color: '#ffffff',
+    theme_color: '#ffffff',
     icons: [
-      { src: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { src: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
       {
-        src: "/icons/icon-512x512-maskable.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
+        src: '/icons/icon-512x512-maskable.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   };
@@ -79,12 +79,8 @@ The solution is a **custom unified Service Worker** that handles both responsibi
 // apps/web/public/custom-sw.js  (merged by next-pwa at build time)
 
 // --- FCM Background Message Handler ---
-importScripts(
-  "https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js",
-);
-importScripts(
-  "https://www.gstatic.com/firebasejs/10.x.x/firebase-messaging-compat.js",
-);
+importScripts('https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.x.x/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: self.FIREBASE_API_KEY,
@@ -98,7 +94,7 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
-    icon: "/icons/icon-192x192.png",
+    icon: '/icons/icon-192x192.png',
     data: payload.data,
   });
 });
@@ -114,15 +110,15 @@ Firebase config values (API key, project ID, etc.) are injected as `self.*` vari
 
 ```ts
 // apps/web/next.config.ts
-import withPWA from "@ducanh2912/next-pwa";
+import withPWA from '@ducanh2912/next-pwa';
 
 const nextConfig = withPWA({
-  dest: "public", // SW output directory
-  customWorkerSrc: "custom-sw.js", // path to the unified SW file above
+  dest: 'public', // SW output directory
+  customWorkerSrc: 'custom-sw.js', // path to the unified SW file above
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
-  disable: process.env.NODE_ENV === "development", // disable SW in dev to avoid caching confusion
+  disable: process.env.NODE_ENV === 'development', // disable SW in dev to avoid caching confusion
 })(baseNextConfig);
 ```
 
