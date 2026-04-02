@@ -132,6 +132,32 @@ A single-family system using Plus Jakarta Sans across all weights (Light 300 →
 | `fill`    | Selected state, toggles, status indicators                 |
 | `duotone` | Empty states, onboarding illustrations, achievement badges |
 
+**Implementation notes:**
+
+All icons are imported from `@phosphor-icons/react`. The package provides tree-shakeable named exports where the icon name is suffixed with the weight. Regular weight has no suffix.
+
+```tsx
+// Import syntax
+import { MagnifyingGlass, MagnifyingGlassBold, Heart, HeartFill } from '@phosphor-icons/react';
+
+// Usage examples
+<MagnifyingGlass />                    // Regular: search in navigation
+<MagnifyingGlassBold className="..." /> // Bold: primary search button
+<Heart />                              // Regular: inactive favorite
+<HeartFill className="text-primary" /> // Fill: active favorite (selected state)
+```
+
+**Sizing:** Icons default to 24×24px but accept `size` and `weight` props for flexibility. Use Tailwind width/height utilities (`w-5 h-5`, `w-6 h-6`) for consistent sizing across the app.
+
+**Color:** Icons inherit currentColor by default — control color via text utilities (`text-primary`, `text-muted-foreground`).
+
+**Best practices:**
+
+- Use semantic naming: `AirplaneTakeoff` over `Plane1` when both exist
+- Prefer `fill` weight over `regular` for toggles and selected states (better visual feedback)
+- Reserve `duotone` for large-scale usage (≥48px) — looks muddy at small sizes
+- Test in both light and dark mode — some duotone icons have poor contrast in dark backgrounds
+
 ---
 
 ## 5. React Component Framework — shadcn/ui ✅ CONFIRMED
