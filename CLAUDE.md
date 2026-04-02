@@ -45,6 +45,7 @@ The project is currently in the **design and documentation phase** — no source
 | Frontend testing    | Vitest + React Testing Library — unit and component tests                                   |
 | E2E testing         | Playwright — cross-browser end-to-end tests                                                 |
 | Code formatting     | Prettier — indentation, quotes, trailing commas; config at `.prettierrc`                    |
+| Code linting        | ESLint 9.x — flat config format; config at `eslint.config.mjs` per package                  |
 | Git hooks           | Husky + lint-staged — pre-commit enforces lint, format, unit tests, and 90% coverage        |
 | Frontend i18n       | `i18next` + `react-i18next`                                                                 |
 | Backend i18n        | `nestjs-i18n`                                                                               |
