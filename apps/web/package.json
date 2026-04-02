@@ -18,15 +18,19 @@
     "clean": "rm -rf .next dist coverage .turbo"
   },
   "dependencies": {
+    "@base-ui/react": "^1.3.0",
     "@chamuco/shared-types": "workspace:*",
     "@chamuco/shared-utils": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "i18next": "^23.16.8",
     "i18next-http-backend": "^2.7.3",
     "next": "^16.2.1",
     "next-themes": "^0.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-i18next": "^14.1.3"
+    "react-i18next": "^14.1.3",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
@@ -52,6 +56,7 @@
     "jsdom": "^24.1.3",
     "postcss": "^8.5.8",
     "prettier": "^3.8.1",
+    "shadcn": "^4.1.2",
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "vitest": "^1.6.1"
