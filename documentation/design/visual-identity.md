@@ -138,11 +138,25 @@ A single-family system using Plus Jakarta Sans across all weights (Light 300 →
 
 🔗 [ui.shadcn.com](https://ui.shadcn.com) · [npx shadcn@latest add \<component\>](https://ui.shadcn.com/docs/installation/next)
 
-Not a dependency — components are copied into the project via CLI and owned by the codebase. Built on Radix UI primitives (fully accessible, keyboard navigable, ARIA-compliant). Tailwind-native: every component is plain TSX with Tailwind classes, fully customizable to the Horizonte palette without fighting a third-party theme system. Zero runtime overhead, no version conflicts.
+Not a dependency — components are copied into the project via CLI and owned by the codebase. Built on **Base UI primitives** (MUI-backed, behavior-first design). Tailwind-native: every component is plain TSX with Tailwind classes, fully customizable to the Horizonte palette without fighting a third-party theme system. Zero runtime overhead, no version conflicts.
+
+**Primitive layer: Base UI (nova style) — decision made 2026-04-02**
+
+Chamuco uses **Base UI** (`@base-ui/react`) instead of Radix UI for the primitive layer. This decision was made during initial shadcn/ui integration based on the following factors:
+
+- **Better design system fit:** Base UI's behavior-first, config-driven API provides more granular control over DOM structure and component behavior — critical for Chamuco's distinctive identity (gamification animations, celebration screens, achievement unlocks, Chamuco mascot illustrations)
+- **Advanced component capabilities:** Native support for complex interactions (multi-select, advanced comboboxes) that Radix struggles with — needed for participant management, expense splits, group coordination features
+- **Long-term maintainability:** Active development by MUI's full-time team vs. slower Radix updates post-acquisition (2026 reality)
+- **Future-facing architecture:** Lower-level abstractions scale better for complex systems — Chamuco is not a typical CRUD app but a social gamification platform with travel coordination
+- **Early-stage advantage:** Zero migration cost since this decision was made during initial setup
+
+The tradeoff is a slightly steeper learning curve compared to Radix's higher-level component primitives, but the flexibility gain is essential for Chamuco's ambitious UX requirements (gamification, PWA patterns, custom animations respecting `prefers-reduced-motion`).
+
+**Component patterns:**
 
 The `Drawer` component (built on Vaul) provides the bottom-sheet pattern required by the PWA navigation spec. The `Dialog`, `Sheet`, `Popover`, and `Command` primitives cover the core overlay patterns across the app without additional libraries.
 
-**Integration notes:** initialize with `shadcn init`, configure `tailwind.config.ts` to use the `chamuco` color namespace defined in section 2, and set the CSS variable prefix to `--chamuco` to avoid conflicts. All added components live in `apps/web/src/components/ui/`.
+**Integration notes:** initialize with `shadcn init --defaults` (uses `base-nova` preset by default), configure `tailwind.config.ts` to use the `chamuco` color namespace defined in section 2, and set the CSS variable prefix to `--chamuco` to avoid conflicts. All added components live in `apps/web/src/components/ui/`. Icon library is set to `none` — Phosphor Icons is used instead (see section 4).
 
 ---
 
