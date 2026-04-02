@@ -10,31 +10,83 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // shadcn semantic tokens (CSS variables)
+        background: 'oklch(var(--background))',
+        foreground: 'oklch(var(--foreground))',
+        card: {
+          DEFAULT: 'oklch(var(--card))',
+          foreground: 'oklch(var(--card-foreground))',
+        },
+        popover: {
+          DEFAULT: 'oklch(var(--popover))',
+          foreground: 'oklch(var(--popover-foreground))',
+        },
+        primary: {
+          DEFAULT: 'oklch(var(--primary))',
+          foreground: 'oklch(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'oklch(var(--secondary))',
+          foreground: 'oklch(var(--secondary-foreground))',
+        },
+        muted: {
+          DEFAULT: 'oklch(var(--muted))',
+          foreground: 'oklch(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'oklch(var(--accent))',
+          foreground: 'oklch(var(--accent-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'oklch(var(--destructive))',
+        },
+        border: 'oklch(var(--border))',
+        input: 'oklch(var(--input))',
+        ring: 'oklch(var(--ring))',
+        chart: {
+          '1': 'oklch(var(--chart-1))',
+          '2': 'oklch(var(--chart-2))',
+          '3': 'oklch(var(--chart-3))',
+          '4': 'oklch(var(--chart-4))',
+          '5': 'oklch(var(--chart-5))',
+        },
+        sidebar: {
+          DEFAULT: 'oklch(var(--sidebar))',
+          foreground: 'oklch(var(--sidebar-foreground))',
+          primary: 'oklch(var(--sidebar-primary))',
+          'primary-foreground': 'oklch(var(--sidebar-primary-foreground))',
+          accent: 'oklch(var(--sidebar-accent))',
+          'accent-foreground': 'oklch(var(--sidebar-accent-foreground))',
+          border: 'oklch(var(--sidebar-border))',
+          ring: 'oklch(var(--sidebar-ring))',
+        },
+
+        // Horizonte palette (direct usage with CSS variables)
         horizonte: {
           cielo: {
-            DEFAULT: '#38BDF8',
-            light: '#7DD3FC',
-            dark: '#0284C7',
+            DEFAULT: 'oklch(var(--horizonte-cielo))',
+            light: 'oklch(var(--horizonte-cielo-light))',
+            dark: 'oklch(var(--horizonte-cielo-dark))',
           },
           naranja: {
-            DEFAULT: '#FB923C',
-            light: '#FDBA74',
-            dark: '#F97316',
+            DEFAULT: 'oklch(var(--horizonte-naranja))',
+            light: 'oklch(var(--horizonte-naranja-light))',
+            dark: 'oklch(var(--horizonte-naranja-dark))',
           },
           nube: {
-            DEFAULT: '#F0F9FF',
-            light: '#FFFFFF',
-            dark: '#E0F2FE',
+            DEFAULT: 'oklch(var(--horizonte-nube))',
+            light: 'oklch(var(--horizonte-nube-light))',
+            dark: 'oklch(var(--horizonte-nube-dark))',
           },
           oceano: {
-            DEFAULT: '#0F4C75',
-            light: '#1E6BA1',
-            dark: '#0A3A5A',
+            DEFAULT: 'oklch(var(--horizonte-oceano))',
+            light: 'oklch(var(--horizonte-oceano-light))',
+            dark: 'oklch(var(--horizonte-oceano-dark))',
           },
           brisa: {
-            DEFAULT: '#BAE6FD',
-            light: '#E0F2FE',
-            dark: '#7DD3FC',
+            DEFAULT: 'oklch(var(--horizonte-brisa))',
+            light: 'oklch(var(--horizonte-brisa-light))',
+            dark: 'oklch(var(--horizonte-brisa-dark))',
           },
         },
       },
@@ -43,7 +95,7 @@ const config: Config = {
         sm: '0.25rem',
         DEFAULT: '0.375rem',
         md: '0.5rem',
-        lg: '0.75rem',
+        lg: 'var(--radius)',
         xl: '1rem',
         '2xl': '1.25rem',
         '3xl': '1.5rem',

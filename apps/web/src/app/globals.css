@@ -16,18 +16,111 @@
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+@layer base {
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+  }
+  :root {
+    /* Horizonte-mapped semantic tokens */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.78 0.14 231);              /* Horizonte Cielo */
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.74 0.14 50);             /* Horizonte Naranja */
+    --secondary-foreground: oklch(0.145 0 0);
+    --muted: oklch(0.98 0.01 231);                /* Horizonte Nube */
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.89 0.08 231);               /* Horizonte Brisa */
+    --accent-foreground: oklch(0.145 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.78 0.14 231);                 /* Horizonte Cielo */
+    --chart-1: oklch(0.78 0.14 231);              /* Horizonte Cielo */
+    --chart-2: oklch(0.74 0.14 50);               /* Horizonte Naranja */
+    --chart-3: oklch(0.35 0.10 231);              /* Horizonte Oceano */
+    --chart-4: oklch(0.89 0.08 231);              /* Horizonte Brisa */
+    --chart-5: oklch(0.98 0.01 231);              /* Horizonte Nube */
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.78 0.14 231);      /* Horizonte Cielo */
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.89 0.08 231);       /* Horizonte Brisa */
+    --sidebar-accent-foreground: oklch(0.145 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.78 0.14 231);         /* Horizonte Cielo */
+
+    /* Direct Horizonte palette for legacy usage */
+    --horizonte-cielo: oklch(0.78 0.14 231);
+    --horizonte-cielo-light: oklch(0.85 0.11 231);
+    --horizonte-cielo-dark: oklch(0.60 0.15 231);
+    --horizonte-naranja: oklch(0.74 0.14 50);
+    --horizonte-naranja-light: oklch(0.81 0.11 50);
+    --horizonte-naranja-dark: oklch(0.68 0.17 50);
+    --horizonte-nube: oklch(0.98 0.01 231);
+    --horizonte-nube-light: oklch(1 0 0);
+    --horizonte-nube-dark: oklch(0.95 0.02 231);
+    --horizonte-oceano: oklch(0.35 0.10 231);
+    --horizonte-oceano-light: oklch(0.47 0.12 231);
+    --horizonte-oceano-dark: oklch(0.27 0.08 231);
+    --horizonte-brisa: oklch(0.89 0.08 231);
+    --horizonte-brisa-light: oklch(0.95 0.05 231);
+    --horizonte-brisa-dark: oklch(0.82 0.10 231);
+  }
+  .dark {
+    /* Dark mode with Oceano-based backgrounds */
+    --background: oklch(0.25 0.08 231);           /* Horizonte Oceano dark variant */
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.30 0.09 231);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.30 0.09 231);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.78 0.14 231);              /* Horizonte Cielo (stays bright) */
+    --primary-foreground: oklch(0.145 0 0);
+    --secondary: oklch(0.74 0.14 50);             /* Horizonte Naranja (stays bright) */
+    --secondary-foreground: oklch(0.145 0 0);
+    --muted: oklch(0.35 0.10 231);                /* Horizonte Oceano */
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.47 0.12 231);               /* Horizonte Oceano light */
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.78 0.14 231);                 /* Horizonte Cielo */
+    --chart-1: oklch(0.78 0.14 231);              /* Horizonte Cielo */
+    --chart-2: oklch(0.74 0.14 50);               /* Horizonte Naranja */
+    --chart-3: oklch(0.89 0.08 231);              /* Horizonte Brisa */
+    --chart-4: oklch(0.60 0.15 231);              /* Horizonte Cielo dark */
+    --chart-5: oklch(0.47 0.12 231);              /* Horizonte Oceano light */
+    --sidebar: oklch(0.30 0.09 231);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.78 0.14 231);      /* Horizonte Cielo */
+    --sidebar-primary-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.47 0.12 231);       /* Horizonte Oceano light */
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.78 0.14 231);         /* Horizonte Cielo */
+  }
+  * {
+    @apply border-border;
+    outline-color: oklch(var(--ring) / 0.5);
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }

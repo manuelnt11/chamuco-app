@@ -24,6 +24,7 @@ export default defineConfig({
         'src/types/**', // Type definitions don't need coverage
         'src/lib/i18n.ts', // i18n config is integration-tested
         'src/locales/**', // Translation files don't need coverage
+        'src/components/ui/**', // shadcn/ui components (third-party, battle-tested)
         '.next/',
         'dist/',
         'coverage/',
