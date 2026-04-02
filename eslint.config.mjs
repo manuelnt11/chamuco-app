@@ -25,9 +25,10 @@ export default [
     ],
   },
 
-  // Base TypeScript configuration
+  // Base TypeScript configuration (backend/Node.js)
   {
     files: ['**/*.ts', '**/*.tsx'],
+    ignores: ['apps/web/**'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -92,6 +93,48 @@ export default [
 
       // Prettier integration
       'prettier/prettier': 'error',
+    },
+  },
+
+  // Frontend (apps/web) - browser globals
+  {
+    files: ['apps/web/**/*.ts', 'apps/web/**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+      globals: {
+        // Node.js globals (still needed for process.env, etc.)
+        console: 'readonly',
+        process: 'readonly',
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        fetch: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        Headers: 'readonly',
+        FormData: 'readonly',
+        Blob: 'readonly',
+        File: 'readonly',
+        FileReader: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        // ES2022 globals
+        Promise: 'readonly',
+        Symbol: 'readonly',
+        WeakMap: 'readonly',
+        WeakSet: 'readonly',
+        Map: 'readonly',
+        Set: 'readonly',
+        Proxy: 'readonly',
+        Reflect: 'readonly',
+      },
     },
   },
 

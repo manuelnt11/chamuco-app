@@ -25,6 +25,9 @@ export default defineConfig({
         'src/lib/i18n.ts', // i18n config is integration-tested
         'src/locales/**', // Translation files don't need coverage
         'src/components/ui/**', // shadcn/ui components (third-party, battle-tested)
+        'src/components/ServiceWorkerRegistration.tsx', // Service Worker registration (browser API, no unit tests)
+        'public/**', // Service Worker and static assets (not unit-testable)
+        'scripts/**', // Build scripts (not unit-testable)
         '.next/',
         'dist/',
         'coverage/',
