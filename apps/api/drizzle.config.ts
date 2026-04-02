@@ -8,8 +8,8 @@ const getDbCredentials = () => {
     return {
       host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
       database: 'chamuco_prod',
-      user: 'chamuco-api-sa@chamuco-app-mn.iam',  // IAM user as registered in Cloud SQL
-      password: process.env.PGPASSWORD || '',  // Token passed via env var
+      user: 'chamuco-api-sa@chamuco-app-mn.iam', // IAM user as registered in Cloud SQL
+      password: process.env.PGPASSWORD || '', // Token passed via env var
     };
   }
 

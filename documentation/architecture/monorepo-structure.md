@@ -194,14 +194,14 @@ Each app defines `@/*` pointing to its own `src/` in its local `tsconfig.json`:
 
 ```ts
 // ✅ Correct — alias
-import { UsersService } from "@/modules/users/users.service";
-import { FirebaseAuthGuard } from "@/common/guards/firebase-auth.guard";
-import { Button } from "@/components/Button";
-import { useTrip } from "@/hooks/useTrip";
-import { apiClient } from "@/lib/api-client";
+import { UsersService } from '@/modules/users/users.service';
+import { FirebaseAuthGuard } from '@/common/guards/firebase-auth.guard';
+import { Button } from '@/components/Button';
+import { useTrip } from '@/hooks/useTrip';
+import { apiClient } from '@/lib/api-client';
 
 // ❌ Wrong — relative path
-import { Button } from "../../../components/Button";
+import { Button } from '../../../components/Button';
 ```
 
 The alias is identical in both apps (`@/`) without conflict — TypeScript resolves it relative to each app's own `tsconfig.json`, so there is no cross-app leakage.
@@ -226,11 +226,11 @@ Shared packages are imported by their declared package name (set in `packages/*/
 
 ```ts
 // ✅ Correct — workspace package alias
-import type { ITrip, TripStatus } from "@chamuco/shared-types";
-import { formatCurrency } from "@chamuco/shared-utils";
+import type { ITrip, TripStatus } from '@chamuco/shared-types';
+import { formatCurrency } from '@chamuco/shared-utils';
 
 // ❌ Wrong — relative cross-package path
-import type { ITrip } from "../../packages/shared-types/src/trip.types";
+import type { ITrip } from '../../packages/shared-types/src/trip.types';
 ```
 
 ### Directory conventions implied by `@/*`

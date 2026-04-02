@@ -7,6 +7,7 @@ This document describes the custom design tokens configured in Tailwind CSS for 
 The Horizonte palette defines the visual identity of Chamuco. Each color includes a default value and light/dark variants for flexibility across themes.
 
 ### Cielo (Sky Blue)
+
 Primary brand color representing freedom and adventure.
 
 - **Default:** `#38BDF8` → `bg-horizonte-cielo`
@@ -14,6 +15,7 @@ Primary brand color representing freedom and adventure.
 - **Dark:** `#0284C7` → `bg-horizonte-cielo-dark`
 
 ### Naranja (Orange)
+
 Accent color representing energy and warmth.
 
 - **Default:** `#FB923C` → `bg-horizonte-naranja`
@@ -21,6 +23,7 @@ Accent color representing energy and warmth.
 - **Dark:** `#F97316` → `bg-horizonte-naranja-dark`
 
 ### Nube (Cloud White)
+
 Light background color for clean, airy interfaces.
 
 - **Default:** `#F0F9FF` → `bg-horizonte-nube`
@@ -28,6 +31,7 @@ Light background color for clean, airy interfaces.
 - **Dark:** `#E0F2FE` → `bg-horizonte-nube-dark`
 
 ### Océano (Ocean Blue)
+
 Deep blue for contrast and authority.
 
 - **Default:** `#0F4C75` → `bg-horizonte-oceano`
@@ -35,6 +39,7 @@ Deep blue for contrast and authority.
 - **Dark:** `#0A3A5A` → `bg-horizonte-oceano-dark`
 
 ### Brisa (Breeze)
+
 Soft highlight color for subtle emphasis.
 
 - **Default:** `#BAE6FD` → `bg-horizonte-brisa`
@@ -74,6 +79,7 @@ spacing-5xl   // 8rem (128px)
 ```
 
 Use with any spacing utility:
+
 ```tsx
 m-xs, p-sm, gap-md, space-x-lg, mt-xl, px-2xl, etc.
 ```

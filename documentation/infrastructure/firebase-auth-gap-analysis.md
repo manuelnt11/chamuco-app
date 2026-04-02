@@ -13,16 +13,16 @@ Firebase Authentication is **fully documented but completely unimplemented**. Th
 
 ### Key Findings
 
-| Component Category     | Documented | Implemented | Gap Severity |
-| ---------------------- | ---------- | ----------- | ------------ |
-| Firebase Admin SDK     | ✅         | ❌          | CRITICAL     |
-| Auth Module            | ✅         | ❌          | CRITICAL     |
-| Guards & Decorators    | ✅         | ❌          | CRITICAL     |
-| Database Schema        | ✅         | ❌          | CRITICAL     |
-| User Provisioning      | ✅         | ❌          | CRITICAL     |
-| Support Admin Audit    | ✅         | ❌          | HIGH         |
-| Environment Variables  | ✅         | ❌          | HIGH         |
-| GCP Secrets            | ✅         | ❌          | HIGH         |
+| Component Category    | Documented | Implemented | Gap Severity |
+| --------------------- | ---------- | ----------- | ------------ |
+| Firebase Admin SDK    | ✅         | ❌          | CRITICAL     |
+| Auth Module           | ✅         | ❌          | CRITICAL     |
+| Guards & Decorators   | ✅         | ❌          | CRITICAL     |
+| Database Schema       | ✅         | ❌          | CRITICAL     |
+| User Provisioning     | ✅         | ❌          | CRITICAL     |
+| Support Admin Audit   | ✅         | ❌          | HIGH         |
+| Environment Variables | ✅         | ❌          | HIGH         |
+| GCP Secrets           | ✅         | ❌          | HIGH         |
 
 **Gap Summary**: 100% documentation, 0% implementation
 
@@ -39,12 +39,14 @@ Firebase Authentication is **fully documented but completely unimplemented**. Th
 **Documentation**: `documentation/infrastructure/auth.md` lines 72-93
 
 **Documented Behavior**:
+
 - Backend integrates Firebase via `firebase-admin` npm package
 - `AuthModule` initializes Firebase Admin SDK with service account credentials
 - Token verification via `admin.auth().verifyIdToken(token)`
 - Token revocation via `admin.auth().revokeRefreshTokens(uid)`
 
 **Current Implementation**:
+
 ```bash
 $ grep -i "firebase" apps/api/package.json
 (no output — firebase-admin is not installed)
@@ -54,11 +56,13 @@ $ find apps/api/src -type d -name "*auth*"
 ```
 
 **Gap**: ❌ CRITICAL
+
 - `firebase-admin` not in `package.json`
 - No `AuthModule` in `apps/api/src/modules/`
 - No Firebase initialization code
 
 **Effort to Implement**: 2-3 hours
+
 - Install `firebase-admin`
 - Create `AuthModule`
 - Initialize SDK with service account credentials from Secret Manager
@@ -70,6 +74,7 @@ $ find apps/api/src -type d -name "*auth*"
 **Documentation**: `documentation/infrastructure/auth.md` lines 74-82
 
 **Documented Behavior**:
+
 ```typescript
 // Conceptual structure (documented, not implemented)
 @Injectable()
@@ -88,17 +93,20 @@ export class FirebaseAuthGuard implements CanActivate {
 ```
 
 **Current Implementation**:
+
 ```bash
 $ find apps/api/src -name "*guard*"
 (no output — no guards exist)
 ```
 
 **Gap**: ❌ CRITICAL
+
 - `FirebaseAuthGuard` does not exist
 - No token extraction logic
 - No `req.firebaseUser` or `req.user` attachment
 
 **Effort to Implement**: 3-4 hours
+
 - Create `FirebaseAuthGuard` in `src/modules/auth/guards/`
 - Implement `CanActivate` interface
 - Add token extraction and verification
@@ -112,6 +120,7 @@ $ find apps/api/src -name "*guard*"
 **Documentation**: `documentation/infrastructure/auth.md` lines 98-110
 
 **Documented Behavior**:
+
 ```typescript
 // @Roles() decorator usage (documented)
 @Controller('trips')
@@ -134,18 +143,21 @@ export class RolesGuard implements CanActivate {
 ```
 
 **Current Implementation**:
+
 ```bash
 $ find apps/api/src -name "*decorator*" -o -name "*guard*"
 (no output — no decorators or guards)
 ```
 
 **Gap**: ❌ CRITICAL
+
 - `RolesGuard` does not exist
 - `@Roles()` decorator does not exist
 - `@Public()` decorator does not exist (mentioned in docs)
 - No role resolution logic (platform/trip/group scopes)
 
 **Effort to Implement**: 4-5 hours
+
 - Create `RolesGuard` in `src/modules/auth/guards/`
 - Create `@Roles()` decorator in `src/modules/auth/decorators/`
 - Create `@Public()` decorator
@@ -159,6 +171,7 @@ $ find apps/api/src -name "*decorator*" -o -name "*guard*"
 **Documentation**: `documentation/infrastructure/auth.md` lines 113-122
 
 **Documented Behavior**:
+
 ```typescript
 // SupportAdminAuditInterceptor (documented)
 @Injectable()
@@ -178,17 +191,20 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
 ```
 
 **Current Implementation**:
+
 ```bash
 $ find apps/api/src -name "*interceptor*"
 (no output — no interceptors exist)
 ```
 
 **Gap**: ❌ HIGH
+
 - `SupportAdminAuditInterceptor` does not exist
 - No audit log capture logic
 - Database table `support_admin_audit_log` not defined
 
 **Effort to Implement**: 3-4 hours
+
 - Create interceptor in `src/modules/auth/interceptors/`
 - Implement before/after state capture
 - Create `support_admin_audit_log` table schema
@@ -204,6 +220,7 @@ $ find apps/api/src -name "*interceptor*"
 **Documentation**: `features/users.md` (referenced in auth.md lines 84-92)
 
 **Documented Schema** (from users feature doc):
+
 ```sql
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -219,6 +236,7 @@ CREATE TABLE users (
 ```
 
 **Current Implementation**:
+
 ```bash
 $ cat apps/api/src/database/schema/index.ts
 // No schemas yet - this will be populated as features are built
@@ -226,12 +244,14 @@ export {};
 ```
 
 **Gap**: ❌ CRITICAL
+
 - `users` table schema not defined in Drizzle
 - No `users.schema.ts` file
 - No migration file generated
 - Fields `firebase_uid`, `auth_provider`, `platform_role` do not exist
 
 **Effort to Implement**: 2-3 hours
+
 - Create `apps/api/src/database/schema/users.schema.ts`
 - Define Drizzle schema with all fields
 - Generate migration: `pnpm --filter api db:generate`
@@ -245,6 +265,7 @@ export {};
 **Documentation**: `documentation/infrastructure/auth.md` lines 117-122
 
 **Documented Schema** (inferred from documentation):
+
 ```sql
 CREATE TABLE support_admin_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -262,17 +283,20 @@ CREATE INDEX idx_support_admin_audit_log_performed_at ON support_admin_audit_log
 ```
 
 **Current Implementation**:
+
 ```bash
 $ grep -ri "audit_log" apps/api/src/database/schema/
 (no output — table not defined)
 ```
 
 **Gap**: ❌ HIGH
+
 - `support_admin_audit_log` table not defined
 - No audit log schema file
 - No migration generated
 
 **Effort to Implement**: 1-2 hours
+
 - Create `apps/api/src/database/schema/support-admin-audit-log.schema.ts`
 - Define Drizzle schema
 - Generate and apply migration
@@ -287,12 +311,14 @@ $ grep -ri "audit_log" apps/api/src/database/schema/
 **Documentation**: `documentation/infrastructure/auth.md` lines 132-133
 
 **Documented Variables**:
+
 - `FIREBASE_PROJECT_ID` — Firebase project ID
 - `FIREBASE_CREDENTIALS` — Base64-encoded Firebase service account JSON (or path to JSON file)
 - `FACEBOOK_CLIENT_ID` — Facebook App ID (for OAuth)
 - `FACEBOOK_CLIENT_SECRET` — Facebook App Secret (for OAuth)
 
 **Current Implementation**:
+
 ```typescript
 // apps/api/src/config/environment.schema.ts
 class EnvironmentVariables {
@@ -311,12 +337,14 @@ class EnvironmentVariables {
 ```
 
 **Gap**: ❌ HIGH
+
 - `FIREBASE_PROJECT_ID` not in environment schema
 - `FIREBASE_CREDENTIALS` not in environment schema
 - `FACEBOOK_CLIENT_ID` not in environment schema
 - `FACEBOOK_CLIENT_SECRET` not in environment schema
 
 **Effort to Implement**: 1 hour
+
 - Add Firebase variables to `EnvironmentVariables` class
 - Add validation decorators (@IsString, @IsOptional where appropriate)
 - Update `.env.example` with placeholders
@@ -330,11 +358,13 @@ class EnvironmentVariables {
 **Documentation**: `documentation/infrastructure/secrets-management.md`
 
 **Documented Secrets**:
+
 - `FIREBASE_CREDENTIALS` — Firebase service account key JSON (base64-encoded or file path)
 - `FACEBOOK_CLIENT_ID` — Facebook OAuth App ID
 - `FACEBOOK_CLIENT_SECRET` — Facebook OAuth App Secret
 
 **Current Implementation**:
+
 ```bash
 $ gcloud secrets list --project=chamuco-app-mn
 
@@ -349,12 +379,14 @@ SWAGGER_ENABLED    2026-03-29T02:21:57
 ```
 
 **Gap**: ❌ HIGH
+
 - `FIREBASE_CREDENTIALS` secret not created
 - `FACEBOOK_CLIENT_ID` secret not created
 - `FACEBOOK_CLIENT_SECRET` secret not created
 - No IAM policies for these secrets
 
 **Effort to Implement**: 30 minutes
+
 ```bash
 # Create secrets (values need to be obtained from Firebase Console)
 echo -n "BASE64_ENCODED_SERVICE_ACCOUNT_JSON" | \
@@ -382,6 +414,7 @@ done
 While this audit focuses on backend infrastructure, the frontend also requires Firebase Authentication integration:
 
 **Frontend Gap** (Not Detailed Here):
+
 - `firebase` npm package not installed in `apps/web/package.json`
 - No Firebase initialization in frontend
 - No `signInWithGoogle()` or `signInWithFacebook()` integration
@@ -423,6 +456,7 @@ The following shows implementation dependencies — later items depend on earlie
 **Goal**: Install dependencies, configure Firebase, create secrets
 
 **Tasks**:
+
 1. Install `firebase-admin` in `apps/api/package.json`
 2. Add Firebase environment variables to `environment.schema.ts`
 3. Create Firebase project (if not already created)
@@ -432,6 +466,7 @@ The following shows implementation dependencies — later items depend on earlie
 7. Update `.env.example` with Firebase placeholders
 
 **Acceptance Criteria**:
+
 - `firebase-admin` installed
 - Environment variables validate correctly
 - Secrets exist in GCP Secret Manager
@@ -444,6 +479,7 @@ The following shows implementation dependencies — later items depend on earlie
 **Goal**: Create `users` table with Firebase UID mapping
 
 **Tasks**:
+
 1. Create `apps/api/src/database/schema/users.schema.ts`
 2. Define Drizzle schema:
    - `id` (UUID primary key)
@@ -459,6 +495,7 @@ The following shows implementation dependencies — later items depend on earlie
 7. Write integration tests for repository
 
 **Acceptance Criteria**:
+
 - `users` table exists in database
 - Migration committed to Git
 - Repository methods tested and working
@@ -471,6 +508,7 @@ The following shows implementation dependencies — later items depend on earlie
 **Goal**: Implement authentication and authorization guards
 
 **Tasks**:
+
 1. Create `AuthModule` in `src/modules/auth/`
 2. Initialize Firebase Admin SDK in `AuthModule.onModuleInit()`
 3. Create `FirebaseAuthGuard`:
@@ -491,6 +529,7 @@ The following shows implementation dependencies — later items depend on earlie
 9. Write E2E tests for protected endpoints
 
 **Acceptance Criteria**:
+
 - Requests with valid Firebase token succeed
 - Requests without token return 401
 - Expired tokens return 401
@@ -505,6 +544,7 @@ The following shows implementation dependencies — later items depend on earlie
 **Goal**: Auto-create user record on first login
 
 **Tasks**:
+
 1. Create `AuthService` in `src/modules/auth/`
 2. Implement `AuthService.provisionUser(firebaseUser)`:
    - Check if user exists by `firebase_uid`
@@ -521,6 +561,7 @@ The following shows implementation dependencies — later items depend on earlie
 5. Write E2E test for first-time login flow
 
 **Acceptance Criteria**:
+
 - First login creates user record
 - Subsequent logins reuse existing record
 - `email`, `display_name`, `firebase_uid` correctly populated
@@ -533,6 +574,7 @@ The following shows implementation dependencies — later items depend on earlie
 **Goal**: Log all SUPPORT_ADMIN write actions
 
 **Tasks**:
+
 1. Create `apps/api/src/database/schema/support-admin-audit-log.schema.ts`
 2. Define Drizzle schema (fields listed in section 6 above)
 3. Generate and apply migration
@@ -545,6 +587,7 @@ The following shows implementation dependencies — later items depend on earlie
 10. Write E2E test: login as SUPPORT_ADMIN, modify record, verify audit log entry
 
 **Acceptance Criteria**:
+
 - All write actions by SUPPORT_ADMIN are logged
 - Read actions are NOT logged
 - Audit log contains before/after state (JSONB)
@@ -556,23 +599,23 @@ The following shows implementation dependencies — later items depend on earlie
 
 ### Unit Tests
 
-| Component                      | Test File                                      | Key Test Cases                                                                 |
-| ------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------ |
-| FirebaseAuthGuard              | `firebase-auth.guard.spec.ts`                  | Valid token, expired token, missing token, invalid signature                   |
-| RolesGuard                     | `roles.guard.spec.ts`                          | User has role, user lacks role, SUPPORT_ADMIN bypass                           |
-| @Roles() Decorator             | `roles.decorator.spec.ts`                      | Metadata correctly attached to handler                                         |
-| AuthService.provisionUser()    | `auth.service.spec.ts`                         | First-time user creation, returning user, provider distinction                 |
-| SupportAdminAuditInterceptor   | `support-admin-audit.interceptor.spec.ts`      | Audit log created on write, skipped on read, skipped for non-SUPPORT_ADMIN     |
+| Component                    | Test File                                 | Key Test Cases                                                             |
+| ---------------------------- | ----------------------------------------- | -------------------------------------------------------------------------- |
+| FirebaseAuthGuard            | `firebase-auth.guard.spec.ts`             | Valid token, expired token, missing token, invalid signature               |
+| RolesGuard                   | `roles.guard.spec.ts`                     | User has role, user lacks role, SUPPORT_ADMIN bypass                       |
+| @Roles() Decorator           | `roles.decorator.spec.ts`                 | Metadata correctly attached to handler                                     |
+| AuthService.provisionUser()  | `auth.service.spec.ts`                    | First-time user creation, returning user, provider distinction             |
+| SupportAdminAuditInterceptor | `support-admin-audit.interceptor.spec.ts` | Audit log created on write, skipped on read, skipped for non-SUPPORT_ADMIN |
 
 **Target Coverage**: 100% (lines, statements, functions, branches)
 
 ### Integration Tests
 
-| Test Name                    | Scenario                                                                               |
-| ---------------------------- | -------------------------------------------------------------------------------------- |
-| `auth.e2e-spec.ts`           | Full login flow: Firebase token → user provisioning → authenticated request            |
-| `roles.e2e-spec.ts`          | Role enforcement: USER vs ORGANIZER vs SUPPORT_ADMIN access                             |
-| `audit-log.e2e-spec.ts`      | SUPPORT_ADMIN modifies a record, audit log entry created                                |
+| Test Name               | Scenario                                                                    |
+| ----------------------- | --------------------------------------------------------------------------- |
+| `auth.e2e-spec.ts`      | Full login flow: Firebase token → user provisioning → authenticated request |
+| `roles.e2e-spec.ts`     | Role enforcement: USER vs ORGANIZER vs SUPPORT_ADMIN access                 |
+| `audit-log.e2e-spec.ts` | SUPPORT_ADMIN modifies a record, audit log entry created                    |
 
 ### Manual Testing Checklist
 
@@ -594,17 +637,17 @@ Before marking implementation complete:
 
 ## Estimated Total Effort
 
-| Phase                     | Hours  | Priority |
-| ------------------------- | ------ | -------- |
-| Setup & Infrastructure    | 2-3    | P0       |
-| Database Schema           | 2-3    | P0       |
-| Guards & Decorators       | 4-5    | P0       |
-| User Provisioning         | 2-3    | P0       |
-| Support Admin Audit       | 2-3    | P1       |
-| Testing (unit + E2E)      | 3-4    | P0       |
-| **Total Backend**         | **15-21 hours** | —        |
-| Frontend Integration      | 4-6    | P0       |
-| **Grand Total**           | **19-27 hours** | —        |
+| Phase                  | Hours           | Priority |
+| ---------------------- | --------------- | -------- |
+| Setup & Infrastructure | 2-3             | P0       |
+| Database Schema        | 2-3             | P0       |
+| Guards & Decorators    | 4-5             | P0       |
+| User Provisioning      | 2-3             | P0       |
+| Support Admin Audit    | 2-3             | P1       |
+| Testing (unit + E2E)   | 3-4             | P0       |
+| **Total Backend**      | **15-21 hours** | —        |
+| Frontend Integration   | 4-6             | P0       |
+| **Grand Total**        | **19-27 hours** | —        |
 
 **Recommendation**: Allocate 3-4 developer days for a single developer to implement the complete authentication system (backend + frontend).
 
@@ -618,6 +661,7 @@ Before marking implementation complete:
 **Impact**: CRITICAL (full database access)
 
 **Mitigation**:
+
 - Store credentials in GCP Secret Manager (not in code or `.env`)
 - Grant `secretAccessor` only to `chamuco-api-sa`
 - Never log the credentials value
@@ -629,6 +673,7 @@ Before marking implementation complete:
 **Impact**: MEDIUM (increased latency per request)
 
 **Mitigation**:
+
 - Firebase Admin SDK caches public keys (JWKS), verification is fast (~1-2ms)
 - Consider adding in-memory cache for user lookups by `firebase_uid` (Redis or in-process cache)
 - Monitor P95 latency after auth implementation
@@ -639,6 +684,7 @@ Before marking implementation complete:
 **Impact**: HIGH (unauthorized data access/modification)
 
 **Mitigation**:
+
 - Limit SUPPORT_ADMIN role to 2-3 trusted individuals
 - All write actions logged immutably in `support_admin_audit_log`
 - Set up Cloud Monitoring alert for SUPPORT_ADMIN login (notify security team)
@@ -650,6 +696,7 @@ Before marking implementation complete:
 **Impact**: HIGH (authentication method unavailable)
 
 **Mitigation**:
+
 - Firebase abstracts OAuth flow, SDK updates handle deprecation
 - Monitor Firebase release notes for breaking changes
 - Keep `firebase-admin` and `firebase` (frontend) up to date
@@ -687,6 +734,7 @@ Firebase Authentication is **fully designed but not yet built**. All architectur
 **Recommendation**: Create a new epic issue titled **"Epic: Firebase Authentication — MVP"** with the 5 phases above as sub-issues. Assign to a backend developer before the MVP production launch.
 
 **Security Posture**: Once implemented, the authentication system will follow industry best practices:
+
 - Delegated token issuance and verification (Firebase)
 - Least privilege IAM (service account roles)
 - Encrypted secrets (Secret Manager)

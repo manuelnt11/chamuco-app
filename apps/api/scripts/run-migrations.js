@@ -50,7 +50,7 @@ async function runMigrations() {
 
     // Check which migrations have been applied
     const { rows: appliedMigrations } = await client.query(
-      'SELECT hash FROM drizzle.__drizzle_migrations'
+      'SELECT hash FROM drizzle.__drizzle_migrations',
     );
     const appliedHashes = new Set(appliedMigrations.map((r) => r.hash));
     console.log(`✅ ${appliedHashes.size} migration(s) already applied`);
@@ -85,7 +85,7 @@ async function runMigrations() {
         // Record migration
         await client.query(
           'INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES ($1, $2)',
-          [entry.tag, Date.now()]
+          [entry.tag, Date.now()],
         );
 
         await client.query('COMMIT');

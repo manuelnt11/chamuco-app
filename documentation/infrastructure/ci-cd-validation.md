@@ -12,17 +12,17 @@ This document validates the end-to-end functionality and correctness of the GitH
 
 ### Validation Results
 
-| Component                | Status | Notes                                                    |
-| ------------------------ | ------ | -------------------------------------------------------- |
-| API Pipeline (Local)     | ✅ PASS | All steps execute successfully                           |
-| Web Pipeline (Local)     | ✅ PASS | All steps execute successfully                           |
-| Workflow YAML Syntax     | ✅ PASS | Both workflows recognized by `gh` CLI                    |
-| Path Filtering Logic     | ✅ PASS | Correct trigger paths configured                         |
-| Job Dependencies         | ✅ PASS | Proper `needs` clauses, deploy only after tests          |
-| Deployment Conditions    | ✅ PASS | Deploy jobs only run on `main` branch push               |
-| Security Audit           | ✅ PASS | Both pipelines enforce `--audit-level high`              |
-| pnpm Version Consistency | ✅ PASS | All steps use pnpm 10.33.0 (fixed migration step)        |
-| Web `next lint` Issue    | ⚠️ KNOWN | `next lint` command fails, but ESLint directly works    |
+| Component                | Status   | Notes                                                |
+| ------------------------ | -------- | ---------------------------------------------------- |
+| API Pipeline (Local)     | ✅ PASS  | All steps execute successfully                       |
+| Web Pipeline (Local)     | ✅ PASS  | All steps execute successfully                       |
+| Workflow YAML Syntax     | ✅ PASS  | Both workflows recognized by `gh` CLI                |
+| Path Filtering Logic     | ✅ PASS  | Correct trigger paths configured                     |
+| Job Dependencies         | ✅ PASS  | Proper `needs` clauses, deploy only after tests      |
+| Deployment Conditions    | ✅ PASS  | Deploy jobs only run on `main` branch push           |
+| Security Audit           | ✅ PASS  | Both pipelines enforce `--audit-level high`          |
+| pnpm Version Consistency | ✅ PASS  | All steps use pnpm 10.33.0 (fixed migration step)    |
+| Web `next lint` Issue    | ⚠️ KNOWN | `next lint` command fails, but ESLint directly works |
 
 ---
 
@@ -106,39 +106,40 @@ Web CI/CD   active  253393088
 
 **File**: `.github/workflows/api.yml`
 
-| Aspect                   | Status | Details                                                                                    |
-| ------------------------ | ------ | ------------------------------------------------------------------------------------------ |
-| Trigger Paths            | ✅ PASS | Triggers on `apps/api/**`, `packages/**`, `.github/workflows/api.yml`                      |
-| Audit Step               | ✅ PASS | Line 72-73: `pnpm audit --audit-level high` runs BEFORE lint/test/build                   |
-| Job Dependencies         | ✅ PASS | `deploy` job needs `test-and-build` (line 101)                                             |
-| Deployment Condition     | ✅ PASS | Deploy only runs on `main` branch push (line 102)                                          |
-| Required Secrets         | ✅ PASS | `GCP_PROJECT_ID`, `GCP_REGION`, `ARTIFACT_REGISTRY`, `GCP_SA_KEY`                          |
-| pnpm Version             | ✅ FIXED | Migration step updated from pnpm@8.15.1 to pnpm@10.33.0 (line 149)                         |
-| Database Migrations      | ✅ PASS | Dry run in test job (line 87-90), production run before deploy (line 133-156)              |
-| Health Check Validation  | ✅ PASS | Verifies deployment by checking `/health` endpoint returns HTTP 200 (line 166-183)         |
-| PostgreSQL Test Database | ✅ PASS | Service container configured with health checks (line 26-39)                               |
-| Docker Image Tagging     | ✅ PASS | Tags with both `${{ github.sha }}` and `latest` (line 124-125)                             |
+| Aspect                   | Status   | Details                                                                            |
+| ------------------------ | -------- | ---------------------------------------------------------------------------------- |
+| Trigger Paths            | ✅ PASS  | Triggers on `apps/api/**`, `packages/**`, `.github/workflows/api.yml`              |
+| Audit Step               | ✅ PASS  | Line 72-73: `pnpm audit --audit-level high` runs BEFORE lint/test/build            |
+| Job Dependencies         | ✅ PASS  | `deploy` job needs `test-and-build` (line 101)                                     |
+| Deployment Condition     | ✅ PASS  | Deploy only runs on `main` branch push (line 102)                                  |
+| Required Secrets         | ✅ PASS  | `GCP_PROJECT_ID`, `GCP_REGION`, `ARTIFACT_REGISTRY`, `GCP_SA_KEY`                  |
+| pnpm Version             | ✅ FIXED | Migration step updated from pnpm@8.15.1 to pnpm@10.33.0 (line 149)                 |
+| Database Migrations      | ✅ PASS  | Dry run in test job (line 87-90), production run before deploy (line 133-156)      |
+| Health Check Validation  | ✅ PASS  | Verifies deployment by checking `/health` endpoint returns HTTP 200 (line 166-183) |
+| PostgreSQL Test Database | ✅ PASS  | Service container configured with health checks (line 26-39)                       |
+| Docker Image Tagging     | ✅ PASS  | Tags with both `${{ github.sha }}` and `latest` (line 124-125)                     |
 
 **Issues Fixed**:
+
 - ✅ Updated pnpm version in migration step from 8.15.1 to 10.33.0
 
 ### Web Workflow Analysis
 
 **File**: `.github/workflows/web.yml`
 
-| Aspect                  | Status | Details                                                                                    |
-| ----------------------- | ------ | ------------------------------------------------------------------------------------------ |
-| Trigger Paths           | ✅ PASS | Triggers on `apps/web/**`, `packages/**`, `.github/workflows/web.yml`                      |
-| Audit Step              | ✅ PASS | Line 57-58: `pnpm audit --audit-level high` runs BEFORE lint/test/build                   |
-| Job Dependencies        | ✅ PASS | `e2e-tests` needs `test-and-build`, `deploy` needs both (line 82, 120)                    |
-| Deployment Conditions   | ✅ PASS | E2E and deploy only run on `main` branch push (line 84, 121)                              |
-| Required Secrets        | ✅ PASS | Same as API workflow                                                                       |
-| pnpm Version            | ✅ PASS | Consistent pnpm@10.33.0 across all steps                                                   |
-| E2E Tests               | ✅ PASS | Separate job with Playwright installation (line 82-117)                                    |
-| Dynamic API URL         | ✅ PASS | Fetches API service URL dynamically for `NEXT_PUBLIC_API_URL` (line 154-158)              |
-| Health Check Validation | ✅ PASS | Verifies deployment by checking homepage returns HTTP 200 (line 167-184)                   |
-| Docker Image Tagging    | ✅ PASS | Tags with both `${{ github.sha }}` and `latest` (line 143-144)                             |
-| Playwright Report       | ✅ PASS | Uploads report artifact on E2E failure for debugging (line 112-117)                        |
+| Aspect                  | Status  | Details                                                                      |
+| ----------------------- | ------- | ---------------------------------------------------------------------------- |
+| Trigger Paths           | ✅ PASS | Triggers on `apps/web/**`, `packages/**`, `.github/workflows/web.yml`        |
+| Audit Step              | ✅ PASS | Line 57-58: `pnpm audit --audit-level high` runs BEFORE lint/test/build      |
+| Job Dependencies        | ✅ PASS | `e2e-tests` needs `test-and-build`, `deploy` needs both (line 82, 120)       |
+| Deployment Conditions   | ✅ PASS | E2E and deploy only run on `main` branch push (line 84, 121)                 |
+| Required Secrets        | ✅ PASS | Same as API workflow                                                         |
+| pnpm Version            | ✅ PASS | Consistent pnpm@10.33.0 across all steps                                     |
+| E2E Tests               | ✅ PASS | Separate job with Playwright installation (line 82-117)                      |
+| Dynamic API URL         | ✅ PASS | Fetches API service URL dynamically for `NEXT_PUBLIC_API_URL` (line 154-158) |
+| Health Check Validation | ✅ PASS | Verifies deployment by checking homepage returns HTTP 200 (line 167-184)     |
+| Docker Image Tagging    | ✅ PASS | Tags with both `${{ github.sha }}` and `latest` (line 143-144)               |
+| Playwright Report       | ✅ PASS | Uploads report artifact on E2E failure for debugging (line 112-117)          |
 
 ---
 
@@ -146,16 +147,16 @@ Web CI/CD   active  253393088
 
 ### Expected Trigger Behavior
 
-| Change Location                   | API Workflow | Web Workflow | Rationale                                              |
-| --------------------------------- | ------------ | ------------ | ------------------------------------------------------ |
-| `apps/api/src/**`                 | ✅ Trigger    | ❌ No trigger | Only affects API                                       |
-| `apps/web/src/**`                 | ❌ No trigger | ✅ Trigger    | Only affects Web                                       |
-| `packages/shared-types/src/**`    | ✅ Trigger    | ✅ Trigger    | Both apps depend on shared packages                    |
-| `packages/shared-utils/src/**`    | ✅ Trigger    | ✅ Trigger    | Both apps depend on shared packages                    |
-| `.github/workflows/api.yml`       | ✅ Trigger    | ❌ No trigger | API workflow itself changed                            |
-| `.github/workflows/web.yml`       | ❌ No trigger | ✅ Trigger    | Web workflow itself changed                            |
-| `documentation/**`                | ❌ No trigger | ❌ No trigger | Documentation changes don't require builds             |
-| `README.md`, `CLAUDE.md`, etc.    | ❌ No trigger | ❌ No trigger | Top-level docs don't affect applications               |
+| Change Location                | API Workflow  | Web Workflow  | Rationale                                  |
+| ------------------------------ | ------------- | ------------- | ------------------------------------------ |
+| `apps/api/src/**`              | ✅ Trigger    | ❌ No trigger | Only affects API                           |
+| `apps/web/src/**`              | ❌ No trigger | ✅ Trigger    | Only affects Web                           |
+| `packages/shared-types/src/**` | ✅ Trigger    | ✅ Trigger    | Both apps depend on shared packages        |
+| `packages/shared-utils/src/**` | ✅ Trigger    | ✅ Trigger    | Both apps depend on shared packages        |
+| `.github/workflows/api.yml`    | ✅ Trigger    | ❌ No trigger | API workflow itself changed                |
+| `.github/workflows/web.yml`    | ❌ No trigger | ✅ Trigger    | Web workflow itself changed                |
+| `documentation/**`             | ❌ No trigger | ❌ No trigger | Documentation changes don't require builds |
+| `README.md`, `CLAUDE.md`, etc. | ❌ No trigger | ❌ No trigger | Top-level docs don't affect applications   |
 
 **Status**: ✅ Path filtering configured correctly
 
@@ -204,6 +205,7 @@ graph LR
 ### 1. `next lint` Command Fails (Web Pipeline)
 
 **Error**:
+
 ```
 Invalid project directory provided, no such directory: /Users/mnuneztorres/Code/Chamuco-App/apps/web/lint
 ```
@@ -213,6 +215,7 @@ Invalid project directory provided, no such directory: /Users/mnuneztorres/Code/
 **Impact**: MEDIUM - Lint step in CI pipeline will fail
 
 **Workaround**: Use ESLint directly instead of `next lint`:
+
 ```json
 // apps/web/package.json
 {
@@ -225,6 +228,7 @@ Invalid project directory provided, no such directory: /Users/mnuneztorres/Code/
 **Status**: ⚠️ NOT FIXED YET — requires package.json update
 
 **Action Items**:
+
 1. Update `apps/web/package.json` lint scripts to use ESLint directly
 2. Test in CI pipeline
 3. File issue with Next.js team if problem persists
@@ -232,6 +236,7 @@ Invalid project directory provided, no such directory: /Users/mnuneztorres/Code/
 ### 2. Pre-commit Hook Coverage Failure (Node 22)
 
 **Error**:
+
 ```
 TypeError: The "original" argument must be of type function. Received an instance of Object
 ```
@@ -250,14 +255,15 @@ TypeError: The "original" argument must be of type function. Received an instanc
 
 All secrets are referenced but NOT verified in this audit (would require GCP access):
 
-| Secret                | Used By | Purpose                                         |
-| --------------------- | ------- | ----------------------------------------------- |
-| `GCP_PROJECT_ID`      | Both    | Google Cloud project ID (chamuco-app-mn)        |
-| `GCP_REGION`          | Both    | Deployment region (us-central1)                 |
-| `ARTIFACT_REGISTRY`   | Both    | Docker image registry URL                       |
-| `GCP_SA_KEY`          | Both    | Service account credentials for authentication  |
+| Secret              | Used By | Purpose                                        |
+| ------------------- | ------- | ---------------------------------------------- |
+| `GCP_PROJECT_ID`    | Both    | Google Cloud project ID (chamuco-app-mn)       |
+| `GCP_REGION`        | Both    | Deployment region (us-central1)                |
+| `ARTIFACT_REGISTRY` | Both    | Docker image registry URL                      |
+| `GCP_SA_KEY`        | Both    | Service account credentials for authentication |
 
 **Recommendation**: Verify these secrets exist in GitHub repository settings:
+
 ```bash
 # (Run by maintainer with access)
 gh secret list
@@ -269,17 +275,17 @@ gh secret list
 
 Approximate execution times based on local simulation:
 
-| Step                | API   | Web   |
-| ------------------- | ----- | ----- |
-| Install             | ~10s  | ~10s  |
-| Audit               | <1s   | <1s   |
-| Lint                | ~2s   | ~2s   |
-| Typecheck           | ~3s   | ~3s   |
-| Tests               | ~1s   | ~1s   |
-| Build               | ~5s   | ~3s   |
-| **Total (est.)**    | ~22s  | ~20s  |
+| Step             | API  | Web  |
+| ---------------- | ---- | ---- |
+| Install          | ~10s | ~10s |
+| Audit            | <1s  | <1s  |
+| Lint             | ~2s  | ~2s  |
+| Typecheck        | ~3s  | ~3s  |
+| Tests            | ~1s  | ~1s  |
+| Build            | ~5s  | ~3s  |
+| **Total (est.)** | ~22s | ~20s |
 
-*Note: CI times may vary based on GitHub Actions runner performance and caching effectiveness.*
+_Note: CI times may vary based on GitHub Actions runner performance and caching effectiveness._
 
 ---
 
@@ -290,6 +296,7 @@ Approximate execution times based on local simulation:
 Update `apps/web/package.json` to use ESLint directly instead of `next lint`. This will unblock the Web CI pipeline.
 
 **Suggested Change**:
+
 ```json
 {
   "scripts": {
@@ -302,6 +309,7 @@ Update `apps/web/package.json` to use ESLint directly instead of `next lint`. Th
 ### 2. Add Workflow Validation to Pre-commit Hook (Priority: P2)
 
 Consider adding GitHub Actions workflow validation to the pre-commit hook:
+
 ```yaml
 # .husky/pre-commit addition
 echo "Validating GitHub Actions workflows..."
@@ -315,6 +323,7 @@ Currently coverage artifacts are uploaded to GitHub but not to external coverage
 ### 4. Implement Workflow Status Badge (Priority: P3)
 
 Add workflow status badges to README.md:
+
 ```markdown
 [![API CI/CD](https://github.com/manuelnt11/chamuco-app/actions/workflows/api.yml/badge.svg)](https://github.com/manuelnt11/chamuco-app/actions/workflows/api.yml)
 [![Web CI/CD](https://github.com/manuelnt11/chamuco-app/actions/workflows/web.yml/badge.svg)](https://github.com/manuelnt11/chamuco-app/actions/workflows/web.yml)

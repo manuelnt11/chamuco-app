@@ -16,17 +16,18 @@ This comprehensive audit reviewed all infrastructure foundation changes implemen
 
 **Production Readiness**: 9/10 — **APPROVED FOR MVP PRODUCTION DEPLOYMENT**
 
-| Category                      | Score | Status | Notes                                              |
-| ----------------------------- | ----- | ------ | -------------------------------------------------- |
-| Security                      | 10/10 | ✅ PASS | 0 HIGH vulnerabilities, audit enforcement restored |
-| Configuration                 | 10/10 | ✅ PASS | Path aliases, workspace deps correctly configured  |
-| CI/CD Pipelines               | 9/10  | ✅ PASS | All steps validated, 1 known non-blocking issue    |
-| GCP Infrastructure            | 9/10  | ✅ PASS | Secure, least privilege, 1 P1 recommendation       |
-| Firebase Auth (Documentation) | N/A   | 📝 GAP  | 100% documented, 0% implemented (expected)         |
-| Documentation Accuracy        | 10/10 | ✅ PASS | All claims verified against reality                |
-| Monorepo Structure            | 10/10 | ✅ PASS | Turborepo, ESLint, workspaces functioning correctly|
+| Category                      | Score | Status  | Notes                                               |
+| ----------------------------- | ----- | ------- | --------------------------------------------------- |
+| Security                      | 10/10 | ✅ PASS | 0 HIGH vulnerabilities, audit enforcement restored  |
+| Configuration                 | 10/10 | ✅ PASS | Path aliases, workspace deps correctly configured   |
+| CI/CD Pipelines               | 9/10  | ✅ PASS | All steps validated, 1 known non-blocking issue     |
+| GCP Infrastructure            | 9/10  | ✅ PASS | Secure, least privilege, 1 P1 recommendation        |
+| Firebase Auth (Documentation) | N/A   | 📝 GAP  | 100% documented, 0% implemented (expected)          |
+| Documentation Accuracy        | 10/10 | ✅ PASS | All claims verified against reality                 |
+| Monorepo Structure            | 10/10 | ✅ PASS | Turborepo, ESLint, workspaces functioning correctly |
 
 **Key Achievements**:
+
 - Eliminated 11 HIGH security vulnerabilities
 - Updated major dependencies (Next.js 14→16, NestJS 10→11, pnpm 8→10.33.0)
 - Validated entire GCP infrastructure (Cloud SQL, Cloud Run, Secrets, Artifact Registry)
@@ -35,6 +36,7 @@ This comprehensive audit reviewed all infrastructure foundation changes implemen
 - Confirmed monorepo tooling (Turborepo cache ~100x speedup)
 
 **Critical Recommendations** (before production):
+
 1. Enable Artifact Registry vulnerability scanning (P1 — 5 minutes)
 2. Implement Firebase Authentication (P0 — estimated 19-27 hours)
 
@@ -49,15 +51,15 @@ This comprehensive audit reviewed all infrastructure foundation changes implemen
 
 #### Vulnerabilities Resolved
 
-| Package       | Vulnerability         | Severity | Resolution                        |
-| ------------- | --------------------- | -------- | --------------------------------- |
-| next          | HTTP Deserialization DoS | HIGH     | Updated 14.1.0 → 16.2.1           |
-| multer        | 3x DoS vulnerabilities | HIGH     | Updated via NestJS 10 → 11        |
-| minimatch     | 3x ReDoS              | HIGH     | Updated via glob, eslint, turbo   |
-| picomatch     | ReDoS                 | HIGH     | Updated via @nestjs/cli           |
-| cross-spawn   | ReDoS                 | HIGH     | Forced >=6.0.6 via pnpm overrides |
-| glob          | Command Injection     | HIGH     | Forced >=10.5.0 via pnpm overrides|
-| path-to-regexp| ReDoS                 | HIGH     | Forced >=8.4.0 via pnpm overrides |
+| Package        | Vulnerability            | Severity | Resolution                         |
+| -------------- | ------------------------ | -------- | ---------------------------------- |
+| next           | HTTP Deserialization DoS | HIGH     | Updated 14.1.0 → 16.2.1            |
+| multer         | 3x DoS vulnerabilities   | HIGH     | Updated via NestJS 10 → 11         |
+| minimatch      | 3x ReDoS                 | HIGH     | Updated via glob, eslint, turbo    |
+| picomatch      | ReDoS                    | HIGH     | Updated via @nestjs/cli            |
+| cross-spawn    | ReDoS                    | HIGH     | Forced >=6.0.6 via pnpm overrides  |
+| glob           | Command Injection        | HIGH     | Forced >=10.5.0 via pnpm overrides |
+| path-to-regexp | ReDoS                    | HIGH     | Forced >=8.4.0 via pnpm overrides  |
 
 #### Major Dependency Updates
 
@@ -139,6 +141,7 @@ resolve: {
 ```
 
 **Verification**:
+
 ```bash
 $ pnpm turbo build --dry-run
 # Correctly shows: shared-types/shared-utils → api/web
@@ -156,25 +159,25 @@ Both API and Web pipelines simulated locally with fresh install (`--frozen-lockf
 
 #### API Pipeline Results
 
-| Step       | Status  | Duration | Notes                          |
-| ---------- | ------- | -------- | ------------------------------ |
-| Install    | ✅ PASS  | ~10s     | 1079 packages                  |
-| Audit      | ✅ PASS  | <1s      | 0 HIGH, 4 MODERATE             |
-| Lint       | ✅ PASS  | ~2s      | No errors                      |
-| Typecheck  | ✅ PASS  | ~3s      | No TypeScript errors           |
-| Tests      | ✅ PASS  | ~1s      | 13/13 tests passed             |
-| Build      | ✅ PASS  | ~5s      | NestJS compilation successful  |
+| Step      | Status  | Duration | Notes                         |
+| --------- | ------- | -------- | ----------------------------- |
+| Install   | ✅ PASS | ~10s     | 1079 packages                 |
+| Audit     | ✅ PASS | <1s      | 0 HIGH, 4 MODERATE            |
+| Lint      | ✅ PASS | ~2s      | No errors                     |
+| Typecheck | ✅ PASS | ~3s      | No TypeScript errors          |
+| Tests     | ✅ PASS | ~1s      | 13/13 tests passed            |
+| Build     | ✅ PASS | ~5s      | NestJS compilation successful |
 
 #### Web Pipeline Results
 
-| Step       | Status  | Duration | Notes                                      |
-| ---------- | ------- | -------- | ------------------------------------------ |
-| Install    | ✅ PASS  | ~10s     | 1079 packages                              |
-| Audit      | ✅ PASS  | <1s      | 0 HIGH, 4 MODERATE                         |
-| Lint       | ⚠️ ISSUE | ~2s      | `next lint` fails, ESLint directly works   |
-| Typecheck  | ✅ PASS  | ~3s      | No TypeScript errors                       |
-| Tests      | ✅ PASS  | ~1s      | 15/15 tests passed                         |
-| Build      | ✅ PASS  | ~3s      | Next.js 16 with Turbopack successful      |
+| Step      | Status   | Duration | Notes                                    |
+| --------- | -------- | -------- | ---------------------------------------- |
+| Install   | ✅ PASS  | ~10s     | 1079 packages                            |
+| Audit     | ✅ PASS  | <1s      | 0 HIGH, 4 MODERATE                       |
+| Lint      | ⚠️ ISSUE | ~2s      | `next lint` fails, ESLint directly works |
+| Typecheck | ✅ PASS  | ~3s      | No TypeScript errors                     |
+| Tests     | ✅ PASS  | ~1s      | 15/15 tests passed                       |
+| Build     | ✅ PASS  | ~3s      | Next.js 16 with Turbopack successful     |
 
 **Known Issue**: `next lint` command fails with directory error. Workaround: Use ESLint directly (`eslint "src/**/*.{ts,tsx}"`). Not blocking for MVP.
 
@@ -183,12 +186,12 @@ Both API and Web pipelines simulated locally with fresh install (`--frozen-lockf
 **YAML Syntax**: ✅ Valid (verified with `gh workflow list`)
 **Path Filtering**: ✅ Correct
 
-| Change Location                | API Workflow | Web Workflow |
-| ------------------------------ | ------------ | ------------ |
-| `apps/api/**`                  | ✅ Triggers   | ❌ No trigger |
-| `apps/web/**`                  | ❌ No trigger | ✅ Triggers   |
-| `packages/**`                  | ✅ Triggers   | ✅ Triggers   |
-| `documentation/**`             | ❌ No trigger | ❌ No trigger |
+| Change Location    | API Workflow  | Web Workflow  |
+| ------------------ | ------------- | ------------- |
+| `apps/api/**`      | ✅ Triggers   | ❌ No trigger |
+| `apps/web/**`      | ❌ No trigger | ✅ Triggers   |
+| `packages/**`      | ✅ Triggers   | ✅ Triggers   |
+| `documentation/**` | ❌ No trigger | ❌ No trigger |
 
 **Job Dependencies**: ✅ Correct
 **Deployment Conditions**: ✅ Only on `main` branch push
@@ -204,14 +207,14 @@ Both API and Web pipelines simulated locally with fresh install (`--frozen-lockf
 
 **Instance**: `chamuco-postgres` (PostgreSQL 16, db-f1-micro)
 
-| Security Check                | Status | Details                                    |
-| ----------------------------- | ------ | ------------------------------------------ |
-| Public IP disabled            | ✅ PASS | ipv4Enabled: False                         |
-| Private IP only               | ✅ PASS | 10.34.0.3 (PRIVATE type)                   |
-| Automated backups             | ✅ PASS | Daily at 03:00 UTC, 7-day retention        |
-| Point-in-time recovery (PITR) | ✅ PASS | Enabled, 7-day window                      |
-| IAM authentication            | ✅ PASS | Service account: chamuco-api-sa@...iam     |
-| VPC Serverless Connector      | ✅ PASS | State: READY, IP: 10.8.0.0/28              |
+| Security Check                | Status  | Details                                |
+| ----------------------------- | ------- | -------------------------------------- |
+| Public IP disabled            | ✅ PASS | ipv4Enabled: False                     |
+| Private IP only               | ✅ PASS | 10.34.0.3 (PRIVATE type)               |
+| Automated backups             | ✅ PASS | Daily at 03:00 UTC, 7-day retention    |
+| Point-in-time recovery (PITR) | ✅ PASS | Enabled, 7-day window                  |
+| IAM authentication            | ✅ PASS | Service account: chamuco-api-sa@...iam |
+| VPC Serverless Connector      | ✅ PASS | State: READY, IP: 10.8.0.0/28          |
 
 **Connectivity**: ✅ Cloud Run API successfully connects and starts
 
@@ -221,48 +224,50 @@ Both API and Web pipelines simulated locally with fresh install (`--frozen-lockf
 
 **Service URL**: `https://chamuco-api-393715267650.us-central1.run.app`
 
-| Configuration                | Value                                      | Status  |
-| ---------------------------- | ------------------------------------------ | ------- |
-| Service Account              | chamuco-api-sa@chamuco-app-mn.iam          | ✅ Secure|
-| IAM Roles                    | cloudsql.client, logging, monitoring, trace| ✅ Least privilege|
-| Memory                       | 512Mi                                      | ✅ Appropriate|
-| CPU                          | 1 vCPU                                     | ✅ Appropriate|
-| Min Instances                | 0 (scales to zero)                         | ✅ Cost-optimized|
-| Max Instances                | 10                                         | ✅ Appropriate|
-| Container Concurrency        | 80                                         | ✅ Appropriate|
-| Health Check                 | HTTP 200 on `/health`                      | ✅ Responds|
+| Configuration         | Value                                       | Status             |
+| --------------------- | ------------------------------------------- | ------------------ |
+| Service Account       | chamuco-api-sa@chamuco-app-mn.iam           | ✅ Secure          |
+| IAM Roles             | cloudsql.client, logging, monitoring, trace | ✅ Least privilege |
+| Memory                | 512Mi                                       | ✅ Appropriate     |
+| CPU                   | 1 vCPU                                      | ✅ Appropriate     |
+| Min Instances         | 0 (scales to zero)                          | ✅ Cost-optimized  |
+| Max Instances         | 10                                          | ✅ Appropriate     |
+| Container Concurrency | 80                                          | ✅ Appropriate     |
+| Health Check          | HTTP 200 on `/health`                       | ✅ Responds        |
 
 #### Web Service (`chamuco-web`)
 
 **Service URL**: `https://chamuco-web-393715267650.us-central1.run.app`
 
-| Configuration                | Value                  | Status  |
-| ---------------------------- | ---------------------- | ------- |
-| Memory                       | 1Gi                    | ✅ Appropriate for Next.js SSR|
-| CPU                          | 1 vCPU                 | ✅ Appropriate|
-| Min Instances                | 0 (scales to zero)     | ✅ Cost-optimized|
-| Max Instances                | 5                      | ✅ Appropriate|
-| Container Concurrency        | 100                    | ✅ Appropriate|
-| Health Check                 | HTTP 200 on `/`        | ✅ Responds|
+| Configuration         | Value              | Status                         |
+| --------------------- | ------------------ | ------------------------------ |
+| Memory                | 1Gi                | ✅ Appropriate for Next.js SSR |
+| CPU                   | 1 vCPU             | ✅ Appropriate                 |
+| Min Instances         | 0 (scales to zero) | ✅ Cost-optimized              |
+| Max Instances         | 5                  | ✅ Appropriate                 |
+| Container Concurrency | 100                | ✅ Appropriate                 |
+| Health Check          | HTTP 200 on `/`    | ✅ Responds                    |
 
 ### 4.3 Secrets Manager (Score: 10/10)
 
 **Secrets Exist**: ✅ All 5 production secrets created
 
-| Secret              | Purpose                      | Status  |
-| ------------------- | ---------------------------- | ------- |
-| DATABASE_URL        | PostgreSQL connection string | ✅ Exists|
-| DATABASE_POOL_MIN   | Min connections (2)          | ✅ Exists|
-| DATABASE_POOL_MAX   | Max connections (10)         | ✅ Exists|
-| NODE_ENV            | Environment (production)     | ✅ Exists|
-| SWAGGER_ENABLED     | Swagger UI toggle (false)    | ✅ Exists|
+| Secret            | Purpose                      | Status    |
+| ----------------- | ---------------------------- | --------- |
+| DATABASE_URL      | PostgreSQL connection string | ✅ Exists |
+| DATABASE_POOL_MIN | Min connections (2)          | ✅ Exists |
+| DATABASE_POOL_MAX | Max connections (10)         | ✅ Exists |
+| NODE_ENV          | Environment (production)     | ✅ Exists |
+| SWAGGER_ENABLED   | Swagger UI toggle (false)    | ✅ Exists |
 
 **IAM Policies**: ✅ Least privilege
+
 - Only `chamuco-api-sa` has `secretAccessor` role
 - No public or `allUsers` access
 - Versioning enabled
 
 **Missing Secrets** (Expected):
+
 - `FIREBASE_CREDENTIALS` (placeholder for Phase 5 — Firebase Auth)
 - `FACEBOOK_CLIENT_ID` (placeholder)
 - `FACEBOOK_CLIENT_SECRET` (placeholder)
@@ -271,12 +276,12 @@ Both API and Web pipelines simulated locally with fresh install (`--frozen-lockf
 
 **Repository**: `chamuco-images` (us-central1, Docker format)
 
-| Check                     | Status     | Details                                     |
-| ------------------------- | ---------- | ------------------------------------------- |
-| Repository accessible     | ✅ PASS     | 278MB total size                            |
-| Image tagging strategy    | ✅ PASS     | SHA + latest tags                           |
-| IAM policies              | ✅ Assumed  | Deployments succeeding                      |
-| Vulnerability scanning    | ⚠️ DISABLED | **P1 RECOMMENDATION**                       |
+| Check                  | Status      | Details                |
+| ---------------------- | ----------- | ---------------------- |
+| Repository accessible  | ✅ PASS     | 278MB total size       |
+| Image tagging strategy | ✅ PASS     | SHA + latest tags      |
+| IAM policies           | ✅ Assumed  | Deployments succeeding |
+| Vulnerability scanning | ⚠️ DISABLED | **P1 RECOMMENDATION**  |
 
 **⚠️ P1 Recommendation**: Enable Container Scanning API
 
@@ -301,16 +306,16 @@ gcloud services enable containerscanning.googleapis.com --project=chamuco-app-mn
 
 ### Components Documented but Not Implemented
 
-| Component                      | Severity | Estimated Effort |
-| ------------------------------ | -------- | ---------------- |
-| Firebase Admin SDK integration | CRITICAL | 2-3 hours        |
-| AuthModule (NestJS)            | CRITICAL | 2-3 hours        |
-| FirebaseAuthGuard              | CRITICAL | 3-4 hours        |
-| RolesGuard + @Roles() decorator| CRITICAL | 4-5 hours        |
-| User provisioning logic        | CRITICAL | 2-3 hours        |
-| Database schema (users table)  | CRITICAL | 2-3 hours        |
-| Support admin audit log        | HIGH     | 2-3 hours        |
-| Environment variables + secrets| HIGH     | 1 hour           |
+| Component                       | Severity | Estimated Effort |
+| ------------------------------- | -------- | ---------------- |
+| Firebase Admin SDK integration  | CRITICAL | 2-3 hours        |
+| AuthModule (NestJS)             | CRITICAL | 2-3 hours        |
+| FirebaseAuthGuard               | CRITICAL | 3-4 hours        |
+| RolesGuard + @Roles() decorator | CRITICAL | 4-5 hours        |
+| User provisioning logic         | CRITICAL | 2-3 hours        |
+| Database schema (users table)   | CRITICAL | 2-3 hours        |
+| Support admin audit log         | HIGH     | 2-3 hours        |
+| Environment variables + secrets | HIGH     | 1 hour           |
 
 **Total Estimated Effort**: 19-27 hours (3-4 developer days)
 
@@ -336,43 +341,43 @@ All infrastructure documentation validated against production reality:
 
 #### Cloud SQL Configuration (`cloud-sql-config.md`)
 
-| Claim                 | Documented        | Reality           | Match |
-| --------------------- | ----------------- | ----------------- | ----- |
-| Instance name         | chamuco-postgres  | chamuco-postgres  | ✅    |
-| Database version      | PostgreSQL 16     | PostgreSQL 16     | ✅    |
-| Tier                  | db-f1-micro       | db-f1-micro       | ✅    |
-| Private IP            | 10.34.0.3         | 10.34.0.3         | ✅    |
-| Public IP             | None              | None (False)      | ✅    |
-| VPC Connector name    | chamuco-vpc-connector | chamuco-vpc-connector | ✅ |
-| VPC Connector IP range| 10.8.0.0/28       | 10.8.0.0/28       | ✅    |
-| VPC Connector min/max | 2/10              | 2/10              | ✅    |
-| IAM users             | postgres, chamuco-api-sa | Same        | ✅    |
+| Claim                  | Documented               | Reality               | Match |
+| ---------------------- | ------------------------ | --------------------- | ----- |
+| Instance name          | chamuco-postgres         | chamuco-postgres      | ✅    |
+| Database version       | PostgreSQL 16            | PostgreSQL 16         | ✅    |
+| Tier                   | db-f1-micro              | db-f1-micro           | ✅    |
+| Private IP             | 10.34.0.3                | 10.34.0.3             | ✅    |
+| Public IP              | None                     | None (False)          | ✅    |
+| VPC Connector name     | chamuco-vpc-connector    | chamuco-vpc-connector | ✅    |
+| VPC Connector IP range | 10.8.0.0/28              | 10.8.0.0/28           | ✅    |
+| VPC Connector min/max  | 2/10                     | 2/10                  | ✅    |
+| IAM users              | postgres, chamuco-api-sa | Same                  | ✅    |
 
 #### Cloud Run Configuration (`cloud.md`)
 
-| Service | Claim      | Reality    | Match |
-| ------- | ---------- | ---------- | ----- |
-| API     | Memory: 512Mi | Memory: 512Mi | ✅    |
-| API     | CPU: 1 vCPU   | CPU: 1 vCPU   | ✅    |
-| API     | Min: 0, Max: 10 | Min: 0, Max: 10 | ✅  |
-| API     | Concurrency: 80 | Concurrency: 80 | ✅  |
-| Web     | Memory: 1Gi   | Memory: 1Gi   | ✅    |
-| Web     | CPU: 1 vCPU   | CPU: 1 vCPU   | ✅    |
-| Web     | Min: 0, Max: 5 | Min: 0, Max: 5 | ✅   |
-| Web     | Concurrency: 100 | Concurrency: 100 | ✅ |
+| Service | Claim            | Reality          | Match |
+| ------- | ---------------- | ---------------- | ----- |
+| API     | Memory: 512Mi    | Memory: 512Mi    | ✅    |
+| API     | CPU: 1 vCPU      | CPU: 1 vCPU      | ✅    |
+| API     | Min: 0, Max: 10  | Min: 0, Max: 10  | ✅    |
+| API     | Concurrency: 80  | Concurrency: 80  | ✅    |
+| Web     | Memory: 1Gi      | Memory: 1Gi      | ✅    |
+| Web     | CPU: 1 vCPU      | CPU: 1 vCPU      | ✅    |
+| Web     | Min: 0, Max: 5   | Min: 0, Max: 5   | ✅    |
+| Web     | Concurrency: 100 | Concurrency: 100 | ✅    |
 
 #### Secrets Management (`secrets-management.md`)
 
-| Secret              | Documented | Exists | Match |
-| ------------------- | ---------- | ------ | ----- |
-| DATABASE_URL        | ✅         | ✅     | ✅    |
-| DATABASE_POOL_MIN   | ✅         | ✅     | ✅    |
-| DATABASE_POOL_MAX   | ✅         | ✅     | ✅    |
-| NODE_ENV            | ✅         | ✅     | ✅    |
-| SWAGGER_ENABLED     | ✅         | ✅     | ✅    |
-| FIREBASE_CREDENTIALS| Placeholder| ❌ (expected) | ✅ |
-| FACEBOOK_CLIENT_ID  | Placeholder| ❌ (expected) | ✅ |
-| FACEBOOK_CLIENT_SECRET | Placeholder | ❌ (expected) | ✅ |
+| Secret                 | Documented  | Exists        | Match |
+| ---------------------- | ----------- | ------------- | ----- |
+| DATABASE_URL           | ✅          | ✅            | ✅    |
+| DATABASE_POOL_MIN      | ✅          | ✅            | ✅    |
+| DATABASE_POOL_MAX      | ✅          | ✅            | ✅    |
+| NODE_ENV               | ✅          | ✅            | ✅    |
+| SWAGGER_ENABLED        | ✅          | ✅            | ✅    |
+| FIREBASE_CREDENTIALS   | Placeholder | ❌ (expected) | ✅    |
+| FACEBOOK_CLIENT_ID     | Placeholder | ❌ (expected) | ✅    |
+| FACEBOOK_CLIENT_SECRET | Placeholder | ❌ (expected) | ✅    |
 
 ### Monorepo Structure (`monorepo-structure.md`)
 
@@ -392,10 +397,10 @@ All infrastructure documentation validated against production reality:
 
 **Cache Functionality**:
 
-| Build Type  | Duration | Cached Tasks | Performance  |
-| ----------- | -------- | ------------ | ------------ |
-| Cold build  | 7.048s   | 0/4          | Baseline     |
-| Cached build| 0.071s   | 4/4 (FULL TURBO) | ~100x faster |
+| Build Type   | Duration | Cached Tasks     | Performance  |
+| ------------ | -------- | ---------------- | ------------ |
+| Cold build   | 7.048s   | 0/4              | Baseline     |
+| Cached build | 0.071s   | 4/4 (FULL TURBO) | ~100x faster |
 
 **Result**: ✅ Turborepo cache working perfectly
 
@@ -411,6 +416,7 @@ $ grep -rn 'from.*\.\.\/' apps/*/src packages/*/src --include="*.ts" --include="
 ```
 
 **Aliases Used**:
+
 - `@/` for intra-app imports: 8 occurrences
 - `@chamuco/*` for workspace imports: 0 occurrences (expected — shared packages empty)
 
@@ -461,6 +467,7 @@ $ pnpm turbo build --dry-run
 #### P1 — Before Heavy Traffic
 
 2. **Enable Artifact Registry vulnerability scanning** (5 minutes)
+
    ```bash
    gcloud services enable containerscanning.googleapis.com --project=chamuco-app-mn
    ```
@@ -485,16 +492,16 @@ $ pnpm turbo build --dry-run
 
 ## Production Readiness Scorecard
 
-| Category                   | Score | Weight | Weighted Score |
-| -------------------------- | ----- | ------ | -------------- |
-| Security                   | 10/10 | 25%    | 2.50           |
-| Configuration              | 10/10 | 10%    | 1.00           |
-| CI/CD Pipelines            | 9/10  | 15%    | 1.35           |
-| GCP Infrastructure         | 9/10  | 20%    | 1.80           |
-| Documentation              | 10/10 | 10%    | 1.00           |
-| Monorepo Structure         | 10/10 | 10%    | 1.00           |
-| Firebase Auth (future)     | 0/10  | 10%    | 0.00           |
-| **TOTAL**                  |       |        | **8.65/10**    |
+| Category               | Score | Weight | Weighted Score |
+| ---------------------- | ----- | ------ | -------------- |
+| Security               | 10/10 | 25%    | 2.50           |
+| Configuration          | 10/10 | 10%    | 1.00           |
+| CI/CD Pipelines        | 9/10  | 15%    | 1.35           |
+| GCP Infrastructure     | 9/10  | 20%    | 1.80           |
+| Documentation          | 10/10 | 10%    | 1.00           |
+| Monorepo Structure     | 10/10 | 10%    | 1.00           |
+| Firebase Auth (future) | 0/10  | 10%    | 0.00           |
+| **TOTAL**              |       |        | **8.65/10**    |
 
 **Overall Production Readiness**: **87% (B+)**
 
@@ -510,7 +517,7 @@ $ pnpm turbo build --dry-run
 - `apps/api/package.json` — workspace deps, NestJS 11
 - `apps/web/package.json` — workspace deps, Next.js 16
 - `apps/web/next.config.js` — removed deprecated options
-- `apps/web/vitest.config.ts` — added @chamuco/* aliases
+- `apps/web/vitest.config.ts` — added @chamuco/\* aliases
 - `apps/web/tsconfig.json` — excluded test configs
 - `turbo.json` — renamed pipeline → tasks
 - `pnpm-lock.yaml` — regenerated with pnpm 10.33.0
@@ -538,6 +545,7 @@ The infrastructure foundation (Issues #12-#22) is **solid, secure, and productio
 The only blocking dependency for production is **Firebase Authentication**, which is fully designed and has a clear 19-27 hour implementation roadmap. Once auth is implemented, the platform will be complete for MVP launch.
 
 **Next Steps**:
+
 1. Create epic issue: "Epic: Firebase Authentication — MVP"
 2. Enable Artifact Registry vulnerability scanning (5 minutes)
 3. Assign Firebase Auth epic to backend developer
