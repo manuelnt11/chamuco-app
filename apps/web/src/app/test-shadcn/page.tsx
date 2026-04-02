@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Button,
   Card,
@@ -11,6 +13,15 @@ import {
   Separator,
   ThemeToggle,
 } from '@/components';
+import {
+  AirplaneTiltIcon,
+  HeartIcon,
+  MagnifyingGlassIcon,
+  MapPinIcon,
+  StarIcon,
+  UsersIcon,
+  CalendarCheckIcon,
+} from '@phosphor-icons/react';
 
 export default function TestShadcnPage() {
   return (
@@ -51,7 +62,132 @@ export default function TestShadcnPage() {
             <Button size="sm">Small</Button>
             <Button>Default</Button>
             <Button size="lg">Large</Button>
-            <Button size="icon">🚀</Button>
+            <Button size="icon">
+              <AirplaneTiltIcon className="h-5 w-5" weight="regular" />
+            </Button>
+          </div>
+        </section>
+
+        <Separator />
+
+        {/* Phosphor Icons */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Phosphor Icons - Weight Examples</h2>
+          <p className="text-muted-foreground mb-4">
+            Demonstrating icon weights: Regular (navigation), Bold (active states), Fill (selected),
+            Duotone (empty states)
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Search & Navigation Icons</CardTitle>
+                <CardDescription>Regular weight for navigation elements</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-6 text-foreground">
+                  <div className="flex flex-col items-center gap-2">
+                    <MagnifyingGlassIcon className="h-8 w-8" weight="regular" />
+                    <span className="text-xs">Regular</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <MagnifyingGlassIcon className="h-8 w-8" weight="bold" />
+                    <span className="text-xs">Bold</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <MagnifyingGlassIcon className="h-8 w-8" weight="fill" />
+                    <span className="text-xs">Fill</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <MagnifyingGlassIcon className="h-8 w-8" weight="duotone" />
+                    <span className="text-xs">Duotone</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Action Icons</CardTitle>
+                <CardDescription>Fill weight for selected states</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-center gap-2">
+                    <HeartIcon className="h-8 w-8 text-muted-foreground" weight="regular" />
+                    <span className="text-xs">Inactive</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <HeartIcon className="h-8 w-8 text-primary" weight="fill" />
+                    <span className="text-xs">Active</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <StarIcon className="h-8 w-8 text-muted-foreground" weight="regular" />
+                    <span className="text-xs">Unrated</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <StarIcon className="h-8 w-8 text-secondary" weight="fill" />
+                    <span className="text-xs">Rated</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Location & Travel</CardTitle>
+                <CardDescription>Travel-specific icon examples</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-center gap-2">
+                    <MapPinIcon className="h-8 w-8 text-primary" weight="fill" />
+                    <span className="text-xs">Destination</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <AirplaneTiltIcon className="h-8 w-8 text-secondary" weight="bold" />
+                    <span className="text-xs">Flight</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <CalendarCheckIcon
+                      className="h-8 w-8 text-accent-foreground"
+                      weight="regular"
+                    />
+                    <span className="text-xs">Schedule</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <UsersIcon className="h-8 w-8 text-foreground" weight="bold" />
+                    <span className="text-xs">Group</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Button Integration</CardTitle>
+                <CardDescription>Icons in button components</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-3">
+                  <Button>
+                    <MagnifyingGlassIcon className="mr-2 h-4 w-4" weight="regular" />
+                    Search Trips
+                  </Button>
+                  <Button variant="secondary">
+                    <AirplaneTiltIcon className="mr-2 h-4 w-4" weight="bold" />
+                    Book Flight
+                  </Button>
+                  <Button variant="outline">
+                    <MapPinIcon className="mr-2 h-4 w-4" weight="regular" />
+                    Add Location
+                  </Button>
+                  <Button size="icon" variant="ghost">
+                    <HeartIcon className="h-4 w-4" weight="regular" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
@@ -132,30 +268,104 @@ export default function TestShadcnPage() {
 
         {/* Direct Horizonte Classes */}
         <section>
-          <h2 className="text-2xl font-semibold mb-4">Direct Horizonte Classes</h2>
+          <h2 className="text-2xl font-semibold mb-4">Horizonte Color Palette</h2>
           <p className="text-muted-foreground mb-4">
-            Testing backward compatibility with direct Horizonte color classes
+            Testing direct Horizonte color classes with all variants
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="p-6 rounded-lg bg-horizonte-cielo text-white text-center">
-              <p className="font-semibold">Cielo</p>
-              <p className="text-sm">Sky Blue</p>
+
+          <div className="space-y-6">
+            {/* Cielo - Sky Blue */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">Cielo (Sky Blue) - Primary Brand Color</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-cielo-light flex items-center justify-center">
+                    <span className="text-horizonte-oceano font-semibold">Light</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-cielo-light</code>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-cielo flex items-center justify-center">
+                    <span className="text-white font-semibold">Default</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-cielo</code>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-cielo-dark flex items-center justify-center">
+                    <span className="text-white font-semibold">Dark</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-cielo-dark</code>
+                </div>
+              </div>
             </div>
-            <div className="p-6 rounded-lg bg-horizonte-naranja text-white text-center">
-              <p className="font-semibold">Naranja</p>
-              <p className="text-sm">Orange</p>
+
+            {/* Naranja - Orange */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">Naranja (Orange) - Secondary Accent</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-naranja-light flex items-center justify-center">
+                    <span className="text-horizonte-oceano font-semibold">Light</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-naranja-light</code>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-naranja flex items-center justify-center">
+                    <span className="text-white font-semibold">Default</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-naranja</code>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-naranja-dark flex items-center justify-center">
+                    <span className="text-white font-semibold">Dark</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-naranja-dark</code>
+                </div>
+              </div>
             </div>
-            <div className="p-6 rounded-lg bg-horizonte-nube border border-border text-center">
-              <p className="font-semibold">Nube</p>
-              <p className="text-sm">Cloud</p>
+
+            {/* Oceano - Ocean */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">Oceano (Ocean) - Dark Theme Base</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-oceano-light flex items-center justify-center">
+                    <span className="text-white font-semibold">Light</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-oceano-light</code>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-oceano flex items-center justify-center">
+                    <span className="text-white font-semibold">Default</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-oceano</code>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-oceano-dark flex items-center justify-center">
+                    <span className="text-white font-semibold">Dark</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-oceano-dark</code>
+                </div>
+              </div>
             </div>
-            <div className="p-6 rounded-lg bg-horizonte-oceano text-white text-center">
-              <p className="font-semibold">Oceano</p>
-              <p className="text-sm">Ocean</p>
-            </div>
-            <div className="p-6 rounded-lg bg-horizonte-brisa text-center">
-              <p className="font-semibold">Brisa</p>
-              <p className="text-sm">Breeze</p>
+
+            {/* Nube & Brisa - Neutrals */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">Nube & Brisa (Neutrals)</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-nube border-2 border-border flex items-center justify-center">
+                    <span className="text-foreground font-semibold">Nube (Cloud)</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-nube</code>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-24 rounded-lg bg-horizonte-brisa border-2 border-border flex items-center justify-center">
+                    <span className="text-foreground font-semibold">Brisa (Breeze)</span>
+                  </div>
+                  <code className="text-xs text-muted-foreground">bg-horizonte-brisa</code>
+                </div>
+              </div>
             </div>
           </div>
         </section>
