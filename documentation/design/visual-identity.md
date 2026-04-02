@@ -1,7 +1,7 @@
 # Design: Visual Identity
 
 **Status:** In Progress — Core system and all logo variants confirmed; PNG rasterization pending
-**Last Updated:** 2026-03-24
+**Last Updated:** 2026-04-02
 
 > This document collects all pending visual and aesthetic decisions for the Chamuco App frontend. Each section presents concrete options with rationale. Decisions should be recorded here once made and reflected in `tech-stack.md` and `preferences.md` as applicable.
 
@@ -114,6 +114,8 @@ A single-family system using Plus Jakarta Sans across all weights (Light 300 →
 **Next.js configuration:** load via `next/font/google` with `subsets: ['latin']` and `display: 'swap'`. Declare all required weights in a single import to avoid multiple round-trips. Variable font (`variable: '--font-pjs'`) is available and preferred — enables smooth weight transitions in gamification animations.
 
 **Tailwind configuration:** register the CSS variable as `fontFamily.sans` override so all Tailwind text utilities resolve to Plus Jakarta Sans automatically.
+
+**Implementation note (2026-04-02):** Plus Jakarta Sans has been fully integrated as the default sans-serif font via `next/font/google` in `apps/web/src/app/layout.tsx`. All weights (300-800) are configured with `display: 'swap'` for optimal loading performance. The font is accessible throughout the application via the `font-sans` Tailwind utility class and `var(--font-sans)` CSS variable.
 
 ---
 
