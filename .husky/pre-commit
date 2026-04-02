@@ -8,7 +8,16 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 2. Type checking (only affected packages)
+# 2. Dependency security audit
+echo "🔒 Auditing dependencies for security vulnerabilities..."
+pnpm audit --audit-level=high
+if [ $? -ne 0 ]; then
+  echo "❌ High or critical security vulnerabilities found"
+  echo "💡 Run 'pnpm audit' to see details and 'pnpm audit --fix' to auto-fix"
+  exit 1
+fi
+
+# 3. Type checking (only affected packages)
 echo "🔧 Type checking affected packages..."
 pnpm turbo run typecheck --filter='[HEAD^1]'
 if [ $? -ne 0 ]; then
@@ -16,7 +25,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 3. Unit tests (only affected packages)
+# 4. Unit tests (only affected packages)
 echo "🧪 Running unit tests in affected packages..."
 pnpm turbo run test --filter='[HEAD^1]'
 if [ $? -ne 0 ]; then
@@ -24,7 +33,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 4. Coverage check (90% threshold, only affected packages)
+# 5. Coverage check (90% threshold, only affected packages)
 echo "📊 Checking test coverage in affected packages..."
 pnpm --if-present --filter api test:cov && pnpm --if-present --filter web test:cov
 if [ $? -ne 0 ]; then

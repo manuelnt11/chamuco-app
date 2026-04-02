@@ -263,12 +263,21 @@ No endpoint may be left without a summary (`@ApiOperation`), at least one `@ApiR
 
 ### 4. Pre-commit quality gates are non-negotiable
 
-Every commit must pass all four gates enforced by the Husky pre-commit hook:
+Every commit must pass all five gates enforced by the Husky pre-commit hook:
 
 1. **Format** — `prettier --write` on staged files. If a file is touched, it must be correctly formatted.
 2. **Lint** — `eslint --fix` on staged files. Auto-fixable violations are fixed automatically; non-auto-fixable violations block the commit.
-3. **Unit tests** — `turbo run test --filter=[HEAD^1]` runs unit tests for all packages affected by the commit.
-4. **Coverage** — 90% threshold on lines, statements, functions, and branches for affected packages. A commit that drops any metric below 90% is rejected.
+3. **Security audit** — `pnpm audit --audit-level=high` checks for high or critical security vulnerabilities in dependencies. If vulnerabilities are found, run `pnpm audit --fix` to auto-fix or manually address them before committing.
+4. **Unit tests** — `turbo run test --filter=[HEAD^1]` runs unit tests for all packages affected by the commit.
+5. **Coverage** — 90% threshold on lines, statements, functions, and branches for affected packages. A commit that drops any metric below 90% is rejected.
+
+**Manual validation:** To run all quality checks across the entire codebase without committing, use:
+
+```bash
+pnpm validate
+```
+
+This runs format check, lint, security audit, type checking, tests, and coverage on all packages — useful for pre-push validation or after pulling changes.
 
 When writing new code:
 
