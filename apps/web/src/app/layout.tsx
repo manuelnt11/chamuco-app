@@ -1,13 +1,16 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { Inter, Geist } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
-
-const inter = Inter({ subsets: ['latin'] });
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Chamuco Travel',
@@ -16,8 +19,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn('font-sans', geist.variable)}>
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning className={cn('font-sans', plusJakartaSans.variable)}>
+      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
