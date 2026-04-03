@@ -5,6 +5,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 import { I18nProvider } from '@/components/I18nProvider';
+import { AppShell } from '@/components/layout';
 import { cn } from '@/lib/utils';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -45,7 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             enableSystem
             storageKey="chamuco-theme"
           >
-            {children}
+            <AppShell>{children}</AppShell>
           </ThemeProvider>
         </I18nProvider>
       </body>
