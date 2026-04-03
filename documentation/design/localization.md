@@ -1,7 +1,7 @@
 # Design: Localization & Multi-Currency
 
-**Status:** Implemented (Frontend) / Design Phase (Backend)
-**Last Updated:** 2026-04-02
+**Status:** Implemented (Frontend + Backend)
+**Last Updated:** 2026-04-03
 
 ---
 
@@ -248,9 +248,15 @@ Rules:
 - **Code review:** Reviewers are responsible for flagging any string that bypasses the linter (e.g., strings passed as props from outside JSX).
 - **Missing key handling:** If a key is missing in the active locale, `i18next` falls back to the default language (`en`). If missing in both, the raw key is shown (e.g., `trips.status.confirmed`) — this makes missing translations immediately visible during development.
 
-#### Backend (Planned)
+#### Backend (✅ Implemented)
 
-Backend enforcement with `nestjs-i18n` will follow the same pattern once implemented.
+- **Library:** `nestjs-i18n` v10.6+ with file-based JSON loader
+- **Configuration:** `I18nModule.forRoot()` in `AppModule` with fallback language `en`
+- **Translation files:** `apps/api/src/i18n/en.json` and `apps/api/src/i18n/es.json`
+- **Helper service:** `I18nService` provides convenience methods (`translate()`, `getValidationError()`, `getError()`, `getNotification()`)
+- **Language resolution:** User preferences → `Accept-Language` header → `?lang=` query param → default (`en`)
+- **Testing:** 100% test coverage with comprehensive unit tests
+- **Key naming:** Uses the same camelCase dot-notation convention as frontend for cross-stack consistency
 
 ---
 
@@ -338,13 +344,62 @@ The system should support adding new languages without code changes — only by 
 - Scope: `markupOnly: true` (only JSX text content)
 - Exceptions: Non-translatable attributes, test files, app router files
 
-### Backend (Not Yet Implemented)
+### Backend (Current State)
 
-Backend i18n with `nestjs-i18n` will be implemented in a future phase. When implemented, it will:
+**Files:**
 
-- Use the same locale file structure and key naming convention
-- Sync with frontend language preference via database (`user_preferences.language`)
-- Support `Accept-Language` header and `?lang=` query param for per-request overrides
+- `apps/api/src/i18n/en.json` — English translations
+- `apps/api/src/i18n/es.json` — Spanish translations
+- `apps/api/src/i18n/i18n.service.ts` — Helper service with convenience methods
+- `apps/api/src/i18n/i18n.module.ts` — Module exporting I18nService
+- `apps/api/src/i18n/README.md` — Backend i18n documentation
+
+**Configuration:**
+
+- Library: `nestjs-i18n` v10.6+
+- Default language: `en` (English)
+- Fallback language: `en`
+- Loader: File-based JSON loader
+- Watch mode: Enabled (translations reload on file changes in development)
+
+**Helper Service:**
+
+```typescript
+// Injecting the service
+constructor(private readonly i18n: I18nService) {}
+
+// Basic translation
+this.i18n.translate('errors.notFound', { lang: 'es' });
+// => "Recurso no encontrado"
+
+// Validation errors
+this.i18n.getValidationError('required', { lang: 'en' });
+// => "This field is required"
+
+// Error messages
+this.i18n.getError('unauthorized', { lang: 'es' });
+// => "No estás autorizado para acceder a este recurso"
+
+// Notifications with interpolation
+this.i18n.getNotification('taskDueSoon', {
+  lang: 'en',
+  args: { task: 'Review expenses', days: 3 }
+});
+// => "The task \"Review expenses\" is due in 3 days"
+```
+
+**Language Resolution:**
+
+1. User preferences table (`user_preferences.language`) — when implemented
+2. `Accept-Language` HTTP header
+3. `?lang=` query parameter (testing override)
+4. Default: `en`
+
+**Testing:**
+
+- 100% test coverage (21 tests passing)
+- Comprehensive unit tests for all service methods
+- Tests cover: translation, interpolation, validation errors, error messages, notifications, edge cases
 
 ---
 

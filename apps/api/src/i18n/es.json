@@ -1,0 +1,47 @@
+{
+  "common": {
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "invalidEmail": "Por favor ingrese un correo electrónico válido",
+      "minLength": "La longitud mínima es {{count}} caracteres",
+      "maxLength": "La longitud máxima es {{count}} caracteres",
+      "invalidFormat": "Formato inválido",
+      "mustBePositive": "El valor debe ser positivo",
+      "mustBeInteger": "El valor debe ser un número entero"
+    },
+    "status": {
+      "success": "Éxito",
+      "error": "Error",
+      "warning": "Advertencia",
+      "info": "Información"
+    }
+  },
+  "errors": {
+    "generic": "Algo salió mal. Por favor intenta de nuevo.",
+    "notFound": "Recurso no encontrado",
+    "unauthorized": "No estás autorizado para acceder a este recurso",
+    "forbidden": "Acceso a este recurso prohibido",
+    "badRequest": "Solicitud inválida",
+    "conflict": "Este recurso ya existe",
+    "internalServerError": "Error interno del servidor. Por favor intenta más tarde.",
+    "serviceUnavailable": "Servicio temporalmente no disponible",
+    "validation": "Validación fallida",
+    "database": "Ocurrió un error de base de datos"
+  },
+  "auth": {
+    "invalidCredentials": "Credenciales inválidas",
+    "accountNotFound": "Cuenta no encontrada",
+    "accountDisabled": "Esta cuenta ha sido deshabilitada",
+    "tokenExpired": "Tu sesión ha expirado. Por favor inicia sesión de nuevo.",
+    "tokenInvalid": "Token de autenticación inválido",
+    "emailAlreadyExists": "Este correo electrónico ya está registrado",
+    "usernameAlreadyExists": "Este nombre de usuario ya está en uso"
+  },
+  "notifications": {
+    "invitationReceived": "{{organizer}} te invitó al viaje \"{{trip}}\"",
+    "taskDueSoon": "La tarea \"{{task}}\" vence en {{days}} días",
+    "tripStartingSoon": "Tu viaje \"{{trip}}\" comienza en {{days}} días",
+    "expenseAdded": "{{user}} agregó un gasto: {{description}}",
+    "participantJoined": "{{user}} se unió al viaje \"{{trip}}\""
+  }
+}
