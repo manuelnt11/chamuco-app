@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
+import { I18nProvider } from '@/components/I18nProvider';
 import { cn } from '@/lib/utils';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -37,14 +38,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning className={cn('font-sans', plusJakartaSans.variable)}>
       <body>
         <ServiceWorkerRegistration />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          storageKey="chamuco-theme"
-        >
-          {children}
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            storageKey="chamuco-theme"
+          >
+            {children}
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

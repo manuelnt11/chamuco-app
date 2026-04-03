@@ -85,6 +85,47 @@ apps/web/
 ### Utilities
 
 - `pnpm clean` - Remove build artifacts and caches
+- `pnpm icons:generate` - Regenerate PWA icons (only when logo changes)
+
+## PWA Icons
+
+PWA icons are **pre-generated and committed to the repository** in the `public/` directory. They are **not** regenerated during the build process.
+
+### When to Regenerate Icons
+
+Only regenerate icons when the app logo changes. This typically happens once or twice per year at most.
+
+### How to Regenerate Icons
+
+1. Update the source SVG files in `documentation/assets/`:
+   - `logo_icon.svg` - Main app icon
+   - `logo_maskable.svg` - Maskable icon for adaptive displays
+
+2. Run the generation script:
+
+   ```bash
+   pnpm icons:generate
+   ```
+
+3. Commit the generated icons:
+   ```bash
+   git add public/*.png public/*.ico public/icons/*.png
+   git commit -m "chore: regenerate PWA icons with updated logo"
+   ```
+
+### Generated Files
+
+The script generates the following files in `public/`:
+
+- `favicon.ico` - Multi-resolution favicon (16x16, 32x32, 48x48)
+- `favicon-16x16.png` - PNG favicon for modern browsers
+- `favicon-32x32.png` - PNG favicon for modern browsers
+- `apple-touch-icon.png` - Apple touch icon (180x180)
+- `icons/icon-192x192.png` - PWA icon for Android
+- `icons/icon-512x512.png` - PWA icon for Android
+- `icons/icon-512x512-maskable.png` - Maskable icon for adaptive displays
+
+These files are referenced in `app/layout.tsx` metadata and `manifest.webmanifest`.
 
 ## Path Aliases
 
