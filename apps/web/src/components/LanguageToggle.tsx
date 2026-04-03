@@ -11,23 +11,12 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Translate } from '@phosphor-icons/react';
 import type { SupportedLanguage } from '@/lib/i18n/config';
+import { LANGUAGE_STORAGE_KEY } from '@/lib/i18n/config';
+import { getNextLanguage } from '@/lib/i18n/utils';
 
 const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
   en: 'English',
   es: 'Español',
-};
-
-const LANGUAGE_CYCLE: Record<SupportedLanguage, SupportedLanguage> = {
-  en: 'es',
-  es: 'en',
-};
-
-/**
- * Gets the next language in the cycle: en ⇄ es
- */
-export const getNextLanguage = (current: string | undefined): SupportedLanguage => {
-  if (!current || !(current in LANGUAGE_CYCLE)) return 'en';
-  return LANGUAGE_CYCLE[current as SupportedLanguage];
 };
 
 export function LanguageToggle() {
@@ -57,7 +46,7 @@ export function LanguageToggle() {
     await i18n.changeLanguage(nextLang);
     // Persist language preference to localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem('chamuco-language', nextLang);
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLang);
     }
   };
 

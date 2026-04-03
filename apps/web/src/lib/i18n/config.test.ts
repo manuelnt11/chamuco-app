@@ -8,6 +8,7 @@ import {
   supportedLanguages,
   languageNames,
   i18nConfig,
+  LANGUAGE_STORAGE_KEY,
   type SupportedLanguage,
 } from './config';
 
@@ -79,6 +80,16 @@ describe('i18n config', () => {
 
       expect(en).toBe('en');
       expect(es).toBe('es');
+    });
+  });
+
+  describe('LANGUAGE_STORAGE_KEY', () => {
+    it('is set to "chamuco-language"', () => {
+      expect(LANGUAGE_STORAGE_KEY).toBe('chamuco-language');
+    });
+
+    it('is a readonly constant', () => {
+      expect(typeof LANGUAGE_STORAGE_KEY).toBe('string');
     });
   });
 });

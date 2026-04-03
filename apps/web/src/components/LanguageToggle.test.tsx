@@ -5,7 +5,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LanguageToggle, getNextLanguage } from './LanguageToggle';
+import { LanguageToggle } from './LanguageToggle';
+import { LANGUAGE_STORAGE_KEY } from '@/lib/i18n/config';
 
 // Mock react-i18next
 const mockChangeLanguage = vi.fn();
@@ -78,7 +79,7 @@ describe('LanguageToggle', () => {
     const button = screen.getByRole('button');
     await user.click(button);
 
-    expect(setItemSpy).toHaveBeenCalledWith('chamuco-language', 'es');
+    expect(setItemSpy).toHaveBeenCalledWith(LANGUAGE_STORAGE_KEY, 'es');
   });
 
   it('has accessible label', async () => {
@@ -99,23 +100,5 @@ describe('LanguageToggle', () => {
       const button = screen.getByRole('button');
       expect(button).toHaveAttribute('title', 'Language: English');
     });
-  });
-});
-
-describe('getNextLanguage', () => {
-  it('returns "es" when current is "en"', () => {
-    expect(getNextLanguage('en')).toBe('es');
-  });
-
-  it('returns "en" when current is "es"', () => {
-    expect(getNextLanguage('es')).toBe('en');
-  });
-
-  it('returns "en" when current is undefined', () => {
-    expect(getNextLanguage(undefined)).toBe('en');
-  });
-
-  it('returns "en" when current is invalid', () => {
-    expect(getNextLanguage('fr')).toBe('en');
   });
 });

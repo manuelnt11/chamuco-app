@@ -15,6 +15,11 @@ export const languageNames: Record<SupportedLanguage, string> = {
 };
 
 /**
+ * localStorage key for persisting language preference
+ */
+export const LANGUAGE_STORAGE_KEY = 'chamuco-language' as const;
+
+/**
  * i18next configuration options
  */
 export const i18nConfig = {

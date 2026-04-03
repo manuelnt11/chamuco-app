@@ -11,6 +11,7 @@ describe('i18n index', () => {
     expect(i18nExports).toHaveProperty('supportedLanguages');
     expect(i18nExports).toHaveProperty('languageNames');
     expect(i18nExports).toHaveProperty('i18nConfig');
+    expect(i18nExports).toHaveProperty('LANGUAGE_STORAGE_KEY');
   });
 
   it('exports client functions', () => {
@@ -18,5 +19,9 @@ describe('i18n index', () => {
     expect(i18nExports).toHaveProperty('getCurrentLanguage');
     expect(i18nExports).toHaveProperty('changeLanguage');
     expect(i18nExports).toHaveProperty('getI18n');
+  });
+
+  it('exports utility functions', () => {
+    expect(i18nExports).toHaveProperty('getNextLanguage');
   });
 });
