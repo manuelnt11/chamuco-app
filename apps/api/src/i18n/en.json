@@ -1,0 +1,47 @@
+{
+  "common": {
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "minLength": "Minimum length is {{count}} characters",
+      "maxLength": "Maximum length is {{count}} characters",
+      "invalidFormat": "Invalid format",
+      "mustBePositive": "Value must be positive",
+      "mustBeInteger": "Value must be an integer"
+    },
+    "status": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Information"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Resource not found",
+    "unauthorized": "You are not authorized to access this resource",
+    "forbidden": "Access to this resource is forbidden",
+    "badRequest": "Invalid request",
+    "conflict": "This resource already exists",
+    "internalServerError": "Internal server error. Please try again later.",
+    "serviceUnavailable": "Service temporarily unavailable",
+    "validation": "Validation failed",
+    "database": "Database error occurred"
+  },
+  "auth": {
+    "invalidCredentials": "Invalid credentials",
+    "accountNotFound": "Account not found",
+    "accountDisabled": "This account has been disabled",
+    "tokenExpired": "Your session has expired. Please sign in again.",
+    "tokenInvalid": "Invalid authentication token",
+    "emailAlreadyExists": "This email is already registered",
+    "usernameAlreadyExists": "This username is already taken"
+  },
+  "notifications": {
+    "invitationReceived": "{{organizer}} invited you to the trip \"{{trip}}\"",
+    "taskDueSoon": "The task \"{{task}}\" is due in {{days}} days",
+    "tripStartingSoon": "Your trip \"{{trip}}\" starts in {{days}} days",
+    "expenseAdded": "{{user}} added an expense: {{description}}",
+    "participantJoined": "{{user}} joined the trip \"{{trip}}\""
+  }
+}
