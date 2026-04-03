@@ -1,0 +1,120 @@
+{
+  "common": {
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "update": "Update",
+      "submit": "Submit",
+      "search": "Search",
+      "filter": "Filter",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous",
+      "close": "Close",
+      "confirm": "Confirm",
+      "loading": "Loading...",
+      "viewMore": "View More",
+      "viewLess": "View Less"
+    },
+    "navigation": {
+      "home": "Home",
+      "trips": "Trips",
+      "groups": "Groups",
+      "calendar": "Calendar",
+      "profile": "Profile",
+      "settings": "Settings"
+    },
+    "status": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Information"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidFormat": "Invalid format",
+      "minLength": "Minimum length is {{count}} characters",
+      "maxLength": "Maximum length is {{count}} characters"
+    },
+    "time": {
+      "days": "{{count}} day",
+      "days_other": "{{count}} days",
+      "hours": "{{count}} hour",
+      "hours_other": "{{count}} hours",
+      "minutes": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "ago": "{{time}} ago",
+      "from_now": "in {{time}}"
+    },
+    "home": {
+      "title": "Chamuco Travel",
+      "subtitle": "Group travel management platform"
+    },
+    "offline": {
+      "title": "You're Offline",
+      "message": "No internet connection detected. Some features may be unavailable.",
+      "retry": "Try Again"
+    }
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "signInWith": "Sign in with {{provider}}",
+    "welcome": "Welcome to Chamuco Travel",
+    "createAccount": "Create Account",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password"
+  },
+  "trips": {
+    "title": "Trips",
+    "createTrip": "Create Trip",
+    "myTrips": "My Trips",
+    "upcomingTrips": "Upcoming Trips",
+    "pastTrips": "Past Trips",
+    "tripDetails": "Trip Details",
+    "participants": "Participants",
+    "itinerary": "Itinerary",
+    "budget": "Budget",
+    "expenses": "Expenses",
+    "notes": "Notes",
+    "status": {
+      "draft": "Draft",
+      "open": "Open",
+      "confirmed": "Confirmed",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "groups": {
+    "title": "Groups",
+    "createGroup": "Create Group",
+    "myGroups": "My Groups",
+    "groupDetails": "Group Details",
+    "members": "Members",
+    "events": "Events",
+    "announcements": "Announcements"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "personalInfo": "Personal Information",
+    "travelPreferences": "Travel Preferences",
+    "achievements": "Achievements",
+    "statistics": "Statistics"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Page not found",
+    "unauthorized": "You are not authorized to access this resource",
+    "networkError": "Network error. Please check your connection.",
+    "sessionExpired": "Your session has expired. Please sign in again."
+  }
+}

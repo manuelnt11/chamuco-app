@@ -1,6 +1,7 @@
 // Custom components
 export { ThemeProvider } from './ThemeProvider';
 export { ThemeToggle } from './ThemeToggle';
+export { LanguageToggle } from './LanguageToggle';
 
 // shadcn/ui components
 export { Button } from './ui/button';

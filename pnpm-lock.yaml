@@ -211,6 +211,9 @@ importers:
       i18next-http-backend:
         specifier: ^2.7.3
         version: 2.7.3
+      i18next-resources-to-backend:
+        specifier: ^1.2.1
+        version: 1.2.1
       next:
         specifier: ^16.2.1
         version: 16.2.1(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -6524,6 +6527,12 @@ packages:
     resolution:
       {
         integrity: sha512-FgZxrXdRA5u44xfYsJlEBL4/KH3f2IluBpgV/7riW0YW2VEyM8FzVt2XHAOi6id0Ppj7vZvCZVpp5LrGXnc8Ig==,
+      }
+
+  i18next-resources-to-backend@1.2.1:
+    resolution:
+      {
+        integrity: sha512-okHbVA+HZ7n1/76MsfhPqDou0fptl2dAlhRDu2ideXloRRduzHsqDOznJBef+R3DFZnbvWoBW+KxJ7fnFjd6Yw==,
       }
 
   i18next@23.16.8:
@@ -14597,6 +14606,10 @@ snapshots:
       cross-fetch: 4.0.0
     transitivePeerDependencies:
       - encoding
+
+  i18next-resources-to-backend@1.2.1:
+    dependencies:
+      '@babel/runtime': 7.29.2
 
   i18next@23.16.8:
     dependencies:

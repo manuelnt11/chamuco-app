@@ -1,0 +1,120 @@
+{
+  "common": {
+    "actions": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "create": "Crear",
+      "update": "Actualizar",
+      "submit": "Enviar",
+      "search": "Buscar",
+      "filter": "Filtrar",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "close": "Cerrar",
+      "confirm": "Confirmar",
+      "loading": "Cargando...",
+      "viewMore": "Ver Más",
+      "viewLess": "Ver Menos"
+    },
+    "navigation": {
+      "home": "Inicio",
+      "trips": "Viajes",
+      "groups": "Grupos",
+      "calendar": "Calendario",
+      "profile": "Perfil",
+      "settings": "Configuración"
+    },
+    "status": {
+      "success": "Éxito",
+      "error": "Error",
+      "warning": "Advertencia",
+      "info": "Información"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "invalidEmail": "Por favor ingrese un correo electrónico válido",
+      "invalidFormat": "Formato inválido",
+      "minLength": "La longitud mínima es {{count}} caracteres",
+      "maxLength": "La longitud máxima es {{count}} caracteres"
+    },
+    "time": {
+      "days": "{{count}} día",
+      "days_other": "{{count}} días",
+      "hours": "{{count}} hora",
+      "hours_other": "{{count}} horas",
+      "minutes": "{{count}} minuto",
+      "minutes_other": "{{count}} minutos",
+      "ago": "hace {{time}}",
+      "from_now": "en {{time}}"
+    },
+    "home": {
+      "title": "Chamuco Travel",
+      "subtitle": "Plataforma de gestión de viajes grupales"
+    },
+    "offline": {
+      "title": "Sin Conexión",
+      "message": "No se detectó conexión a internet. Algunas funciones pueden no estar disponibles.",
+      "retry": "Intentar de Nuevo"
+    }
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signOut": "Cerrar Sesión",
+    "signUp": "Registrarse",
+    "signInWith": "Iniciar sesión con {{provider}}",
+    "welcome": "Bienvenido a Chamuco Travel",
+    "createAccount": "Crear Cuenta",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "resetPassword": "Restablecer Contraseña",
+    "emailPlaceholder": "Ingresa tu correo electrónico",
+    "passwordPlaceholder": "Ingresa tu contraseña"
+  },
+  "trips": {
+    "title": "Viajes",
+    "createTrip": "Crear Viaje",
+    "myTrips": "Mis Viajes",
+    "upcomingTrips": "Próximos Viajes",
+    "pastTrips": "Viajes Pasados",
+    "tripDetails": "Detalles del Viaje",
+    "participants": "Participantes",
+    "itinerary": "Itinerario",
+    "budget": "Presupuesto",
+    "expenses": "Gastos",
+    "notes": "Notas",
+    "status": {
+      "draft": "Borrador",
+      "open": "Abierto",
+      "confirmed": "Confirmado",
+      "inProgress": "En Progreso",
+      "completed": "Completado",
+      "cancelled": "Cancelado"
+    }
+  },
+  "groups": {
+    "title": "Grupos",
+    "createGroup": "Crear Grupo",
+    "myGroups": "Mis Grupos",
+    "groupDetails": "Detalles del Grupo",
+    "members": "Miembros",
+    "events": "Eventos",
+    "announcements": "Anuncios"
+  },
+  "profile": {
+    "title": "Perfil",
+    "editProfile": "Editar Perfil",
+    "personalInfo": "Información Personal",
+    "travelPreferences": "Preferencias de Viaje",
+    "achievements": "Logros",
+    "statistics": "Estadísticas"
+  },
+  "errors": {
+    "generic": "Algo salió mal. Por favor intenta de nuevo.",
+    "notFound": "Página no encontrada",
+    "unauthorized": "No estás autorizado para acceder a este recurso",
+    "networkError": "Error de red. Por favor verifica tu conexión.",
+    "sessionExpired": "Tu sesión ha expirado. Por favor inicia sesión nuevamente."
+  }
+}
