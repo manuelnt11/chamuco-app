@@ -155,6 +155,35 @@ describe('NavItem', () => {
     });
   });
 
+  describe('showLabel prop', () => {
+    it('shows label by default', () => {
+      render(<NavItem item={mockItem} layout="sidebar" />);
+      const label = screen.getByText('Trips');
+      expect(label).not.toHaveClass('sr-only');
+    });
+
+    it('hides label visually when showLabel=false', () => {
+      render(<NavItem item={mockItem} layout="sidebar" showLabel={false} />);
+      const label = screen.getByText('Trips');
+      expect(label).toHaveClass('sr-only');
+    });
+
+    it('adds title attribute when showLabel=false', () => {
+      render(<NavItem item={mockItem} layout="sidebar" showLabel={false} />);
+      expect(screen.getByRole('link')).toHaveAttribute('title', 'Trips');
+    });
+
+    it('does not add title attribute when showLabel=true', () => {
+      render(<NavItem item={mockItem} layout="sidebar" showLabel={true} />);
+      expect(screen.getByRole('link')).not.toHaveAttribute('title');
+    });
+
+    it('centers icon when showLabel=false', () => {
+      render(<NavItem item={mockItem} layout="sidebar" showLabel={false} />);
+      expect(screen.getByRole('link')).toHaveClass('justify-center');
+    });
+  });
+
   describe('different nav items', () => {
     it('renders groups item correctly', () => {
       const groupsItem: NavItemType = {

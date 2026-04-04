@@ -10,9 +10,10 @@ import { cn } from '@/lib/utils';
 interface NavItemProps {
   item: NavItemType;
   layout: 'sidebar' | 'bottom-bar';
+  showLabel?: boolean;
 }
 
-export function NavItem({ item, layout }: NavItemProps) {
+export function NavItem({ item, layout, showLabel = true }: NavItemProps) {
   const pathname = usePathname();
   const { t } = useTranslation();
   const isActive = isActiveRoute(pathname, item.path);
@@ -25,7 +26,9 @@ export function NavItem({ item, layout }: NavItemProps) {
     : 'hover:bg-muted text-foreground';
 
   const layoutClasses =
-    layout === 'sidebar' ? 'px-3 py-2 justify-start' : 'flex-col px-2 py-2 text-xs justify-center';
+    layout === 'sidebar'
+      ? cn('px-3 py-2', showLabel ? 'justify-start' : 'justify-center px-0')
+      : 'flex-col px-2 py-2 text-xs justify-center';
 
   return (
     <Link
@@ -33,9 +36,10 @@ export function NavItem({ item, layout }: NavItemProps) {
       className={cn(baseClasses, activeClasses, layoutClasses)}
       aria-label={getNavItemAriaLabel(label, isActive)}
       aria-current={isActive ? 'page' : undefined}
+      title={!showLabel ? label : undefined}
     >
       <Icon weight={isActive ? 'fill' : 'regular'} className="h-6 w-6" aria-hidden="true" />
-      <span>{label}</span>
+      <span className={cn(!showLabel && 'sr-only')}>{label}</span>
     </Link>
   );
 }

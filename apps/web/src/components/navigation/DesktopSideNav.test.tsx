@@ -1,17 +1,24 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DesktopSideNav } from './DesktopSideNav';
 
-// Mock NavItem component
 vi.mock('./NavItem', () => ({
-  NavItem: ({ item, layout }: { item: { key: string }; layout: string }) => (
-    <div data-testid={`nav-item-${item.key}`} data-layout={layout}>
+  NavItem: ({
+    item,
+    layout,
+    showLabel,
+  }: {
+    item: { key: string };
+    layout: string;
+    showLabel?: boolean;
+  }) => (
+    <div data-testid={`nav-item-${item.key}`} data-layout={layout} data-show-label={showLabel}>
       {item.key}
     </div>
   ),
 }));
 
-// Mock navigation config
 vi.mock('./navigation.config', () => ({
   NAV_ITEMS: [
     { key: 'home', path: '/', icon: () => null },
@@ -22,11 +29,28 @@ vi.mock('./navigation.config', () => ({
   ],
 }));
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'navigation.collapseSidebar': 'Collapse sidebar',
+        'navigation.expandSidebar': 'Expand sidebar',
+      };
+      return map[key] ?? key;
+    },
+  }),
+}));
+
+const mockToggle = vi.fn();
+
+vi.mock('@/lib/hooks/useSidebarCollapsed', () => ({
+  useSidebarCollapsed: vi.fn(() => ({ collapsed: false, toggle: mockToggle })),
+}));
+
 describe('DesktopSideNav', () => {
   it('renders as a nav element', () => {
     const { container } = render(<DesktopSideNav />);
-    const nav = container.querySelector('nav');
-    expect(nav).toBeInTheDocument();
+    expect(container.querySelector('nav')).toBeInTheDocument();
   });
 
   it('has correct positioning and z-index', () => {
@@ -35,40 +59,39 @@ describe('DesktopSideNav', () => {
     expect(nav).toHaveClass('fixed', 'left-0', 'top-header', 'bottom-0', 'z-30');
   });
 
-  it('has correct width', () => {
+  it('has correct width class', () => {
     const { container } = render(<DesktopSideNav />);
-    const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('w-sidebar');
+    expect(container.querySelector('nav')).toHaveClass('w-sidebar');
+  });
+
+  it('has width transition', () => {
+    const { container } = render(<DesktopSideNav />);
+    expect(container.querySelector('nav')).toHaveClass('transition-[width]');
   });
 
   it('is hidden on mobile', () => {
     const { container } = render(<DesktopSideNav />);
-    const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('hidden', 'md:flex');
+    expect(container.querySelector('nav')).toHaveClass('hidden', 'md:flex');
   });
 
   it('uses flex column layout', () => {
     const { container } = render(<DesktopSideNav />);
-    const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('md:flex-col');
+    expect(container.querySelector('nav')).toHaveClass('md:flex-col');
   });
 
   it('has border styling', () => {
     const { container } = render(<DesktopSideNav />);
-    const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('border-r', 'border-border');
-  });
-
-  it('has padding', () => {
-    const { container } = render(<DesktopSideNav />);
-    const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('p-4');
+    expect(container.querySelector('nav')).toHaveClass('border-r', 'border-border');
   });
 
   it('has accessible label', () => {
     const { container } = render(<DesktopSideNav />);
-    const nav = container.querySelector('nav');
-    expect(nav).toHaveAttribute('aria-label', 'Desktop navigation');
+    expect(container.querySelector('nav')).toHaveAttribute('aria-label', 'Desktop navigation');
+  });
+
+  it('has data-collapsed attribute', () => {
+    const { container } = render(<DesktopSideNav />);
+    expect(container.querySelector('nav')).toHaveAttribute('data-collapsed', 'false');
   });
 
   it('renders all 5 navigation items', () => {
@@ -82,15 +105,51 @@ describe('DesktopSideNav', () => {
 
   it('renders nav items with sidebar layout', () => {
     render(<DesktopSideNav />);
-    const navItems = screen.getAllByTestId(/nav-item-/);
-    navItems.forEach((item) => {
+    screen.getAllByTestId(/nav-item-/).forEach((item) => {
       expect(item).toHaveAttribute('data-layout', 'sidebar');
     });
   });
 
-  it('has gap between items', () => {
-    const { container } = render(<DesktopSideNav />);
-    const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('gap-2');
+  it('passes showLabel=true when expanded', () => {
+    render(<DesktopSideNav />);
+    screen.getAllByTestId(/nav-item-/).forEach((item) => {
+      expect(item).toHaveAttribute('data-show-label', 'true');
+    });
+  });
+
+  it('renders collapse toggle button', () => {
+    render(<DesktopSideNav />);
+    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
+  });
+
+  it('calls toggle when collapse button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<DesktopSideNav />);
+    await user.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    expect(mockToggle).toHaveBeenCalledOnce();
+  });
+
+  describe('collapsed state', () => {
+    beforeEach(async () => {
+      const { useSidebarCollapsed } = await import('@/lib/hooks/useSidebarCollapsed');
+      vi.mocked(useSidebarCollapsed).mockReturnValue({ collapsed: true, toggle: mockToggle });
+    });
+
+    it('has data-collapsed=true when collapsed', () => {
+      const { container } = render(<DesktopSideNav />);
+      expect(container.querySelector('nav')).toHaveAttribute('data-collapsed', 'true');
+    });
+
+    it('passes showLabel=false when collapsed', () => {
+      render(<DesktopSideNav />);
+      screen.getAllByTestId(/nav-item-/).forEach((item) => {
+        expect(item).toHaveAttribute('data-show-label', 'false');
+      });
+    });
+
+    it('shows expand button when collapsed', () => {
+      render(<DesktopSideNav />);
+      expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument();
+    });
   });
 });
