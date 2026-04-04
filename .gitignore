@@ -62,8 +62,9 @@ firestore-debug.log
 # Database
 .postgres-data/
 backups/
-*.sql
 *.sql.gz
+**/backups/*.sql
+*.dump.sql
 
 # Misc
 .cache

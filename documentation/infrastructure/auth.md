@@ -133,6 +133,56 @@ The audit log records: `admin_user_id`, `action`, `target_table`, `target_id`, `
 
 ---
 
+## SUPPORT_ADMIN Bootstrap
+
+The first `SUPPORT_ADMIN` user cannot be created from within the app — the role is not assignable through the UI. It must be seeded manually via a one-time script after Firebase is configured and the database is running.
+
+### Prerequisites
+
+1. Firebase project is set up and Authentication is enabled.
+2. The designated admin account has signed in at least once (via Google or Facebook) so Firebase has issued a UID.
+3. The `firebase_uid` of that account is available from **Firebase Console → Authentication → Users**.
+
+### Running the seed
+
+**Local / staging:**
+
+```bash
+SEED_ADMIN_FIREBASE_UID="<uid_from_firebase_console>" \
+SEED_ADMIN_EMAIL="admin@chamucotravel.com" \
+SEED_ADMIN_USERNAME="chamuco_admin" \
+SEED_ADMIN_DISPLAY_NAME="Chamuco Admin" \
+pnpm --filter api db:seed-admin
+```
+
+**Production (Cloud SQL):**
+
+```bash
+# 1. Start the Cloud SQL Auth Proxy (port 5433 to avoid conflict with local Docker)
+cloud-sql-proxy chamuco-app-mn:us-central1:chamuco-postgres --port=5433
+
+# 2. In a second terminal, run the seed against prod
+DATABASE_URL="postgresql://postgres:<password>@localhost:5433/chamuco_prod" \
+SEED_ADMIN_FIREBASE_UID="<uid_from_firebase_console>" \
+SEED_ADMIN_EMAIL="admin@chamucotravel.com" \
+SEED_ADMIN_USERNAME="chamuco_admin" \
+SEED_ADMIN_DISPLAY_NAME="Chamuco Admin" \
+pnpm --filter api db:seed-admin
+```
+
+### Implementation notes
+
+- The seed script is idempotent — running it multiple times is safe (upsert on `firebase_uid`).
+- The script also creates the corresponding `user_preferences` record.
+- Environment variables are never committed. Store them in `.env.local` (gitignored) for local runs and retrieve the prod password from GCP Secret Manager.
+- This script is a one-time operational step, **not** part of the CI/CD pipeline.
+
+### Timing
+
+Run this script immediately after completing the Firebase Admin SDK setup (issue #69). The `FirebaseAuthGuard` must be in place before the admin account can make authenticated requests.
+
+---
+
 ## Cost
 
 Firebase Authentication is **free for Google Sign-In and Facebook Sign-In** regardless of user volume (Spark and Blaze plans). If email/password auth is added in the future, the free tier covers 10,000 MAU/month; beyond that the cost is $0.0055/MAU — negligible for a travel coordination app.

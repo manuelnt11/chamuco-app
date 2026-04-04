@@ -9,5 +9,5 @@
  * export * from './trips.schema';
  */
 
-// No schemas yet - this will be populated as features are built
-export {};
+export * from '@/modules/users/schema/users.schema';
+export * from '@/modules/users/schema/user-preferences.schema';
