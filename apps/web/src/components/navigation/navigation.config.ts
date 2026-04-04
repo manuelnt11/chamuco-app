@@ -1,5 +1,11 @@
 import type { Icon } from '@phosphor-icons/react';
-import { AirplaneTilt, UsersThree, Compass, User } from '@phosphor-icons/react';
+import {
+  HouseIcon,
+  AirplaneTiltIcon,
+  UsersThreeIcon,
+  CompassIcon,
+  UserIcon,
+} from '@phosphor-icons/react';
 
 export interface NavItem {
   key: string;
@@ -9,24 +15,29 @@ export interface NavItem {
 
 export const NAV_ITEMS: readonly NavItem[] = [
   {
+    key: 'home',
+    path: '/',
+    icon: HouseIcon,
+  },
+  {
     key: 'trips',
     path: '/trips',
-    icon: AirplaneTilt,
+    icon: AirplaneTiltIcon,
   },
   {
     key: 'groups',
     path: '/groups',
-    icon: UsersThree,
+    icon: UsersThreeIcon,
   },
   {
     key: 'explore',
     path: '/explore',
-    icon: Compass,
+    icon: CompassIcon,
   },
   {
     key: 'profile',
     path: '/profile',
-    icon: User,
+    icon: UserIcon,
   },
 ] as const;
 

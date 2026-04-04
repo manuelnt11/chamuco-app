@@ -14,6 +14,7 @@ vi.mock('./NavItem', () => ({
 // Mock navigation config
 vi.mock('./navigation.config', () => ({
   NAV_ITEMS: [
+    { key: 'home', path: '/', icon: () => null },
     { key: 'trips', path: '/trips', icon: () => null },
     { key: 'groups', path: '/groups', icon: () => null },
     { key: 'explore', path: '/explore', icon: () => null },
@@ -70,8 +71,9 @@ describe('DesktopSideNav', () => {
     expect(nav).toHaveAttribute('aria-label', 'Desktop navigation');
   });
 
-  it('renders all 4 navigation items', () => {
+  it('renders all 5 navigation items', () => {
     render(<DesktopSideNav />);
+    expect(screen.getByTestId('nav-item-home')).toBeInTheDocument();
     expect(screen.getByTestId('nav-item-trips')).toBeInTheDocument();
     expect(screen.getByTestId('nav-item-groups')).toBeInTheDocument();
     expect(screen.getByTestId('nav-item-explore')).toBeInTheDocument();

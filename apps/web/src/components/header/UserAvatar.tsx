@@ -1,6 +1,6 @@
 'use client';
 
-import { UserCircle } from '@phosphor-icons/react';
+import { UserCircleIcon } from '@phosphor-icons/react';
 
 export function UserAvatar() {
   // TODO: Connect to user profile menu when authentication is implemented
@@ -11,7 +11,7 @@ export function UserAvatar() {
       aria-label="User menu"
       title="User menu"
     >
-      <UserCircle className="h-8 w-8" weight="regular" />
+      <UserCircleIcon className="h-8 w-8" weight="regular" />
     </button>
   );
 }

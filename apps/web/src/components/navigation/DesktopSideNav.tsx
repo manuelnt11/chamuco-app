@@ -3,6 +3,9 @@
 import { NAV_ITEMS } from './navigation.config';
 import { NavItem } from './NavItem';
 
+// TODO: Add collapsible compact mode — toggle between full sidebar (icon + label)
+// and icon-only sidebar. Collapsed width should shrink to ~3.5rem and labels
+// should be hidden. Persist the preference to localStorage.
 export function DesktopSideNav() {
   return (
     <nav

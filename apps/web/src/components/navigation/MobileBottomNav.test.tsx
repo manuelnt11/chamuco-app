@@ -12,6 +12,7 @@ vi.mock('./NavItem', () => ({
 
 vi.mock('./navigation.config', () => ({
   NAV_ITEMS: [
+    { key: 'home', path: '/', icon: () => null },
     { key: 'trips', path: '/trips', icon: () => null },
     { key: 'groups', path: '/groups', icon: () => null },
     { key: 'explore', path: '/explore', icon: () => null },
@@ -60,8 +61,9 @@ describe('MobileBottomNav', () => {
     expect(nav).toHaveAttribute('aria-label', 'Mobile navigation');
   });
 
-  it('renders all 4 navigation items', () => {
+  it('renders all 5 navigation items', () => {
     render(<MobileBottomNav />);
+    expect(screen.getByTestId('nav-item-home')).toBeInTheDocument();
     expect(screen.getByTestId('nav-item-trips')).toBeInTheDocument();
     expect(screen.getByTestId('nav-item-groups')).toBeInTheDocument();
     expect(screen.getByTestId('nav-item-explore')).toBeInTheDocument();
@@ -79,7 +81,7 @@ describe('MobileBottomNav', () => {
   it('distributes items equally with flex-1', () => {
     const { container } = render(<MobileBottomNav />);
     const itemWrappers = container.querySelectorAll('.flex-1');
-    expect(itemWrappers).toHaveLength(4);
+    expect(itemWrappers).toHaveLength(5);
   });
 
   describe('auto-hide on scroll', () => {

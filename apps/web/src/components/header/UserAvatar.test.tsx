@@ -22,7 +22,7 @@ describe('UserAvatar', () => {
     expect(button).toHaveClass('hover:bg-gray-100', 'dark:hover:bg-gray-800');
   });
 
-  it('contains UserCircle icon', () => {
+  it('contains UserCircleIcon', () => {
     const { container } = render(<UserAvatar />);
     const svg = container.querySelector('svg');
     expect(svg).toBeInTheDocument();
