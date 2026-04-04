@@ -53,14 +53,7 @@ esac
 
 print_info "Updating issue #${ISSUE_NUMBER} to '${TARGET_STATUS}'..."
 
-# Ensure issue is in the project
-if gh issue edit "$ISSUE_NUMBER" --add-project "${PROJECT_OWNER}/${PROJECT_NUMBER}" &>/dev/null; then
-  : # Success or already added
-else
-  print_warning "Could not add issue to project (may already be added)"
-fi
-
-# Get project ID
+# Get project ID and issue node ID in parallel
 PROJECT_ID=$(gh api graphql -f query='
   query($owner: String!, $number: Int!) {
     user(login: $owner) {
@@ -76,18 +69,37 @@ if [ -z "$PROJECT_ID" ]; then
   exit 1
 fi
 
-# Get Status field ID
-FIELD_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null | \
-  jq -r --arg field "$STATUS_FIELD" '.fields[] | select(.name==$field) | .id' || true)
+# Ensure issue is in the project via GraphQL (gh issue edit --add-project is broken)
+ISSUE_NODE_ID=$(gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      issue(number: $number) { id }
+    }
+  }
+' -f owner="$PROJECT_OWNER" -f repo="chamuco-app" -F number="$ISSUE_NUMBER" \
+  --jq '.data.repository.issue.id' 2>/dev/null || true)
+
+if [ -n "$ISSUE_NODE_ID" ]; then
+  gh api graphql -f query='
+    mutation($projectId: ID!, $contentId: ID!) {
+      addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+        item { id }
+      }
+    }
+  ' -f projectId="$PROJECT_ID" -f contentId="$ISSUE_NODE_ID" &>/dev/null || true
+fi
+
+# Get Status field ID and option ID
+FIELD_JSON=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null || true)
+
+FIELD_ID=$(echo "$FIELD_JSON" | jq -r --arg field "$STATUS_FIELD" '.fields[] | select(.name==$field) | .id' || true)
 
 if [ -z "$FIELD_ID" ]; then
   print_warning "Could not get Status field ID. Update status manually in GitHub UI."
   exit 1
 fi
 
-# Get target status option ID
-OPTION_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null | \
-  jq -r --arg field "$STATUS_FIELD" --arg status "$TARGET_STATUS" \
+OPTION_ID=$(echo "$FIELD_JSON" | jq -r --arg field "$STATUS_FIELD" --arg status "$TARGET_STATUS" \
   '.fields[] | select(.name==$field) | .options[] | select(.name==$status) | .id' || true)
 
 if [ -z "$OPTION_ID" ]; then
@@ -95,8 +107,8 @@ if [ -z "$OPTION_ID" ]; then
   exit 1
 fi
 
-# Get issue's project item ID
-ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null | \
+# Get issue's project item ID (limit 200 to cover large backlogs)
+ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json --limit 200 2>/dev/null | \
   jq -r --arg issue "$ISSUE_NUMBER" '.items[] | select(.content.number==($issue|tonumber)) | .id' || true)
 
 if [ -z "$ITEM_ID" ]; then

@@ -13,9 +13,29 @@ export { Header, Logo, UserAvatar } from './header';
 export { NavItem, MobileBottomNav, DesktopSideNav, NAV_ITEMS } from './navigation';
 export type { NavItemType } from './navigation';
 
-// shadcn/ui components
+// UI components
 export { Button } from './ui/button';
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 export { Input } from './ui/input';
 export { Label } from './ui/label';
 export { Separator } from './ui/separator';
+export { Textarea } from './ui/textarea';
+export { Badge } from './ui/badge';
+export type { BadgeProps } from './ui/badge';
+export { Avatar } from './ui/avatar';
+export type { AvatarProps } from './ui/avatar';
+export {
+  Dialog,
+  DialogTrigger,
+  DialogPopup,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from './ui/dialog';
+export { ToastProvider, toast, toastManager } from './ui/toast';
+export { Spinner } from './ui/spinner';
+export type { SpinnerProps } from './ui/spinner';
+export { EmptyState } from './ui/empty-state';
+export type { EmptyStateProps } from './ui/empty-state';

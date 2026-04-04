@@ -7,6 +7,7 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistratio
 import { I18nProvider } from '@/components/I18nProvider';
 import { AppShell } from '@/components/layout';
 import { cn } from '@/lib/utils';
+import { SIDEBAR_STORAGE_KEY, SIDEBAR_COLLAPSED_WIDTH } from '@/lib/sidebar-constants';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -37,6 +38,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={cn('font-sans', plusJakartaSans.variable)}>
+      <head>
+        {/* Blocking script: apply saved sidebar width before React hydrates to prevent layout shift */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('${SIDEBAR_STORAGE_KEY}')==='true'){document.documentElement.style.setProperty('--layout-sidebar-width','${SIDEBAR_COLLAPSED_WIDTH}')}}catch(_){}`,
+          }}
+        />
+      </head>
       <body>
         <ServiceWorkerRegistration />
         <I18nProvider>
