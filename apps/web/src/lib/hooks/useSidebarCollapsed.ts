@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-const STORAGE_KEY = 'sidebar-collapsed';
-const EXPANDED_WIDTH = '10rem'; // matches --layout-sidebar-width in globals.css
-const COLLAPSED_WIDTH = '3.5rem';
+import {
+  SIDEBAR_STORAGE_KEY,
+  SIDEBAR_EXPANDED_WIDTH,
+  SIDEBAR_COLLAPSED_WIDTH,
+} from '@/lib/sidebar-constants';
 
 export function useSidebarCollapsed() {
   // Default to expanded on SSR to avoid hydration mismatch
@@ -12,7 +13,7 @@ export function useSidebarCollapsed() {
 
   // Read from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
     if (stored === 'true') setCollapsed(true);
   }, []);
 
@@ -20,14 +21,14 @@ export function useSidebarCollapsed() {
   useEffect(() => {
     document.documentElement.style.setProperty(
       '--layout-sidebar-width',
-      collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
+      collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH,
     );
   }, [collapsed]);
 
   const toggle = () => {
     setCollapsed((prev) => {
       const next = !prev;
-      localStorage.setItem(STORAGE_KEY, String(next));
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
       return next;
     });
   };

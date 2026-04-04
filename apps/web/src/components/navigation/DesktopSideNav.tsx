@@ -24,7 +24,7 @@ export function DesktopSideNav() {
       aria-label="Desktop navigation"
       data-collapsed={collapsed}
     >
-      <div className={cn('flex flex-col gap-2 flex-1 p-2')}>
+      <div className="flex flex-col gap-2 flex-1 p-2">
         {NAV_ITEMS.map((item) => (
           <NavItem key={item.key} item={item} layout="sidebar" showLabel={!collapsed} />
         ))}

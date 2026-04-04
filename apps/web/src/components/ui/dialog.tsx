@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
 
+// DialogBackdrop is intentionally not exported — it is always rendered by DialogPopup.
+// Consumers compose dialogs via DialogPopup, which includes the backdrop automatically.
 function DialogBackdrop({
   className,
   ...props

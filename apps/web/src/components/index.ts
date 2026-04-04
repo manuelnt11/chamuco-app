@@ -34,7 +34,7 @@ export {
   DialogDescription,
   DialogClose,
 } from './ui/dialog';
-export { ToastProvider, Toaster, toast, toastManager } from './ui/toast';
+export { ToastProvider, toast, toastManager } from './ui/toast';
 export { Spinner } from './ui/spinner';
 export type { SpinnerProps } from './ui/spinner';
 export { EmptyState } from './ui/empty-state';

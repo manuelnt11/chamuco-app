@@ -69,7 +69,11 @@ const typeIconMap = {
   ),
 } as const;
 
-// Toaster — renders all active toasts; rendered inside ToastProvider
+/**
+ * Toaster — renders all active toasts inside the viewport.
+ * Already included by ToastProvider; do not render this separately.
+ * @internal
+ */
 function Toaster() {
   const { toasts } = ToastPrimitive.useToastManager<{ type?: keyof typeof typeIconMap }>();
   const { t } = useTranslation();
@@ -130,6 +134,7 @@ export const toast = {
     toastManager.add({ title, description, type: 'warning' }),
   info: (title: string, description?: string) =>
     toastManager.add({ title, description, type: 'info' }),
+  /** Close a toast by ID. Call without arguments to close all active toasts. */
   dismiss: (id?: string) => toastManager.close(id),
 };
 
