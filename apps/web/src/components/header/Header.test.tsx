@@ -38,7 +38,7 @@ describe('Header', () => {
   it('has correct height', () => {
     const { container } = render(<Header />);
     const header = container.querySelector('header');
-    expect(header).toHaveClass('h-16');
+    expect(header).toHaveClass('h-header');
   });
 
   it('has border styling', () => {

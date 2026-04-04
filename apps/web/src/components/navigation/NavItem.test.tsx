@@ -51,18 +51,18 @@ describe('NavItem', () => {
 
   describe('rendering', () => {
     it('renders as a link with correct href', () => {
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const link = screen.getByRole('link');
       expect(link).toHaveAttribute('href', '/trips');
     });
 
     it('renders translated label', () => {
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       expect(screen.getByText('Trips')).toBeInTheDocument();
     });
 
     it('renders icon component', () => {
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       expect(screen.getByTestId('mock-icon')).toBeInTheDocument();
     });
   });
@@ -71,7 +71,7 @@ describe('NavItem', () => {
     it('shows fill icon weight when active', () => {
       mockUsePathname.mockReturnValue('/trips');
 
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const icon = screen.getByTestId('mock-icon');
       expect(icon).toHaveAttribute('data-weight', 'fill');
     });
@@ -79,7 +79,7 @@ describe('NavItem', () => {
     it('shows regular icon weight when inactive', () => {
       mockUsePathname.mockReturnValue('/groups');
 
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const icon = screen.getByTestId('mock-icon');
       expect(icon).toHaveAttribute('data-weight', 'regular');
     });
@@ -87,7 +87,7 @@ describe('NavItem', () => {
     it('applies active background when route matches', () => {
       mockUsePathname.mockReturnValue('/trips');
 
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const link = screen.getByRole('link');
       expect(link).toHaveClass('bg-primary', 'text-primary-foreground');
     });
@@ -95,7 +95,7 @@ describe('NavItem', () => {
     it('applies hover background when inactive', () => {
       mockUsePathname.mockReturnValue('/groups');
 
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const link = screen.getByRole('link');
       expect(link).toHaveClass('hover:bg-muted');
     });
@@ -103,7 +103,7 @@ describe('NavItem', () => {
     it('sets aria-current when active', () => {
       mockUsePathname.mockReturnValue('/trips');
 
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const link = screen.getByRole('link');
       expect(link).toHaveAttribute('aria-current', 'page');
     });
@@ -111,21 +111,21 @@ describe('NavItem', () => {
     it('does not set aria-current when inactive', () => {
       mockUsePathname.mockReturnValue('/groups');
 
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const link = screen.getByRole('link');
       expect(link).not.toHaveAttribute('aria-current');
     });
   });
 
-  describe('orientation', () => {
-    it('applies horizontal layout classes', () => {
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+  describe('layout', () => {
+    it('applies sidebar layout classes', () => {
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const link = screen.getByRole('link');
       expect(link).toHaveClass('px-3', 'py-2', 'justify-start');
     });
 
-    it('applies vertical layout classes', () => {
-      render(<NavItem item={mockItem} orientation="vertical" />);
+    it('applies bottom-bar layout classes', () => {
+      render(<NavItem item={mockItem} layout="bottom-bar" />);
       const link = screen.getByRole('link');
       expect(link).toHaveClass('flex-col', 'px-2', 'py-2', 'text-xs', 'justify-center');
     });
@@ -135,7 +135,7 @@ describe('NavItem', () => {
     it('has aria-label with active indicator when active', () => {
       mockUsePathname.mockReturnValue('/trips');
 
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const link = screen.getByRole('link');
       expect(link).toHaveAttribute('aria-label', 'Trips (current page)');
     });
@@ -143,13 +143,13 @@ describe('NavItem', () => {
     it('has aria-label without indicator when inactive', () => {
       mockUsePathname.mockReturnValue('/groups');
 
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const link = screen.getByRole('link');
       expect(link).toHaveAttribute('aria-label', 'Trips');
     });
 
     it('hides icon from screen readers', () => {
-      render(<NavItem item={mockItem} orientation="horizontal" />);
+      render(<NavItem item={mockItem} layout="sidebar" />);
       const icon = screen.getByTestId('mock-icon');
       expect(icon).toHaveAttribute('aria-hidden', 'true');
     });
@@ -163,7 +163,7 @@ describe('NavItem', () => {
         icon: MockIcon,
       };
 
-      render(<NavItem item={groupsItem} orientation="horizontal" />);
+      render(<NavItem item={groupsItem} layout="sidebar" />);
       expect(screen.getByText('Groups')).toBeInTheDocument();
       expect(screen.getByRole('link')).toHaveAttribute('href', '/groups');
     });
@@ -175,7 +175,7 @@ describe('NavItem', () => {
         icon: MockIcon,
       };
 
-      render(<NavItem item={exploreItem} orientation="horizontal" />);
+      render(<NavItem item={exploreItem} layout="sidebar" />);
       expect(screen.getByText('Explore')).toBeInTheDocument();
       expect(screen.getByRole('link')).toHaveAttribute('href', '/explore');
     });

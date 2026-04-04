@@ -43,19 +43,19 @@ describe('AppShell', () => {
   it('main has correct padding for header clearance', () => {
     render(<AppShell>Content</AppShell>);
     const main = screen.getByRole('main');
-    expect(main).toHaveClass('pt-16');
+    expect(main).toHaveClass('pt-header');
   });
 
   it('main has mobile bottom padding', () => {
     render(<AppShell>Content</AppShell>);
     const main = screen.getByRole('main');
-    expect(main).toHaveClass('pb-16', 'md:pb-0');
+    expect(main).toHaveClass('pb-header', 'md:pb-0');
   });
 
   it('main has desktop left padding for sidebar', () => {
     render(<AppShell>Content</AppShell>);
     const main = screen.getByRole('main');
-    expect(main).toHaveClass('md:pl-48');
+    expect(main).toHaveClass('md:pl-sidebar');
   });
 
   it('main has min-height for full screen', () => {

@@ -14,7 +14,9 @@ export function AppShell({ children }: AppShellProps) {
       <Header />
       <DesktopSideNav />
       <MobileBottomNav />
-      <main className="relative pt-16 pb-16 md:pb-0 md:pl-48 min-h-screen">{children}</main>
+      <main className="relative pt-header pb-header md:pb-0 md:pl-sidebar min-h-screen">
+        {children}
+      </main>
     </>
   );
 }

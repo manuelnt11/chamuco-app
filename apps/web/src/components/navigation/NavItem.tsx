@@ -9,10 +9,10 @@ import { cn } from '@/lib/utils';
 
 interface NavItemProps {
   item: NavItemType;
-  orientation: 'horizontal' | 'vertical';
+  layout: 'sidebar' | 'bottom-bar';
 }
 
-export function NavItem({ item, orientation }: NavItemProps) {
+export function NavItem({ item, layout }: NavItemProps) {
   const pathname = usePathname();
   const { t } = useTranslation();
   const isActive = isActiveRoute(pathname, item.path);
@@ -24,15 +24,13 @@ export function NavItem({ item, orientation }: NavItemProps) {
     ? 'bg-primary text-primary-foreground'
     : 'hover:bg-muted text-foreground';
 
-  const orientationClasses =
-    orientation === 'horizontal'
-      ? 'px-3 py-2 justify-start'
-      : 'flex-col px-2 py-2 text-xs justify-center';
+  const layoutClasses =
+    layout === 'sidebar' ? 'px-3 py-2 justify-start' : 'flex-col px-2 py-2 text-xs justify-center';
 
   return (
     <Link
       href={item.path}
-      className={cn(baseClasses, activeClasses, orientationClasses)}
+      className={cn(baseClasses, activeClasses, layoutClasses)}
       aria-label={getNavItemAriaLabel(label, isActive)}
       aria-current={isActive ? 'page' : undefined}
     >

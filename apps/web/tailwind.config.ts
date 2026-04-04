@@ -115,6 +115,8 @@ const config: Config = {
         '3xl': '4rem',
         '4xl': '6rem',
         '5xl': '8rem',
+        header: 'var(--layout-header-height)',
+        sidebar: 'var(--layout-sidebar-width)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

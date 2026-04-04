@@ -45,6 +45,15 @@ describe('isActiveRoute', () => {
       expect(isActiveRoute('/Trips', '/trips')).toBe(false);
       expect(isActiveRoute('/trips', '/Trips')).toBe(false);
     });
+
+    it('prevents false positives with similar path prefixes', () => {
+      // '/trips-archive' should NOT match '/trips'
+      expect(isActiveRoute('/trips-archive', '/trips')).toBe(false);
+      // '/groups-list' should NOT match '/groups'
+      expect(isActiveRoute('/groups-list', '/groups')).toBe(false);
+      // '/profile2' should NOT match '/profile'
+      expect(isActiveRoute('/profile2', '/profile')).toBe(false);
+    });
   });
 });
 

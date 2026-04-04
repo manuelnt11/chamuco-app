@@ -4,8 +4,8 @@ import { DesktopSideNav } from './DesktopSideNav';
 
 // Mock NavItem component
 vi.mock('./NavItem', () => ({
-  NavItem: ({ item, orientation }: { item: { key: string }; orientation: string }) => (
-    <div data-testid={`nav-item-${item.key}`} data-orientation={orientation}>
+  NavItem: ({ item, layout }: { item: { key: string }; layout: string }) => (
+    <div data-testid={`nav-item-${item.key}`} data-layout={layout}>
       {item.key}
     </div>
   ),
@@ -31,13 +31,13 @@ describe('DesktopSideNav', () => {
   it('has correct positioning and z-index', () => {
     const { container } = render(<DesktopSideNav />);
     const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('fixed', 'left-0', 'top-16', 'bottom-0', 'z-30');
+    expect(nav).toHaveClass('fixed', 'left-0', 'top-header', 'bottom-0', 'z-30');
   });
 
   it('has correct width', () => {
     const { container } = render(<DesktopSideNav />);
     const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('w-48');
+    expect(nav).toHaveClass('w-sidebar');
   });
 
   it('is hidden on mobile', () => {
@@ -78,11 +78,11 @@ describe('DesktopSideNav', () => {
     expect(screen.getByTestId('nav-item-profile')).toBeInTheDocument();
   });
 
-  it('renders nav items with horizontal orientation', () => {
+  it('renders nav items with sidebar layout', () => {
     render(<DesktopSideNav />);
     const navItems = screen.getAllByTestId(/nav-item-/);
     navItems.forEach((item) => {
-      expect(item).toHaveAttribute('data-orientation', 'horizontal');
+      expect(item).toHaveAttribute('data-layout', 'sidebar');
     });
   });
 

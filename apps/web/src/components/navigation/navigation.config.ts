@@ -29,3 +29,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: User,
   },
 ] as const;
+
+// Derived types for type safety
+export type NavItemKey = (typeof NAV_ITEMS)[number]['key'];
+export type NavItemPath = (typeof NAV_ITEMS)[number]['path'];

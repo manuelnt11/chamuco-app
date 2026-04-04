@@ -111,6 +111,14 @@
     "achievements": "Achievements",
     "statistics": "Statistics"
   },
+  "explore": {
+    "title": "Explore",
+    "subtitle": "Discover new destinations and travel groups",
+    "discoverTrips": "Discover Trips",
+    "discoverGroups": "Discover Groups",
+    "popularDestinations": "Popular Destinations",
+    "featuredTrips": "Featured Trips"
+  },
   "errors": {
     "generic": "Something went wrong. Please try again.",
     "notFound": "Page not found",

@@ -1,8 +1,8 @@
 // Chamuco Travel Service Worker
-// Version: 1.0.0
+// Version: 2.0.0
 
-const CACHE_NAME = 'chamuco-v1';
-const RUNTIME_CACHE = 'chamuco-runtime-v1';
+const CACHE_NAME = 'chamuco-v2';
+const RUNTIME_CACHE = 'chamuco-runtime-v2';
 
 // Static assets to cache on install
 const PRECACHE_URLS = [
@@ -11,6 +11,13 @@ const PRECACHE_URLS = [
   '/manifest.webmanifest',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
+  // App shell logo
+  '/logo-icon.svg',
+  // App shell routes — cached so navigation works offline
+  '/trips',
+  '/groups',
+  '/explore',
+  '/profile',
 ];
 
 //  Install event - cache static assets
@@ -49,7 +56,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch event
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
@@ -61,35 +68,47 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Navigation requests (HTML pages) — stale-while-revalidate
+  // Serve from cache immediately, update cache in background for next visit
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        const networkFetch = fetch(event.request)
+          .then((response) => {
+            if (response && response.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+            }
+            return response;
+          })
+          .catch(() => cachedResponse || caches.match('/offline'));
+
+        return cachedResponse || networkFetch;
+      }),
+    );
+    return;
+  }
+
+  // Static assets — cache first, network fallback
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Return cached response if found
       if (cachedResponse) {
         return cachedResponse;
       }
 
-      // Otherwise fetch from network
       return fetch(event.request)
         .then((response) => {
-          // Don't cache non-successful responses
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
 
-          // Clone the response (can only be consumed once)
           const responseToCache = response.clone();
-
-          // Cache successful responses
           caches.open(RUNTIME_CACHE).then((cache) => {
             cache.put(event.request, responseToCache);
           });
 
           return response;
         })
-        .catch(() => {
-          // If offline and no cached response, show offline page
-          return caches.match('/offline');
-        });
+        .catch(() => caches.match('/offline'));
     }),
   );
 });
