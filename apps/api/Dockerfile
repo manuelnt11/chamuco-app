@@ -50,6 +50,9 @@ COPY packages/shared-utils ./packages/shared-utils
 # Copy API source code
 COPY apps/api ./apps/api
 
+# Build workspace packages first so @chamuco/* imports resolve
+RUN pnpm --filter @chamuco/shared-types --filter @chamuco/shared-utils build
+
 # Build the application
 RUN pnpm --filter @chamuco/api build
 
