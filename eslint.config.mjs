@@ -145,4 +145,23 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'warn',
     },
   },
+
+  // Test files - Jest globals
+  {
+    files: ['**/*.spec.ts', '**/*.test.ts'],
+    ignores: ['apps/web/**'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        jest: 'readonly',
+      },
+    },
+  },
 ];
