@@ -32,37 +32,45 @@ Keys follow **camelCase dot-notation** with a feature namespace prefix:
 
 ```typescript
 // ✅ Correct
-'common.validation.required'
-'errors.notFound'
-'notifications.taskDueSoon'
-'auth.invalidCredentials'
+'common.validation.required';
+'errors.notFound';
+'notifications.taskDueSoon';
+'auth.invalidCredentials';
 
 // ❌ Wrong
-'common.validation.campo_requerido'  // Spanish content in key
-'errors.not-found'                    // Hyphens instead of camelCase
-'ERRORS.NOT_FOUND'                    // All caps
+'common.validation.campo_requerido'; // Spanish content in key
+'errors.not-found'; // Hyphens instead of camelCase
+'ERRORS.NOT_FOUND'; // All caps
 ```
 
 ## Namespaces
 
 ### `common`
+
 Shared strings used across the application:
+
 - `validation` - Validation error messages
 - `status` - Status messages (success, error, warning, info)
 
 ### `errors`
+
 HTTP error responses and general error messages:
+
 - Generic errors (notFound, unauthorized, forbidden, etc.)
 - System errors (database, internalServerError)
 
 ### `auth`
+
 Authentication and authorization messages:
+
 - Login/logout messages
 - Token validation errors
 - Account status messages
 
 ### `notifications`
+
 Push notification and in-app notification messages:
+
 - Trip-related notifications
 - Task reminders
 - User activity notifications
@@ -90,7 +98,7 @@ this.i18n.translate('errors.notFound', { lang: 'es' });
 // With interpolation
 this.i18n.translate('notifications.taskDueSoon', {
   lang: 'en',
-  args: { task: 'Review expenses', days: 3 }
+  args: { task: 'Review expenses', days: 3 },
 });
 // => "The task \"Review expenses\" is due in 3 days"
 ```
@@ -111,7 +119,7 @@ this.i18n.getError('notFound', { lang: 'en' });
 // Notifications
 this.i18n.getNotification('invitationReceived', {
   lang: 'es',
-  args: { organizer: 'Juan', trip: 'Cartagena 2026' }
+  args: { organizer: 'Juan', trip: 'Cartagena 2026' },
 });
 // => "Juan te invitó al viaje \"Cartagena 2026\""
 ```
