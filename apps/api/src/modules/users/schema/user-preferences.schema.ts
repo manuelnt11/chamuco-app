@@ -13,9 +13,9 @@ export const userPreferences = pgTable('user_preferences', {
   userId: uuid('user_id')
     .primaryKey()
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   language: appLanguageEnum('language').notNull().default(AppLanguage.ES),
   currency: appCurrencyEnum('currency').notNull().default(AppCurrency.COP),
   theme: appThemeEnum('theme').notNull().default(AppTheme.SYSTEM),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

@@ -10,7 +10,8 @@
     },
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*", "test/**/*", "*.ts"],
   "exclude": ["node_modules", "dist"]

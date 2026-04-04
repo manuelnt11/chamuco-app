@@ -14,12 +14,13 @@ CREATE TABLE "users" (
 	"timezone" text DEFAULT 'UTC' NOT NULL,
 	"platform_role" "platform_role" DEFAULT 'USER' NOT NULL,
 	"agency_id" uuid,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	"last_active_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"last_active_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
 	CONSTRAINT "users_username_unique" UNIQUE("username"),
-	CONSTRAINT "users_firebase_uid_unique" UNIQUE("firebase_uid")
+	CONSTRAINT "users_firebase_uid_unique" UNIQUE("firebase_uid"),
+	CONSTRAINT "users_username_format" CHECK ("users"."username" ~ '^[a-z0-9_-]{3,30}$')
 );
 --> statement-breakpoint
 CREATE TABLE "user_preferences" (
@@ -27,7 +28,23 @@ CREATE TABLE "user_preferences" (
 	"language" "app_language" DEFAULT 'ES' NOT NULL,
 	"currency" "app_currency" DEFAULT 'COP' NOT NULL,
 	"theme" "app_theme" DEFAULT 'SYSTEM' NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "user_preferences" ADD CONSTRAINT "user_preferences_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "user_preferences" ADD CONSTRAINT "user_preferences_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+--> statement-breakpoint
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+--> statement-breakpoint
+CREATE TRIGGER users_set_updated_at
+  BEFORE UPDATE ON "users"
+  FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+--> statement-breakpoint
+CREATE TRIGGER user_preferences_set_updated_at
+  BEFORE UPDATE ON "user_preferences"
+  FOR EACH ROW EXECUTE PROCEDURE set_updated_at();

@@ -27,12 +27,19 @@ describe('user-preferences schema', () => {
     );
   });
 
-  it('has a FK from user_id to users.id', () => {
+  it('has a FK from user_id to users.id with ON DELETE CASCADE', () => {
     const config = getTableConfig(userPreferences);
     expect(config.foreignKeys).toHaveLength(1);
     const fk = config.foreignKeys[0]!;
     expect(fk.reference().columns[0]?.name).toBe('user_id');
     expect(fk.reference().foreignColumns[0]?.name).toBe('id');
+    expect(fk.onDelete).toBe('cascade');
+  });
+
+  it('has timestamptz for updated_at', () => {
+    const config = getTableConfig(userPreferences);
+    const updatedAt = config.columns.find((c) => c.name === 'updated_at');
+    expect(updatedAt?.getSQLType()).toBe('timestamp with time zone');
   });
 
   it('appLanguageEnum contains all AppLanguage values', () => {

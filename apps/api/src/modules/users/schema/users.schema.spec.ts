@@ -44,6 +44,21 @@ describe('users schema', () => {
     expect(uniqueColumns).toContain('firebase_uid');
   });
 
+  it('has timestamptz columns for created_at, updated_at, last_active_at', () => {
+    const config = getTableConfig(users);
+    const tsColumns = config.columns.filter((c) =>
+      ['created_at', 'updated_at', 'last_active_at'].includes(c.name),
+    );
+    expect(tsColumns).toHaveLength(3);
+    tsColumns.forEach((col) => expect(col.getSQLType()).toBe('timestamp with time zone'));
+  });
+
+  it('has CHECK constraint enforcing username format', () => {
+    const config = getTableConfig(users);
+    expect(config.checks).toHaveLength(1);
+    expect(config.checks[0]?.name).toBe('users_username_format');
+  });
+
   it('authProviderEnum contains all AuthProvider values', () => {
     expect(authProviderEnum.enumValues).toContain(AuthProvider.GOOGLE);
     expect(authProviderEnum.enumValues).toContain(AuthProvider.FACEBOOK);
