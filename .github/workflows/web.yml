@@ -57,6 +57,9 @@ jobs:
       - name: Audit dependencies for vulnerabilities
         run: pnpm audit --audit-level high
 
+      - name: Build workspace packages
+        run: pnpm --filter @chamuco/shared-types --filter @chamuco/shared-utils build
+
       - name: Lint
         run: pnpm --filter web lint:check
 
