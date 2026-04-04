@@ -26,6 +26,7 @@ export default [
         localStorage: 'readonly',
         sessionStorage: 'readonly',
         fetch: 'readonly',
+        Event: 'readonly',
         Request: 'readonly',
         Response: 'readonly',
         Headers: 'readonly',

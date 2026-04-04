@@ -23,6 +23,7 @@
       "home": "Inicio",
       "trips": "Viajes",
       "groups": "Grupos",
+      "explore": "Explorar",
       "calendar": "Calendario",
       "profile": "Perfil",
       "settings": "Configuración"
@@ -109,6 +110,14 @@
     "travelPreferences": "Preferencias de Viaje",
     "achievements": "Logros",
     "statistics": "Estadísticas"
+  },
+  "explore": {
+    "title": "Explorar",
+    "subtitle": "Descubre nuevos destinos y grupos de viaje",
+    "discoverTrips": "Descubrir Viajes",
+    "discoverGroups": "Descubrir Grupos",
+    "popularDestinations": "Destinos Populares",
+    "featuredTrips": "Viajes Destacados"
   },
   "errors": {
     "generic": "Algo salió mal. Por favor intenta de nuevo.",

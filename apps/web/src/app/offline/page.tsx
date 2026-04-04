@@ -1,6 +1,6 @@
 'use client';
 
-import { WifiSlash } from '@phosphor-icons/react';
+import { WifiSlashIcon } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 
 export default function OfflinePage() {
@@ -15,7 +15,7 @@ export default function OfflinePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="max-w-md text-center space-y-6">
-        <WifiSlash className="mx-auto h-24 w-24 text-muted-foreground" weight="duotone" />
+        <WifiSlashIcon className="mx-auto h-24 w-24 text-muted-foreground" weight="duotone" />
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-foreground" suppressHydrationWarning>

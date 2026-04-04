@@ -6,6 +6,10 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+
+  /* App shell layout dimensions — single source of truth */
+  --layout-header-height: 4rem;   /* h-16 / 64px */
+  --layout-sidebar-width: 10rem;  /* w-40 / 160px */
 }
 
 @media (prefers-color-scheme: dark) {

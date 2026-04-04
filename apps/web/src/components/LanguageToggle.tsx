@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Translate } from '@phosphor-icons/react';
+import { TranslateIcon } from '@phosphor-icons/react';
 import type { SupportedLanguage } from '@/lib/i18n/config';
 import { LANGUAGE_STORAGE_KEY } from '@/lib/i18n/config';
 import { getNextLanguage } from '@/lib/i18n/utils';
@@ -57,7 +57,7 @@ export function LanguageToggle() {
       aria-label={`Current language: ${currentLabel}. Click to switch language.`}
       title={`Language: ${currentLabel}`}
     >
-      <Translate className="w-5 h-5" weight="regular" />
+      <TranslateIcon className="w-5 h-5" weight="regular" />
       <span className="text-sm font-medium">{currentLanguage.toUpperCase()}</span>
     </button>
   );
