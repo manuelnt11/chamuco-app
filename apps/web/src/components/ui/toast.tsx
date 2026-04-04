@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Toast as ToastPrimitive } from '@base-ui/react/toast';
 import { cva } from 'class-variance-authority';
 import { CheckCircleIcon, InfoIcon, WarningIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 
@@ -71,6 +72,7 @@ const typeIconMap = {
 // Toaster — renders all active toasts; rendered inside ToastProvider
 function Toaster() {
   const { toasts } = ToastPrimitive.useToastManager<{ type?: keyof typeof typeIconMap }>();
+  const { t } = useTranslation();
 
   return (
     <ToastPrimitive.Viewport
@@ -106,7 +108,7 @@ function Toaster() {
             )}
           </div>
           <ToastPrimitive.Close
-            aria-label="Dismiss"
+            aria-label={t('actions.close')}
             className="shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <XIcon className="size-3.5" aria-hidden="true" />

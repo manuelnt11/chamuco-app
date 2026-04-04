@@ -1,14 +1,20 @@
 import * as React from 'react';
 import { render, screen, act, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { ToastProvider, toast, toastManager } from './toast';
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
 
 function renderWithProvider(ui: React.ReactNode) {
   return render(<ToastProvider>{ui}</ToastProvider>);
 }
 
-// The toastManager is a module singleton — dismiss all toasts after each test
+// toastManager is a module-level singleton shared across tests.
+// Call toast.dismiss() before cleanup() so the Provider processes the close
+// while it is still mounted, preventing state leakage between tests.
 afterEach(() => {
   act(() => {
     toast.dismiss();
@@ -94,8 +100,8 @@ describe('toast manager', () => {
     });
 
     expect(screen.getByText('Dismiss me')).toBeInTheDocument();
-    // Find the close button directly — it carries aria-label="Dismiss"
-    const dismissBtn = container.querySelector('button[aria-label="Dismiss"]');
+    // Find the close button directly — aria-label comes from t('actions.close')
+    const dismissBtn = container.querySelector('button[aria-label="actions.close"]');
     expect(dismissBtn).toBeInTheDocument();
     await user.click(dismissBtn!);
     expect(screen.queryByText('Dismiss me')).not.toBeInTheDocument();

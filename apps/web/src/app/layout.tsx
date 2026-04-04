@@ -37,6 +37,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={cn('font-sans', plusJakartaSans.variable)}>
+      <head>
+        {/* Blocking script: apply saved sidebar width before React hydrates to prevent layout shift */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('sidebar-collapsed')==='true'){document.documentElement.style.setProperty('--layout-sidebar-width','3.5rem')}}catch(_){}`,
+          }}
+        />
+      </head>
       <body>
         <ServiceWorkerRegistration />
         <I18nProvider>

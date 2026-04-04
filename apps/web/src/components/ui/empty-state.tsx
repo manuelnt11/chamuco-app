@@ -2,10 +2,10 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-export interface EmptyStateProps extends React.ComponentProps<'div'> {
+export interface EmptyStateProps extends Omit<React.ComponentProps<'div'>, 'title'> {
   icon?: React.ReactNode;
-  title: string;
-  description?: string;
+  title: React.ReactNode;
+  description?: React.ReactNode;
   action?: React.ReactNode;
 }
 

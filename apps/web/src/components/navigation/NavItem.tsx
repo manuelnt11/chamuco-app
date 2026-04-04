@@ -27,7 +27,9 @@ export function NavItem({ item, layout, showLabel = true }: NavItemProps) {
 
   const layoutClasses =
     layout === 'sidebar'
-      ? cn('px-3 py-2', showLabel ? 'justify-start' : 'justify-center px-0')
+      ? showLabel
+        ? 'px-3 py-2 justify-start'
+        : 'px-0 py-2 justify-center'
       : 'flex-col px-2 py-2 text-xs justify-center';
 
   return (

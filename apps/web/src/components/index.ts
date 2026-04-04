@@ -27,8 +27,6 @@ export type { AvatarProps } from './ui/avatar';
 export {
   Dialog,
   DialogTrigger,
-  DialogPortal,
-  DialogBackdrop,
   DialogPopup,
   DialogHeader,
   DialogFooter,

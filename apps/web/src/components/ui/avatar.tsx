@@ -25,6 +25,11 @@ export interface AvatarProps
     React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>,
     VariantProps<typeof avatarVariants> {
   src?: string;
+  /**
+   * Descriptive text for the image. Pass an empty string (`""`) only when the
+   * avatar is purely decorative and the user's name is already visible nearby.
+   * For standalone avatars (e.g. in a list), pass the user's full name.
+   */
   alt?: string;
   fallback?: React.ReactNode;
 }
