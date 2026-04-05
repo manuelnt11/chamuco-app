@@ -70,9 +70,9 @@ async function runMigrations() {
       // Execute migration in a transaction
       await client.query('BEGIN');
       try {
-        // Split SQL by semicolons and execute each statement
+        // Split by Drizzle's statement-breakpoint marker.
         const statements = sql
-          .split(';')
+          .split('--> statement-breakpoint')
           .map((s) => s.trim())
           .filter((s) => s.length > 0);
 
