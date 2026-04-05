@@ -79,7 +79,7 @@ COPY --from=builder --chown=nestjs:nodejs /app/package.json /app/pnpm-workspace.
 # Copy production dependencies from deps stage
 COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=deps --chown=nestjs:nodejs /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=deps --chown=nestjs:nodejs /app/packages ./packages
+COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 
 # Copy built application from builder stage
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
