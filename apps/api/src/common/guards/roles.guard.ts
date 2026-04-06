@@ -1,12 +1,19 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PlatformRole } from '@chamuco/shared-types';
 import { ROLES_KEY } from '@/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@/types/express.d';
 import type { Request } from 'express';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
+  private readonly logger = new Logger(RolesGuard.name);
+
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -20,8 +27,11 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
-    const user = request.user as AuthenticatedUser | undefined;
+    const { user } = request;
 
+    // req.user is undefined when FirebaseAuthGuard was bypassed via @Public().
+    // Combining @Public() with @Roles() is a misconfiguration — this guard treats
+    // it as a denial. The two decorators should never be used together.
     if (!user) {
       throw new ForbiddenException('Insufficient permissions');
     }
@@ -34,6 +44,9 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
+    this.logger.warn(
+      `Access denied: user ${user.id} (${user.platformRole}) attempted to reach route requiring [${requiredRoles.join(', ')}]`,
+    );
     throw new ForbiddenException('Insufficient permissions');
   }
 }
