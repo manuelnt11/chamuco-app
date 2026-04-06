@@ -94,7 +94,7 @@ describe('FirebaseAdminService', () => {
       const authInstance = service.auth();
 
       expect(admin.auth).toHaveBeenCalled();
-      expect(authInstance).toBeDefined();
+      expect(authInstance).toBe(admin.auth());
     });
   });
 });

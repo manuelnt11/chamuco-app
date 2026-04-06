@@ -79,6 +79,7 @@ async function seedAdmin(): Promise<void> {
       })
       .returning({ id: schema.users.id });
 
+    // onConflictDoUpdate().returning() always yields the upserted row
     const userId = user!.id;
     console.log(`User upserted — id: ${userId}`);
 

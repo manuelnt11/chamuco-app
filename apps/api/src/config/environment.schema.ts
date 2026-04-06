@@ -1,6 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import {
   IsEnum,
+  IsJSON,
   IsNumber,
   IsBoolean,
   IsOptional,
@@ -47,6 +48,7 @@ class EnvironmentVariables {
   DATABASE_POOL_MAX: number = 10;
 
   @IsString()
+  @IsJSON()
   FIREBASE_SERVICE_ACCOUNT_JSON!: string;
 }
 

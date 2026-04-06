@@ -99,9 +99,6 @@ importers:
       class-validator:
         specifier: ^0.14.4
         version: 0.14.4
-      dotenv:
-        specifier: ^17.4.1
-        version: 17.4.1
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
@@ -166,6 +163,9 @@ importers:
       chokidar:
         specifier: ^5.0.0
         version: 5.0.0
+      dotenv:
+        specifier: ^17.4.1
+        version: 17.4.1
       eslint:
         specifier: ^9.39.4
         version: 9.39.4(jiti@1.21.7)
