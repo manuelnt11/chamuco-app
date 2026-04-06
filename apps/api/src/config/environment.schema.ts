@@ -31,11 +31,12 @@ class EnvironmentVariables {
   @IsOptional()
   SWAGGER_ENABLED?: boolean = true;
 
+  @IsOptional()
   @IsString()
   @Matches(/^postgresql:\/\//, {
     message: 'DATABASE_URL must be a valid PostgreSQL connection string',
   })
-  DATABASE_URL!: string;
+  DATABASE_URL?: string;
 
   @IsNumber()
   @Min(1)
