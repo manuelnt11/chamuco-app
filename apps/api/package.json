@@ -48,6 +48,7 @@
     "@swc/cli": "^0.1.65",
     "@swc/core": "^1.15.21",
     "@swc/jest": "^0.2.39",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.20.0",

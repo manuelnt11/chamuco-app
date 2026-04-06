@@ -1,3 +1,2 @@
-// Placeholder for custom decorators
-// Will be populated as features are implemented
-// Examples: @CurrentUser(), @Roles(), @Public()
+export { Public, IS_PUBLIC_KEY } from '@/common/decorators/public.decorator';
+export { CurrentUser } from '@/common/decorators/current-user.decorator';
