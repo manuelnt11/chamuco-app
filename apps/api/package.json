@@ -18,7 +18,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:push": "echo '❌ Schema push is disabled. Use db:generate instead.' && exit 1"
+    "db:push": "echo '❌ Schema push is disabled. Use db:generate instead.' && exit 1",
+    "db:seed-admin": "ts-node -r tsconfig-paths/register src/database/seeds/seed-admin.ts"
   },
   "dependencies": {
     "@chamuco/shared-types": "workspace:*",
@@ -33,6 +34,7 @@
     "class-validator": "^0.14.4",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
+    "firebase-admin": "^13.7.0",
     "nestjs-i18n": "^10.6.0",
     "pg": "^8.20.0",
     "postgres": "^3.4.8",
@@ -53,6 +55,7 @@
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "chokidar": "^5.0.0",
+    "dotenv": "^17.4.1",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.5.5",

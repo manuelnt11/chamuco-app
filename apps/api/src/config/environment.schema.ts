@@ -1,6 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import {
   IsEnum,
+  IsJSON,
   IsNumber,
   IsBoolean,
   IsOptional,
@@ -45,6 +46,10 @@ class EnvironmentVariables {
   @Min(1)
   @Max(100)
   DATABASE_POOL_MAX: number = 10;
+
+  @IsString()
+  @IsJSON()
+  FIREBASE_SERVICE_ACCOUNT_JSON!: string;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {
