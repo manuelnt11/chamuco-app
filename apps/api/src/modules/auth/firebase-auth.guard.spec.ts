@@ -130,6 +130,22 @@ describe('FirebaseAuthGuard', () => {
 
       expect(mockUpdate).toHaveBeenCalledWith(expect.anything());
     });
+
+    it('should still return true when last_active_at update fails', async () => {
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(mockUser);
+      mockUpdate.mockReturnValue({
+        set: jest.fn().mockReturnValue({
+          where: jest.fn().mockRejectedValue(new Error('DB write failed')),
+        }),
+      });
+
+      const ctx = buildContext('Bearer valid-token');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('protected routes — missing / malformed token', () => {
@@ -171,6 +187,7 @@ describe('FirebaseAuthGuard', () => {
       const ctx = buildContext('Bearer valid-token');
 
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+      expect(mockUpdate).not.toHaveBeenCalled();
     });
   });
 });

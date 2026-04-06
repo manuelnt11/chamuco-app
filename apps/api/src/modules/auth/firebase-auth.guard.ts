@@ -49,7 +49,7 @@ export class FirebaseAuthGuard implements CanActivate {
       });
 
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        throw new UnauthorizedException('Authentication failed');
       }
 
       request.firebaseUser = decodedToken;
