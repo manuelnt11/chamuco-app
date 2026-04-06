@@ -1,7 +1,7 @@
 # Infrastructure: Authentication & Authorization
 
 **Status:** Defined
-**Last Updated:** 2026-03-23
+**Last Updated:** 2026-04-06
 
 ---
 
@@ -139,9 +139,33 @@ The first `SUPPORT_ADMIN` user cannot be created from within the app — the rol
 
 ### Prerequisites
 
-1. Firebase project is set up and Authentication is enabled.
-2. The designated admin account has signed in at least once (via Google or Facebook) so Firebase has issued a UID.
-3. The `firebase_uid` of that account is available from **Firebase Console → Authentication → Users**.
+1. Firebase project is set up and Authentication is enabled (Google Sign-In and/or Facebook Sign-In configured).
+
+2. The `chamuco-api-sa` service account has permission to read the Firebase service account secret:
+
+   ```bash
+   gcloud secrets add-iam-policy-binding FIREBASE_SERVICE_ACCOUNT_JSON \
+     --member="serviceAccount:chamuco-api-sa@chamuco-app-mn.iam.gserviceaccount.com" \
+     --role="roles/secretmanager.secretAccessor" \
+     --project=chamuco-app-mn
+   ```
+
+3. The designated admin account has **signed in via Google or Facebook OAuth** at least once so that Firebase Authentication has created a UID for them.
+
+   > **Important:** Being a Firebase project owner or GCP IAM collaborator does NOT create a Firebase Authentication user. The admin must complete an actual OAuth sign-in (Google or Facebook) through a Firebase-enabled client — such as the deployed app — before a UID is generated.
+
+4. The `firebase_uid` of that account is available from **Firebase Console → Authentication → Users** (the "User UID" column).
+
+### Environment variables
+
+| Variable                   | Required | Description                                           |
+| -------------------------- | -------- | ----------------------------------------------------- |
+| `DATABASE_URL`             | Yes      | PostgreSQL connection string                          |
+| `SEED_ADMIN_FIREBASE_UID`  | Yes      | UID from Firebase Console → Authentication → Users    |
+| `SEED_ADMIN_EMAIL`         | Yes      | Admin email address                                   |
+| `SEED_ADMIN_USERNAME`      | Yes      | Unique username (3–30 chars, lowercase `a-z 0-9 _ -`) |
+| `SEED_ADMIN_DISPLAY_NAME`  | Yes      | Display name shown in the app                         |
+| `SEED_ADMIN_AUTH_PROVIDER` | No       | `GOOGLE` (default) or `FACEBOOK`                      |
 
 ### Running the seed
 
@@ -155,7 +179,7 @@ SEED_ADMIN_DISPLAY_NAME="Chamuco Admin" \
 pnpm --filter api db:seed-admin
 ```
 
-**Production (Cloud SQL):**
+**Production (via Cloud SQL Auth Proxy):**
 
 ```bash
 # 1. Start the Cloud SQL Auth Proxy (port 5433 to avoid conflict with local Docker)
@@ -170,16 +194,21 @@ SEED_ADMIN_DISPLAY_NAME="Chamuco Admin" \
 pnpm --filter api db:seed-admin
 ```
 
+Replace `<password>` with the `postgres` user password retrieved from GCP Secret Manager.
+
 ### Implementation notes
 
 - The seed script is idempotent — running it multiple times is safe (upsert on `firebase_uid`).
-- The script also creates the corresponding `user_preferences` record.
-- Environment variables are never committed. Store them in `.env.local` (gitignored) for local runs and retrieve the prod password from GCP Secret Manager.
+- The script also creates the corresponding `user_preferences` record with default values (`language: ES`, `currency: COP`, `theme: SYSTEM`).
+- Environment variables are never committed. Pass them inline as shown above or store them in a local `.env.seed` file (gitignored) and source it before running.
 - This script is a one-time operational step, **not** part of the CI/CD pipeline.
 
 ### Timing
 
-Run this script immediately after completing the Firebase Admin SDK setup (issue #69). The `FirebaseAuthGuard` must be in place before the admin account can make authenticated requests.
+Run this script after:
+
+1. The Firebase Admin SDK (`AuthModule`) is deployed and the app is running — see issue #69.
+2. The admin has completed their first Google or Facebook sign-in through the live app, confirming their UID exists in Firebase Authentication.
 
 ---
 
