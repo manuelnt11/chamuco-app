@@ -28,7 +28,11 @@ export class AuthController {
     type: RegisterResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Invalid username format or unsupported auth provider' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({
+    status: 401,
+    description:
+      'Missing or invalid Firebase ID token. Verified by the service, not by FirebaseAuthGuard (route is @Public)',
+  })
   @ApiResponse({ status: 409, description: 'User already registered or username already taken' })
   register(@Req() req: Request, @Body() dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(req.headers.authorization, dto);

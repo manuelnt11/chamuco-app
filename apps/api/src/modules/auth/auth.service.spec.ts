@@ -13,7 +13,6 @@ const mockCreatedUser: RegisterResponseDto = {
   displayName: 'John Doe',
   avatarUrl: 'https://example.com/avatar.jpg',
   authProvider: AuthProvider.GOOGLE,
-  firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
   platformRole: PlatformRole.USER,
   agencyId: null,
@@ -95,6 +94,15 @@ describe('AuthService', () => {
         service.register('Bearer invalid-token', { username: 'john_doe' }),
       ).rejects.toThrow(UnauthorizedException);
     });
+
+    it('should throw BadRequestException when email claim is missing from the token', async () => {
+      mockVerifyIdToken.mockResolvedValue({ ...mockDecodedToken, email: undefined });
+
+      await expect(
+        service.register('Bearer valid-token', { username: 'john_doe' }),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockFindFirst).not.toHaveBeenCalled();
+    });
   });
 
   describe('duplicate checks', () => {
@@ -108,14 +116,25 @@ describe('AuthService', () => {
       expect(mockTransaction).not.toHaveBeenCalled();
     });
 
-    it('should throw ConflictException when username is already taken', async () => {
+    it('should throw ConflictException when DB raises a unique violation (username race condition)', async () => {
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
-      mockFindFirst.mockResolvedValueOnce(undefined).mockResolvedValueOnce(mockCreatedUser);
+      mockFindFirst.mockResolvedValue(undefined);
+      mockTransaction.mockRejectedValue({ code: '23505' });
 
       await expect(
         service.register('Bearer valid-token', { username: 'john_doe' }),
       ).rejects.toThrow(new ConflictException('Username is already taken'));
-      expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should rethrow non-unique-violation DB errors', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+      const dbError = new Error('connection lost');
+      mockTransaction.mockRejectedValue(dbError);
+
+      await expect(
+        service.register('Bearer valid-token', { username: 'john_doe' }),
+      ).rejects.toThrow(dbError);
     });
   });
 
@@ -184,22 +203,6 @@ describe('AuthService', () => {
       const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
       expect(insertValues).toHaveBeenCalledWith(
         expect.objectContaining({ displayName: 'fallback@example.com' }),
-      );
-    });
-
-    it('should use username as displayName fallback when both name and email are absent', async () => {
-      mockVerifyIdToken.mockResolvedValue({
-        ...mockDecodedToken,
-        name: undefined,
-        email: undefined,
-      });
-      mockFindFirst.mockResolvedValue(undefined);
-
-      await service.register('Bearer valid-token', { username: 'john_doe' });
-
-      const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
-      expect(insertValues).toHaveBeenCalledWith(
-        expect.objectContaining({ displayName: 'john_doe' }),
       );
     });
 

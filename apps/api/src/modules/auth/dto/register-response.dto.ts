@@ -20,9 +20,6 @@ export class RegisterResponseDto {
   @ApiProperty({ enum: AuthProvider, example: AuthProvider.GOOGLE })
   authProvider!: AuthProvider;
 
-  @ApiProperty({ example: 'firebase-uid-abc123' })
-  firebaseUid!: string;
-
   @ApiProperty({ example: 'America/Bogota' })
   timezone!: string;
 

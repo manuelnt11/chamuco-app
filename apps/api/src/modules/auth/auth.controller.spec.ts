@@ -13,7 +13,6 @@ const mockUser: RegisterResponseDto = {
   displayName: 'John Doe',
   avatarUrl: null,
   authProvider: AuthProvider.GOOGLE,
-  firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
   platformRole: PlatformRole.USER,
   agencyId: null,
