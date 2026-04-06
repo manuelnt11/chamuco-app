@@ -35,6 +35,7 @@ const config: Config = {
     '!src/**/*.e2e-spec.ts',
     '!src/**/index.ts',
     '!src/config/environment.schema.ts',
+    '!src/database/seeds/**/*.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

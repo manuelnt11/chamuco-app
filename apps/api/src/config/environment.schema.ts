@@ -45,6 +45,9 @@ class EnvironmentVariables {
   @Min(1)
   @Max(100)
   DATABASE_POOL_MAX: number = 10;
+
+  @IsString()
+  FIREBASE_SERVICE_ACCOUNT_JSON!: string;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {

@@ -50,6 +50,10 @@
   },
   "packageManager": "pnpm@10.33.0",
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@firebase/util",
+      "protobufjs"
+    ],
     "overrides": {
       "cross-spawn": ">=6.0.6",
       "glob": ">=10.5.0",
