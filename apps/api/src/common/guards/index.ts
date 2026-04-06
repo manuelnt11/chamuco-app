@@ -1,3 +1,1 @@
-// Placeholder for guards
-// Will be populated as features are implemented
-// Examples: FirebaseAuthGuard, RolesGuard
+export { FirebaseAuthGuard } from '@/modules/auth/firebase-auth.guard';
