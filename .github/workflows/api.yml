@@ -143,6 +143,7 @@ jobs:
             --add-cloudsql-instances=chamuco-app-mn:us-central1:chamuco-postgres \
             --vpc-connector=chamuco-vpc-connector \
             --vpc-egress=private-ranges-only \
+            --set-env-vars=NODE_ENV=production \
             --set-secrets=FIREBASE_SERVICE_ACCOUNT_JSON=FIREBASE_SERVICE_ACCOUNT_JSON:latest \
             --memory=512Mi \
             --cpu=1 \
