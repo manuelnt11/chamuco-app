@@ -105,6 +105,10 @@ export class AuthService {
     return newUser;
   }
 
+  async logout(firebaseUid: string): Promise<void> {
+    await this.firebaseAdminService.auth().revokeRefreshTokens(firebaseUid);
+  }
+
   async checkUsernameAvailability(username: string): Promise<UsernameCheckResponseDto> {
     const existingUser = await this.db.query.users.findFirst({
       where: eq(users.username, username),
