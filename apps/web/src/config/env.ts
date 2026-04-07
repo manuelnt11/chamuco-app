@@ -9,13 +9,15 @@ const REQUIRED_VARS = [
 type EnvKey = (typeof REQUIRED_VARS)[number];
 
 function validateEnv(): Record<EnvKey, string> {
+  // Falsy check intentionally rejects empty strings — an unset var and a blank var are both invalid.
   const missing = REQUIRED_VARS.filter((k) => !process.env[k]);
 
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables:\n  ${missing.join('\n  ')}`);
   }
 
-  return Object.fromEntries(REQUIRED_VARS.map((k) => [k, process.env[k] as string])) as Record<
+  // Non-null assertion is safe here: we just verified every key is present and non-empty above.
+  return Object.fromEntries(REQUIRED_VARS.map((k) => [k, process.env[k]!])) as Record<
     EnvKey,
     string
   >;

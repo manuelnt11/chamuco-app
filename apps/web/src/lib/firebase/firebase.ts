@@ -9,7 +9,7 @@ const firebaseConfig = {
   projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   appId: env.NEXT_PUBLIC_FIREBASE_APP_ID,
   messagingSenderId: env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-};
+} as const;
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 

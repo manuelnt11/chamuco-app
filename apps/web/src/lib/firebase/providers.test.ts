@@ -25,6 +25,8 @@ describe('providers', () => {
   });
 
   it('exports exactly one googleProvider and one facebookProvider', async () => {
+    // vi.resetModules() in beforeEach clears the module registry, so this import()
+    // re-evaluates providers.ts from scratch — each constructor is called exactly once.
     await import('./providers');
 
     expect(mockGoogleAuthProvider).toHaveBeenCalledTimes(1);
