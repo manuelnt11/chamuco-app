@@ -131,6 +131,18 @@ describe('AuthService', () => {
       ).rejects.toThrow(new ConflictException('Username is already taken'));
     });
 
+    it('should throw ConflictException when DrizzleQueryError wraps a unique violation in cause', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+      // Drizzle wraps the underlying PostgresError in `cause`; the top-level error
+      // has no `code` property — only `cause.code` carries the PG error code.
+      mockTransaction.mockRejectedValue({ cause: { code: '23505' } });
+
+      await expect(
+        service.register('Bearer valid-token', { username: 'john_doe' }),
+      ).rejects.toThrow(new ConflictException('Username is already taken'));
+    });
+
     it('should rethrow non-unique-violation DB errors', async () => {
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
       mockFindFirst.mockResolvedValue(undefined);
@@ -140,6 +152,17 @@ describe('AuthService', () => {
       await expect(
         service.register('Bearer valid-token', { username: 'john_doe' }),
       ).rejects.toThrow(dbError);
+    });
+
+    it('should rethrow when the DB rejects with a non-object value', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+      // Covers the isUniqueViolation(err) guard: typeof err !== 'object'
+      mockTransaction.mockRejectedValue('unexpected string rejection');
+
+      await expect(service.register('Bearer valid-token', { username: 'john_doe' })).rejects.toBe(
+        'unexpected string rejection',
+      );
     });
   });
 
@@ -252,6 +275,22 @@ describe('AuthService', () => {
 
       const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
       expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({ avatarUrl: null }));
+    });
+
+    it('should throw when the DB insert returns no rows (defensive guard)', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      // Simulate a DB anomaly where INSERT ... RETURNING returns an empty result set.
+      const mockReturningEmpty = jest.fn().mockResolvedValue([]);
+      const mockValuesEmpty = jest.fn().mockReturnValue({ returning: mockReturningEmpty });
+      mockTrxInsert.mockReturnValueOnce({ values: mockValuesEmpty });
+
+      // The transaction callback throws; the .catch in AuthService re-throws
+      // because an empty returning is not a unique violation.
+      await expect(
+        service.register('Bearer valid-token', { username: 'john_doe' }),
+      ).rejects.toThrow('Failed to create user record');
     });
   });
 });

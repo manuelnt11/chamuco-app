@@ -27,4 +27,12 @@ export default [
       '@typescript-eslint/interface-name-prefix': 'off',
     },
   },
+
+  // Test files — disable return-type requirement for helper functions and mock callbacks
+  {
+    files: ['**/*.spec.ts', '**/*.test.ts', '**/test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+    },
+  },
 ];
