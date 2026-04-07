@@ -12,8 +12,10 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { Public } from '@/common/decorators/public.decorator';
 import { AuthService } from '@/modules/auth/auth.service';
+import type { AuthenticatedUser } from '@/types/express';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import { UsernameCheckResponseDto } from './dto/username-check-response.dto';
@@ -48,6 +50,20 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'User already registered or username already taken' })
   register(@Req() req: Request, @Body() dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(req.headers.authorization, dto);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Log out the current user',
+    description:
+      'Revokes the Firebase refresh tokens for the current user server-side, invalidating all active sessions ' +
+      'across all devices. The frontend should call Firebase signOut() after this endpoint.',
+  })
+  @ApiResponse({ status: 204, description: 'Successfully logged out' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  async logout(@CurrentUser() user: AuthenticatedUser): Promise<void> {
+    await this.authService.logout(user.firebaseUid);
   }
 
   @Get('username/:username/available')

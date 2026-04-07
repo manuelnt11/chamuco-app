@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { AuthController } from '@/modules/auth/auth.controller';
 import { AuthService } from '@/modules/auth/auth.service';
+import type { AuthenticatedUser } from '@/types/express';
 import type { Request } from 'express';
 import type { RegisterResponseDto } from './dto/register-response.dto';
 
@@ -27,10 +28,12 @@ const buildRequest = (authorization?: string): Request =>
 describe('AuthController', () => {
   let controller: AuthController;
   let mockRegister: jest.Mock;
+  let mockLogout: jest.Mock;
   let mockCheckUsernameAvailability: jest.Mock;
 
   beforeEach(async () => {
     mockRegister = jest.fn().mockResolvedValue(mockUser);
+    mockLogout = jest.fn().mockResolvedValue(undefined);
     mockCheckUsernameAvailability = jest
       .fn()
       .mockResolvedValue({ available: true, username: 'john_doe' });
@@ -42,6 +45,7 @@ describe('AuthController', () => {
           provide: AuthService,
           useValue: {
             register: mockRegister,
+            logout: mockLogout,
             checkUsernameAvailability: mockCheckUsernameAvailability,
           },
         },
@@ -78,6 +82,28 @@ describe('AuthController', () => {
       await expect(controller.register(req, { username: 'john_doe' })).rejects.toMatchObject({
         status: HttpStatus.CONFLICT,
       });
+    });
+  });
+
+  describe('POST /api/v1/auth/logout', () => {
+    const mockAuthUser = { firebaseUid: 'firebase-uid-123' } as AuthenticatedUser;
+
+    it('should delegate to AuthService.logout with the current user firebaseUid', async () => {
+      await controller.logout(mockAuthUser);
+
+      expect(mockLogout).toHaveBeenCalledWith('firebase-uid-123');
+    });
+
+    it('should return void on success', async () => {
+      const result = await controller.logout(mockAuthUser);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should propagate errors thrown by AuthService', async () => {
+      mockLogout.mockRejectedValue(new Error('Firebase unavailable'));
+
+      await expect(controller.logout(mockAuthUser)).rejects.toThrow('Firebase unavailable');
     });
   });
 

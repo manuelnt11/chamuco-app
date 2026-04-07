@@ -32,12 +32,14 @@ const mockDecodedToken = {
 describe('AuthService', () => {
   let service: AuthService;
   let mockVerifyIdToken: jest.Mock;
+  let mockRevokeRefreshTokens: jest.Mock;
   let mockFindFirst: jest.Mock;
   let mockTrxInsert: jest.Mock;
   let mockTransaction: jest.Mock;
 
   beforeEach(async () => {
     mockVerifyIdToken = jest.fn();
+    mockRevokeRefreshTokens = jest.fn().mockResolvedValue(undefined);
     mockFindFirst = jest.fn();
 
     const mockReturning = jest.fn().mockResolvedValue([mockCreatedUser]);
@@ -56,7 +58,10 @@ describe('AuthService', () => {
         {
           provide: FirebaseAdminService,
           useValue: {
-            auth: jest.fn().mockReturnValue({ verifyIdToken: mockVerifyIdToken }),
+            auth: jest.fn().mockReturnValue({
+              verifyIdToken: mockVerifyIdToken,
+              revokeRefreshTokens: mockRevokeRefreshTokens,
+            }),
           },
         },
         {
@@ -174,6 +179,21 @@ describe('AuthService', () => {
       expect(insertValues).toHaveBeenCalledWith(
         expect.objectContaining({ authProvider: AuthProvider.FACEBOOK }),
       );
+    });
+  });
+
+  describe('logout', () => {
+    it('should call revokeRefreshTokens with the provided firebaseUid', async () => {
+      await service.logout('firebase-uid-123');
+
+      expect(mockRevokeRefreshTokens).toHaveBeenCalledWith('firebase-uid-123');
+    });
+
+    it('should propagate errors thrown by revokeRefreshTokens', async () => {
+      const error = new Error('Firebase unavailable');
+      mockRevokeRefreshTokens.mockRejectedValue(error);
+
+      await expect(service.logout('firebase-uid-123')).rejects.toThrow(error);
     });
   });
 
