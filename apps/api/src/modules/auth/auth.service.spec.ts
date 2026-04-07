@@ -131,6 +131,18 @@ describe('AuthService', () => {
       ).rejects.toThrow(new ConflictException('Username is already taken'));
     });
 
+    it('should throw ConflictException when DrizzleQueryError wraps a unique violation in cause', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+      // Drizzle wraps the underlying PostgresError in `cause`; the top-level error
+      // has no `code` property — only `cause.code` carries the PG error code.
+      mockTransaction.mockRejectedValue({ cause: { code: '23505' } });
+
+      await expect(
+        service.register('Bearer valid-token', { username: 'john_doe' }),
+      ).rejects.toThrow(new ConflictException('Username is already taken'));
+    });
+
     it('should rethrow non-unique-violation DB errors', async () => {
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
       mockFindFirst.mockResolvedValue(undefined);
@@ -140,6 +152,17 @@ describe('AuthService', () => {
       await expect(
         service.register('Bearer valid-token', { username: 'john_doe' }),
       ).rejects.toThrow(dbError);
+    });
+
+    it('should rethrow when the DB rejects with a non-object value', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+      // Covers the isUniqueViolation(err) guard: typeof err !== 'object'
+      mockTransaction.mockRejectedValue('unexpected string rejection');
+
+      await expect(service.register('Bearer valid-token', { username: 'john_doe' })).rejects.toBe(
+        'unexpected string rejection',
+      );
     });
   });
 

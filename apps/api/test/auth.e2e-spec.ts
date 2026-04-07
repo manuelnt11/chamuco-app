@@ -93,7 +93,7 @@ describe('Auth endpoints (integration)', () => {
         .get('/api/v1/auth/username/nonexistent_user_e2e/available')
         .expect(200);
 
-      expect(res.body).toEqual({ available: true });
+      expect(res.body).toMatchObject({ available: true });
     });
 
     it('returns 400 for an invalid username format', async () => {

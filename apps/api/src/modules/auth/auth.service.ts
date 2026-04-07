@@ -24,11 +24,16 @@ const PROVIDER_MAP: Record<string, AuthProvider> = {
 const PG_UNIQUE_VIOLATION = '23505';
 
 function isUniqueViolation(err: unknown): boolean {
+  if (typeof err !== 'object' || err === null) return false;
+  const e = err as Record<string, unknown>;
+  // Direct code (matches unit-test mocks and some DB driver shapes)
+  if (e.code === PG_UNIQUE_VIOLATION) return true;
+  // DrizzleQueryError wraps the underlying PostgresError in `cause`
+  const cause = e.cause;
   return (
-    typeof err === 'object' &&
-    err !== null &&
-    'code' in err &&
-    (err as Record<string, unknown>).code === PG_UNIQUE_VIOLATION
+    typeof cause === 'object' &&
+    cause !== null &&
+    (cause as Record<string, unknown>).code === PG_UNIQUE_VIOLATION
   );
 }
 
