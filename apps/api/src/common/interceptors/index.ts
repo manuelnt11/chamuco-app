@@ -1,3 +1,1 @@
-// Placeholder for interceptors
-// Will be populated as features are implemented
-// Examples: LoggingInterceptor, TransformInterceptor
+export { SupportAdminAuditInterceptor } from '@/common/interceptors/support-admin-audit.interceptor';
