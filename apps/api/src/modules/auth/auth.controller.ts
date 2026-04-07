@@ -53,7 +53,6 @@ export class AuthController {
   @Get('username/:username/available')
   @Public()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Check if a username is available',
     description:
@@ -69,7 +68,9 @@ export class AuthController {
   ): Promise<UsernameCheckResponseDto> {
     const normalized = username.toLowerCase();
     if (!/^[a-z0-9_-]{3,30}$/.test(normalized)) {
-      throw new BadRequestException('Invalid username format');
+      throw new BadRequestException(
+        'Username must be 3–30 characters and contain only lowercase letters, numbers, _ and -',
+      );
     }
     return this.authService.checkUsernameAvailability(normalized);
   }
