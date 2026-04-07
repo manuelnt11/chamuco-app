@@ -92,6 +92,9 @@ jobs:
       - name: Run integration (e2e) tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chamuco_test
+          # A valid JSON string is required by env validation at AppModule init.
+          # Firebase is fully mocked in e2e tests; this value is never used.
+          FIREBASE_SERVICE_ACCOUNT_JSON: '{}'
         run: pnpm --filter api test:e2e
 
       - name: Build
