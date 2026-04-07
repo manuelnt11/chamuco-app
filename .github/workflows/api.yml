@@ -81,16 +81,21 @@ jobs:
       - name: Type check
         run: pnpm --filter api typecheck
 
-      - name: Run tests with coverage
+      - name: Run unit tests with coverage
         run: pnpm --filter api test:cov
 
-      - name: Build
-        run: pnpm --filter api build
-
-      - name: Dry run database migrations
+      - name: Apply database migrations (test DB)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chamuco_test
         run: pnpm --filter api db:migrate
+
+      - name: Run integration (e2e) tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chamuco_test
+        run: pnpm --filter api test:e2e
+
+      - name: Build
+        run: pnpm --filter api build
 
       - name: Upload coverage to GitHub
         if: github.event_name == 'pull_request'

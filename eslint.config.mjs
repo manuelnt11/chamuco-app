@@ -148,7 +148,7 @@ export default [
 
   // Test files - Jest globals
   {
-    files: ['**/*.spec.ts', '**/*.test.ts'],
+    files: ['**/*.spec.ts', '**/*.test.ts', '**/test/**/*.ts'],
     ignores: ['apps/web/**'],
     languageOptions: {
       globals: {

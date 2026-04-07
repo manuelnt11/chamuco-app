@@ -253,5 +253,21 @@ describe('AuthService', () => {
       const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
       expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({ avatarUrl: null }));
     });
+
+    it('should throw when the DB insert returns no rows (defensive guard)', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      // Simulate a DB anomaly where INSERT ... RETURNING returns an empty result set.
+      const mockReturningEmpty = jest.fn().mockResolvedValue([]);
+      const mockValuesEmpty = jest.fn().mockReturnValue({ returning: mockReturningEmpty });
+      mockTrxInsert.mockReturnValueOnce({ values: mockValuesEmpty });
+
+      // The transaction callback throws; the .catch in AuthService re-throws
+      // because an empty returning is not a unique violation.
+      await expect(
+        service.register('Bearer valid-token', { username: 'john_doe' }),
+      ).rejects.toThrow('Failed to create user record');
+    });
   });
 });
