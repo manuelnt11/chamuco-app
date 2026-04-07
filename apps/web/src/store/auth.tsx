@@ -12,7 +12,7 @@ export interface AuthContextValue {
   currentUser: User | null;
   idToken: string | null;
   isLoading: boolean;
-  getIdToken: (_forceRefresh?: boolean) => Promise<string | null>;
+  getIdToken: (forceRefresh?: boolean) => Promise<string | null>;
   signInWithGoogle: () => Promise<void>;
   signInWithFacebook: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -22,6 +22,9 @@ export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // idToken is populated on sign-in and cleared on sign-out, but can become stale between
+  // Firebase silent-refresh cycles (~60 min). Prefer getIdToken() for any auth-sensitive
+  // operation — it always returns a fresh token via the Firebase SDK cache.
   const [idToken, setIdToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -66,16 +69,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    // Revoke the session server-side before signing out locally
+    // Revoke the session server-side before signing out locally.
+    // firebaseSignOut runs unconditionally so the client is never stuck in a signed-in
+    // state if the server-side revocation call fails.
     const token = await getIdToken();
-    await fetch('/api/v1/auth/logout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-    await firebaseSignOut(auth);
+    try {
+      await fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+    } finally {
+      await firebaseSignOut(auth);
+    }
   }, [getIdToken]);
 
   return (

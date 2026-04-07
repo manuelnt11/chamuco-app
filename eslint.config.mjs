@@ -4,6 +4,44 @@ import tsParser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
 
+// Shared TypeScript rules applied to both backend and frontend TS/TSX files.
+// Keeping them in one place ensures backend and frontend stay in sync.
+const sharedTsRules = {
+  ...tsPlugin.configs.recommended.rules,
+  ...prettierConfig.rules,
+
+  // TypeScript rules
+  '@typescript-eslint/no-explicit-any': 'error',
+  '@typescript-eslint/explicit-function-return-type': 'off',
+  '@typescript-eslint/explicit-module-boundary-types': 'off',
+  // Disable base rule — @typescript-eslint/no-unused-vars handles TS-aware unused var checks
+  'no-unused-vars': 'off',
+  '@typescript-eslint/no-unused-vars': [
+    'error',
+    {
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+    },
+  ],
+
+  // Import rules - enforce path aliases, block relative upward imports
+  'no-restricted-imports': [
+    'error',
+    {
+      patterns: [
+        {
+          group: ['../*', './**/..'],
+          message:
+            'Relative upward imports are not allowed. Use path aliases: @/* for local imports, @chamuco/* for cross-package imports.',
+        },
+      ],
+    },
+  ],
+
+  // Prettier integration
+  'prettier/prettier': 'error',
+};
+
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   // Base JavaScript recommended rules
@@ -61,41 +99,7 @@ export default [
       '@typescript-eslint': tsPlugin,
       prettier: prettierPlugin,
     },
-    rules: {
-      ...tsPlugin.configs.recommended.rules,
-      ...prettierConfig.rules,
-
-      // TypeScript rules
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      // Disable base rule — @typescript-eslint/no-unused-vars handles TS-aware unused var checks
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-        },
-      ],
-
-      // Import rules - enforce path aliases, block relative upward imports
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['../*', './**/..'],
-              message:
-                'Relative upward imports are not allowed. Use path aliases: @/* for local imports, @chamuco/* for cross-package imports.',
-            },
-          ],
-        },
-      ],
-
-      // Prettier integration
-      'prettier/prettier': 'error',
-    },
+    rules: sharedTsRules,
   },
 
   // Frontend (apps/web) - browser globals + TypeScript rules
@@ -142,41 +146,7 @@ export default [
       '@typescript-eslint': tsPlugin,
       prettier: prettierPlugin,
     },
-    rules: {
-      ...tsPlugin.configs.recommended.rules,
-      ...prettierConfig.rules,
-
-      // TypeScript rules
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      // Disable base rule — @typescript-eslint/no-unused-vars handles TS-aware unused var checks
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-        },
-      ],
-
-      // Import rules - enforce path aliases, block relative upward imports
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['../*', './**/..'],
-              message:
-                'Relative upward imports are not allowed. Use path aliases: @/* for local imports, @chamuco/* for cross-package imports.',
-            },
-          ],
-        },
-      ],
-
-      // Prettier integration
-      'prettier/prettier': 'error',
-    },
+    rules: sharedTsRules,
   },
 
   // Packages: shared-types and shared-utils - require explicit return types

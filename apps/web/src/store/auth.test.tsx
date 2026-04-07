@@ -215,6 +215,32 @@ describe('AuthProvider', () => {
     vi.unstubAllGlobals();
   });
 
+  it('signOut calls firebaseSignOut even when the logout fetch fails', async () => {
+    const user = makeUser();
+    mockAuthWith(user);
+    firebaseMocks.signOut.mockResolvedValue(undefined);
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
+
+    let ctx: Parameters<Parameters<typeof AuthContext.Consumer>[0]['children']>[0] | undefined;
+    render(
+      <AuthProvider>
+        <AuthContext.Consumer>
+          {(value) => {
+            ctx = value;
+            return null;
+          }}
+        </AuthContext.Consumer>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => expect(ctx?.currentUser).toBe(user));
+    await act(async () => ctx?.signOut().catch(() => undefined));
+
+    expect(firebaseMocks.signOut).toHaveBeenCalledWith({ name: 'mock-auth' });
+
+    vi.unstubAllGlobals();
+  });
+
   it('signOut omits Authorization header when no user is signed in', async () => {
     firebaseMocks.signOut.mockResolvedValue(undefined);
     const mockFetch = vi.fn().mockResolvedValue({ ok: true });
