@@ -55,12 +55,19 @@ describe('supportAdminAuditLog schema', () => {
     expect(adminUserId?.notNull).toBe(true);
   });
 
-  it('has a FK from admin_user_id to users.id with no cascade', () => {
+  it('has a FK from admin_user_id to users.id with RESTRICT on delete', () => {
     const config = getTableConfig(supportAdminAuditLog);
     expect(config.foreignKeys).toHaveLength(1);
     const fk = config.foreignKeys[0]!;
     expect(fk.reference().columns[0]?.name).toBe('admin_user_id');
     expect(fk.reference().foreignColumns[0]?.name).toBe('id');
-    expect(fk.onDelete).toBe('no action');
+    expect(fk.onDelete).toBe('restrict');
+  });
+
+  it('has indexes on admin_user_id and performed_at', () => {
+    const config = getTableConfig(supportAdminAuditLog);
+    const indexNames = config.indexes.map((i) => i.config.name);
+    expect(indexNames).toContain('support_admin_audit_log_admin_user_id_idx');
+    expect(indexNames).toContain('support_admin_audit_log_performed_at_idx');
   });
 });

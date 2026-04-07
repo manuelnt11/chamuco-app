@@ -239,7 +239,38 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "support_admin_audit_log_admin_user_id_idx": {
+          "name": "support_admin_audit_log_admin_user_id_idx",
+          "columns": [
+            {
+              "expression": "admin_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "support_admin_audit_log_performed_at_idx": {
+          "name": "support_admin_audit_log_performed_at_idx",
+          "columns": [
+            {
+              "expression": "performed_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "support_admin_audit_log_admin_user_id_users_id_fk": {
           "name": "support_admin_audit_log_admin_user_id_users_id_fk",
@@ -247,7 +278,7 @@
           "tableTo": "users",
           "columnsFrom": ["admin_user_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
