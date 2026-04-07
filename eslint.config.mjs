@@ -146,7 +146,7 @@ export default [
     },
   },
 
-  // Test files - Jest globals
+  // Test files - Jest globals (backend/packages)
   // Note: '**/test/**/*.ts' is required because '**/*.spec.ts' does not reliably
   // match files inside test/ directories when ESLint is invoked from the repo root
   // via lint-staged (e.g. apps/api/test/auth.e2e-spec.ts).
@@ -164,6 +164,24 @@ export default [
         beforeAll: 'readonly',
         afterAll: 'readonly',
         jest: 'readonly',
+      },
+    },
+  },
+
+  // Test files - Vitest globals (frontend/apps/web)
+  {
+    files: ['apps/web/**/*.test.ts', 'apps/web/**/*.test.tsx', 'apps/web/**/*.spec.ts', 'apps/web/**/*.spec.tsx'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        vi: 'readonly',
       },
     },
   },
