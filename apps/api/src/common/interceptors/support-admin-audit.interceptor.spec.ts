@@ -2,8 +2,7 @@ import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { of, throwError } from 'rxjs';
 
-import '@/common/decorators/audit-target.decorator';
-import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { DrizzleClient } from '@/database/drizzle.provider';
 import { PlatformRole } from '@chamuco/shared-types';
 
 import { SupportAdminAuditInterceptor } from './support-admin-audit.interceptor';
@@ -85,13 +84,9 @@ describe('SupportAdminAuditInterceptor', () => {
       getAllAndOverride: jest.fn().mockReturnValue(undefined),
     } as unknown as jest.Mocked<Reflector>;
 
-    interceptor = new SupportAdminAuditInterceptor(
-      db as unknown as ReturnType<typeof DRIZZLE_CLIENT extends symbol ? never : never>,
-      reflector,
-    );
-    // Inject db directly since constructor uses @Inject token
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (interceptor as any).db = db;
+    // Cast to DrizzleClient — the @Inject(DRIZZLE_CLIENT) token is irrelevant in unit tests
+    // since we're constructing the interceptor directly without the DI container.
+    interceptor = new SupportAdminAuditInterceptor(db as unknown as DrizzleClient, reflector);
   });
 
   // -------------------------------------------------------------------------
@@ -475,6 +470,31 @@ describe('SupportAdminAuditInterceptor', () => {
         const entry = insertValues.mock.calls[0][0];
         expect(entry.targetTable).toBe('trips');
         expect(entry.targetId).toBe('trip-uuid');
+        done();
+      },
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // @AuditTarget misconfiguration — fail loudly
+  // -------------------------------------------------------------------------
+
+  it('throws synchronously when @AuditTarget provides a table name that fails validation', (done) => {
+    // Decorator-provided names are developer-authored. An invalid name (e.g. camelCase) is a
+    // misconfiguration — it must throw so it's caught at development time rather than silently
+    // degrading audit quality in production.
+    reflector.getAllAndOverride.mockReturnValue({ table: 'UserPreferences', idParam: 'id' });
+
+    const ctx = makeContext({
+      method: 'PATCH',
+      params: { id: 'some-uuid' },
+      path: '/api/v1/UserPreferences/some-uuid',
+    });
+
+    interceptor.intercept(ctx, makeCallHandler({ id: 'some-uuid' })).subscribe({
+      error: (err: Error) => {
+        expect(err.message).toMatch(/@AuditTarget table name "UserPreferences" is invalid/);
+        expect(db.execute).not.toHaveBeenCalled();
         done();
       },
     });

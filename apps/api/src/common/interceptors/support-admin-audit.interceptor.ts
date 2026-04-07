@@ -31,8 +31,9 @@ const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 /**
  * Allowlist regex for table names passed to `sql.raw()`.
  * Accepts only lowercase snake_case identifiers — matches what drizzle-kit generates.
- * URL-derived names (untrusted) are validated before use; decorator-provided names
- * are developer-authored and safe by design.
+ *
+ * Applied to both decorator-provided names (fail loudly — developer misconfiguration) and
+ * URL-derived names (fail silently — attacker-controlled input).
  */
 const TABLE_NAME_RE = /^[a-z_][a-z0-9_]*$/;
 
@@ -83,7 +84,13 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    return from(this.buildAuditContext(context, request)).pipe(
+    // Resolve metadata here so buildAuditContext is a pure function with no side effects.
+    const metadata = this.reflector.getAllAndOverride<AuditTargetMetadata | undefined>(
+      AUDIT_TARGET_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    return from(this.buildAuditContext(request, metadata)).pipe(
       mergeMap(({ targetTable, targetId, beforeState, action }) =>
         next.handle().pipe(
           tap((responseBody: unknown) => {
@@ -117,8 +124,8 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
   // ---------------------------------------------------------------------------
 
   private async buildAuditContext(
-    context: ExecutionContext,
     request: { method: string; params: Record<string, string>; path: string },
+    metadata: AuditTargetMetadata | undefined,
   ): Promise<{
     targetTable: string;
     targetId: string;
@@ -128,12 +135,16 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
     const { method, params, path } = request;
     const action = METHOD_TO_ACTION[method] ?? method;
 
-    const metadata = this.reflector.getAllAndOverride<AuditTargetMetadata | undefined>(
-      AUDIT_TARGET_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const { targetTable, rawTargetId, fromDecorator } = this.resolveTarget(metadata, params, path);
 
-    const { targetTable, rawTargetId } = this.resolveTarget(metadata, params, path);
+    // Decorator-provided table names are developer-authored — a bad name is a misconfiguration
+    // that must be caught at development time, not silently degraded in production.
+    if (fromDecorator && !TABLE_NAME_RE.test(targetTable)) {
+      throw new Error(
+        `@AuditTarget table name "${targetTable}" is invalid. ` +
+          `Use lowercase snake_case (e.g. 'users', 'trip_destinations').`,
+      );
+    }
 
     // POST creates a new record — no before_state to capture.
     const isCreate = method === 'POST';
@@ -160,18 +171,14 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
     metadata: AuditTargetMetadata | undefined,
     params: Record<string, string>,
     path: string,
-  ): { targetTable: string; rawTargetId: string | null } {
+  ): { targetTable: string; rawTargetId: string | null; fromDecorator: boolean } {
     if (metadata) {
       return {
         targetTable: metadata.table,
         rawTargetId: params[metadata.idParam] ?? null,
+        fromDecorator: true,
       };
     }
-
-    this.logger.warn(
-      `No @AuditTarget on handler for "${path}" — falling back to URL-based resolution. ` +
-        `Add @AuditTarget to suppress this warning and ensure accurate auditing.`,
-    );
 
     // URL fallback: derive table from path, prefer req.params for the ID.
     const segments = path.split('/').filter(Boolean);
@@ -180,12 +187,20 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
     const looksLikeId = /^[0-9a-f-]{8,}$/i.test(last) || /^\d+$/.test(last);
 
     // req.params is more reliable than URL parsing — use the first param value when present.
-    const firstParamValue = Object.values(params)[0] ?? null;
+    const firstParamKey = Object.keys(params)[0];
+    const firstParamValue = firstParamKey !== undefined ? params[firstParamKey] : null;
     const rawTargetId = firstParamValue ?? (looksLikeId ? last : null);
+
+    this.logger.warn(
+      `No @AuditTarget on handler for "${path}" — falling back to URL-based resolution` +
+        (firstParamKey !== undefined ? ` (using param "${firstParamKey}" as target_id)` : '') +
+        `. Add @AuditTarget to suppress this warning and ensure accurate auditing.`,
+    );
 
     return {
       targetTable: looksLikeId ? secondLast : last,
       rawTargetId,
+      fromDecorator: false,
     };
   }
 
@@ -194,6 +209,7 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
     targetId: string,
   ): Promise<Record<string, unknown> | null> {
     if (!TABLE_NAME_RE.test(targetTable)) {
+      // URL-derived name failed validation — skip the fetch silently rather than erroring.
       this.logger.warn(`Skipping before_state fetch: unexpected table name "${targetTable}"`);
       return null;
     }
