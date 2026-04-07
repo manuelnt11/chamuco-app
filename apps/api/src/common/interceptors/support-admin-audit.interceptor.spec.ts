@@ -72,6 +72,10 @@ describe('SupportAdminAuditInterceptor', () => {
   let insertValues: jest.Mock;
 
   beforeEach(() => {
+    // `writeAuditLog` is called with `void` (fire-and-forget). Assertions on `db.insert`
+    // and `insertValues` are still reliable because both calls happen synchronously before
+    // the first `await` inside `writeAuditLog` — the Observable's `tap`/`catchError`
+    // callback returns before any async suspension occurs.
     insertValues = jest.fn().mockResolvedValue(undefined);
     db = {
       insert: jest.fn().mockReturnValue({ values: insertValues }),
@@ -362,6 +366,28 @@ describe('SupportAdminAuditInterceptor', () => {
         },
       });
     });
+
+    it('falls back to URL id segment when no req.params are present', (done) => {
+      // Covers the `looksLikeId ? last : null` branch in resolveTarget when params is empty.
+      reflector.getAllAndOverride.mockReturnValue(undefined);
+      const urlId = 'abc12345-0000-0000-0000-000000000002';
+      db.execute.mockResolvedValue([{ id: urlId }]);
+
+      const ctx = makeContext({
+        method: 'PATCH',
+        params: {},
+        path: `/api/v1/agencies/${urlId}`,
+      });
+
+      interceptor.intercept(ctx, makeCallHandler({ id: urlId })).subscribe({
+        complete: () => {
+          const entry = insertValues.mock.calls[0][0];
+          expect(entry.targetTable).toBe('agencies');
+          expect(entry.targetId).toBe(urlId);
+          done();
+        },
+      });
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -380,6 +406,29 @@ describe('SupportAdminAuditInterceptor', () => {
 
     interceptor.intercept(ctx, makeCallHandler(null)).subscribe({
       complete: () => {
+        const entry = insertValues.mock.calls[0][0];
+        expect(entry.beforeState).toBeNull();
+        done();
+      },
+    });
+  });
+
+  it('skips before_state fetch and sets null when table name fails validation', (done) => {
+    // URL-derived table names are untrusted. If a path segment contains characters outside
+    // the TABLE_NAME_RE allowlist (e.g. uppercase, $, dots) the fetch is skipped so that
+    // sql.raw() is never called with an attacker-controlled string.
+    reflector.getAllAndOverride.mockReturnValue(undefined);
+
+    const suspiciousId = 'abc12345-0000-0000-0000-000000000001';
+    const ctx = makeContext({
+      method: 'DELETE',
+      params: { id: suspiciousId },
+      path: `/api/v1/User$Table/${suspiciousId}`, // "User$Table" is invalid per TABLE_NAME_RE
+    });
+
+    interceptor.intercept(ctx, makeCallHandler(null)).subscribe({
+      complete: () => {
+        expect(db.execute).not.toHaveBeenCalled();
         const entry = insertValues.mock.calls[0][0];
         expect(entry.beforeState).toBeNull();
         done();

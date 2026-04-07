@@ -7,8 +7,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { InferSelectModel } from 'drizzle-orm';
-import { sql } from 'drizzle-orm';
+import { InferSelectModel, sql } from 'drizzle-orm';
 import { Observable, catchError, from, mergeMap, tap, throwError } from 'rxjs';
 
 import { AUDIT_TARGET_KEY, AuditTargetMetadata } from '@/common/decorators/audit-target.decorator';
@@ -22,8 +21,20 @@ type AuthenticatedUser = InferSelectModel<typeof users>;
 /** HTTP methods that represent write operations and must be audited. */
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-/** Nil UUID used as target_id when a POST operation fails before record creation. */
+/**
+ * Nil UUID used as target_id when a POST operation fails before record creation.
+ * Intentionally a nil UUID (not random) so auditors can easily query failed creates:
+ * `WHERE target_id = '00000000-0000-0000-0000-000000000000' AND action = 'CREATE'`.
+ */
 const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+
+/**
+ * Allowlist regex for table names passed to `sql.raw()`.
+ * Accepts only lowercase snake_case identifiers — matches what drizzle-kit generates.
+ * URL-derived names (untrusted) are validated before use; decorator-provided names
+ * are developer-authored and safe by design.
+ */
+const TABLE_NAME_RE = /^[a-z_][a-z0-9_]*$/;
 
 /** Maps HTTP method to a human-readable action label stored in the audit log. */
 const METHOD_TO_ACTION: Record<string, string> = {
@@ -139,6 +150,10 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
    * Resolves the target table and raw target ID from decorator metadata (preferred)
    * or the URL path as a fallback.
    *
+   * The `@AuditTarget` decorator is the authoritative source. URL-based resolution is
+   * a best-effort fallback for routes without the decorator — add `@AuditTarget` to any
+   * route where precise auditing matters.
+   *
    * URL fallback: /api/v1/users/abc-123 → table='users', id='abc-123'
    */
   private resolveTarget(
@@ -153,17 +168,24 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
       };
     }
 
-    // URL fallback: extract last two meaningful segments.
+    this.logger.warn(
+      `No @AuditTarget on handler for "${path}" — falling back to URL-based resolution. ` +
+        `Add @AuditTarget to suppress this warning and ensure accurate auditing.`,
+    );
+
+    // URL fallback: derive table from path, prefer req.params for the ID.
     const segments = path.split('/').filter(Boolean);
     const last = segments.at(-1) ?? '';
     const secondLast = segments.at(-2) ?? 'unknown';
-
-    // If the last segment looks like a UUID or numeric ID, treat it as the targetId.
     const looksLikeId = /^[0-9a-f-]{8,}$/i.test(last) || /^\d+$/.test(last);
+
+    // req.params is more reliable than URL parsing — use the first param value when present.
+    const firstParamValue = Object.values(params)[0] ?? null;
+    const rawTargetId = firstParamValue ?? (looksLikeId ? last : null);
 
     return {
       targetTable: looksLikeId ? secondLast : last,
-      rawTargetId: looksLikeId ? last : null,
+      rawTargetId,
     };
   }
 
@@ -171,8 +193,12 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
     targetTable: string,
     targetId: string,
   ): Promise<Record<string, unknown> | null> {
+    if (!TABLE_NAME_RE.test(targetTable)) {
+      this.logger.warn(`Skipping before_state fetch: unexpected table name "${targetTable}"`);
+      return null;
+    }
     try {
-      // targetTable comes from developer-authored @AuditTarget metadata — safe to use as identifier.
+      // targetTable is validated against TABLE_NAME_RE above — safe to use as identifier.
       const result = await this.db.execute(
         sql`SELECT * FROM ${sql.raw(`"${targetTable}"`)} WHERE id = ${targetId}`,
       );
@@ -188,7 +214,7 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
     action: string;
     targetTable: string;
     targetId: string;
-    beforeState: Record<string, unknown> | null | unknown;
+    beforeState: Record<string, unknown> | null;
     afterState: unknown;
   }): Promise<void> {
     try {
