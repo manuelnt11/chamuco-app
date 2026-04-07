@@ -177,6 +177,24 @@ describe('AuthService', () => {
     });
   });
 
+  describe('checkUsernameAvailability', () => {
+    it('should return available: true when no user has that username', async () => {
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const result = await service.checkUsernameAvailability('free_name');
+
+      expect(result).toEqual({ available: true, username: 'free_name' });
+    });
+
+    it('should return available: false when the username is already taken', async () => {
+      mockFindFirst.mockResolvedValue(mockCreatedUser);
+
+      const result = await service.checkUsernameAvailability('john_doe');
+
+      expect(result).toEqual({ available: false, username: 'john_doe' });
+    });
+  });
+
   describe('successful registration', () => {
     it('should create user and preferences in a transaction and return the user', async () => {
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
