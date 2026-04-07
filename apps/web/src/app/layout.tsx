@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 import { I18nProvider } from '@/components/I18nProvider';
 import { AppShell } from '@/components/layout';
+import { AuthProvider } from '@/store/auth';
 import { cn } from '@/lib/utils';
 import { SIDEBAR_STORAGE_KEY, SIDEBAR_COLLAPSED_WIDTH } from '@/lib/sidebar-constants';
 
@@ -55,7 +56,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             enableSystem
             storageKey="chamuco-theme"
           >
-            <AppShell>{children}</AppShell>
+            <AuthProvider>
+              <AppShell>{children}</AppShell>
+            </AuthProvider>
           </ThemeProvider>
         </I18nProvider>
       </body>
