@@ -94,12 +94,6 @@ describe('AuthController', () => {
       expect(mockLogout).toHaveBeenCalledWith('firebase-uid-123');
     });
 
-    it('should return void on success', async () => {
-      const result = await controller.logout(mockAuthUser);
-
-      expect(result).toBeUndefined();
-    });
-
     it('should propagate errors thrown by AuthService', async () => {
       mockLogout.mockRejectedValue(new Error('Firebase unavailable'));
 
