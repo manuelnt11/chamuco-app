@@ -112,13 +112,15 @@ describe('Auth endpoints (integration)', () => {
   // -------------------------------------------------------------------------
 
   describe('POST /api/v1/auth/register', () => {
-    it('creates a new user and returns 201 with user data', async () => {
+    it('creates a new user, normalises username to lowercase, and returns 201', async () => {
       mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
 
+      // Send an uppercase username — the @Transform on RegisterDto lowercases it before
+      // validation and persistence, so the stored username must be lowercase.
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'e2e_test_user' })
+        .send({ username: 'E2E_Test_User' })
         .expect(201);
 
       expect(res.body).toMatchObject({
@@ -143,6 +145,7 @@ describe('Auth endpoints (integration)', () => {
 
     it('returns 409 when username is already taken', async () => {
       // A different Firebase UID but same username.
+      // The token string itself is irrelevant — Firebase verification is mocked per test.
       mockVerifyIdToken.mockResolvedValue({
         ...VALID_DECODED_TOKEN,
         uid: 'firebase-uid-e2e-test-2',

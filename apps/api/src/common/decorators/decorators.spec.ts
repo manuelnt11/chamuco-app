@@ -111,13 +111,15 @@ function extractCurrentUserFactory(): (_: unknown, ctx: ExecutionContext) => unk
 }
 
 describe('@CurrentUser', () => {
+  // Extract once — defining a new TestController class per test is wasteful.
+  const factory = extractCurrentUserFactory();
+
   it('returns request.user from the HTTP context', () => {
     const mockUser = { id: 'user-1', email: 'test@test.com' };
     const mockContext = {
       switchToHttp: () => ({ getRequest: () => ({ user: mockUser }) }),
     } as unknown as ExecutionContext;
 
-    const factory = extractCurrentUserFactory();
     expect(factory(undefined, mockContext)).toBe(mockUser);
   });
 
@@ -126,7 +128,6 @@ describe('@CurrentUser', () => {
       switchToHttp: () => ({ getRequest: () => ({ user: undefined }) }),
     } as unknown as ExecutionContext;
 
-    const factory = extractCurrentUserFactory();
     expect(factory(undefined, mockContext)).toBeUndefined();
   });
 });

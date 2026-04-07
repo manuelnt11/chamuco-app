@@ -147,6 +147,9 @@ export default [
   },
 
   // Test files - Jest globals
+  // Note: '**/test/**/*.ts' is required because '**/*.spec.ts' does not reliably
+  // match files inside test/ directories when ESLint is invoked from the repo root
+  // via lint-staged (e.g. apps/api/test/auth.e2e-spec.ts).
   {
     files: ['**/*.spec.ts', '**/*.test.ts', '**/test/**/*.ts'],
     ignores: ['apps/web/**'],
