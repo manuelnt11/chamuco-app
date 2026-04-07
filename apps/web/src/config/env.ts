@@ -1,12 +1,4 @@
-const REQUIRED_VARS = [
-  'NEXT_PUBLIC_FIREBASE_API_KEY',
-  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-  'NEXT_PUBLIC_FIREBASE_APP_ID',
-  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-] as const;
-
-type EnvKey = (typeof REQUIRED_VARS)[number];
+import { REQUIRED_VARS, type EnvKey } from '@/config/env.constants';
 
 function validateEnv(): Record<EnvKey, string> {
   // Falsy check intentionally rejects empty strings — an unset var and a blank var are both invalid.

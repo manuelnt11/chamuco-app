@@ -7,6 +7,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
+    // Explicit "types" array disables automatic @types/* inclusion.
+    // @types/node is not needed here — Next.js provides process.env types via next-env.d.ts.
     "types": ["vitest/globals"],
     "allowJs": true,
     "noEmit": true,

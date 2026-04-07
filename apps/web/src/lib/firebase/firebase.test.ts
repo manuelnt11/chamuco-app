@@ -8,6 +8,10 @@ const mockGetApp = vi.fn().mockReturnValue(mockApp);
 const mockGetApps = vi.fn();
 const mockGetAuth = vi.fn().mockReturnValue(mockAuth);
 
+// vi.mock factories are registered in Vitest's mock registry, which is separate
+// from the module registry cleared by vi.resetModules(). After resetModules(),
+// dynamic import() calls still resolve through these factories — this is
+// documented Vitest behavior, not an implementation detail.
 vi.mock('firebase/app', () => ({
   initializeApp: mockInitializeApp,
   getApp: mockGetApp,
