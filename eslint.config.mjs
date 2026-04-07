@@ -69,6 +69,8 @@ export default [
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
+      // Disable base rule — @typescript-eslint/no-unused-vars handles TS-aware unused var checks
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -96,7 +98,7 @@ export default [
     },
   },
 
-  // Frontend (apps/web) - browser globals
+  // Frontend (apps/web) - browser globals + TypeScript rules
   {
     files: ['apps/web/**/*.ts', 'apps/web/**/*.tsx'],
     languageOptions: {
@@ -135,6 +137,45 @@ export default [
         Proxy: 'readonly',
         Reflect: 'readonly',
       },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+      prettier: prettierPlugin,
+    },
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+      ...prettierConfig.rules,
+
+      // TypeScript rules
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      // Disable base rule — @typescript-eslint/no-unused-vars handles TS-aware unused var checks
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+
+      // Import rules - enforce path aliases, block relative upward imports
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*', './**/..'],
+              message:
+                'Relative upward imports are not allowed. Use path aliases: @/* for local imports, @chamuco/* for cross-package imports.',
+            },
+          ],
+        },
+      ],
+
+      // Prettier integration
+      'prettier/prettier': 'error',
     },
   },
 
