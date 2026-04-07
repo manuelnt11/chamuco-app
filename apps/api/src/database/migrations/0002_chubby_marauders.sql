@@ -15,7 +15,7 @@ CREATE INDEX "support_admin_audit_log_admin_user_id_idx" ON "support_admin_audit
 --> statement-breakpoint
 CREATE INDEX "support_admin_audit_log_performed_at_idx" ON "support_admin_audit_log" USING btree ("performed_at");
 --> statement-breakpoint
-CREATE OR REPLACE FUNCTION prevent_support_admin_audit_log_mutation()
+CREATE FUNCTION prevent_support_admin_audit_log_mutation()
 RETURNS TRIGGER AS $$
 BEGIN
   RAISE EXCEPTION 'support_admin_audit_log is append-only: % operations are not permitted', TG_OP;

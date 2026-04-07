@@ -16,7 +16,7 @@ export const supportAdminAuditLog = pgTable(
       .references(() => users.id, { onDelete: 'restrict' }),
     action: text('action').notNull(),
     targetTable: text('target_table').notNull(),
-    targetId: uuid('target_id').notNull(),
+    targetId: uuid('target_id').notNull(), // No FK — the referenced record may be deleted; the audit entry must outlive it
     beforeState: jsonb('before_state'),
     afterState: jsonb('after_state'),
     performedAt: timestamp('performed_at', { withTimezone: true }).notNull().defaultNow(),
