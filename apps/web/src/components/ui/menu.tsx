@@ -47,8 +47,8 @@ function MenuItem({
   );
 }
 
-function MenuSeparator({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div role="separator" className={cn('my-1 h-px bg-border', className)} {...props} />;
+function MenuSeparator({ className, ...props }: React.ComponentProps<'hr'>) {
+  return <hr role="separator" className={cn('my-1 h-px bg-border', className)} {...props} />;
 }
 
 function MenuLabel({ className, ...props }: React.ComponentProps<'div'>) {
