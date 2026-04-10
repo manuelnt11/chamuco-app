@@ -1,14 +1,24 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { Header } from '@/components/header';
 import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
+
+// Auth pages (/sign-in, etc.) render without nav chrome
+const AUTH_PATHS = ['/sign-in'];
 
 interface AppShellProps {
   children: ReactNode;
 }
 
 export function AppShell({ children }: AppShellProps) {
+  const pathname = usePathname();
+
+  if (AUTH_PATHS.includes(pathname)) {
+    return <main className="min-h-screen">{children}</main>;
+  }
+
   return (
     <>
       <Header />

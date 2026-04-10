@@ -1,4 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// UserAvatar (exported from this barrel) imports useAuth → @/store/auth → @/lib/firebase → env validation.
+// Mock the firebase layer so the env check never runs in this barrel test.
+vi.mock('@/lib/firebase', () => ({
+  auth: {},
+  googleProvider: {},
+  facebookProvider: {},
+}));
+vi.mock('@/services/api-client', () => ({
+  setTokenProvider: vi.fn(),
+  apiClient: { get: vi.fn() },
+}));
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: vi.fn().mockReturnValue({
+    currentUser: null,
+    isLoading: false,
+    signOut: vi.fn(),
+  }),
+}));
+
 import { Button, ThemeProvider, ThemeToggle } from './index';
 
 describe('Component exports', () => {

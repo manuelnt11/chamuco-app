@@ -67,13 +67,20 @@
     "signIn": "Iniciar Sesión",
     "signOut": "Cerrar Sesión",
     "signUp": "Registrarse",
-    "signInWith": "Iniciar sesión con {{provider}}",
+    "signInWith": "Continuar con {{provider}}",
     "welcome": "Bienvenido a Chamuco Travel",
     "createAccount": "Crear Cuenta",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "resetPassword": "Restablecer Contraseña",
     "emailPlaceholder": "Ingresa tu correo electrónico",
-    "passwordPlaceholder": "Ingresa tu contraseña"
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "page": {
+      "subtitle": "Continúa con tu cuenta social para comenzar"
+    },
+    "error": {
+      "failed": "El inicio de sesión falló. Por favor intenta de nuevo.",
+      "cancelled": "El inicio de sesión fue cancelado."
+    }
   },
   "trips": {
     "title": "Viajes",

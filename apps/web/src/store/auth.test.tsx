@@ -341,6 +341,35 @@ describe('AuthProvider', () => {
     expect(mockSetTokenProvider).toHaveBeenCalledWith(expect.any(Function));
   });
 
+  it('sets chamuco-auth cookie when a user is authenticated', async () => {
+    // Spy on the setter — jsdom rejects Secure cookies on non-HTTPS, so we verify
+    // the write directly rather than reading document.cookie back.
+    const cookieSetter = vi.spyOn(document, 'cookie', 'set');
+    const user = makeUser();
+    mockAuthWith(user);
+
+    render(<AuthProvider>{null}</AuthProvider>);
+
+    await waitFor(() =>
+      expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('chamuco-auth=1')),
+    );
+    expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Secure'));
+    cookieSetter.mockRestore();
+  });
+
+  it('clears chamuco-auth cookie when user is null', async () => {
+    const cookieSetter = vi.spyOn(document, 'cookie', 'set');
+
+    render(<AuthProvider>{null}</AuthProvider>);
+
+    // mockAuthWith(null) is the default in beforeEach — fires with null user
+    await waitFor(() =>
+      expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Max-Age=0')),
+    );
+    expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Secure'));
+    cookieSetter.mockRestore();
+  });
+
   it('unsubscribes from onAuthStateChanged on unmount', async () => {
     const mockUnsubscribe = vi.fn();
     firebaseMocks.onAuthStateChanged.mockImplementation((_auth: unknown, cb: AuthCallback) => {
