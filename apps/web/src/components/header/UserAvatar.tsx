@@ -16,7 +16,7 @@ import {
 import { toast } from '@/components/ui/toast';
 
 export function UserAvatar() {
-  const { t } = useTranslation(['common', 'auth']);
+  const { t } = useTranslation(['common', 'auth', 'errors']);
   const router = useRouter();
   const { currentUser, isLoading, signOut } = useAuth();
 

@@ -96,7 +96,10 @@ export default function SignInPage() {
         }
       }
     } catch (err) {
-      const code = (err as { code?: string }).code;
+      const code =
+        err !== null && typeof err === 'object' && 'code' in err
+          ? (err as { code: unknown }).code
+          : undefined;
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
         toast.info(t('error.cancelled'));
       } else {
