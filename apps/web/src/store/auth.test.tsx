@@ -341,6 +341,25 @@ describe('AuthProvider', () => {
     expect(mockSetTokenProvider).toHaveBeenCalledWith(expect.any(Function));
   });
 
+  it('sets chamuco-auth cookie when a user is authenticated', async () => {
+    const user = makeUser();
+    mockAuthWith(user);
+
+    render(<AuthProvider>{null}</AuthProvider>);
+
+    await waitFor(() => expect(document.cookie).toContain('chamuco-auth=1'));
+  });
+
+  it('clears chamuco-auth cookie when user is null', async () => {
+    // First set the cookie manually to simulate a prior signed-in state
+    document.cookie = 'chamuco-auth=1; path=/';
+
+    render(<AuthProvider>{null}</AuthProvider>);
+
+    // mockAuthWith(null) is the default in beforeEach — fires with null user
+    await waitFor(() => expect(document.cookie).not.toContain('chamuco-auth=1'));
+  });
+
   it('unsubscribes from onAuthStateChanged on unmount', async () => {
     const mockUnsubscribe = vi.fn();
     firebaseMocks.onAuthStateChanged.mockImplementation((_auth: unknown, cb: AuthCallback) => {

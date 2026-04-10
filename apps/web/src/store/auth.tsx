@@ -50,8 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) {
         const token = await user.getIdToken();
         setIdToken(token);
+        // Set a session cookie so Next.js middleware can detect auth state at the edge.
+        // The cookie is not HttpOnly — it is deliberately readable only for routing purposes;
+        // real auth verification always happens server-side via the Firebase ID token.
+        document.cookie = 'chamuco-auth=1; path=/; SameSite=Strict; Max-Age=2592000';
       } else {
         setIdToken(null);
+        document.cookie = 'chamuco-auth=; path=/; SameSite=Strict; Max-Age=0';
       }
 
       setIsLoading(false);

@@ -67,13 +67,20 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "signUp": "Sign Up",
-    "signInWith": "Sign in with {{provider}}",
+    "signInWith": "Continue with {{provider}}",
     "welcome": "Welcome to Chamuco Travel",
     "createAccount": "Create Account",
     "forgotPassword": "Forgot Password?",
     "resetPassword": "Reset Password",
     "emailPlaceholder": "Enter your email",
-    "passwordPlaceholder": "Enter your password"
+    "passwordPlaceholder": "Enter your password",
+    "page": {
+      "subtitle": "Continue with your social account to get started"
+    },
+    "error": {
+      "failed": "Sign-in failed. Please try again.",
+      "cancelled": "Sign-in was cancelled."
+    }
   },
   "trips": {
     "title": "Trips",
