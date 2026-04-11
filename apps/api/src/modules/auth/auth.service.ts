@@ -13,7 +13,6 @@ import { userPreferences } from '@/modules/users/schema/user-preferences.schema'
 import { users } from '@/modules/users/schema/users.schema';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
-import { UsernameCheckResponseDto } from './dto/username-check-response.dto';
 
 const PROVIDER_MAP: Record<string, AuthProvider> = {
   'google.com': AuthProvider.GOOGLE,
@@ -83,7 +82,7 @@ export class AuthService {
           .values({
             email: decodedToken.email!,
             username: dto.username,
-            displayName: decodedToken.name ?? decodedToken.email!,
+            displayName: dto.displayName,
             avatarUrl: decodedToken.picture ?? null,
             authProvider,
             firebaseUid: decodedToken.uid,
@@ -112,13 +111,6 @@ export class AuthService {
 
   async logout(firebaseUid: string): Promise<void> {
     await this.firebaseAdminService.auth().revokeRefreshTokens(firebaseUid);
-  }
-
-  async checkUsernameAvailability(username: string): Promise<UsernameCheckResponseDto> {
-    const existingUser = await this.db.query.users.findFirst({
-      where: eq(users.username, username),
-    });
-    return { available: !existingUser, username };
   }
 
   private extractToken(authorizationHeader: string | undefined): string {

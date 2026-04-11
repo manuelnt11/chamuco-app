@@ -516,7 +516,30 @@ TypeScript's type system is a critical safety net. **Never use `any` or `unknown
 - If a better-typed alternative exists, request changes.
 - Temporary workarounds with `@ts-expect-error` should reference a tracking issue or version number.
 
-### 8. Validate i18n keys when modifying translations
+### 8. Frontend environment variables — three files must always stay in sync
+
+All frontend environment variables are validated at startup by `apps/web/src/config/env.ts`. Adding a new `NEXT_PUBLIC_` variable requires updating **three files together** — missing any one of them will cause either a runtime crash or a failing test:
+
+| File                                   | What to do                                                                                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/web/src/config/env.constants.ts` | Add the key to the `REQUIRED_VARS` tuple                                                                                                         |
+| `apps/web/src/config/env.ts`           | Add `KEY: process.env.KEY` to the `raw` object (literal access is required — Next.js does not replace `process.env[variable]` in client bundles) |
+| `apps/web/src/config/env.test.ts`      | Add the key to `setAllEnv()` and `clearAllEnv()`, and update the `toEqual` assertion in "returns all env vars when all are set"                  |
+
+Also update `.env.example` with the new key (empty value) so other developers know to set it.
+
+**Current required variables:**
+
+| Variable                                   | Purpose                                                    |
+| ------------------------------------------ | ---------------------------------------------------------- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`             | Firebase client SDK                                        |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`         | Firebase client SDK                                        |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`          | Firebase client SDK                                        |
+| `NEXT_PUBLIC_FIREBASE_APP_ID`              | Firebase client SDK                                        |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase client SDK                                        |
+| `NEXT_PUBLIC_API_URL`                      | NestJS API base URL (e.g. `http://localhost:3001` locally) |
+
+### 9. Validate i18n keys when modifying translations
 
 When any of the following changes are made to the frontend codebase:
 

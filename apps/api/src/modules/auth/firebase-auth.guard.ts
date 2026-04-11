@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -12,6 +13,7 @@ import type { Request } from 'express';
 import { IS_PUBLIC_KEY } from '@/common/decorators/public.decorator';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
+import { UsersService } from '@/modules/users/users.service';
 import { users } from '@/modules/users/schema/users.schema';
 
 @Injectable()
@@ -21,6 +23,7 @@ export class FirebaseAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly firebaseAdminService: FirebaseAdminService,
+    private readonly usersService: UsersService,
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
   ) {}
 
@@ -44,13 +47,11 @@ export class FirebaseAuthGuard implements CanActivate {
     try {
       const decodedToken = await this.firebaseAdminService.auth().verifyIdToken(token);
 
-      const user = await this.db.query.users.findFirst({
-        where: eq(users.firebaseUid, decodedToken.uid),
-      });
-
-      if (!user) {
-        throw new UnauthorizedException('Authentication failed');
-      }
+      // findByFirebaseUid throws NotFoundException when the user has not completed
+      // Chamuco registration. 404 is semantically correct: authenticated identity
+      // exists, Chamuco user does not. The frontend relies on this to route new
+      // users to /onboarding.
+      const user = await this.usersService.findByFirebaseUid(decodedToken.uid);
 
       request.firebaseUser = decodedToken;
       request.user = user;
@@ -61,7 +62,7 @@ export class FirebaseAuthGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
+      if (error instanceof UnauthorizedException || error instanceof NotFoundException) {
         throw error;
       }
       throw new UnauthorizedException('Invalid or expired token');

@@ -6,6 +6,7 @@ import { SupportAdminAuditInterceptor } from '@/common/interceptors';
 import { DatabaseModule } from '@/database/database.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { HealthModule } from '@/modules/health/health.module';
+import { UsersModule } from '@/modules/users/users.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
 import { I18nModule } from 'nestjs-i18n';
 import * as path from 'path';
@@ -16,6 +17,7 @@ import * as path from 'path';
     ConfigModule,
     DatabaseModule,
     AuthModule,
+    UsersModule,
     HealthModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',

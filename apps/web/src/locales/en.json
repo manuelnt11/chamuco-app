@@ -80,6 +80,27 @@
     "error": {
       "failed": "Sign-in failed. Please try again.",
       "cancelled": "Sign-in was cancelled."
+    },
+    "onboarding": {
+      "title": "Set up your profile",
+      "subtitle": "Choose a username to get started on Chamuco Travel",
+      "username": {
+        "label": "Username",
+        "placeholder": "e.g. jane_doe",
+        "hint": "3–30 characters: letters, numbers, _ and - only",
+        "available": "Username is available",
+        "taken": "Username is already taken",
+        "checking": "Checking availability..."
+      },
+      "displayName": {
+        "label": "Display name",
+        "placeholder": "How should we call you?"
+      },
+      "submit": "Create my account",
+      "error": {
+        "failed": "Registration failed. Please try again.",
+        "usernameTaken": "That username is already taken. Please choose another."
+      }
     }
   },
   "trips": {

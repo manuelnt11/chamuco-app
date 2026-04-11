@@ -87,10 +87,10 @@ describe('Auth endpoints (integration)', () => {
   // GET /api/v1/auth/username/:username/available
   // -------------------------------------------------------------------------
 
-  describe('GET /api/v1/auth/username/:username/available', () => {
+  describe('GET /api/v1/users/username-available', () => {
     it('returns available:true for a username that does not exist', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/v1/auth/username/nonexistent_user_e2e/available')
+        .get('/api/v1/users/username-available?username=nonexistent_user_e2e')
         .expect(200);
 
       expect(res.body).toMatchObject({ available: true });
@@ -98,12 +98,14 @@ describe('Auth endpoints (integration)', () => {
 
     it('returns 400 for an invalid username format', async () => {
       await request(app.getHttpServer())
-        .get('/api/v1/auth/username/INVALID USER!/available')
+        .get('/api/v1/users/username-available?username=INVALID+USER!')
         .expect(400);
     });
 
     it('returns 400 for a username that is too short', async () => {
-      await request(app.getHttpServer()).get('/api/v1/auth/username/ab/available').expect(400);
+      await request(app.getHttpServer())
+        .get('/api/v1/users/username-available?username=ab')
+        .expect(400);
     });
   });
 
@@ -120,7 +122,7 @@ describe('Auth endpoints (integration)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'E2E_Test_User' })
+        .send({ username: 'E2E_Test_User', displayName: 'E2E Test User' })
         .expect(201);
 
       expect(res.body).toMatchObject({
@@ -139,7 +141,7 @@ describe('Auth endpoints (integration)', () => {
       await request(app.getHttpServer())
         .post('/api/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'different_username' })
+        .send({ username: 'different_username', displayName: 'E2E Test User' })
         .expect(409);
     });
 
@@ -155,7 +157,7 @@ describe('Auth endpoints (integration)', () => {
       await request(app.getHttpServer())
         .post('/api/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'e2e_test_user' }) // same username as registered above
+        .send({ username: 'e2e_test_user', displayName: 'Other User' }) // same username as registered above
         .expect(409);
     });
 
@@ -165,7 +167,7 @@ describe('Auth endpoints (integration)', () => {
       await request(app.getHttpServer())
         .post('/api/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'INVALID USERNAME!' })
+        .send({ username: 'INVALID USERNAME!', displayName: 'E2E Test User' })
         .expect(400);
     });
 
@@ -175,14 +177,14 @@ describe('Auth endpoints (integration)', () => {
       await request(app.getHttpServer())
         .post('/api/v1/auth/register')
         .set('Authorization', 'Bearer bad-token')
-        .send({ username: 'some_user' })
+        .send({ username: 'some_user', displayName: 'Some User' })
         .expect(401);
     });
 
     it('returns 401 when no Authorization header is provided', async () => {
       await request(app.getHttpServer())
         .post('/api/v1/auth/register')
-        .send({ username: 'some_user' })
+        .send({ username: 'some_user', displayName: 'Some User' })
         .expect(401);
     });
   });

@@ -6,7 +6,7 @@ import type { User } from 'firebase/auth';
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 
 import { auth, googleProvider, facebookProvider } from '@/lib/firebase';
-import { setTokenProvider } from '@/services/api-client';
+import { apiClient, setTokenProvider } from '@/services/api-client';
 
 export interface AuthContextValue {
   currentUser: User | null;
@@ -66,30 +66,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    await signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, googleProvider);
+    // Sync userRef immediately so getIdToken() works before onAuthStateChanged fires.
+    // onAuthStateChanged is async and fires after signInWithPopup resolves, so any
+    // API call made right after sign-in would find userRef.current === null otherwise.
+    userRef.current = result.user;
   }, []);
 
   const signInWithFacebook = useCallback(async () => {
-    await signInWithPopup(auth, facebookProvider);
+    const result = await signInWithPopup(auth, facebookProvider);
+    userRef.current = result.user;
   }, []);
 
   const signOut = useCallback(async () => {
     // Revoke the session server-side before signing out locally.
     // firebaseSignOut runs unconditionally so the client is never stuck in a signed-in
     // state if the server-side revocation call fails.
-    const token = await getIdToken();
     try {
-      await fetch('/api/v1/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      await apiClient.post('/api/v1/auth/logout');
     } finally {
       await firebaseSignOut(auth);
     }
-  }, [getIdToken]);
+  }, []);
 
   return (
     <AuthContext.Provider
