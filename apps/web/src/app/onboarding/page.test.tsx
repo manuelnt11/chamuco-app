@@ -74,7 +74,7 @@ function makeUser(overrides?: Partial<User>): User {
   return {
     uid: 'uid-123',
     email: 'test@example.com',
-    displayName: 'Test User',
+    displayName: null,
     ...overrides,
   } as unknown as User;
 }
@@ -204,6 +204,18 @@ describe('OnboardingPage', () => {
       expect(screen.getByTestId<HTMLInputElement>('displayname-input').value).toBe('Maria Garcia');
     });
 
+    it('pre-fills username as snake_case slug of the display name', async () => {
+      await renderForm({ currentUser: makeUser({ displayName: 'María José García' }) });
+      expect(screen.getByTestId<HTMLInputElement>('username-input').value).toBe(
+        'maria_jose_garcia',
+      );
+    });
+
+    it('leaves username empty when the slug is too short to be valid', async () => {
+      await renderForm({ currentUser: makeUser({ displayName: 'Al' }) });
+      expect(screen.getByTestId<HTMLInputElement>('username-input').value).toBe('');
+    });
+
     it('leaves display name empty when currentUser has no displayName', async () => {
       await renderForm({ currentUser: makeUser({ displayName: null }) });
       expect(screen.getByTestId<HTMLInputElement>('displayname-input').value).toBe('');
@@ -321,6 +333,8 @@ describe('OnboardingPage', () => {
       render(<OnboardingPage />);
       await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
 
+      // Clear any pre-filled slug before typing the test username
+      await user.clear(screen.getByTestId('username-input'));
       await user.type(screen.getByTestId('username-input'), username);
       await act(async () => {
         await vi.advanceTimersByTimeAsync(300);

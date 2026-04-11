@@ -18,6 +18,18 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const USERNAME_RE = /^[a-z0-9_-]{3,30}$/;
 
+/** Converts a display name into a valid username suggestion.
+ *  e.g. "María José García" → "maria_jose_garcia" */
+function toUsernameSlug(name: string): string {
+  return name
+    .normalize('NFD') // decompose accented chars: é → e + ́
+    .replace(/[\u0300-\u036f]/g, '') // strip combining diacritics
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_') // replace any run of invalid chars with _
+    .replace(/^_+|_+$/g, '') // trim leading/trailing underscores
+    .slice(0, 30); // enforce max length
+}
+
 type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 
 export default function OnboardingPage() {
@@ -31,10 +43,15 @@ export default function OnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
 
-  // Pre-fill display name from the OAuth provider
+  // Pre-fill display name and suggest a username from the OAuth provider
   useEffect(() => {
     if (currentUser?.displayName) {
       setDisplayName(currentUser.displayName);
+      const slug = toUsernameSlug(currentUser.displayName);
+      if (USERNAME_RE.test(slug)) {
+        setUsername(slug);
+        setUsernameStatus('checking');
+      }
     }
   }, [currentUser]);
 
@@ -137,18 +154,24 @@ export default function OnboardingPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="username">{t('onboarding.username.label')}</Label>
-            <Input
-              id="username"
-              type="text"
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              value={username}
-              onChange={(e) => handleUsernameChange(e.target.value)}
-              placeholder={t('onboarding.username.placeholder')}
-              aria-invalid={usernameStatus === 'taken' || usernameStatus === 'invalid'}
-              data-testid="username-input"
-            />
+            <div className="relative flex items-center">
+              <span className="pointer-events-none absolute left-3 select-none text-sm text-muted-foreground">
+                @
+              </span>
+              <Input
+                id="username"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={username}
+                onChange={(e) => handleUsernameChange(e.target.value)}
+                placeholder={t('onboarding.username.placeholder')}
+                aria-invalid={usernameStatus === 'taken' || usernameStatus === 'invalid'}
+                className="pl-7"
+                data-testid="username-input"
+              />
+            </div>
             <UsernameStatusMessage status={usernameStatus} t={t} />
           </div>
 

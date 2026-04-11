@@ -1,6 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [
+      {
+        // Allow Firebase signInWithPopup to communicate back via window.opener
+        source: '/(sign-in|onboarding)',
+        headers: [{ key: 'Cross-Origin-Opener-Policy', value: 'unsafe-none' }],
+      },
+    ];
+  },
   output: 'standalone',
   experimental: {
     optimizePackageImports: ['react-i18next'],

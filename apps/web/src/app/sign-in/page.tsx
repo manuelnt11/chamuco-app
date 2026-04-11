@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
@@ -67,6 +67,10 @@ export default function SignInPage() {
   const router = useRouter();
   const { currentUser, isLoading, signInWithGoogle, signInWithFacebook } = useAuth();
   const [signingIn, setSigningIn] = useState<SigningInProvider>(null);
+  // Prevents the guard from overriding the router.replace called inside handleSignIn.
+  // Without this, setSigningIn(null) in the finally block re-triggers the effect and
+  // routes to / even when handleSignIn already navigated to /onboarding.
+  const hasNavigated = useRef(false);
 
   // Client-side guard: redirect already-authenticated users (handles in-app navigation).
   // Skip while a sign-in is in progress — handleSignIn performs the API check and
@@ -74,7 +78,7 @@ export default function SignInPage() {
   // here as soon as currentUser is set, we would race ahead of that check and always
   // send the user to /, bypassing onboarding for new users.
   useEffect(() => {
-    if (!isLoading && currentUser && !signingIn) {
+    if (!isLoading && currentUser && !signingIn && !hasNavigated.current) {
       router.replace('/');
     }
   }, [currentUser, isLoading, router, signingIn]);
@@ -91,9 +95,11 @@ export default function SignInPage() {
       // Determine if this is a new or returning Chamuco user
       try {
         await apiClient.get('/api/v1/users/me');
+        hasNavigated.current = true;
         router.replace('/'); // 200 → returning user → home
       } catch (apiErr) {
         if (isAxiosError(apiErr) && apiErr.response?.status === 404) {
+          hasNavigated.current = true;
           router.replace('/onboarding'); // 404 → new user → onboarding
         } else {
           throw apiErr; // unexpected API error — surface to outer catch

@@ -154,6 +154,24 @@ describe('SignInPage', () => {
       // Guard must NOT have fired — the redirect will come from handleSignIn instead
       expect(mocks.mockRouterReplace).not.toHaveBeenCalledWith('/');
     });
+
+    it('does not redirect to / via guard after handleSignIn already navigated to /onboarding', async () => {
+      // Regression: setSigningIn(null) in the finally block re-triggers the useEffect guard.
+      // Without hasNavigated, the guard would call router.replace('/') and override /onboarding.
+      const user = setup();
+      const err = Object.assign(new Error('Not found'), {
+        isAxiosError: true,
+        response: { status: 404 },
+      });
+      mocks.mockApiGet.mockRejectedValue(err);
+      render(<SignInPage />);
+
+      await user.click(screen.getByTestId('google-signin-btn'));
+
+      await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/onboarding'));
+      // The guard must NOT have also called replace('/')
+      expect(mocks.mockRouterReplace).not.toHaveBeenCalledWith('/');
+    });
   });
 
   describe('Google sign-in flow', () => {
