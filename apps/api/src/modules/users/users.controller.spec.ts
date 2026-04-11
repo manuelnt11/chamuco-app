@@ -4,22 +4,8 @@ import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import type { AuthenticatedUser } from '@/types/express';
-import type { UserResponseDto } from './dto/user-response.dto';
 
-const mockUser: UserResponseDto = {
-  id: 'user-uuid',
-  email: 'test@example.com',
-  username: 'john_doe',
-  displayName: 'John Doe',
-  avatarUrl: null,
-  authProvider: AuthProvider.GOOGLE,
-  timezone: 'UTC',
-  platformRole: PlatformRole.USER,
-  agencyId: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  lastActiveAt: new Date(),
-};
+const NOW = new Date('2026-01-01T00:00:00.000Z');
 
 const mockAuthUser: AuthenticatedUser = {
   id: 'user-uuid',
@@ -32,10 +18,13 @@ const mockAuthUser: AuthenticatedUser = {
   timezone: 'UTC',
   platformRole: PlatformRole.USER,
   agencyId: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  lastActiveAt: new Date(),
+  createdAt: NOW,
+  updatedAt: NOW,
+  lastActiveAt: NOW,
 };
+
+// mockUser is the expected shape after getMe strips firebaseUid
+const { firebaseUid: _, ...mockUser } = mockAuthUser;
 
 describe('UsersController', () => {
   let controller: UsersController;
