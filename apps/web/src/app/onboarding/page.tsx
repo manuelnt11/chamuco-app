@@ -18,8 +18,14 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const USERNAME_RE = /^[a-z0-9_-]{3,30}$/;
 
-/** Converts a display name into a valid username suggestion.
- *  e.g. "María José García" → "maria_jose_garcia" */
+/**
+ * Converts a display name into a valid username suggestion.
+ * e.g. "María José García" → "maria_jose_garcia"
+ *
+ * Non-Latin scripts (CJK, Arabic, etc.) and emoji collapse to underscores
+ * which are then trimmed — resulting in an empty string that fails USERNAME_RE,
+ * so the field stays empty and the user types their own username.
+ */
 function toUsernameSlug(name: string): string {
   return name
     .normalize('NFD') // decompose accented chars: é → e + ́
@@ -65,12 +71,14 @@ export default function OnboardingPage() {
   // Redirect already-registered users away from onboarding
   useEffect(() => {
     if (isLoading || !currentUser) return;
+    let cancelled = false;
     apiClient
       .get('/api/v1/users/me')
       .then(() => {
-        router.replace('/'); // 200 → user already has a Chamuco account
+        if (!cancelled) router.replace('/'); // 200 → user already has a Chamuco account
       })
       .catch((err) => {
+        if (cancelled) return;
         if (isAxiosError(err) && err.response?.status === 404) {
           setIsCheckingRegistration(false); // 404 → new user, show the form
         } else {
@@ -78,6 +86,9 @@ export default function OnboardingPage() {
           router.replace('/sign-in');
         }
       });
+    return () => {
+      cancelled = true;
+    };
   }, [currentUser, isLoading, router, t]);
 
   // Debounced username availability check (fires 300ms after usernameStatus becomes 'checking')

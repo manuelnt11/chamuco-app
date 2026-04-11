@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { UsersController } from './users.controller';
@@ -65,23 +65,13 @@ describe('UsersController', () => {
   });
 
   describe('GET /api/v1/users/me', () => {
-    it('delegates to UsersService.findByFirebaseUid with the current user firebaseUid', async () => {
-      const result = await controller.getMe(mockAuthUser);
+    it('returns the authenticated user without the firebaseUid field', () => {
+      const result = controller.getMe(mockAuthUser);
 
-      expect(mockFindByFirebaseUid).toHaveBeenCalledWith('firebase-uid-123');
       expect(result).toEqual(mockUser);
-    });
-
-    it('propagates NotFoundException when the user is not registered', async () => {
-      mockFindByFirebaseUid.mockRejectedValue(new NotFoundException('User not found'));
-
-      await expect(controller.getMe(mockAuthUser)).rejects.toThrow(NotFoundException);
-    });
-
-    it('propagates unexpected errors', async () => {
-      mockFindByFirebaseUid.mockRejectedValue(new Error('database error'));
-
-      await expect(controller.getMe(mockAuthUser)).rejects.toThrow('database error');
+      expect(result).not.toHaveProperty('firebaseUid');
+      // Must NOT call the service — the user is already in request.user from the guard
+      expect(mockFindByFirebaseUid).not.toHaveBeenCalled();
     });
   });
 

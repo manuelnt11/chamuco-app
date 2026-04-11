@@ -25,8 +25,12 @@ export class UsersController {
   @ApiResponse({ status: 200, type: UserResponseDto })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
   @ApiResponse({ status: 404, description: 'User record not found — registration not completed' })
-  getMe(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
-    return this.usersService.findByFirebaseUid(user.firebaseUid);
+  getMe(@CurrentUser() user: AuthenticatedUser): UserResponseDto {
+    // The guard already fetched this user from the DB; return it directly
+    // to avoid a redundant query. Destructure to exclude firebaseUid from
+    // the serialized response.
+    const { firebaseUid: _, ...dto } = user;
+    return dto;
   }
 
   @Get('username-available')
