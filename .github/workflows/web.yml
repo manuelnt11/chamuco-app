@@ -72,6 +72,12 @@ jobs:
       - name: Build Next.js application
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_API_URL: https://chamuco-api-393715267650.us-central1.run.app
         run: pnpm --filter web build
 
       - name: Upload coverage to GitHub
@@ -139,10 +145,24 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
 
+      - name: Get API service URL
+        run: |
+          API_URL=$(gcloud run services describe chamuco-api \
+            --region=${{ env.GCP_REGION }} \
+            --format='value(status.url)' \
+            --project=${{ env.GCP_PROJECT_ID }})
+          echo "NEXT_PUBLIC_API_URL=${API_URL}" >> $GITHUB_ENV
+
       - name: Build Docker image
         run: |
           docker build \
             -f apps/web/Dockerfile \
+            --build-arg NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }} \
+            --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }} \
+            --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }} \
+            --build-arg NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }} \
+            --build-arg NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }} \
+            --build-arg NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }} \
             -t ${{ env.ARTIFACT_REGISTRY }}/web:${{ github.sha }} \
             -t ${{ env.ARTIFACT_REGISTRY }}/web:latest \
             .
@@ -154,17 +174,11 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
-          # Get API service URL for NEXT_PUBLIC_API_URL
-          API_URL=$(gcloud run services describe chamuco-api \
-            --region=${{ env.GCP_REGION }} \
-            --format='value(status.url)' \
-            --project=${{ env.GCP_PROJECT_ID }})
-
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.ARTIFACT_REGISTRY }}/web:${{ github.sha }} \
             --region=${{ env.GCP_REGION }} \
             --platform=managed \
-            --set-env-vars="NODE_ENV=production,NEXT_PUBLIC_API_URL=${API_URL}" \
+            --set-env-vars="NODE_ENV=production" \
             --quiet
 
       - name: Verify deployment
