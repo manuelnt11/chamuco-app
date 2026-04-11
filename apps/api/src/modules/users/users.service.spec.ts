@@ -3,15 +3,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { UsersService } from './users.service';
-import type { UserResponseDto } from './dto/user-response.dto';
+import type { AuthenticatedUser } from '@/types/express';
 
-const mockUser: UserResponseDto = {
+const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
   email: 'test@example.com',
   username: 'john_doe',
   displayName: 'John Doe',
   avatarUrl: null,
   authProvider: AuthProvider.GOOGLE,
+  firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
   platformRole: PlatformRole.USER,
   agencyId: null,

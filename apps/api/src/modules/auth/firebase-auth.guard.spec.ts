@@ -5,6 +5,7 @@ import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 import { FirebaseAuthGuard } from '@/modules/auth/firebase-auth.guard';
+import { UsersService } from '@/modules/users/users.service';
 import type { AuthenticatedUser } from '@/types/express.d';
 
 const mockUser: AuthenticatedUser = {
@@ -50,12 +51,12 @@ describe('FirebaseAuthGuard', () => {
   let guard: FirebaseAuthGuard;
   let reflector: Reflector;
   let mockVerifyIdToken: jest.Mock;
-  let mockFindFirst: jest.Mock;
+  let mockFindByFirebaseUid: jest.Mock;
   let mockUpdate: jest.Mock;
 
   beforeEach(async () => {
     mockVerifyIdToken = jest.fn();
-    mockFindFirst = jest.fn();
+    mockFindByFirebaseUid = jest.fn();
     mockUpdate = jest.fn().mockReturnValue({
       set: jest.fn().mockReturnValue({
         where: jest.fn().mockResolvedValue(undefined),
@@ -76,11 +77,12 @@ describe('FirebaseAuthGuard', () => {
           },
         },
         {
+          provide: UsersService,
+          useValue: { findByFirebaseUid: mockFindByFirebaseUid },
+        },
+        {
           provide: DRIZZLE_CLIENT,
-          useValue: {
-            query: { users: { findFirst: mockFindFirst } },
-            update: mockUpdate,
-          },
+          useValue: { update: mockUpdate },
         },
       ],
     }).compile();
@@ -98,7 +100,7 @@ describe('FirebaseAuthGuard', () => {
 
       expect(result).toBe(true);
       expect(mockVerifyIdToken).not.toHaveBeenCalled();
-      expect(mockFindFirst).not.toHaveBeenCalled();
+      expect(mockFindByFirebaseUid).not.toHaveBeenCalled();
     });
   });
 
@@ -106,7 +108,7 @@ describe('FirebaseAuthGuard', () => {
     it('should authenticate, set req.firebaseUser and req.user, and return true', async () => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
-      mockFindFirst.mockResolvedValue(mockUser);
+      mockFindByFirebaseUid.mockResolvedValue(mockUser);
 
       const ctx = buildContext('Bearer valid-token');
       const request = ctx.switchToHttp().getRequest();
@@ -115,7 +117,7 @@ describe('FirebaseAuthGuard', () => {
 
       expect(result).toBe(true);
       expect(mockVerifyIdToken).toHaveBeenCalledWith('valid-token');
-      expect(mockFindFirst).toHaveBeenCalled();
+      expect(mockFindByFirebaseUid).toHaveBeenCalledWith('firebase-uid-123');
       expect(request.firebaseUser).toEqual(mockDecodedToken);
       expect(request.user).toEqual(mockUser);
     });
@@ -123,7 +125,7 @@ describe('FirebaseAuthGuard', () => {
     it('should fire-and-forget last_active_at update without blocking the response', async () => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
-      mockFindFirst.mockResolvedValue(mockUser);
+      mockFindByFirebaseUid.mockResolvedValue(mockUser);
 
       const ctx = buildContext('Bearer valid-token');
       await guard.canActivate(ctx);
@@ -134,7 +136,7 @@ describe('FirebaseAuthGuard', () => {
     it('should still return true when last_active_at update fails', async () => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
-      mockFindFirst.mockResolvedValue(mockUser);
+      mockFindByFirebaseUid.mockResolvedValue(mockUser);
       mockUpdate.mockReturnValue({
         set: jest.fn().mockReturnValue({
           where: jest.fn().mockRejectedValue(new Error('DB write failed')),
@@ -174,7 +176,7 @@ describe('FirebaseAuthGuard', () => {
       const ctx = buildContext('Bearer expired-token');
 
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
-      expect(mockFindFirst).not.toHaveBeenCalled();
+      expect(mockFindByFirebaseUid).not.toHaveBeenCalled();
     });
   });
 
@@ -182,12 +184,12 @@ describe('FirebaseAuthGuard', () => {
     it('should throw NotFoundException when Firebase token is valid but user has not registered with Chamuco', async () => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
-      mockFindFirst.mockResolvedValue(undefined);
+      // UsersService.findByFirebaseUid throws NotFoundException when user is not found.
+      // The guard's catch block re-throws it so the client receives 404, not 401.
+      mockFindByFirebaseUid.mockRejectedValue(new NotFoundException('User not found'));
 
       const ctx = buildContext('Bearer valid-token');
 
-      // 404, not 401: the Firebase identity is valid, but the Chamuco user resource does not exist.
-      // The frontend sign-in page and onboarding page both rely on 404 to route new users to /onboarding.
       await expect(guard.canActivate(ctx)).rejects.toThrow(NotFoundException);
       expect(mockUpdate).not.toHaveBeenCalled();
     });

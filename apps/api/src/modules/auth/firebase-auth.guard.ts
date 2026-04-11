@@ -13,6 +13,7 @@ import type { Request } from 'express';
 import { IS_PUBLIC_KEY } from '@/common/decorators/public.decorator';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
+import { UsersService } from '@/modules/users/users.service';
 import { users } from '@/modules/users/schema/users.schema';
 
 @Injectable()
@@ -22,6 +23,7 @@ export class FirebaseAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly firebaseAdminService: FirebaseAdminService,
+    private readonly usersService: UsersService,
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
   ) {}
 
@@ -45,16 +47,11 @@ export class FirebaseAuthGuard implements CanActivate {
     try {
       const decodedToken = await this.firebaseAdminService.auth().verifyIdToken(token);
 
-      const user = await this.db.query.users.findFirst({
-        where: eq(users.firebaseUid, decodedToken.uid),
-      });
-
-      if (!user) {
-        // Firebase token is valid but the user has not completed Chamuco registration.
-        // 404 is semantically correct here: authenticated identity exists, Chamuco user does not.
-        // The frontend (sign-in and onboarding pages) relies on this to route new users to /onboarding.
-        throw new NotFoundException('User not registered');
-      }
+      // findByFirebaseUid throws NotFoundException when the user has not completed
+      // Chamuco registration. 404 is semantically correct: authenticated identity
+      // exists, Chamuco user does not. The frontend relies on this to route new
+      // users to /onboarding.
+      const user = await this.usersService.findByFirebaseUid(decodedToken.uid);
 
       request.firebaseUser = decodedToken;
       request.user = user;
