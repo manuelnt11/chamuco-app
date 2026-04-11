@@ -1,0 +1,137 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
+import type { AuthenticatedUser } from '@/types/express';
+import type { UserResponseDto } from './dto/user-response.dto';
+
+const mockUser: UserResponseDto = {
+  id: 'user-uuid',
+  email: 'test@example.com',
+  username: 'john_doe',
+  displayName: 'John Doe',
+  avatarUrl: null,
+  authProvider: AuthProvider.GOOGLE,
+  timezone: 'UTC',
+  platformRole: PlatformRole.USER,
+  agencyId: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastActiveAt: new Date(),
+};
+
+const mockAuthUser: AuthenticatedUser = {
+  id: 'user-uuid',
+  email: 'test@example.com',
+  username: 'john_doe',
+  displayName: 'John Doe',
+  avatarUrl: null,
+  authProvider: AuthProvider.GOOGLE,
+  firebaseUid: 'firebase-uid-123',
+  timezone: 'UTC',
+  platformRole: PlatformRole.USER,
+  agencyId: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastActiveAt: new Date(),
+};
+
+describe('UsersController', () => {
+  let controller: UsersController;
+  let mockFindByFirebaseUid: jest.Mock;
+  let mockCheckUsernameAvailability: jest.Mock;
+
+  beforeEach(async () => {
+    mockFindByFirebaseUid = jest.fn().mockResolvedValue(mockUser);
+    mockCheckUsernameAvailability = jest
+      .fn()
+      .mockResolvedValue({ available: true, username: 'john_doe' });
+
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [UsersController],
+      providers: [
+        {
+          provide: UsersService,
+          useValue: {
+            findByFirebaseUid: mockFindByFirebaseUid,
+            checkUsernameAvailability: mockCheckUsernameAvailability,
+          },
+        },
+      ],
+    }).compile();
+
+    controller = module.get<UsersController>(UsersController);
+  });
+
+  describe('GET /api/v1/users/me', () => {
+    it('delegates to UsersService.findByFirebaseUid with the current user firebaseUid', async () => {
+      const result = await controller.getMe(mockAuthUser);
+
+      expect(mockFindByFirebaseUid).toHaveBeenCalledWith('firebase-uid-123');
+      expect(result).toEqual(mockUser);
+    });
+
+    it('propagates NotFoundException when the user is not registered', async () => {
+      mockFindByFirebaseUid.mockRejectedValue(new NotFoundException('User not found'));
+
+      await expect(controller.getMe(mockAuthUser)).rejects.toThrow(NotFoundException);
+    });
+
+    it('propagates unexpected errors', async () => {
+      mockFindByFirebaseUid.mockRejectedValue(new Error('database error'));
+
+      await expect(controller.getMe(mockAuthUser)).rejects.toThrow('database error');
+    });
+  });
+
+  describe('GET /api/v1/users/username-available', () => {
+    it('delegates to UsersService and returns the availability result', async () => {
+      mockCheckUsernameAvailability.mockResolvedValue({ available: true, username: 'john_doe' });
+
+      const result = await controller.checkUsernameAvailability('john_doe');
+
+      expect(mockCheckUsernameAvailability).toHaveBeenCalledWith('john_doe');
+      expect(result).toEqual({ available: true, username: 'john_doe' });
+    });
+
+    it('normalizes the username to lowercase before delegating', async () => {
+      await controller.checkUsernameAvailability('John_Doe');
+
+      expect(mockCheckUsernameAvailability).toHaveBeenCalledWith('john_doe');
+    });
+
+    it('returns available: false when the username is taken', async () => {
+      mockCheckUsernameAvailability.mockResolvedValue({ available: false, username: 'taken_user' });
+
+      const result = await controller.checkUsernameAvailability('taken_user');
+
+      expect(result).toEqual({ available: false, username: 'taken_user' });
+    });
+
+    it('throws BadRequestException for a username that is too short', () => {
+      expect(() => controller.checkUsernameAvailability('ab')).toThrow(BadRequestException);
+      expect(mockCheckUsernameAvailability).not.toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException for a username that is too long', () => {
+      expect(() => controller.checkUsernameAvailability('a'.repeat(31))).toThrow(
+        BadRequestException,
+      );
+      expect(mockCheckUsernameAvailability).not.toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException for a username with disallowed characters', () => {
+      expect(() => controller.checkUsernameAvailability('john doe')).toThrow(BadRequestException);
+      expect(mockCheckUsernameAvailability).not.toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException when the username query param is absent', () => {
+      // @Query returns undefined when the param is missing
+      expect(() => controller.checkUsernameAvailability(undefined as unknown as string)).toThrow(
+        BadRequestException,
+      );
+      expect(mockCheckUsernameAvailability).not.toHaveBeenCalled();
+    });
+  });
+});

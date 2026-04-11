@@ -80,6 +80,27 @@
     "error": {
       "failed": "El inicio de sesión falló. Por favor intenta de nuevo.",
       "cancelled": "El inicio de sesión fue cancelado."
+    },
+    "onboarding": {
+      "title": "Configura tu perfil",
+      "subtitle": "Elige un nombre de usuario para comenzar en Chamuco Travel",
+      "username": {
+        "label": "Nombre de usuario",
+        "placeholder": "ej. juan_perez",
+        "hint": "3–30 caracteres: letras, números, _ y - solamente",
+        "available": "El nombre de usuario está disponible",
+        "taken": "El nombre de usuario ya está en uso",
+        "checking": "Verificando disponibilidad..."
+      },
+      "displayName": {
+        "label": "Nombre para mostrar",
+        "placeholder": "¿Cómo debemos llamarte?"
+      },
+      "submit": "Crear mi cuenta",
+      "error": {
+        "failed": "El registro falló. Por favor intenta de nuevo.",
+        "usernameTaken": "Ese nombre de usuario ya está en uso. Por favor elige otro."
+      }
     }
   },
   "trips": {

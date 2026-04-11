@@ -92,6 +92,41 @@ describe('AppShell', () => {
     });
   });
 
+  describe('auth layout (/onboarding)', () => {
+    beforeEach(() => {
+      mockUsePathname.mockReturnValue('/onboarding');
+    });
+
+    afterEach(() => {
+      mockUsePathname.mockReturnValue('/');
+    });
+
+    it('renders children inside main without nav chrome', () => {
+      render(
+        <AppShell>
+          <div>Onboarding content</div>
+        </AppShell>,
+      );
+      expect(screen.getByRole('main')).toBeInTheDocument();
+      expect(screen.getByText('Onboarding content')).toBeInTheDocument();
+    });
+
+    it('does not render Header on auth pages', () => {
+      render(<AppShell>Content</AppShell>);
+      expect(screen.queryByTestId('header')).not.toBeInTheDocument();
+    });
+
+    it('does not render DesktopSideNav on auth pages', () => {
+      render(<AppShell>Content</AppShell>);
+      expect(screen.queryByTestId('desktop-nav')).not.toBeInTheDocument();
+    });
+
+    it('does not render MobileBottomNav on auth pages', () => {
+      render(<AppShell>Content</AppShell>);
+      expect(screen.queryByTestId('mobile-nav')).not.toBeInTheDocument();
+    });
+  });
+
   describe('auth layout (/sign-in)', () => {
     beforeEach(() => {
       mockUsePathname.mockReturnValue('/sign-in');

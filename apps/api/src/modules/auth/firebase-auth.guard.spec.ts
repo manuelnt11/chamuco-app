@@ -1,4 +1,4 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
@@ -179,14 +179,16 @@ describe('FirebaseAuthGuard', () => {
   });
 
   describe('protected routes — user not found in DB', () => {
-    it('should throw UnauthorizedException when user does not exist in the database', async () => {
+    it('should throw NotFoundException when Firebase token is valid but user has not registered with Chamuco', async () => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
       mockFindFirst.mockResolvedValue(undefined);
 
       const ctx = buildContext('Bearer valid-token');
 
-      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+      // 404, not 401: the Firebase identity is valid, but the Chamuco user resource does not exist.
+      // The frontend sign-in page and onboarding page both rely on 404 to route new users to /onboarding.
+      await expect(guard.canActivate(ctx)).rejects.toThrow(NotFoundException);
       expect(mockUpdate).not.toHaveBeenCalled();
     });
   });

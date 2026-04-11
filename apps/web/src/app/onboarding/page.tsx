@@ -1,0 +1,222 @@
+'use client';
+
+import { type FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { isAxiosError } from 'axios';
+
+import { useAuth } from '@/hooks/useAuth';
+import { apiClient } from '@/services/api-client';
+import { Logo } from '@/components/header/Logo';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { toast } from '@/components/ui/toast';
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { ThemeToggle } from '@/components/ThemeToggle';
+
+const USERNAME_RE = /^[a-z0-9_-]{3,30}$/;
+
+type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+
+export default function OnboardingPage() {
+  const { t } = useTranslation('auth');
+  const router = useRouter();
+  const { currentUser, isLoading } = useAuth();
+
+  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
+
+  // Pre-fill display name from the OAuth provider
+  useEffect(() => {
+    if (currentUser?.displayName) {
+      setDisplayName(currentUser.displayName);
+    }
+  }, [currentUser]);
+
+  // Client-side guard: redirect unauthenticated users (middleware handles the edge case)
+  useEffect(() => {
+    if (!isLoading && !currentUser) {
+      router.replace('/sign-in');
+    }
+  }, [currentUser, isLoading, router]);
+
+  // Redirect already-registered users away from onboarding
+  useEffect(() => {
+    if (isLoading || !currentUser) return;
+    apiClient
+      .get('/api/v1/users/me')
+      .then(() => {
+        router.replace('/'); // 200 → user already has a Chamuco account
+      })
+      .catch((err) => {
+        if (isAxiosError(err) && err.response?.status === 404) {
+          setIsCheckingRegistration(false); // 404 → new user, show the form
+        } else {
+          toast.error(t('error.failed'));
+          router.replace('/sign-in');
+        }
+      });
+  }, [currentUser, isLoading, router, t]);
+
+  // Debounced username availability check (fires 300ms after usernameStatus becomes 'checking')
+  useEffect(() => {
+    if (usernameStatus !== 'checking') return;
+    const timer = setTimeout(() => {
+      apiClient
+        .get<{ available: boolean }>(`/api/v1/users/username-available?username=${username}`)
+        .then(({ data }) => setUsernameStatus(data.available ? 'available' : 'taken'))
+        .catch(() => setUsernameStatus('idle'));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [username, usernameStatus]);
+
+  function handleUsernameChange(value: string) {
+    const normalized = value.toLowerCase();
+    setUsername(normalized);
+    if (!USERNAME_RE.test(normalized)) {
+      setUsernameStatus(normalized.length === 0 ? 'idle' : 'invalid');
+    } else {
+      setUsernameStatus('checking');
+    }
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (usernameStatus !== 'available' || !displayName.trim()) return;
+    setIsSubmitting(true);
+    try {
+      await apiClient.post('/api/v1/auth/register', {
+        username,
+        displayName: displayName.trim(),
+      });
+      router.replace('/');
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 409) {
+        setUsernameStatus('taken');
+        toast.error(t('onboarding.error.usernameTaken'));
+      } else {
+        toast.error(t('onboarding.error.failed'));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  if (isLoading || isCheckingRegistration) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return null;
+  }
+
+  return (
+    <div className="relative flex min-h-screen flex-col items-center justify-center gap-10 px-4">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LanguageToggle />
+        <ThemeToggle />
+      </div>
+
+      <Logo />
+
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <div className="flex flex-col gap-1 text-center">
+          <h1 className="text-2xl font-bold tracking-tight">{t('onboarding.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('onboarding.subtitle')}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="username">{t('onboarding.username.label')}</Label>
+            <Input
+              id="username"
+              type="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              value={username}
+              onChange={(e) => handleUsernameChange(e.target.value)}
+              placeholder={t('onboarding.username.placeholder')}
+              aria-invalid={usernameStatus === 'taken' || usernameStatus === 'invalid'}
+              data-testid="username-input"
+            />
+            <UsernameStatusMessage status={usernameStatus} t={t} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="displayName">{t('onboarding.displayName.label')}</Label>
+            <Input
+              id="displayName"
+              type="text"
+              autoComplete="name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder={t('onboarding.displayName.placeholder')}
+              data-testid="displayname-input"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={usernameStatus !== 'available' || !displayName.trim() || isSubmitting}
+            className="mt-2 h-11"
+            data-testid="submit-btn"
+          >
+            {isSubmitting ? <Spinner size="sm" /> : t('onboarding.submit')}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface UsernameStatusMessageProps {
+  status: UsernameStatus;
+  t: (key: string) => string;
+}
+
+function UsernameStatusMessage({ status, t }: UsernameStatusMessageProps) {
+  if (status === 'idle') return null;
+
+  if (status === 'invalid') {
+    return (
+      <p className="text-xs text-muted-foreground" role="status">
+        {t('onboarding.username.hint')}
+      </p>
+    );
+  }
+
+  if (status === 'checking') {
+    return (
+      <p className="flex items-center gap-1 text-xs text-muted-foreground" role="status">
+        <Spinner size="sm" />
+        {t('onboarding.username.checking')}
+      </p>
+    );
+  }
+
+  if (status === 'available') {
+    return (
+      <p className="text-xs text-green-600 dark:text-green-400" role="status">
+        {t('onboarding.username.available')}
+      </p>
+    );
+  }
+
+  // taken
+  return (
+    <p className="text-xs text-destructive" role="status" aria-live="polite">
+      {t('onboarding.username.taken')}
+    </p>
+  );
+}

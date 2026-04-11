@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -49,7 +50,10 @@ export class FirebaseAuthGuard implements CanActivate {
       });
 
       if (!user) {
-        throw new UnauthorizedException('Authentication failed');
+        // Firebase token is valid but the user has not completed Chamuco registration.
+        // 404 is semantically correct here: authenticated identity exists, Chamuco user does not.
+        // The frontend (sign-in and onboarding pages) relies on this to route new users to /onboarding.
+        throw new NotFoundException('User not registered');
       }
 
       request.firebaseUser = decodedToken;
@@ -61,7 +65,7 @@ export class FirebaseAuthGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
+      if (error instanceof UnauthorizedException || error instanceof NotFoundException) {
         throw error;
       }
       throw new UnauthorizedException('Invalid or expired token');

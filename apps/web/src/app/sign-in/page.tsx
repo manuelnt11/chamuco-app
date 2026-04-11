@@ -68,12 +68,16 @@ export default function SignInPage() {
   const { currentUser, isLoading, signInWithGoogle, signInWithFacebook } = useAuth();
   const [signingIn, setSigningIn] = useState<SigningInProvider>(null);
 
-  // Client-side guard: redirect already-authenticated users (handles in-app navigation)
+  // Client-side guard: redirect already-authenticated users (handles in-app navigation).
+  // Skip while a sign-in is in progress — handleSignIn performs the API check and
+  // routes to /onboarding or / depending on registration status. If we redirected
+  // here as soon as currentUser is set, we would race ahead of that check and always
+  // send the user to /, bypassing onboarding for new users.
   useEffect(() => {
-    if (!isLoading && currentUser) {
+    if (!isLoading && currentUser && !signingIn) {
       router.replace('/');
     }
-  }, [currentUser, isLoading, router]);
+  }, [currentUser, isLoading, router, signingIn]);
 
   async function handleSignIn(provider: 'google' | 'facebook') {
     setSigningIn(provider);

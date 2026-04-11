@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsString, Matches } from 'class-validator';
+import { IsString, Matches, MaxLength } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({
@@ -20,4 +20,15 @@ export class RegisterDto {
     typeof value === 'string' ? value.toLowerCase() : value,
   )
   username!: string;
+
+  @ApiProperty({
+    description:
+      'Display name for the account. Pre-filled from the OAuth provider but editable by the user at registration.',
+    example: 'John Doe',
+    maxLength: 100,
+  })
+  @IsString()
+  @MaxLength(100)
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
+  displayName!: string;
 }

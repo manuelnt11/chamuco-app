@@ -21,8 +21,10 @@ vi.mock('@/lib/firebase', () => ({
 }));
 
 const mockSetTokenProvider = vi.hoisted(() => vi.fn());
+const mockApiClientPost = vi.hoisted(() => vi.fn());
 vi.mock('@/services/api-client', () => ({
   setTokenProvider: mockSetTokenProvider,
+  apiClient: { post: mockApiClientPost },
 }));
 
 import { AuthContext, AuthProvider } from './auth';
@@ -188,8 +190,7 @@ describe('AuthProvider', () => {
     const user = makeUser();
     mockAuthWith(user);
     firebaseMocks.signOut.mockResolvedValue(undefined);
-    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal('fetch', mockFetch);
+    mockApiClientPost.mockResolvedValue({ data: {} });
 
     let ctx: Parameters<Parameters<typeof AuthContext.Consumer>[0]['children']>[0] | undefined;
     render(
@@ -206,20 +207,15 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(ctx?.currentUser).toBe(user));
     await act(async () => ctx?.signOut());
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/v1/auth/logout', {
-      method: 'POST',
-      headers: expect.objectContaining({ Authorization: 'Bearer id-token-abc' }),
-    });
+    expect(mockApiClientPost).toHaveBeenCalledWith('/api/v1/auth/logout');
     expect(firebaseMocks.signOut).toHaveBeenCalledWith({ name: 'mock-auth' });
-
-    vi.unstubAllGlobals();
   });
 
-  it('signOut calls firebaseSignOut even when the logout fetch fails', async () => {
+  it('signOut calls firebaseSignOut even when the logout API call fails', async () => {
     const user = makeUser();
     mockAuthWith(user);
     firebaseMocks.signOut.mockResolvedValue(undefined);
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
+    mockApiClientPost.mockRejectedValue(new Error('network error'));
 
     let ctx: Parameters<Parameters<typeof AuthContext.Consumer>[0]['children']>[0] | undefined;
     render(
@@ -237,14 +233,11 @@ describe('AuthProvider', () => {
     await act(async () => ctx?.signOut().catch(() => undefined));
 
     expect(firebaseMocks.signOut).toHaveBeenCalledWith({ name: 'mock-auth' });
-
-    vi.unstubAllGlobals();
   });
 
-  it('signOut omits Authorization header when no user is signed in', async () => {
+  it('signOut still calls firebaseSignOut when no user is signed in', async () => {
     firebaseMocks.signOut.mockResolvedValue(undefined);
-    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal('fetch', mockFetch);
+    mockApiClientPost.mockResolvedValue({ data: {} });
 
     let ctx: Parameters<Parameters<typeof AuthContext.Consumer>[0]['children']>[0] | undefined;
     render(
@@ -261,9 +254,7 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(ctx?.isLoading).toBe(false));
     await act(async () => ctx?.signOut());
 
-    expect(mockFetch.mock.calls[0][1].headers).not.toHaveProperty('Authorization');
-
-    vi.unstubAllGlobals();
+    expect(firebaseMocks.signOut).toHaveBeenCalledWith({ name: 'mock-auth' });
   });
 
   it('getIdToken delegates to user.getIdToken(false) by default', async () => {

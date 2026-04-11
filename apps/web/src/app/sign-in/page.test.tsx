@@ -133,6 +133,27 @@ describe('SignInPage', () => {
       render(<SignInPage />);
       await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
     });
+
+    it('does not redirect to / via guard while a sign-in is in progress', async () => {
+      // Regression: without the !signingIn guard, currentUser being set by Firebase
+      // immediately after signInWithGoogle() resolves would race ahead of the API check
+      // and always redirect to /, bypassing /onboarding for new users.
+      const user = setup();
+      const err = Object.assign(new Error('Not found'), {
+        isAxiosError: true,
+        response: { status: 404 },
+      });
+      mocks.mockApiGet.mockRejectedValue(err);
+      // Keep sign-in pending to simulate the window where currentUser is set but
+      // handleSignIn hasn't yet received the API response
+      mocks.mockSignInWithGoogle.mockReturnValue(new Promise(() => undefined));
+      render(<SignInPage />);
+
+      await user.click(screen.getByTestId('google-signin-btn'));
+
+      // Guard must NOT have fired — the redirect will come from handleSignIn instead
+      expect(mocks.mockRouterReplace).not.toHaveBeenCalledWith('/');
+    });
   });
 
   describe('Google sign-in flow', () => {

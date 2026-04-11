@@ -6,14 +6,14 @@ import { RegisterDto } from './register.dto';
 describe('RegisterDto', () => {
   describe('@Transform — username normalisation', () => {
     it('lowercases an uppercase username before validation', async () => {
-      const dto = plainToInstance(RegisterDto, { username: 'JOHN_DOE' });
+      const dto = plainToInstance(RegisterDto, { username: 'JOHN_DOE', displayName: 'John Doe' });
       expect(dto.username).toBe('john_doe');
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
 
     it('leaves an already-lowercase username unchanged', async () => {
-      const dto = plainToInstance(RegisterDto, { username: 'jane_doe' });
+      const dto = plainToInstance(RegisterDto, { username: 'jane_doe', displayName: 'Jane Doe' });
       expect(dto.username).toBe('jane_doe');
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
@@ -24,6 +24,23 @@ describe('RegisterDto', () => {
       // so that class-validator can produce the appropriate error.
       const dto = plainToInstance(RegisterDto, { username: 123 });
       expect(dto.username).toBe(123);
+    });
+  });
+
+  describe('@Transform — displayName trimming', () => {
+    it('trims whitespace from a displayName string', async () => {
+      const dto = plainToInstance(RegisterDto, {
+        username: 'john_doe',
+        displayName: '  John Doe  ',
+      });
+      expect(dto.displayName).toBe('John Doe');
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('passes non-string displayName values through unchanged (defensive branch)', async () => {
+      const dto = plainToInstance(RegisterDto, { username: 'john_doe', displayName: 42 });
+      expect(dto.displayName).toBe(42);
     });
   });
 
