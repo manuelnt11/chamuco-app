@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 
 import { useAuth } from '@/hooks/useAuth';
+import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
 import { apiClient } from '@/services/api-client';
 import { Logo } from '@/components/header/Logo';
 import { Button } from '@/components/ui/button';
@@ -95,6 +96,7 @@ export default function SignInPage() {
       // Determine if this is a new or returning Chamuco user
       try {
         await apiClient.get('/api/v1/users/me');
+        document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
         hasNavigated.current = true;
         router.replace('/'); // 200 → returning user → home
       } catch (apiErr) {

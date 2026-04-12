@@ -211,7 +211,7 @@ describe('AuthProvider', () => {
     expect(firebaseMocks.signOut).toHaveBeenCalledWith({ name: 'mock-auth' });
   });
 
-  it('signOut calls firebaseSignOut even when the logout API call fails', async () => {
+  it('signOut calls firebaseSignOut even when the logout API call fails with a non-404 error', async () => {
     const user = makeUser();
     mockAuthWith(user);
     firebaseMocks.signOut.mockResolvedValue(undefined);
@@ -231,6 +231,34 @@ describe('AuthProvider', () => {
 
     await waitFor(() => expect(ctx?.currentUser).toBe(user));
     await act(async () => ctx?.signOut().catch(() => undefined));
+
+    expect(firebaseMocks.signOut).toHaveBeenCalledWith({ name: 'mock-auth' });
+  });
+
+  it('signOut does not throw when the logout API returns 404 (unregistered user)', async () => {
+    const user = makeUser();
+    mockAuthWith(user);
+    firebaseMocks.signOut.mockResolvedValue(undefined);
+    const axiosNotFound = Object.assign(new Error('Not Found'), {
+      isAxiosError: true,
+      response: { status: 404 },
+    });
+    mockApiClientPost.mockRejectedValue(axiosNotFound);
+
+    let ctx: Parameters<Parameters<typeof AuthContext.Consumer>[0]['children']>[0] | undefined;
+    render(
+      <AuthProvider>
+        <AuthContext.Consumer>
+          {(value) => {
+            ctx = value;
+            return null;
+          }}
+        </AuthContext.Consumer>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => expect(ctx?.currentUser).toBe(user));
+    await act(async () => ctx?.signOut()); // must not throw
 
     expect(firebaseMocks.signOut).toHaveBeenCalledWith({ name: 'mock-auth' });
   });
@@ -358,6 +386,18 @@ describe('AuthProvider', () => {
       expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Max-Age=0')),
     );
     expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Secure'));
+    cookieSetter.mockRestore();
+  });
+
+  it('clears chamuco-registered cookie when user is null', async () => {
+    const cookieSetter = vi.spyOn(document, 'cookie', 'set');
+
+    render(<AuthProvider>{null}</AuthProvider>);
+
+    await waitFor(() =>
+      expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('chamuco-registered=')),
+    );
+    expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Max-Age=0'));
     cookieSetter.mockRestore();
   });
 

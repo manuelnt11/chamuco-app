@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 
 import { useAuth } from '@/hooks/useAuth';
+import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
 import { apiClient } from '@/services/api-client';
 import { Logo } from '@/components/header/Logo';
 import { Button } from '@/components/ui/button';
@@ -41,7 +42,7 @@ type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 export default function OnboardingPage() {
   const { t } = useTranslation('auth');
   const router = useRouter();
-  const { currentUser, isLoading } = useAuth();
+  const { currentUser, isLoading, signOut } = useAuth();
 
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -122,6 +123,7 @@ export default function OnboardingPage() {
         username,
         displayName: displayName.trim(),
       });
+      document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
       router.replace('/');
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
@@ -207,6 +209,18 @@ export default function OnboardingPage() {
             data-testid="submit-btn"
           >
             {isSubmitting ? <Spinner size="sm" /> : t('onboarding.submit')}
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            disabled={isSubmitting}
+            onClick={() => void signOut()}
+            className="h-11 text-muted-foreground hover:text-foreground"
+            data-testid="cancel-btn"
+          >
+            {t('common:actions.cancel')}
           </Button>
         </form>
       </div>
