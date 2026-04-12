@@ -4,8 +4,14 @@ import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
+import { isAxiosError } from 'axios';
 
 import { auth, googleProvider, facebookProvider } from '@/lib/firebase';
+import {
+  COOKIE_CHAMUCO_AUTH_SET,
+  COOKIE_CHAMUCO_AUTH_CLEAR,
+  COOKIE_CHAMUCO_REGISTERED_CLEAR,
+} from '@/lib/auth-cookies';
 import { apiClient, setTokenProvider } from '@/services/api-client';
 
 export interface AuthContextValue {
@@ -53,11 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Set a session cookie so Next.js middleware can detect auth state at the edge.
         // The cookie is not HttpOnly — it is deliberately readable only for routing purposes;
         // real auth verification always happens server-side via the Firebase ID token.
-        document.cookie = 'chamuco-auth=1; path=/; SameSite=Strict; Secure; Max-Age=2592000';
+        document.cookie = COOKIE_CHAMUCO_AUTH_SET;
       } else {
         setIdToken(null);
-        document.cookie = 'chamuco-auth=; path=/; SameSite=Strict; Secure; Max-Age=0';
-        document.cookie = 'chamuco-registered=; path=/; SameSite=Strict; Secure; Max-Age=0';
+        document.cookie = COOKIE_CHAMUCO_AUTH_CLEAR;
+        document.cookie = COOKIE_CHAMUCO_REGISTERED_CLEAR;
       }
 
       setIsLoading(false);
@@ -85,6 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // state if the server-side revocation call fails.
     try {
       await apiClient.post('/api/v1/auth/logout');
+    } catch (err) {
+      // 404 = user not yet registered (e.g. cancelling onboarding before completing
+      // registration). No server session to revoke — proceed to Firebase sign-out.
+      // All other errors are re-thrown so callers can surface them to the UI.
+      if (!isAxiosError(err) || err.response?.status !== 404) {
+        throw err;
+      }
     } finally {
       await firebaseSignOut(auth);
     }

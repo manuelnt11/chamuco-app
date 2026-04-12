@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 
 import { useAuth } from '@/hooks/useAuth';
+import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
 import { apiClient } from '@/services/api-client';
 import { Logo } from '@/components/header/Logo';
 import { Button } from '@/components/ui/button';
@@ -122,7 +123,7 @@ export default function OnboardingPage() {
         username,
         displayName: displayName.trim(),
       });
-      document.cookie = 'chamuco-registered=1; path=/; SameSite=Strict; Secure; Max-Age=2592000';
+      document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
       router.replace('/');
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
@@ -212,11 +213,11 @@ export default function OnboardingPage() {
 
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="lg"
             disabled={isSubmitting}
-            onClick={() => signOut().catch(() => undefined)}
-            className="h-11 border-destructive text-destructive hover:bg-destructive hover:text-white transition-colors"
+            onClick={() => void signOut()}
+            className="h-11 text-muted-foreground hover:text-foreground"
             data-testid="cancel-btn"
           >
             {t('common:actions.cancel')}
