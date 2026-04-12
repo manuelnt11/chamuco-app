@@ -38,8 +38,8 @@ beforeEach(() => {
 });
 
 describe('middleware', () => {
-  describe('/sign-in — unauthenticated request (no chamuco-auth cookie)', () => {
-    it('calls NextResponse.next() when cookie is absent', () => {
+  describe('/sign-in — unauthenticated (no chamuco-auth cookie)', () => {
+    it('calls NextResponse.next() when no cookies are present', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in');
       middleware(request);
       expect(mockNext).toHaveBeenCalledOnce();
@@ -53,10 +53,32 @@ describe('middleware', () => {
     });
   });
 
-  describe('/sign-in — authenticated request (chamuco-auth cookie present)', () => {
-    it('calls NextResponse.redirect() to the home URL', () => {
+  describe('/sign-in — auth but not registered (chamuco-auth only)', () => {
+    it('redirects to /onboarding', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in', {
         'chamuco-auth': '1',
+      });
+      middleware(request);
+      expect(mockRedirect).toHaveBeenCalledOnce();
+      expect(mockRedirect).toHaveBeenCalledWith(
+        new URL('/onboarding', 'https://app.chamucotravel.com/sign-in'),
+      );
+    });
+
+    it('does not call NextResponse.next()', () => {
+      const request = makeRequest('https://app.chamucotravel.com/sign-in', {
+        'chamuco-auth': '1',
+      });
+      middleware(request);
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('/sign-in — fully authenticated (both cookies present)', () => {
+    it('redirects to /', () => {
+      const request = makeRequest('https://app.chamucotravel.com/sign-in', {
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       middleware(request);
       expect(mockRedirect).toHaveBeenCalledOnce();
@@ -65,9 +87,10 @@ describe('middleware', () => {
       );
     });
 
-    it('does not call NextResponse.next() when authenticated', () => {
+    it('does not call NextResponse.next() when fully authenticated', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in', {
         'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       middleware(request);
       expect(mockNext).not.toHaveBeenCalled();
@@ -76,14 +99,15 @@ describe('middleware', () => {
     it('returns the result of NextResponse.redirect()', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in', {
         'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       const result = middleware(request);
       expect(result).toEqual({ type: 'redirect' });
     });
   });
 
-  describe('/onboarding — unauthenticated request (no chamuco-auth cookie)', () => {
-    it('calls NextResponse.redirect() to /sign-in', () => {
+  describe('/onboarding — unauthenticated (no chamuco-auth cookie)', () => {
+    it('redirects to /sign-in', () => {
       const request = makeRequest('https://app.chamucotravel.com/onboarding');
       middleware(request);
       expect(mockRedirect).toHaveBeenCalledOnce();
@@ -99,8 +123,8 @@ describe('middleware', () => {
     });
   });
 
-  describe('/onboarding — authenticated request (chamuco-auth cookie present)', () => {
-    it('calls NextResponse.next() when cookie is present', () => {
+  describe('/onboarding — auth but not registered (chamuco-auth only)', () => {
+    it('calls NextResponse.next()', () => {
       const request = makeRequest('https://app.chamucotravel.com/onboarding', {
         'chamuco-auth': '1',
       });
@@ -115,6 +139,79 @@ describe('middleware', () => {
       });
       const result = middleware(request);
       expect(result).toEqual({ type: 'next' });
+    });
+  });
+
+  describe('/onboarding — fully authenticated (both cookies present)', () => {
+    it('redirects to /', () => {
+      const request = makeRequest('https://app.chamucotravel.com/onboarding', {
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
+      });
+      middleware(request);
+      expect(mockRedirect).toHaveBeenCalledOnce();
+      expect(mockRedirect).toHaveBeenCalledWith(
+        new URL('/', 'https://app.chamucotravel.com/onboarding'),
+      );
+    });
+  });
+
+  describe('protected routes (e.g. /, /trips, /profile/settings)', () => {
+    it('redirects unauthenticated request to /sign-in', () => {
+      const request = makeRequest('https://app.chamucotravel.com/');
+      middleware(request);
+      expect(mockRedirect).toHaveBeenCalledOnce();
+      expect(mockRedirect).toHaveBeenCalledWith(
+        new URL('/sign-in', 'https://app.chamucotravel.com/'),
+      );
+    });
+
+    it('redirects auth-but-unregistered request to /onboarding', () => {
+      const request = makeRequest('https://app.chamucotravel.com/', {
+        'chamuco-auth': '1',
+      });
+      middleware(request);
+      expect(mockRedirect).toHaveBeenCalledOnce();
+      expect(mockRedirect).toHaveBeenCalledWith(
+        new URL('/onboarding', 'https://app.chamucotravel.com/'),
+      );
+    });
+
+    it('calls NextResponse.next() when both cookies are present', () => {
+      const request = makeRequest('https://app.chamucotravel.com/', {
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
+      });
+      middleware(request);
+      expect(mockNext).toHaveBeenCalledOnce();
+      expect(mockRedirect).not.toHaveBeenCalled();
+    });
+
+    it('redirects unauthenticated /trips request to /sign-in', () => {
+      const request = makeRequest('https://app.chamucotravel.com/trips');
+      middleware(request);
+      expect(mockRedirect).toHaveBeenCalledWith(
+        new URL('/sign-in', 'https://app.chamucotravel.com/trips'),
+      );
+    });
+
+    it('redirects auth-but-unregistered /trips request to /onboarding', () => {
+      const request = makeRequest('https://app.chamucotravel.com/trips', {
+        'chamuco-auth': '1',
+      });
+      middleware(request);
+      expect(mockRedirect).toHaveBeenCalledWith(
+        new URL('/onboarding', 'https://app.chamucotravel.com/trips'),
+      );
+    });
+
+    it('calls NextResponse.next() for /trips when fully authenticated', () => {
+      const request = makeRequest('https://app.chamucotravel.com/trips', {
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
+      });
+      middleware(request);
+      expect(mockNext).toHaveBeenCalledOnce();
     });
   });
 });

@@ -361,6 +361,18 @@ describe('AuthProvider', () => {
     cookieSetter.mockRestore();
   });
 
+  it('clears chamuco-registered cookie when user is null', async () => {
+    const cookieSetter = vi.spyOn(document, 'cookie', 'set');
+
+    render(<AuthProvider>{null}</AuthProvider>);
+
+    await waitFor(() =>
+      expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('chamuco-registered=')),
+    );
+    expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Max-Age=0'));
+    cookieSetter.mockRestore();
+  });
+
   it('unsubscribes from onAuthStateChanged on unmount', async () => {
     const mockUnsubscribe = vi.fn();
     firebaseMocks.onAuthStateChanged.mockImplementation((_auth: unknown, cb: AuthCallback) => {

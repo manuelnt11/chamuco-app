@@ -122,6 +122,7 @@ export default function OnboardingPage() {
         username,
         displayName: displayName.trim(),
       });
+      document.cookie = 'chamuco-registered=1; path=/; SameSite=Strict; Secure; Max-Age=2592000';
       router.replace('/');
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {

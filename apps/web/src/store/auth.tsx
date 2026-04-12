@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setIdToken(null);
         document.cookie = 'chamuco-auth=; path=/; SameSite=Strict; Secure; Max-Age=0';
+        document.cookie = 'chamuco-registered=; path=/; SameSite=Strict; Secure; Max-Age=0';
       }
 
       setIsLoading(false);

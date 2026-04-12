@@ -190,6 +190,18 @@ describe('SignInPage', () => {
       await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
     });
 
+    it('sets chamuco-registered cookie after successful sign-in for a returning user (200)', async () => {
+      const cookieSetter = vi.spyOn(document, 'cookie', 'set');
+      const user = setup();
+      mocks.mockApiGet.mockResolvedValue({ status: 200 });
+      render(<SignInPage />);
+      await user.click(screen.getByTestId('google-signin-btn'));
+      await waitFor(() =>
+        expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('chamuco-registered=1')),
+      );
+      cookieSetter.mockRestore();
+    });
+
     it('redirects to /onboarding after sign-in for a new user (404)', async () => {
       const user = setup();
       const err = Object.assign(new Error('Not found'), {

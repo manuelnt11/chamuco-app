@@ -399,6 +399,21 @@ describe('OnboardingPage', () => {
       });
     });
 
+    it('sets chamuco-registered cookie on successful registration', async () => {
+      const cookieSetter = vi.spyOn(document, 'cookie', 'set');
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      const user = await renderFormWithAvailableUsername({
+        currentUser: makeUser({ displayName: 'Test User' }),
+      });
+
+      await user.click(screen.getByTestId('submit-btn'));
+
+      await waitFor(() =>
+        expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('chamuco-registered=1')),
+      );
+      cookieSetter.mockRestore();
+    });
+
     it('shows usernameTaken toast and resets to taken state on 409 from submit', async () => {
       mocks.mockApiPost.mockRejectedValue(CONFLICT_ERROR);
       const user = await renderFormWithAvailableUsername({
