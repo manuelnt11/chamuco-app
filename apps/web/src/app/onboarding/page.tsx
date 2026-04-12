@@ -41,7 +41,7 @@ type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 export default function OnboardingPage() {
   const { t } = useTranslation('auth');
   const router = useRouter();
-  const { currentUser, isLoading } = useAuth();
+  const { currentUser, isLoading, signOut } = useAuth();
 
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -208,6 +208,18 @@ export default function OnboardingPage() {
             data-testid="submit-btn"
           >
             {isSubmitting ? <Spinner size="sm" /> : t('onboarding.submit')}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            disabled={isSubmitting}
+            onClick={() => signOut().catch(() => undefined)}
+            className="h-11 border-destructive text-destructive hover:bg-destructive hover:text-white transition-colors"
+            data-testid="cancel-btn"
+          >
+            {t('common:actions.cancel')}
           </Button>
         </form>
       </div>

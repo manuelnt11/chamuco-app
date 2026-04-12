@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   mockApiPost: vi.fn(),
   mockToastError: vi.fn(),
   mockToastInfo: vi.fn(),
+  mockSignOut: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -87,7 +88,7 @@ function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
     getIdToken: vi.fn().mockResolvedValue(null),
     signInWithGoogle: vi.fn(),
     signInWithFacebook: vi.fn(),
-    signOut: vi.fn(),
+    signOut: mocks.mockSignOut,
     ...overrides,
   };
 }
@@ -219,6 +220,47 @@ describe('OnboardingPage', () => {
     it('leaves display name empty when currentUser has no displayName', async () => {
       await renderForm({ currentUser: makeUser({ displayName: null }) });
       expect(screen.getByTestId<HTMLInputElement>('displayname-input').value).toBe('');
+    });
+
+    it('renders the cancel button', async () => {
+      await renderForm();
+      expect(screen.getByTestId('cancel-btn')).toBeInTheDocument();
+    });
+  });
+
+  describe('cancel button', () => {
+    it('calls signOut when cancel is clicked', async () => {
+      mocks.mockSignOut.mockResolvedValue(undefined);
+      const user = await renderForm();
+      await user.click(screen.getByTestId('cancel-btn'));
+      expect(mocks.mockSignOut).toHaveBeenCalledOnce();
+    });
+
+    it('cancel button is disabled while isSubmitting', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      vi.mocked(useAuth).mockReturnValue(makeAuth());
+      mockGetByUrl();
+      mocks.mockApiPost.mockReturnValue(new Promise(() => undefined));
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime.bind(vi),
+        delay: null,
+      });
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+      await user.clear(screen.getByTestId('username-input'));
+      await user.type(screen.getByTestId('username-input'), 'newuser');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+      await user.type(screen.getByTestId('displayname-input'), 'Test');
+      await act(async () => {
+        await user.click(screen.getByTestId('submit-btn'));
+      });
+      expect(screen.getByTestId('cancel-btn')).toBeDisabled();
+      vi.useRealTimers();
     });
   });
 
