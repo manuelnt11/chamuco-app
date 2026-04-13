@@ -35,11 +35,8 @@ Full implementation of the authentication layer as designed.
 Full implementation of the user profile module as designed.
 
 - Core user record (`users`): username, display name, avatar, auth provider, timezone
-- Personal profile (`user_profiles`): legal name, date of birth (JSONB with year visibility flag), birth country and city, home country and city, phone, bio
+- Personal profile (`user_profiles`): legal name, date of birth (JSONB with year visibility flag), birth/home country (char(2)) and city, phone, bio; plus health data (dietary preference, food allergies, phobias, physical limitations, medical conditions), emergency contacts, and loyalty programs — all stored as typed columns or JSONB arrays on the same table
 - Nationalities & travel documents (`user_nationalities`): multiple nationalities, national ID, passport number, issue date, expiry date, pre-computed `PassportStatus`, daily job for status updates and expiry notifications
-- Emergency contacts (`user_emergency_contacts`): 1:many, at least one required
-- Loyalty programs (`user_loyalty_programs`): reference data, user-only visibility
-- Health profile: dietary preference and notes (`user_health_profiles`), food allergies (`user_food_allergies`), phobias (`user_phobias`), physical limitations (`user_physical_limitations`), medical conditions (`user_medical_conditions`)
 - User preferences (`user_preferences`): language, currency, theme
 - Profile visibility controls (`ProfileVisibility`)
 

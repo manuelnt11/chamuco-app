@@ -2,6 +2,11 @@
 
 This file provides essential context for working on Chamuco App. Read it in full before making any code or documentation changes. For detailed specs, refer to the files under `documentation/`.
 
+**Package-specific instructions** — read the relevant file when working inside a sub-package:
+
+- `apps/web/CLAUDE.md` — Next.js frontend: i18n namespaces, env variable sync, translation validation
+- `apps/api/CLAUDE.md` — NestJS backend: OpenAPI decorators, Drizzle migration generation
+
 ---
 
 ## What Is Chamuco App
@@ -22,112 +27,7 @@ The project is currently in the **design and documentation phase** — no source
 - **All documentation is in English**.
 - **No hardcoded user-facing strings on the frontend**. Every visible text must use `i18next` `t()` references. Enforced by `eslint-plugin-i18next` at lint and CI level. This is a hard requirement, not a guideline.
 
-### i18n Namespace Usage
-
-**Configuration:**
-
-- Location: `apps/web/src/lib/i18n/config.ts`
-- Default namespace: `common`
-- Available namespaces: `common`, `auth`, `trips`, `groups`, `profile`, `errors`
-- Translation files: `apps/web/src/locales/{en|es}.json`
-
-**Namespace Rules:**
-
-1. **When to use the default namespace (`common`):**
-   - Shared UI elements across the entire app (navigation, actions, status messages)
-   - Generic validation messages
-   - Time/date formatting
-   - Home page content
-   - Offline page content
-
-   ```tsx
-   // ✅ Correct - uses default 'common' namespace
-   const { t } = useTranslation();
-
-   <h1>{t('home.title')}</h1>              // resolves to common.home.title
-   <button>{t('actions.save')}</button>    // resolves to common.actions.save
-   <span>{t('navigation.trips')}</span>    // resolves to common.navigation.trips
-   ```
-
-2. **When to use specific namespaces:**
-   - Feature-specific pages should use their own namespace
-   - Each major section (trips, groups, profile, etc.) has its own namespace
-   - Auth flows use the `auth` namespace
-   - Error messages use the `errors` namespace
-
-   ```tsx
-   // ✅ Correct - trips page uses 'trips' namespace
-   const { t } = useTranslation('trips');
-
-   <h1>{t('title')}</h1>           // resolves to trips.title
-   <p>{t('myTrips')}</p>           // resolves to trips.myTrips
-   <span>{t('status.draft')}</span> // resolves to trips.status.draft
-   ```
-
-   ```tsx
-   // ✅ Correct - groups page uses 'groups' namespace
-   const { t } = useTranslation('groups');
-
-   <h1>{t('title')}</h1>      // resolves to groups.title
-   <p>{t('myGroups')}</p>     // resolves to groups.myGroups
-   ```
-
-3. **What NOT to do:**
-
-   ```tsx
-   // ❌ WRONG - using fully qualified keys when a namespace is available
-   const { t } = useTranslation();
-   <h1>{t('trips.title')}</h1>  // This will look in common.trips.title (doesn't exist!)
-
-   // ❌ WRONG - using fully qualified keys with specific namespace
-   const { t } = useTranslation('trips');
-   <h1>{t('trips.title')}</h1>  // This will look in trips.trips.title (doesn't exist!)
-
-   // ❌ WRONG - hardcoded strings
-   <h1>Trips</h1>  // Fails eslint-plugin-i18next check
-   ```
-
-4. **Cross-namespace references:**
-
-   If you need to reference keys from a different namespace within a component:
-
-   ```tsx
-   // ✅ Correct - access multiple namespaces
-   const { t } = useTranslation(['trips', 'common']);
-
-   <h1>{t('title')}</h1>                    // from trips namespace
-   <button>{t('common:actions.save')}</button>  // explicitly from common namespace
-   ```
-
-5. **Validation:**
-
-   Always run the i18n validation script after modifying translation keys:
-
-   ```bash
-   ./scripts/validate-i18n-keys.sh
-   ```
-
-   The script automatically detects the namespace from `useTranslation('namespace')` calls and validates that all keys exist in the corresponding JSON files.
-
-**File Organization Pattern:**
-
-```
-apps/web/src/
-├── app/
-│   ├── trips/page.tsx        → useTranslation('trips')
-│   ├── groups/page.tsx       → useTranslation('groups')
-│   ├── profile/page.tsx      → useTranslation('profile')
-│   └── page.tsx              → useTranslation() = 'common'
-├── components/
-│   ├── navigation/           → useTranslation() = 'common'
-│   ├── header/               → useTranslation() = 'common'
-│   └── layout/               → useTranslation() = 'common'
-└── locales/
-    ├── en.json               → { common: {...}, trips: {...}, groups: {...}, ... }
-    └── es.json               → { common: {...}, trips: {...}, groups: {...}, ... }
-```
-
-**Key takeaway:** Match the `useTranslation()` namespace to the feature you're working in, and use keys relative to that namespace. The validation script enforces this convention.
+> i18n namespace conventions, translation file structure, and the validation script are documented in `apps/web/CLAUDE.md`.
 
 ---
 
@@ -353,23 +253,7 @@ import { UsersService } from '../../users/users.service';
 
 See `documentation/architecture/monorepo-structure.md` — "Import Aliases" section for the full spec.
 
-### 3. OpenAPI documentation on every backend change
-
-Every NestJS controller endpoint must be fully documented with `@nestjs/swagger` decorators. When any of the following are modified:
-
-- A controller method (new endpoint, changed path, changed HTTP method)
-- A request DTO or response DTO
-- An enum used in a request or response
-
-Then verify and update:
-
-- `@ApiTags`, `@ApiOperation`, `@ApiResponse` on the controller
-- `@ApiProperty` on all DTO fields (type, description, example, required/optional)
-- `@ApiBearerAuth()` if the endpoint requires authentication
-
-No endpoint may be left without a summary (`@ApiOperation`), at least one `@ApiResponse`, and fully annotated DTO fields.
-
-### 4. Pre-commit quality gates are non-negotiable
+### 3. Pre-commit quality gates are non-negotiable
 
 Every commit must pass all five gates enforced by the Husky pre-commit hook:
 
@@ -393,17 +277,7 @@ When writing new code:
 - New tests must be added in the same commit as the code they cover — never defer test writing to a later commit.
 - Coverage thresholds are configured in `apps/api/jest.config.ts` (backend) and `apps/web/vitest.config.ts` (frontend).
 
-### 5. Migration file on every schema change
-
-When any Drizzle schema file (`*.schema.ts`) is modified — new table, new column, renamed column, dropped column, new index, constraint change — a migration file must be generated:
-
-```bash
-pnpm --filter db drizzle-kit generate
-```
-
-The generated `.sql` file must be committed alongside the schema change in the same PR. No schema change may be merged without its corresponding migration file. Destructive operations (column drops, renames) require a multi-step migration strategy — document the steps in the PR description.
-
-### 6. Truncate test and lint output to conserve context
+### 4. Truncate test and lint output to conserve context
 
 When running tests or linters via the Bash tool, always pipe the output through `tail` to display only the **last 50–100 lines**. As the codebase grows, full test suite output can consume thousands of lines, but only the final summary and any errors are actionable.
 
@@ -440,7 +314,7 @@ pnpm --filter api lint:check
 
 The final lines contain the test summary (passed/failed counts, coverage percentages) and any error messages or stack traces. Earlier output (individual test progress, file processing) is usually noise. If an error is truncated, the user will ask for the full output explicitly.
 
-### 7. Strict TypeScript typing — avoid `any` and `unknown`
+### 5. Strict TypeScript typing — avoid `any` and `unknown`
 
 TypeScript's type system is a critical safety net. **Never use `any` or `unknown` unless absolutely necessary.** These types bypass type checking and should be treated as code smells.
 
@@ -516,64 +390,12 @@ TypeScript's type system is a critical safety net. **Never use `any` or `unknown
 - If a better-typed alternative exists, request changes.
 - Temporary workarounds with `@ts-expect-error` should reference a tracking issue or version number.
 
-### 8. Frontend environment variables — three files must always stay in sync
+### Package-specific standing rules
 
-All frontend environment variables are validated at startup by `apps/web/src/config/env.ts`. Adding a new `NEXT_PUBLIC_` variable requires updating **three files together** — missing any one of them will cause either a runtime crash or a failing test:
+Additional standing rules that apply only within a specific package are kept close to the code they govern:
 
-| File                                   | What to do                                                                                                                                       |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `apps/web/src/config/env.constants.ts` | Add the key to the `REQUIRED_VARS` tuple                                                                                                         |
-| `apps/web/src/config/env.ts`           | Add `KEY: process.env.KEY` to the `raw` object (literal access is required — Next.js does not replace `process.env[variable]` in client bundles) |
-| `apps/web/src/config/env.test.ts`      | Add the key to `setAllEnv()` and `clearAllEnv()`, and update the `toEqual` assertion in "returns all env vars when all are set"                  |
-
-Also update `.env.example` with the new key (empty value) so other developers know to set it.
-
-**Current required variables:**
-
-| Variable                                   | Purpose                                                    |
-| ------------------------------------------ | ---------------------------------------------------------- |
-| `NEXT_PUBLIC_FIREBASE_API_KEY`             | Firebase client SDK                                        |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`         | Firebase client SDK                                        |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`          | Firebase client SDK                                        |
-| `NEXT_PUBLIC_FIREBASE_APP_ID`              | Firebase client SDK                                        |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase client SDK                                        |
-| `NEXT_PUBLIC_API_URL`                      | NestJS API base URL (e.g. `http://localhost:3001` locally) |
-
-### 9. Validate i18n keys when modifying translations
-
-When any of the following changes are made to the frontend codebase:
-
-- Adding or modifying `t('key')` calls in components
-- Adding, removing, or modifying keys in translation files (`locales/en.json`, `locales/es.json`)
-- Refactoring components that use i18n
-
-**You must run the i18n validation script:**
-
-```bash
-./scripts/validate-i18n-keys.sh
-```
-
-**The script validates:**
-
-1. **Missing keys** — Keys used in code (`t('key')`) but not defined in `en.json`
-2. **Translation parity** — Keys in `en.json` that don't exist in `es.json`
-3. **Unused keys** — Keys defined in translation files but not referenced in code (informational only)
-
-**Key conventions:**
-
-- The default namespace is `common` (configured in `apps/web/src/lib/i18n/config.ts`)
-- When using `t('home.title')`, it resolves to `common.home.title` in the JSON
-- For other namespaces, use explicit prefixes: `t('auth.signIn')`, `t('trips.title')`, `t('groups.members')`
-- Never use hardcoded strings in user-facing components — use i18n keys instead
-- Brand name "Chamuco" and proper nouns can have `eslint-disable-next-line i18next/no-literal-string` comments
-
-**Fix workflow:**
-
-- If keys are missing in `en.json`, add them to the appropriate namespace
-- If keys are missing in `es.json`, translate and add them (maintain parity with `en.json`)
-- If many unused keys are reported, it's informational — no action required unless keys are confirmed obsolete
-
-**The script exits with code 1 if any keys are missing**, blocking commits via pre-commit hooks if integrated. All i18n keys must be valid before merging.
+- `apps/api/CLAUDE.md` — OpenAPI decorator requirements, Drizzle migration file generation
+- `apps/web/CLAUDE.md` — Frontend env variable sync, i18n key validation
 
 ---
 
