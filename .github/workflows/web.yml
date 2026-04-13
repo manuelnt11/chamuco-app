@@ -190,12 +190,14 @@ jobs:
 
           echo "Service URL: $SERVICE_URL"
 
-          # Test homepage
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL/)
+          # Test that the service is responding. Check /sign-in — a public route that
+          # always returns 200 regardless of auth state. The root path (/) now redirects
+          # unauthenticated requests to /sign-in via Next.js middleware (HTTP 307).
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL/sign-in)
 
           if [ $HTTP_CODE -eq 200 ]; then
-            echo "✅ Homepage check passed (HTTP $HTTP_CODE)"
+            echo "✅ Service check passed (HTTP $HTTP_CODE)"
           else
-            echo "❌ Homepage check failed (HTTP $HTTP_CODE)"
+            echo "❌ Service check failed (HTTP $HTTP_CODE)"
             exit 1
           fi
