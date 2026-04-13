@@ -63,18 +63,30 @@ A 1:1 extension of the `users` table that holds display and UX preferences. Crea
 
 Extended personal data for the person behind the account. This is a 1:1 extension of the `users` table, kept separate to avoid bloating the core auth record.
 
-| Field           | Type              | Description                                                                                                                                                                                      |
-| --------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `user_id`       | UUID              | FK → `users.id`                                                                                                                                                                                  |
-| `first_name`    | String            | Legal first name (as on travel document).                                                                                                                                                        |
-| `last_name`     | String            | Legal last name.                                                                                                                                                                                 |
-| `date_of_birth` | JSONB             | `{ day, month, year, year_visible }`. See format below.                                                                                                                                          |
-| `birth_country` | String (nullable) | ISO 3166-1 alpha-2. Country of birth.                                                                                                                                                            |
-| `birth_city`    | String (nullable) | City of birth.                                                                                                                                                                                   |
-| `home_country`  | String            | ISO 3166-1 alpha-2. Country of current residence. May differ from any declared nationality.                                                                                                      |
-| `home_city`     | String (nullable) | City of current residence. Used as the origin point for LP distance calculations (see [`features/gamification.md`](./gamification.md)). Falls back to the centroid of `home_country` if not set. |
-| `phone_number`  | String            | Mobile number in international format (e.g., `+573001234567`).                                                                                                                                   |
-| `bio`           | Text (nullable)   | Short public bio shown on the user's public profile.                                                                                                                                             |
+In addition to personal fields, `user_profiles` consolidates all data that is always fetched per-user, never queried cross-user, and has no external FK dependencies: health data, emergency contacts, and loyalty programs. These are stored as JSONB columns instead of separate tables. See each section below for the JSONB structure and enum definitions.
+
+| Field                   | Type                     | Description                                                                                                                                                                                      |
+| ----------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `user_id`               | UUID                     | PK + FK → `users.id`                                                                                                                                                                             |
+| `first_name`            | String                   | Legal first name (as on travel document).                                                                                                                                                        |
+| `last_name`             | String                   | Legal last name.                                                                                                                                                                                 |
+| `date_of_birth`         | JSONB                    | `{ day, month, year, year_visible }`. See format below.                                                                                                                                          |
+| `birth_country`         | char(2) (nullable)       | ISO 3166-1 alpha-2. Country of birth.                                                                                                                                                            |
+| `birth_city`            | String (nullable)        | City of birth.                                                                                                                                                                                   |
+| `home_country`          | char(2)                  | ISO 3166-1 alpha-2. Country of current residence. May differ from any declared nationality.                                                                                                      |
+| `home_city`             | String (nullable)        | City of current residence. Used as the origin point for LP distance calculations (see [`features/gamification.md`](./gamification.md)). Falls back to the centroid of `home_country` if not set. |
+| `phone_number`          | String                   | Mobile number in international format (e.g., `+573001234567`).                                                                                                                                   |
+| `bio`                   | Text (nullable)          | Short public bio shown on the user's public profile.                                                                                                                                             |
+| `dietary_preference`    | Enum `DietaryPreference` | Declared baseline diet. Default: `OMNIVORE`.                                                                                                                                                     |
+| `dietary_notes`         | Text (nullable)          | Additional dietary context (e.g., "no pork for religious reasons", "keto").                                                                                                                      |
+| `general_medical_notes` | Text (nullable)          | Free text for any other medical context the user chooses to share that does not fit the structured categories. Opt-in sharing per trip — see Visibility below.                                   |
+| `food_allergies`        | JSONB                    | Array of `{ allergen: FoodAllergen, description: string \| null }`. Default: `[]`.                                                                                                               |
+| `phobias`               | JSONB                    | Array of `{ phobia: PhobiaType, description: string \| null }`. Default: `[]`.                                                                                                                   |
+| `physical_limitations`  | JSONB                    | Array of `{ limitation: PhysicalLimitationType, description: string \| null }`. Default: `[]`.                                                                                                   |
+| `medical_conditions`    | JSONB                    | Array of `{ condition: MedicalConditionType, description: string \| null }`. Default: `[]`.                                                                                                      |
+| `emergency_contacts`    | JSONB                    | Array of emergency contact objects. See [Emergency Contacts](#emergency-contacts) below. Default: `[]`.                                                                                          |
+| `loyalty_programs`      | JSONB                    | Array of loyalty program objects. See [Loyalty Programs](#loyalty-programs) below. Default: `[]`.                                                                                                |
+| `updated_at`            | Timestamp                |                                                                                                                                                                                                  |
 
 ### Date of Birth Format
 
@@ -117,7 +129,7 @@ CONSTRAINT passport_data_consistency CHECK (
 | ---------------------- | --------------------- | -------------------------------------------------------------------------------------------------------- |
 | `id`                   | UUID                  |                                                                                                          |
 | `user_id`              | UUID                  | FK → `users.id`                                                                                          |
-| `country_code`         | String                | ISO 3166-1 alpha-2 (e.g., `CO`, `ES`). Unique per user.                                                  |
+| `country_code`         | char(2)               | ISO 3166-1 alpha-2 (e.g., `CO`, `ES`). Unique per user.                                                  |
 | `is_primary`           | Boolean               | The nationality/passport to use as default for international trips. Exactly one per user must be `true`. |
 | `national_id_number`   | String (nullable)     | National ID / Cédula / DNI / SSN for this citizenship.                                                   |
 | `passport_number`      | String (nullable)     | Passport document number.                                                                                |
@@ -171,49 +183,52 @@ The NestJS job iterates the returned rows and queues an FCM notification for eac
 
 ---
 
-## Emergency Contacts (`user_emergency_contacts`)
+## Emergency Contacts
 
 A user must have **at least one emergency contact**. Multiple contacts are supported.
 
-| Field          | Type    | Description                                                                                   |
-| -------------- | ------- | --------------------------------------------------------------------------------------------- |
-| `id`           | UUID    |                                                                                               |
-| `user_id`      | UUID    | FK → `users.id`                                                                               |
-| `full_name`    | String  |                                                                                               |
-| `phone_number` | String  | International format.                                                                         |
-| `relationship` | String  | Free text (e.g., "mother", "spouse", "best friend").                                          |
-| `is_primary`   | Boolean | Marks the contact to show first in emergency situations. Exactly one per user must be `true`. |
+Emergency contacts are stored as a JSONB array in `user_profiles.emergency_contacts`. This data is always fetched per-user, is never queried cross-user, and has no FK dependencies — a JSONB column avoids the overhead of a separate table.
+
+**JSONB element shape:**
+
+```typescript
+{
+  id: string; // client-generated UUID, used to target individual items in PATCH operations
+  full_name: string;
+  phone_number: string; // international format (e.g., +573001234567)
+  relationship: string; // free text (e.g., "mother", "spouse", "best friend")
+  is_primary: boolean; // exactly one element must be true
+}
+```
 
 **Rule:** A user with zero emergency contacts cannot be marked as a confirmed participant on international trips (enforced by the pre-trip checklist, not as a hard DB constraint).
 
 ---
 
-## Loyalty Programs (`user_loyalty_programs`)
+## Loyalty Programs
 
 Reference data only — loyalty program IDs are stored on the user profile as a convenience for manual entry when making reservations. They are **not linked to reservation records** in the system.
 
-| Field          | Type              | Description                                                                   |
-| -------------- | ----------------- | ----------------------------------------------------------------------------- |
-| `id`           | UUID              |                                                                               |
-| `user_id`      | UUID              | FK → `users.id`                                                               |
-| `program_name` | String            | Name of the program (e.g., "LifeMiles", "Delta SkyMiles", "Marriott Bonvoy"). |
-| `member_id`    | String            | The membership / account number in that program.                              |
-| `notes`        | String (nullable) | Tier level, expiry, or other notes.                                           |
+Stored as a JSONB array in `user_profiles.loyalty_programs`. Visible only to the user themselves — never exposed to organizers or other participants.
+
+**JSONB element shape:**
+
+```typescript
+{
+  id: string; // client-generated UUID, used to target individual items in PATCH operations
+  program_name: string; // e.g., "LifeMiles", "Delta SkyMiles", "Marriott Bonvoy"
+  member_id: string; // membership / account number
+  notes: string | null; // tier level, expiry, or other notes
+}
+```
 
 ---
 
-## Health Profile (`user_health_profiles`)
+## Health Profile
 
 Health and dietary data used by organizers to plan meals, activities, and manage emergency situations. Each category uses a **structured selection list** so organizers can filter and search effectively. Every category includes an `OTHER` option with a required `description` field for cases not covered by the standard list.
 
-### `user_health_profiles` (1:1 — dietary baseline)
-
-| Field                   | Type                     | Description                                                                                                                                                    |
-| ----------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `user_id`               | UUID                     | PK + FK → `users.id`                                                                                                                                           |
-| `dietary_preference`    | Enum `DietaryPreference` | Declared baseline diet.                                                                                                                                        |
-| `dietary_notes`         | Text (nullable)          | Additional dietary context (e.g., "no pork for religious reasons", "keto").                                                                                    |
-| `general_medical_notes` | Text (nullable)          | Free text for any other medical context the user chooses to share that does not fit the structured categories. Opt-in sharing per trip — see Visibility below. |
+All health data is stored directly on `user_profiles` (see table above). Scalar fields (`dietary_preference`, `dietary_notes`, `general_medical_notes`) are typed columns. The four multi-value categories (food allergies, phobias, physical limitations, medical conditions) are JSONB arrays — each element has the shape `{ <field>: <enum>, description: string | null }`, where `description` is required when the enum value is `OTHER`.
 
 ### Dietary Preference (enum: `DietaryPreference`)
 
@@ -228,16 +243,9 @@ Health and dietary data used by organizers to plan meals, activities, and manage
 
 ---
 
-### Food Allergies (`user_food_allergies`)
+### Food Allergies (enum: `FoodAllergen`)
 
-| Field         | Type                | Description                                                           |
-| ------------- | ------------------- | --------------------------------------------------------------------- |
-| `id`          | UUID                |                                                                       |
-| `user_id`     | UUID                | FK → `users.id`                                                       |
-| `allergen`    | Enum `FoodAllergen` | Selected allergen from the standard list.                             |
-| `description` | Text (nullable)     | Additional detail or severity note. Required when `allergen = OTHER`. |
-
-### Food Allergens (enum: `FoodAllergen`)
+Stored in `user_profiles.food_allergies` as `{ allergen: FoodAllergen, description: string | null }[]`. `description` is required when `allergen = OTHER`.
 
 Covers the most common internationally recognized allergens.
 
@@ -261,16 +269,9 @@ Covers the most common internationally recognized allergens.
 
 ---
 
-### Phobias (`user_phobias`)
+### Phobias (enum: `PhobiaType`)
 
-| Field         | Type              | Description                                         |
-| ------------- | ----------------- | --------------------------------------------------- |
-| `id`          | UUID              |                                                     |
-| `user_id`     | UUID              | FK → `users.id`                                     |
-| `phobia`      | Enum `PhobiaType` | Selected phobia from the standard list.             |
-| `description` | Text (nullable)   | Additional context. Required when `phobia = OTHER`. |
-
-### Phobia Types (enum: `PhobiaType`)
+Stored in `user_profiles.phobias` as `{ phobia: PhobiaType, description: string | null }[]`. `description` is required when `phobia = OTHER`.
 
 Travel-relevant phobias and strong aversions.
 
@@ -292,16 +293,9 @@ Travel-relevant phobias and strong aversions.
 
 ---
 
-### Physical Limitations (`user_physical_limitations`)
+### Physical Limitations (enum: `PhysicalLimitationType`)
 
-| Field         | Type                          | Description                                                                                     |
-| ------------- | ----------------------------- | ----------------------------------------------------------------------------------------------- |
-| `id`          | UUID                          |                                                                                                 |
-| `user_id`     | UUID                          | FK → `users.id`                                                                                 |
-| `limitation`  | Enum `PhysicalLimitationType` | Selected limitation from the standard list.                                                     |
-| `description` | Text (nullable)               | Specifics (e.g., "can walk max 2 km", "uses hearing aids"). Required when `limitation = OTHER`. |
-
-### Physical Limitation Types (enum: `PhysicalLimitationType`)
+Stored in `user_profiles.physical_limitations` as `{ limitation: PhysicalLimitationType, description: string | null }[]`. `description` is required when `limitation = OTHER`.
 
 | Value                   | Description                                                    |
 | ----------------------- | -------------------------------------------------------------- |
@@ -321,18 +315,9 @@ Travel-relevant phobias and strong aversions.
 
 ---
 
-### Medical Conditions (`user_medical_conditions`)
+### Medical Conditions (enum: `MedicalConditionType`)
 
-Conditions relevant to emergency response or trip planning.
-
-| Field         | Type                        | Description                                                                                 |
-| ------------- | --------------------------- | ------------------------------------------------------------------------------------------- |
-| `id`          | UUID                        |                                                                                             |
-| `user_id`     | UUID                        | FK → `users.id`                                                                             |
-| `condition`   | Enum `MedicalConditionType` | Selected condition from the standard list.                                                  |
-| `description` | Text (nullable)             | Specifics (e.g., "carries EpiPen", "insulin-dependent"). Required when `condition = OTHER`. |
-
-### Medical Condition Types (enum: `MedicalConditionType`)
+Conditions relevant to emergency response or trip planning. Stored in `user_profiles.medical_conditions` as `{ condition: MedicalConditionType, description: string | null }[]`. `description` is required when `condition = OTHER`.
 
 | Value                     | Description                                                            |
 | ------------------------- | ---------------------------------------------------------------------- |
