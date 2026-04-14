@@ -18,7 +18,7 @@ const WEB_DIR = 'apps/web';
 const SRC_DIR = join(WEB_DIR, 'src');
 const LOCALES_DIR = join(WEB_DIR, 'src', 'locales');
 
-const KNOWN_NAMESPACES = ['auth', 'trips', 'groups', 'profile', 'errors', 'common', 'explore', 'legal'];
+const KNOWN_NAMESPACES = ['auth', 'trips', 'groups', 'profile', 'errors', 'common', 'explore'];
 const EXPLICIT_NS_PATTERN = new RegExp(`^(${KNOWN_NAMESPACES.join('|')})\\\.`);
 
 console.log(`${BLUE}🔍 Validating i18n keys...${NC}\n`);
