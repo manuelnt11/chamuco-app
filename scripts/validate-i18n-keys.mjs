@@ -44,14 +44,24 @@ for (const file of sourceFiles) {
     .filter((line) => !line.includes('eslint-disable'))
     .join('\n');
 
-  // Detect namespace from useTranslation('namespace') — first match wins
-  const nsMatch = content.match(/useTranslation\(['"]([a-zA-Z0-9_-]+)['"]\)/);
-  const namespace = nsMatch ? nsMatch[1] : 'common';
+  // Detect namespace from useTranslation('namespace') or useTranslation(['ns1', 'ns2'])
+  // For the array form, the first element is the default namespace.
+  let namespace = 'common';
+  const singleNsMatch = content.match(/useTranslation\(['"]([a-zA-Z0-9_-]+)['"]\)/);
+  if (singleNsMatch) {
+    namespace = singleNsMatch[1];
+  } else {
+    const arrayNsMatch = content.match(/useTranslation\(\s*\[\s*['"]([a-zA-Z0-9_-]+)['"]/);
+    if (arrayNsMatch) namespace = arrayNsMatch[1];
+  }
 
-  // Extract all t('key') calls
-  for (const match of filteredContent.matchAll(/t\(['"]([a-zA-Z0-9._-]+)['"]\)/g)) {
+  // Extract all t('key') calls, including explicit namespace prefix (e.g. 'common:actions.save')
+  for (const match of filteredContent.matchAll(/t\(['"]([a-zA-Z0-9._:-]+)['"]\)/g)) {
     const key = match[1];
-    if (EXPLICIT_NS_PATTERN.test(key)) {
+    if (key.includes(':')) {
+      // Explicit namespace prefix — normalise colon to dot: common:actions.save → common.actions.save
+      usedKeys.add(key.replace(':', '.'));
+    } else if (EXPLICIT_NS_PATTERN.test(key)) {
       usedKeys.add(key);
     } else if (key.includes('.')) {
       usedKeys.add(`${namespace}.${key}`);

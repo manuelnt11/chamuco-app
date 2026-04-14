@@ -156,6 +156,34 @@ describe('middleware', () => {
     });
   });
 
+  describe.each(['/privacy-policy', '/terms-of-service'])('%s — public legal page', (route) => {
+    it('calls NextResponse.next() when unauthenticated (no cookies)', () => {
+      const request = makeRequest(`https://app.chamucotravel.com${route}`);
+      middleware(request);
+      expect(mockNext).toHaveBeenCalledOnce();
+      expect(mockRedirect).not.toHaveBeenCalled();
+    });
+
+    it('calls NextResponse.next() when authenticated but not registered', () => {
+      const request = makeRequest(`https://app.chamucotravel.com${route}`, {
+        'chamuco-auth': '1',
+      });
+      middleware(request);
+      expect(mockNext).toHaveBeenCalledOnce();
+      expect(mockRedirect).not.toHaveBeenCalled();
+    });
+
+    it('calls NextResponse.next() when fully authenticated', () => {
+      const request = makeRequest(`https://app.chamucotravel.com${route}`, {
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
+      });
+      middleware(request);
+      expect(mockNext).toHaveBeenCalledOnce();
+      expect(mockRedirect).not.toHaveBeenCalled();
+    });
+  });
+
   describe('protected routes (e.g. /, /trips, /profile/settings)', () => {
     it('redirects unauthenticated request to /sign-in', () => {
       const request = makeRequest('https://app.chamucotravel.com/');

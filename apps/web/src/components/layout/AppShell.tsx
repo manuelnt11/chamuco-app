@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { Header } from '@/components/header';
 import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
 
-// Auth pages (/sign-in, /onboarding, etc.) render without nav chrome
-const AUTH_PATHS = ['/sign-in', '/onboarding'];
+// Pages that render without nav chrome (auth flows + public legal pages)
+const NO_CHROME_PATHS = ['/sign-in', '/onboarding', '/privacy-policy', '/terms-of-service'];
 
 interface AppShellProps {
   children: ReactNode;
@@ -15,7 +15,7 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
 
-  if (AUTH_PATHS.includes(pathname)) {
+  if (NO_CHROME_PATHS.includes(pathname)) {
     return <main className="min-h-screen">{children}</main>;
   }
 

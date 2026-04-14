@@ -17,7 +17,8 @@
       "confirm": "Confirmar",
       "loading": "Cargando...",
       "viewMore": "Ver Más",
-      "viewLess": "Ver Menos"
+      "viewLess": "Ver Menos",
+      "backToSignIn": "Volver al inicio de sesión"
     },
     "navigation": {
       "home": "Inicio",
@@ -97,6 +98,10 @@
         "placeholder": "¿Cómo debemos llamarte?"
       },
       "submit": "Crear mi cuenta",
+      "terms": {
+        "accept": "Acepto la <privacyLink>Política de Privacidad</privacyLink> y los <termsLink>Términos y Condiciones</termsLink> de Chamuco Travel.",
+        "required": "Debes aceptar los términos para continuar."
+      },
       "error": {
         "failed": "El registro falló. Por favor intenta de nuevo.",
         "usernameTaken": "Ese nombre de usuario ya está en uso. Por favor elige otro."
@@ -155,5 +160,256 @@
     "unauthorized": "No estás autorizado para acceder a este recurso",
     "networkError": "Error de red. Por favor verifica tu conexión.",
     "sessionExpired": "Tu sesión ha expirado. Por favor inicia sesión nuevamente."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Política de Privacidad y Tratamiento de Datos Personales",
+      "subtitle": "Última actualización: 13 de abril de 2026",
+      "preamble": "Manuel Nuñez Torres, persona natural domiciliada en Colombia, opera la plataforma Chamuco Travel accesible en chamucotravel.com (en adelante, \"Chamuco Travel\" o \"la Plataforma\"). Esta Política de Privacidad describe cómo recopilamos, usamos, almacenamos y protegemos sus datos personales de conformidad con la Ley Estatutaria 1581 de 2012 de Protección de Datos Personales y sus decretos reglamentarios.",
+      "sections": {
+        "controller": {
+          "title": "1. Responsable del Tratamiento",
+          "p1": "El Responsable del Tratamiento de sus datos personales es Manuel Nuñez Torres, persona natural domiciliada en Colombia, que opera bajo la marca Chamuco Travel.",
+          "p2": "Para cualquier pregunta, solicitud o queja relacionada con el tratamiento de sus datos personales, contáctenos en: admin@chamucotravel.com. Responderemos dentro del plazo legalmente establecido (15 días hábiles para consultas; 15 días hábiles para reclamaciones, con una prórroga única de 8 días hábiles adicionales de ser necesaria)."
+        },
+        "dataCollected": {
+          "title": "2. Datos Personales que Recopilamos",
+          "intro": "Recopilamos y tratamos las siguientes categorías de datos personales cuando usted se registra y usa la Plataforma:",
+          "account": {
+            "title": "Datos de Cuenta e Identidad",
+            "body": "Nombre completo y foto de perfil (pre-cargados desde su cuenta de Google o Facebook), correo electrónico, nombre de usuario único elegido en el registro, e identificador de autenticación de Firebase."
+          },
+          "profile": {
+            "title": "Datos del Perfil Personal",
+            "body": "Nombre y apellido legal, fecha de nacimiento, país y ciudad de nacimiento, país y ciudad de residencia actual, número de teléfono en formato internacional, y una biografía pública opcional."
+          },
+          "documents": {
+            "title": "Documentos de Viaje",
+            "body": "Nacionalidad o nacionalidades, número de documento de identidad nacional (cédula, DNI, etc.), número de pasaporte, fecha de expedición del pasaporte y fecha de vencimiento del pasaporte."
+          },
+          "health": {
+            "title": "Datos de Salud (Datos Sensibles)",
+            "body": "Preferencias y restricciones dietarias, alergias alimentarias, fobias relacionadas con viajes, limitaciones físicas, condiciones médicas y notas médicas generales opcionales. Estos datos son clasificados como sensibles según el Artículo 5 de la Ley 1581 de 2012. Consulte la Sección 4 para su tratamiento especial."
+          },
+          "emergency": {
+            "title": "Contactos de Emergencia",
+            "body": "Nombre completo, número de teléfono y relación de cada contacto de emergencia designado."
+          },
+          "loyalty": {
+            "title": "Programas de Fidelidad",
+            "body": "Nombres de programas de fidelidad y números de membresía. Esta información es visible únicamente para usted y nunca se comparte con organizadores u otros usuarios."
+          },
+          "activity": {
+            "title": "Datos de Actividad y Uso",
+            "body": "Viajes creados, unidos y completados; membresías en grupos; estadísticas de viaje (países visitados, distancia recorrida, compañeros de viaje únicos, viajes como organizador); logros desbloqueados; reconocimientos recibidos; y saldo de Puntos Chamuco."
+          },
+          "technical": {
+            "title": "Datos Técnicos y de Preferencias",
+            "body": "Zona horaria de residencia, preferencia de idioma, preferencia de moneda, preferencia de tema de interfaz y marca de tiempo de última actividad."
+          }
+        },
+        "purposes": {
+          "title": "3. Finalidades del Tratamiento",
+          "intro": "Tratamos sus datos personales exclusivamente para las siguientes finalidades:",
+          "auth": "Autenticación y verificación de identidad en cada sesión.",
+          "profile": "Gestión de su perfil de usuario, preferencias y configuración de cuenta.",
+          "trips": "Planificación de viajes, gestión de participantes, coordinación de itinerarios y administración de grupos.",
+          "gamification": "Cálculo de estadísticas de viaje, Puntuación de Viajero, logros, Puntos Chamuco y rankings globales.",
+          "notifications": "Envío de notificaciones push mediante Firebase Cloud Messaging (FCM) para eventos de viaje, alertas de vencimiento de pasaporte, logros, anuncios, recordatorios de fechas clave y comunicaciones de plataforma incluyendo actualizaciones de funcionalidades y contenido promocional relacionado exclusivamente con Chamuco Travel.",
+          "sharing": "Compartir datos de su perfil con organizadores de viajes que tengan el permiso explícito de 'Ver Perfiles de Viaje', únicamente para facilitar la logística de un viaje específico.",
+          "export": "Permitir a los organizadores de viajes exportar datos de participantes (nombre, documentos de viaje, contactos de emergencia y perfil de salud) para fines logísticos como check-in de alojamiento, manifiestos de transporte o preparación para emergencias.",
+          "support": "Atención al cliente, resolución de problemas técnicos y mantenimiento de la integridad de la Plataforma.",
+          "legal": "Cumplimiento de obligaciones legales y regulatorias aplicables."
+        },
+        "sensitiveData": {
+          "title": "4. Datos Sensibles",
+          "p1": "Conforme al Artículo 5 de la Ley Estatutaria 1581 de 2012, los datos relacionados con la salud — incluyendo alergias alimentarias, condiciones médicas, limitaciones físicas, fobias relacionadas con viajes y preferencias dietarias — constituyen datos personales sensibles sujetos a protección reforzada.",
+          "p2": "El suministro de datos de salud es completamente voluntario. Puede omitir cualquier campo de salud sin que ello afecte su capacidad de registrarse o usar la Plataforma. Al proporcionar estos datos, usted otorga su consentimiento explícito para su tratamiento con las finalidades descritas en la Sección 3.",
+          "p3": "Los datos de salud se comparten únicamente con el organizador o co-organizador del viaje en el que usted ha confirmado su participación, y solo si dicho organizador cuenta con el permiso de 'Ver Perfiles de Viaje'. No son visibles para otros participantes.",
+          "p4": "Sus notas médicas generales son privadas por defecto. Puede otorgar acceso a las mismas a un organizador específico de un viaje determinado mediante un interruptor voluntario de activación. El organizador no puede solicitar ni exigir este acceso; solo usted puede concederlo."
+        },
+        "thirdParties": {
+          "title": "5. Divulgación a Terceros",
+          "p1": "Compartimos datos personales únicamente con los siguientes proveedores de servicios, estrictamente en la medida necesaria para el funcionamiento de la Plataforma:",
+          "googleTitle": "Google LLC / Firebase / Google Cloud Platform",
+          "googleBody": "Autenticación (Firebase Authentication), notificaciones push (Firebase Cloud Messaging), almacenamiento de archivos (Cloud Storage), alojamiento de base de datos relacional (Cloud SQL en Google Cloud) y alojamiento de la aplicación (Cloud Run). Google actúa como Encargado del Tratamiento bajo sus Términos de Procesamiento y Seguridad de Datos.",
+          "facebookTitle": "Meta Platforms, Inc. (Facebook)",
+          "facebookBody": "Autenticación mediante Facebook Sign-In, disponible como alternativa a Google Sign-In. Solo aplica si usted elige registrarse o iniciar sesión con Facebook.",
+          "noSale": "No vendemos, alquilamos, intercambiamos ni transferimos sus datos personales a terceros con fines comerciales, de mercadeo o publicidad."
+        },
+        "internationalTransfers": {
+          "title": "6. Transferencias Internacionales de Datos",
+          "p1": "Los servidores de Google Cloud Platform y Firebase procesan y almacenan datos principalmente en los Estados Unidos. Estas transferencias constituyen transferencias internacionales de datos personales según el Artículo 26 de la Ley 1581 de 2012.",
+          "p2": "Para garantizar un nivel adecuado de protección, Chamuco Travel se apoya en las Cláusulas Contractuales Tipo de Google y sus Términos de Procesamiento y Seguridad de Datos, que establecen garantías contractuales para la protección de los datos personales transferidos fuera de Colombia.",
+          "p3": "Al registrarse y usar la Plataforma, usted reconoce y consiente la transferencia y el procesamiento de sus datos en los Estados Unidos bajo las salvaguardas de protección de datos descritas anteriormente."
+        },
+        "minors": {
+          "title": "7. Menores de Edad",
+          "p1": "Chamuco Travel está dirigida exclusivamente a usuarios mayores de 18 años. No recopilamos conscientemente datos personales de menores de edad.",
+          "p2": "Si tenemos conocimiento de que un usuario es menor de 18 años, suspenderemos su cuenta de inmediato y eliminaremos permanentemente sus datos personales. Si tiene razones para creer que un menor se ha registrado en la Plataforma, notifíquenos en admin@chamucotravel.com."
+        },
+        "retention": {
+          "title": "8. Conservación de Datos",
+          "p1": "Conservamos sus datos personales durante el tiempo que su cuenta permanezca activa en la Plataforma.",
+          "p2": "Cuando usted inicia la eliminación de su cuenta, comienza un período de recuperación de 30 días. Durante este período puede reactivar su cuenta y todos los datos se preservan. Transcurridos 30 días, todos los datos personales asociados a su cuenta son eliminados de forma permanente e irreversible de nuestros sistemas.",
+          "p3": "Los registros de auditoría inmutables generados por acciones de administradores de soporte de la plataforma se conservan por el período exigido por la ley aplicable, incluso después de la eliminación de la cuenta, exclusivamente para garantizar la rendición de cuentas de las operaciones administrativas."
+        },
+        "rights": {
+          "title": "9. Derechos del Titular",
+          "intro": "De conformidad con los Artículos 8 y 22 de la Ley 1581 de 2012, usted tiene los siguientes derechos sobre sus datos personales de forma gratuita:",
+          "access": "Derecho de acceso: obtener confirmación de si tratamos datos personales suyos y acceder a una copia de dichos datos.",
+          "correction": "Derecho de rectificación: solicitar la corrección o actualización de datos inexactos, incompletos u desactualizados.",
+          "deletion": "Derecho de supresión: solicitar la eliminación de sus datos cuando ya no sean necesarios para las finalidades para las que fueron recopilados, o cuando no exista obligación legal de conservarlos.",
+          "revocation": "Derecho de revocación: revocar en cualquier momento el consentimiento otorgado para el tratamiento de sus datos personales. La revocación no afecta la licitud del tratamiento realizado antes de la misma.",
+          "complaint": "Derecho de queja: presentar una queja ante la Superintendencia de Industria y Comercio (SIC) — autoridad de supervisión de protección de datos de Colombia — en www.sic.gov.co.",
+          "freeAccess": "Derecho de acceso gratuito y directo: acceder a sus datos personales en cualquier momento sin costo alguno.",
+          "howTo": "Para ejercer cualquiera de estos derechos, envíe su solicitud a admin@chamucotravel.com con información suficiente para identificarle y el derecho específico que desea ejercer."
+        },
+        "security": {
+          "title": "10. Medidas de Seguridad",
+          "intro": "Implementamos las siguientes medidas técnicas y organizativas para proteger sus datos personales frente a accesos no autorizados, alteraciones, divulgación o destrucción:",
+          "https": "Todas las comunicaciones entre el cliente y el servidor se cifran mediante HTTPS/TLS.",
+          "auth": "Los tokens de Firebase son verificados en cada solicitud a la API mediante Firebase Admin SDK; ninguna sesión es confiable sin verificación criptográfica.",
+          "secrets": "Las credenciales de servicio y claves secretas se almacenan exclusivamente en GCP Secret Manager y nunca se comprometen en el código fuente ni en archivos de configuración.",
+          "audit": "Todas las operaciones de escritura realizadas por administradores de soporte se registran en registros de auditoría inmutables de solo adición.",
+          "rbac": "El Control de Acceso Basado en Roles (RBAC) restringe el acceso a datos al mínimo requerido para cada rol.",
+          "sensitive": "Los datos sensibles (información de salud, documentos de viaje, contactos de emergencia) son accesibles únicamente para roles con permisos explícitos asignados por viaje."
+        },
+        "organizers": {
+          "title": "11. Exportación de Datos por Organizadores de Viaje",
+          "p1": "Los organizadores de viaje con el permiso de 'Ver Perfiles de Viaje' pueden exportar datos de participantes — incluyendo nombre legal, documentos de viaje, contactos de emergencia y perfil de salud — para fines logísticos como check-in de alojamiento, manifiestos de transporte o preparación para emergencias en un viaje específico.",
+          "p2": "Al aceptar una invitación o confirmar su participación en un viaje, usted consiente que el organizador de ese viaje acceda y potencialmente exporte sus datos de perfil conforme a lo descrito en la tabla de visibilidad de la Sección 2.",
+          "p3": "Los organizadores de viaje que exporten datos de participantes son exclusivamente responsables de tratarlos de conformidad con la ley aplicable. No deben usar los datos exportados para ningún fin distinto a la logística directa del viaje para el que fueron obtenidos."
+        },
+        "changes": {
+          "title": "12. Cambios a Esta Política",
+          "p1": "Podemos actualizar esta Política de Privacidad periódicamente para reflejar cambios en nuestras prácticas, requisitos legales o funcionalidades de la plataforma. Cuando se realicen cambios materiales, le notificaremos con al menos 10 días calendario de anticipación mediante una notificación en la aplicación o por correo electrónico a la dirección asociada a su cuenta.",
+          "p2": "El uso continuado de la Plataforma después de que la Política actualizada entre en vigencia constituye su aceptación de los cambios. Si no está de acuerdo con algún cambio, puede eliminar su cuenta antes de que la nueva Política entre en vigor."
+        },
+        "contact": {
+          "title": "13. Contacto y Reclamaciones",
+          "p1": "Para cualquier pregunta, solicitud o queja relacionada con esta Política de Privacidad o el tratamiento de sus datos personales, contáctenos en:",
+          "email": "admin@chamucotravel.com",
+          "p2": "Si considera que sus derechos de protección de datos han sido vulnerados y no hemos resuelto su queja satisfactoriamente, puede presentar una reclamación directamente ante la Superintendencia de Industria y Comercio (SIC) en www.sic.gov.co."
+        }
+      }
+    },
+    "terms": {
+      "title": "Términos y Condiciones de Uso",
+      "subtitle": "Última actualización: 13 de abril de 2026",
+      "preamble": "Estos Términos y Condiciones de Uso (\"Términos\") rigen el acceso y uso de Chamuco Travel, operado por Manuel Nuñez Torres, persona natural domiciliada en Colombia. Al registrarse o usar la Plataforma, usted acepta quedar vinculado por estos Términos y nuestra Política de Privacidad.",
+      "sections": {
+        "acceptance": {
+          "title": "1. Aceptación de los Términos",
+          "p1": "Al crear una cuenta, acceder o usar Chamuco Travel (\"la Plataforma\"), usted confirma que ha leído, comprendido y aceptado estos Términos y nuestra Política de Privacidad, la cual se incorpora al presente por referencia.",
+          "p2": "Si no está de acuerdo con estos Términos en su totalidad, no debe registrarse ni usar la Plataforma."
+        },
+        "service": {
+          "title": "2. Descripción del Servicio",
+          "p1": "Chamuco Travel es una plataforma de coordinación de viajes grupales. Permite a los usuarios planificar viajes, gestionar participantes e invitaciones, registrar gastos compartidos (sin procesar transacciones monetarias reales), comunicarse mediante anuncios y construir un historial de viajes personal con logros y estadísticas.",
+          "p2": "La Plataforma incluye un sistema de gamificación — Puntuación de Viajero, Puntos de Nivel, logros, Puntos Chamuco, reconocimientos y un Mapa de Descubrimiento — diseñado para celebrar experiencias de viaje reales e historia grupal.",
+          "p3": "Chamuco Travel está en desarrollo activo. Las funcionalidades pueden añadirse, modificarse o eliminarse con el tiempo. Haremos esfuerzos razonables para notificar a los usuarios sobre cambios significativos que afecten funcionalidades existentes."
+        },
+        "eligibility": {
+          "title": "3. Elegibilidad",
+          "p1": "Debe tener al menos 18 años de edad para registrarse y usar Chamuco Travel. Al crear una cuenta, usted declara y garantiza que tiene 18 años de edad o más.",
+          "p2": "Si descubrimos que un usuario es menor de 18 años, suspenderemos su cuenta de inmediato y eliminaremos permanentemente sus datos personales."
+        },
+        "account": {
+          "title": "4. Registro y Cuenta",
+          "p1": "El registro requiere autenticación mediante Google Sign-In o Facebook Sign-In a través de Firebase Authentication. Durante el proceso de incorporación, debe elegir un nombre de usuario único (3–30 caracteres; solo letras minúsculas, números, guiones bajos y guiones). Su nombre para mostrar se pre-carga desde su proveedor OAuth y puede editarse.",
+          "p2": "Usted es el único responsable de mantener la confidencialidad de sus credenciales y de todas las actividades que ocurran bajo su cuenta. Acepta notificarnos de inmediato sobre cualquier acceso no autorizado o sospecha de vulneración de seguridad en admin@chamucotravel.com.",
+          "p3": "Puede vincular tanto el inicio de sesión de Google como el de Facebook a la misma cuenta de Chamuco Travel."
+        },
+        "acceptableUse": {
+          "title": "5. Uso Aceptable",
+          "intro": "Acepta usar la Plataforma únicamente para fines lícitos y de conformidad con estos Términos. Acepta no:",
+          "illegal": "Usar la Plataforma para cualquier actividad que infrinja la legislación colombiana, el derecho internacional o los derechos de terceros.",
+          "impersonation": "Suplantar a otra persona, crear una identidad falsa o tergiversar su afiliación con cualquier persona o entidad.",
+          "harmful": "Publicar, cargar o transmitir contenido difamatorio, discriminatorio, acosador, obsceno o factualmente falso.",
+          "unauthorized": "Intentar acceder, modificar o eliminar la cuenta o los datos personales de otro usuario sin autorización explícita.",
+          "spam": "Usar la Plataforma para enviar spam, comunicaciones comerciales no solicitadas o mensajes masivos.",
+          "scraping": "Extraer, rastrear o recopilar sistemáticamente datos de la Plataforma mediante medios automatizados sin nuestro consentimiento previo por escrito.",
+          "interference": "Interferir, interrumpir o intentar acceder de forma no autorizada a la infraestructura, servidores o redes de la Plataforma.",
+          "consequences": "La violación de estas restricciones de uso puede resultar en la suspensión o terminación inmediata de su cuenta, y puede dar lugar a responsabilidad civil o penal bajo la legislación colombiana aplicable."
+        },
+        "expenses": {
+          "title": "6. Módulo de Gastos",
+          "p1": "El módulo de gastos es un libro contable colaborativo diseñado para ayudar a los grupos a registrar costos y calcular montos sugeridos de liquidación entre participantes.",
+          "p2": "Chamuco Travel no procesa, retiene, transfiere ni intermedia transacciones monetarias reales de ningún tipo. Los saldos calculados y las sugerencias de liquidación son informativos y no vinculantes.",
+          "p3": "La liquidación entre participantes se realiza enteramente fuera de la Plataforma, por los medios que los participantes elijan. Chamuco Travel no es parte de ninguna transacción de este tipo y no asume responsabilidad por disputas financieras, incumplimientos o desacuerdos derivados de gastos registrados en la Plataforma."
+        },
+        "ip": {
+          "title": "7. Propiedad Intelectual",
+          "p1": "Todos los derechos de propiedad intelectual sobre la marca Chamuco Travel, logo, diseño de interfaz de usuario, código fuente, algoritmos, bases de datos y contenido original de la Plataforma pertenecen exclusivamente a Manuel Nuñez Torres.",
+          "p2": "Usted conserva la propiedad del contenido que crea y carga en la Plataforma (notas de viaje, descripciones de grupos, información de perfil, etc.). Al enviar contenido a la Plataforma, otorga a Chamuco Travel una licencia no exclusiva, mundial, libre de regalías y sublicenciable para almacenar, mostrar y distribuir dicho contenido dentro de la Plataforma, exclusivamente con el fin de prestarle el servicio a usted y a otros usuarios.",
+          "p3": "No puede reproducir, distribuir, modificar, crear obras derivadas, exhibir públicamente ni explotar comercialmente ningún contenido o tecnología de la Plataforma sin autorización previa y por escrito."
+        },
+        "gamification": {
+          "title": "8. Sistema de Gamificación",
+          "p1": "Los Puntos Chamuco, la Puntuación de Viajero, los Puntos de Nivel, los logros, los reconocimientos y los rankings no tienen valor monetario, no son transferibles entre usuarios y no pueden canjearse por dinero en efectivo, bienes ni ningún beneficio real.",
+          "p2": "Chamuco Travel se reserva el derecho de ajustar, recalcular, restablecer o eliminar datos de gamificación — incluyendo puntos, puntuaciones, niveles y logros — en cualquier momento y sin previo aviso, en casos de actividad fraudulenta, problemas de integridad de datos, correcciones técnicas o cambios significativos en la plataforma.",
+          "p3": "Las métricas de gamificación se derivan exclusivamente de viajes completados e interacciones verificadas entre pares en la Plataforma. Ninguna puntuación, nivel, logro o ranking puede obtenerse mediante pago ni a través de la interacción con la aplicación misma al margen de viajes reales."
+        },
+        "notifications": {
+          "title": "9. Comunicaciones y Notificaciones",
+          "p1": "Al registrarse y usar Chamuco Travel, usted consiente recibir notificaciones push y comunicaciones de la plataforma mediante Firebase Cloud Messaging (FCM) y otros canales disponibles dentro de la app. Estas comunicaciones se dividen en dos categorías:",
+          "transactionalTitle": "Notificaciones transaccionales y de servicio (servicio básico):",
+          "transactional": {
+            "trips": "Invitaciones a viajes, respuestas a solicitudes de participación, cambios de estado y cancelaciones.",
+            "feedback": "Apertura de ventana de retroalimentación post-viaje al completar un viaje.",
+            "passport": "Alertas de vencimiento de pasaporte (Próximo a Vencer y Vencido).",
+            "gamification": "Notificaciones de subida de nivel, logro desbloqueado y reconocimiento recibido.",
+            "keyDates": "Recordatorios de fechas clave configurados por los organizadores del viaje.",
+            "announcements": "Anuncios de difusión de organizadores de viaje y administradores de grupo."
+          },
+          "platformTitle": "Comunicaciones de plataforma:",
+          "platform": {
+            "news": "Actualizaciones sobre nuevas funcionalidades, mejoras y cambios en la plataforma Chamuco Travel.",
+            "promotional": "Contenido promocional y anuncios relacionados exclusivamente con Chamuco Travel — sin publicidad de terceros externos."
+          },
+          "p2": "Puede gestionar sus preferencias de notificación desde la configuración de la Plataforma. Desactivar ciertas notificaciones transaccionales puede afectar la funcionalidad del servicio.",
+          "p3": "Chamuco Travel no envía notificaciones en nombre de terceros externos y no usa notificaciones push para publicitar productos o servicios ajenos a la Plataforma."
+        },
+        "privacy": {
+          "title": "10. Privacidad y Datos Personales",
+          "p1": "La recopilación, uso, almacenamiento y protección de sus datos personales se rigen exclusivamente por nuestra Política de Privacidad, disponible en chamucotravel.com/privacy-policy, la cual forma parte integral de estos Términos.",
+          "p2": "Al aceptar estos Términos, usted autoriza expresamente el tratamiento de sus datos personales — incluyendo categorías de datos sensibles como información de salud — de conformidad con la Política de Privacidad y la legislación colombiana de protección de datos aplicable (Ley 1581 de 2012 y sus decretos reglamentarios)."
+        },
+        "liability": {
+          "title": "11. Limitación de Responsabilidad",
+          "intro": "En la máxima medida permitida por la legislación colombiana aplicable, Chamuco Travel y su operador no serán responsables por daños indirectos, incidentales, consecuentes o punitivos derivados de:",
+          "decisions": "Decisiones tomadas por organizadores de viajes, incluyendo decisiones sobre aceptación de participantes, diseño de itinerarios o logística.",
+          "userContent": "Pérdidas, daños o perjuicios derivados de información inexacta, incompleta o engañosa introducida por los usuarios.",
+          "service": "Interrupciones, errores o indisponibilidad de la Plataforma causados por factores fuera de nuestro control razonable, incluyendo interrupciones de servicios de terceros (Google, Firebase, Meta), fallas de red o eventos de fuerza mayor.",
+          "financial": "Pérdidas financieras o disputas derivadas del uso del módulo de gastos o de liquidaciones entre participantes realizadas fuera de la Plataforma.",
+          "agreements": "Incumplimiento de acuerdos, compromisos o arreglos realizados entre participantes fuera o más allá de la Plataforma.",
+          "caveat": "Nada de lo contenido en estos Términos excluye ni limita la responsabilidad por fraude, negligencia grave, dolo o cualquier responsabilidad que no pueda ser excluida lícitamente bajo la Ley 1480 de 2011 (Estatuto del Consumidor) u otras normas imperativas colombianas."
+        },
+        "termination": {
+          "title": "12. Suspensión y Terminación de Cuenta",
+          "p1": "Puede eliminar su cuenta en cualquier momento desde dentro de la Plataforma. Inmediatamente después de la eliminación comienza un período de recuperación de 30 días. Transcurridos 30 días, su cuenta y todos los datos personales asociados son eliminados de forma permanente e irreversible.",
+          "p2": "Chamuco Travel puede suspender o terminar su cuenta sin previo aviso si usted viola estos Términos, realiza actividades fraudulentas, causa daños a otros usuarios o si así lo requiere la ley o una orden regulatoria aplicable. En la medida en que sea razonablemente posible, intentaremos notificarle antes de la suspensión.",
+          "p3": "Tras la terminación, su licencia para acceder y usar la Plataforma queda revocada de inmediato. Las disposiciones de estos Términos que por su naturaleza deban sobrevivir a la terminación — incluyendo propiedad intelectual, limitación de responsabilidad, ley aplicable y resolución de disputas — permanecerán en plena vigencia y efecto."
+        },
+        "modifications": {
+          "title": "13. Modificaciones a los Términos",
+          "p1": "Podemos actualizar estos Términos en cualquier momento para reflejar cambios en nuestro servicio, la legislación aplicable o nuestras prácticas comerciales. Cuando se realicen cambios materiales, le notificaremos con al menos 10 días calendario antes de que los nuevos Términos entren en vigencia, mediante notificación en la aplicación o por correo electrónico a la dirección asociada a su cuenta.",
+          "p2": "El uso continuado de la Plataforma después de la fecha de vigencia de los Términos actualizados constituye su aceptación de los cambios. Si no está de acuerdo con alguna modificación, debe dejar de usar la Plataforma y eliminar su cuenta antes de que los nuevos Términos entren en vigor."
+        },
+        "governingLaw": {
+          "title": "14. Ley Aplicable y Jurisdicción",
+          "p1": "Estos Términos se rigen e interpretan de conformidad con las leyes de la República de Colombia, incluyendo pero no limitado a: la Ley 527 de 1999 (comercio electrónico y firmas digitales), la Ley 1480 de 2011 (Estatuto del Consumidor) y la Ley 1581 de 2012 (Protección de Datos Personales).",
+          "p2": "Cualquier disputa, controversia o reclamación que surja de o en relación con estos Términos, o su incumplimiento, terminación o nulidad, estará sujeta a la jurisdicción de los jueces competentes de Bogotá D.C., Colombia, o ante la Superintendencia de Industria y Comercio (SIC) para los asuntos de su competencia administrativa.",
+          "p3": "Las disputas relacionadas específicamente con el tratamiento de datos personales pueden someterse ante la Delegatura para la Protección de Datos Personales de la SIC en www.sic.gov.co, de conformidad con el procedimiento establecido en la Ley 1581 de 2012."
+        },
+        "contact": {
+          "title": "15. Contacto",
+          "p1": "Para preguntas, aclaraciones o inquietudes sobre estos Términos y Condiciones, contáctenos en:",
+          "email": "admin@chamucotravel.com",
+          "p2": "Nuestro objetivo es responder a todas las consultas dentro de los 5 días hábiles siguientes."
+        }
+      }
+    }
   }
 }
