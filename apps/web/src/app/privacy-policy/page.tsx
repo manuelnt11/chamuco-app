@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { CONTACT_EMAIL } from '@/config/app.constants';
 import { Logo } from '@/components/header/Logo';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function PrivacyPolicyPage() {
-  const { t } = useTranslation('legal');
+  const { t } = useTranslation(['legal', 'common']);
 
   return (
     <div className="min-h-screen bg-background">
@@ -261,7 +262,7 @@ export default function PrivacyPolicyPage() {
             {t('privacy.sections.contact.p1')}
           </p>
           <a
-            href="mailto:admin@chamucotravel.com"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="mb-3 block font-medium text-primary hover:underline"
           >
             {t('privacy.sections.contact.email')}
@@ -275,7 +276,7 @@ export default function PrivacyPolicyPage() {
             href="/sign-in"
             className="text-sm text-muted-foreground hover:text-foreground hover:underline"
           >
-            {t('backToSignIn')}
+            {t('common:actions.backToSignIn')}
           </Link>
           <Link
             href="/terms-of-service"

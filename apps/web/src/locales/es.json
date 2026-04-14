@@ -17,7 +17,8 @@
       "confirm": "Confirmar",
       "loading": "Cargando...",
       "viewMore": "Ver Más",
-      "viewLess": "Ver Menos"
+      "viewLess": "Ver Menos",
+      "backToSignIn": "Volver al inicio de sesión"
     },
     "navigation": {
       "home": "Inicio",
@@ -161,7 +162,6 @@
     "sessionExpired": "Tu sesión ha expirado. Por favor inicia sesión nuevamente."
   },
   "legal": {
-    "backToSignIn": "Volver al inicio de sesión",
     "privacy": {
       "title": "Política de Privacidad y Tratamiento de Datos Personales",
       "subtitle": "Última actualización: 13 de abril de 2026",

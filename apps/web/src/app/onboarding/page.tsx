@@ -203,8 +203,9 @@ export default function OnboardingPage() {
             />
           </div>
 
-          <label className="flex cursor-pointer items-start gap-3">
+          <label htmlFor="terms-checkbox" className="flex cursor-pointer items-start gap-3">
             <input
+              id="terms-checkbox"
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}

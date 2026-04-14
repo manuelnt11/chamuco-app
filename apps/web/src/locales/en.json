@@ -17,7 +17,8 @@
       "confirm": "Confirm",
       "loading": "Loading...",
       "viewMore": "View More",
-      "viewLess": "View Less"
+      "viewLess": "View Less",
+      "backToSignIn": "Back to sign in"
     },
     "navigation": {
       "home": "Home",
@@ -161,7 +162,6 @@
     "sessionExpired": "Your session has expired. Please sign in again."
   },
   "legal": {
-    "backToSignIn": "Back to sign in",
     "privacy": {
       "title": "Privacy Policy",
       "subtitle": "Last updated: April 13, 2026",
