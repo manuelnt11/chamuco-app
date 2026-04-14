@@ -1,8 +1,9 @@
 'use client';
 
 import { type FormEvent, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -47,6 +48,7 @@ export default function OnboardingPage() {
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
 
@@ -201,10 +203,49 @@ export default function OnboardingPage() {
             />
           </div>
 
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+              data-testid="terms-checkbox"
+            />
+            <span className="text-sm leading-snug text-muted-foreground">
+              <Trans
+                i18nKey="onboarding.terms.accept"
+                ns="auth"
+                components={{
+                  privacyLink: (
+                    <Link
+                      href="/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-foreground underline underline-offset-2 hover:text-primary"
+                    />
+                  ),
+                  termsLink: (
+                    <Link
+                      href="/terms-of-service"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-foreground underline underline-offset-2 hover:text-primary"
+                    />
+                  ),
+                }}
+              />
+            </span>
+          </label>
+
           <Button
             type="submit"
             size="lg"
-            disabled={usernameStatus !== 'available' || !displayName.trim() || isSubmitting}
+            disabled={
+              usernameStatus !== 'available' ||
+              !displayName.trim() ||
+              !termsAccepted ||
+              isSubmitting
+            }
             className="mt-2 h-11"
             data-testid="submit-btn"
           >

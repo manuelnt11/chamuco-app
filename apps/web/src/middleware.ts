@@ -33,6 +33,11 @@ export function middleware(request: NextRequest): NextResponse {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // Public legal pages — always accessible regardless of auth state
+  if (pathname === '/privacy-policy' || pathname === '/terms-of-service') {
+    return NextResponse.next();
+  }
+
   if (pathname === '/onboarding') {
     if (!isAuthenticated) return NextResponse.redirect(new URL('/sign-in', request.url));
     if (isRegistered) return NextResponse.redirect(new URL('/', request.url));

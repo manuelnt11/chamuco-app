@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { Header } from '@/components/header';
 import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
 
-// Auth pages (/sign-in, /onboarding, etc.) render without nav chrome
-const AUTH_PATHS = ['/sign-in', '/onboarding'];
+// Auth pages and public legal pages render without nav chrome
+const AUTH_PATHS = ['/sign-in', '/onboarding', '/privacy-policy', '/terms-of-service'];
 
 interface AppShellProps {
   children: ReactNode;

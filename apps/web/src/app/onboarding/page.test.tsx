@@ -1,5 +1,6 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import type { User } from 'firebase/auth';
 import type { AuthContextValue } from '@/store/auth';
 
@@ -54,6 +55,7 @@ vi.mock('react-i18next', () => ({
     t: (key: string) => key,
     i18n: { language: 'en' },
   }),
+  Trans: ({ children }: { children?: ReactNode }) => <>{children}</>,
 }));
 
 import { useAuth } from '@/hooks/useAuth';
@@ -226,6 +228,43 @@ describe('OnboardingPage', () => {
       await renderForm();
       expect(screen.getByTestId('cancel-btn')).toBeInTheDocument();
     });
+
+    it('renders the terms acceptance checkbox unchecked by default', async () => {
+      await renderForm();
+      expect(screen.getByTestId<HTMLInputElement>('terms-checkbox').checked).toBe(false);
+    });
+
+    it('submit button is disabled when terms are not accepted', async () => {
+      await renderForm({ currentUser: makeUser({ displayName: 'Test User' }) });
+      // Even with a pre-filled display name, the button is disabled without terms
+      expect(screen.getByTestId('submit-btn')).toBeDisabled();
+    });
+
+    it('checking the terms checkbox enables the submit button when all other fields are valid', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
+      );
+      mockGetByUrl();
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime.bind(vi),
+        delay: null,
+      });
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+      await user.clear(screen.getByTestId('username-input'));
+      await user.type(screen.getByTestId('username-input'), 'testuser');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+      expect(screen.getByTestId('submit-btn')).toBeDisabled();
+      await user.click(screen.getByTestId('terms-checkbox'));
+      expect(screen.getByTestId('submit-btn')).not.toBeDisabled();
+      vi.useRealTimers();
+    });
   });
 
   describe('cancel button', () => {
@@ -256,6 +295,7 @@ describe('OnboardingPage', () => {
         expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
       );
       await user.type(screen.getByTestId('displayname-input'), 'Test');
+      await user.click(screen.getByTestId('terms-checkbox'));
       await act(async () => {
         await user.click(screen.getByTestId('submit-btn'));
       });
@@ -384,6 +424,7 @@ describe('OnboardingPage', () => {
       await waitFor(() =>
         expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
       );
+      await user.click(screen.getByTestId('terms-checkbox'));
       return user;
     }
 

@@ -97,6 +97,10 @@
         "placeholder": "How should we call you?"
       },
       "submit": "Create my account",
+      "terms": {
+        "accept": "I accept the <privacyLink>Privacy Policy</privacyLink> and the <termsLink>Terms and Conditions</termsLink> of Chamuco Travel.",
+        "required": "You must accept the terms to continue."
+      },
       "error": {
         "failed": "Registration failed. Please try again.",
         "usernameTaken": "That username is already taken. Please choose another."
@@ -155,5 +159,257 @@
     "unauthorized": "You are not authorized to access this resource",
     "networkError": "Network error. Please check your connection.",
     "sessionExpired": "Your session has expired. Please sign in again."
+  },
+  "legal": {
+    "backToSignIn": "Back to sign in",
+    "privacy": {
+      "title": "Privacy Policy",
+      "subtitle": "Last updated: April 13, 2026",
+      "preamble": "Manuel Nuñez Torres, a natural person domiciled in Colombia, operates the Chamuco Travel platform accessible at chamucotravel.com (hereinafter, \"Chamuco Travel\" or \"the Platform\"). This Privacy Policy describes how we collect, use, store, and protect your personal data in accordance with Colombian Law 1581 of 2012 (Statutory Law on Personal Data Protection) and its implementing decrees.",
+      "sections": {
+        "controller": {
+          "title": "1. Data Controller",
+          "p1": "The Data Controller responsible for the processing of your personal data is Manuel Nuñez Torres, a natural person domiciled in Colombia, operating under the brand name Chamuco Travel.",
+          "p2": "For any questions, requests, or complaints regarding the processing of your personal data, contact us at: admin@chamucotravel.com. We will respond within the legally established timeframe (15 business days for queries; 15 business days for claims, with a one-time extension of 8 additional business days if necessary)."
+        },
+        "dataCollected": {
+          "title": "2. Personal Data We Collect",
+          "intro": "We collect and process the following categories of personal data when you register and use the Platform:",
+          "account": {
+            "title": "Account and Identity Data",
+            "body": "Full name and profile picture (pre-filled from your Google or Facebook account), email address, unique username chosen at registration, and your Firebase authentication identifier."
+          },
+          "profile": {
+            "title": "Personal Profile Data",
+            "body": "Legal first and last name, date of birth, country and city of birth, country and city of current residence, phone number in international format, and an optional public biography."
+          },
+          "documents": {
+            "title": "Travel Documents",
+            "body": "Nationality or nationalities, national identity document number (cédula, DNI, etc.), passport number, passport issue date, and passport expiry date."
+          },
+          "health": {
+            "title": "Health Data (Sensitive Personal Data)",
+            "body": "Dietary preferences and restrictions, food allergies, travel-related phobias, physical limitations, medical conditions, and optional general medical notes. This data is classified as sensitive under Article 5 of Law 1581 of 2012. See Section 4 for its special treatment."
+          },
+          "emergency": {
+            "title": "Emergency Contacts",
+            "body": "Full name, phone number, and relationship of each designated emergency contact."
+          },
+          "loyalty": {
+            "title": "Loyalty Programs",
+            "body": "Loyalty program names and membership numbers. This information is visible only to you and is never shared with organizers or other users."
+          },
+          "activity": {
+            "title": "Activity and Usage Data",
+            "body": "Trips created, joined, and completed; group memberships; travel statistics (countries visited, distance traveled, unique travel companions, trips as organizer); achievements unlocked; recognitions received; and Chamuco Points balance."
+          },
+          "technical": {
+            "title": "Technical and Preference Data",
+            "body": "Home time zone, language preference, currency preference, UI theme preference, and timestamp of last activity."
+          }
+        },
+        "purposes": {
+          "title": "3. Purposes of Data Processing",
+          "intro": "We process your personal data exclusively for the following purposes:",
+          "auth": "Authentication and identity verification at every session.",
+          "profile": "Management of your user profile, preferences, and account settings.",
+          "trips": "Trip planning, participant management, itinerary coordination, and group management.",
+          "gamification": "Calculation of travel statistics, Traveler Score, achievements, Chamuco Points, and global rankings.",
+          "notifications": "Sending push notifications via Firebase Cloud Messaging (FCM) for trip events, passport expiry alerts, achievements, announcements, key date reminders, and platform communications including feature updates and promotional content related exclusively to Chamuco Travel.",
+          "sharing": "Sharing your profile data with trip organizers who hold the explicit 'View Travel Profiles' permission, strictly to facilitate travel logistics for a specific trip.",
+          "export": "Enabling trip organizers to export participant data (name, travel documents, emergency contacts, and health profile) for logistics purposes such as accommodation check-in, transport manifests, or emergency preparedness.",
+          "support": "Customer support, resolution of technical issues, and platform integrity maintenance.",
+          "legal": "Compliance with applicable legal and regulatory obligations."
+        },
+        "sensitiveData": {
+          "title": "4. Sensitive Personal Data",
+          "p1": "Under Article 5 of Colombian Law 1581 of 2012, health-related data — including food allergies, medical conditions, physical limitations, travel-related phobias, and dietary preferences — constitutes sensitive personal data and is subject to heightened protection.",
+          "p2": "Providing health data is entirely voluntary. You may omit any or all health fields without affecting your ability to register or use the Platform. By submitting this data, you give your explicit consent to its processing for the purposes described in Section 3.",
+          "p3": "Health data is shared only with the organizer or co-organizer of a trip you have confirmed participation in, and only if that organizer holds the 'View Travel Profiles' permission. It is never visible to other participants.",
+          "p4": "Your general medical notes are private by default. You may grant a specific trip organizer access to these notes on a trip-by-trip basis through a voluntary, opt-in toggle. The organizer cannot request or demand access — only you can grant it."
+        },
+        "thirdParties": {
+          "title": "5. Disclosure to Third Parties",
+          "p1": "We share personal data only with the following service providers, strictly as necessary for the operation of the Platform:",
+          "googleTitle": "Google LLC / Firebase / Google Cloud Platform",
+          "googleBody": "Authentication (Firebase Authentication), push notifications (Firebase Cloud Messaging), file storage (Cloud Storage), relational database hosting (Cloud SQL on Google Cloud), and application hosting (Cloud Run). Google acts as a Data Processor under its Data Processing and Security Terms.",
+          "facebookTitle": "Meta Platforms, Inc. (Facebook)",
+          "facebookBody": "Authentication via Facebook Sign-In, available as an alternative to Google Sign-In. Only applicable if you choose to register or sign in using Facebook.",
+          "noSale": "We do not sell, rent, trade, or otherwise transfer your personal data to third parties for commercial, marketing, or advertising purposes."
+        },
+        "internationalTransfers": {
+          "title": "6. International Data Transfers",
+          "p1": "Google Cloud Platform and Firebase servers process and store data primarily in the United States. These transfers constitute international transfers of personal data under Article 26 of Law 1581 of 2012.",
+          "p2": "To ensure an adequate level of protection, Chamuco Travel relies on Google's Standard Contractual Clauses and its Data Processing and Security Terms, which establish contractual guarantees for the protection of personal data transferred outside Colombia.",
+          "p3": "By registering and using the Platform, you acknowledge and consent to the transfer and processing of your data in the United States under the data protection safeguards described above."
+        },
+        "minors": {
+          "title": "7. Minors",
+          "p1": "Chamuco Travel is intended exclusively for users who are 18 years of age or older. We do not knowingly collect personal data from individuals under 18.",
+          "p2": "If we become aware that a user under 18 has registered, we will immediately suspend their account and permanently delete their personal data. If you have reason to believe a minor has registered on the Platform, please notify us at admin@chamucotravel.com."
+        },
+        "retention": {
+          "title": "8. Data Retention",
+          "p1": "We retain your personal data for as long as your account remains active on the Platform.",
+          "p2": "When you initiate account deletion, a 30-day recovery period begins. During this period you may reactivate your account and all data is preserved. After 30 days, all personal data associated with your account is permanently and irreversibly deleted from our systems.",
+          "p3": "Immutable audit logs generated by platform support administrator actions are retained for the period required by applicable law, even after account deletion, solely to ensure accountability for administrative operations."
+        },
+        "rights": {
+          "title": "9. Rights of the Data Subject",
+          "intro": "Pursuant to Articles 8 and 22 of Law 1581 of 2012, you have the following rights with respect to your personal data at no cost:",
+          "access": "Right of access: obtain confirmation of whether we hold personal data about you and access a copy of that data.",
+          "correction": "Right of rectification: request correction or updating of inaccurate, incomplete, or outdated data.",
+          "deletion": "Right of erasure: request deletion of your data when it is no longer necessary for the purposes for which it was collected, or when there is no legal obligation to retain it.",
+          "revocation": "Right of revocation: withdraw your consent to the processing of your personal data at any time. Withdrawal does not affect the lawfulness of processing carried out before the withdrawal.",
+          "complaint": "Right to lodge a complaint: file a complaint with the Superintendencia de Industria y Comercio (SIC) — Colombia's data protection supervisory authority — at www.sic.gov.co.",
+          "freeAccess": "Right to free and direct access: access your personal data free of charge at any time.",
+          "howTo": "To exercise any of these rights, send your request to admin@chamucotravel.com with sufficient information to identify you and the specific right you wish to exercise."
+        },
+        "security": {
+          "title": "10. Security Measures",
+          "intro": "We implement the following technical and organizational measures to protect your personal data against unauthorized access, alteration, disclosure, or destruction:",
+          "https": "All communications between the client and server are encrypted using HTTPS/TLS.",
+          "auth": "Firebase ID tokens are verified on every API request via Firebase Admin SDK; no session is trusted without cryptographic verification.",
+          "secrets": "Service credentials and secret keys are stored exclusively in GCP Secret Manager and are never committed to source code or configuration files.",
+          "audit": "All write operations performed by support administrators are recorded in immutable, append-only audit logs.",
+          "rbac": "Role-Based Access Control (RBAC) restricts data access to the minimum required for each role.",
+          "sensitive": "Sensitive data (health information, travel documents, emergency contacts) is accessible only to roles with explicit, trip-scoped permissions."
+        },
+        "organizers": {
+          "title": "11. Data Export by Trip Organizers",
+          "p1": "Trip organizers with the 'View Travel Profiles' permission may export participant data — including legal name, travel documents, emergency contacts, and health profile — for logistics purposes such as accommodation check-in, transport manifests, or emergency preparedness for a specific trip.",
+          "p2": "By accepting an invitation or confirming participation in a trip, you consent to the organizer of that trip accessing and potentially exporting your profile data as described in the visibility table in Section 2.",
+          "p3": "Trip organizers who export participant data are solely responsible for handling it in accordance with applicable law. They must not use exported data for any purpose other than the direct logistics of the trip for which it was obtained."
+        },
+        "changes": {
+          "title": "12. Changes to This Policy",
+          "p1": "We may update this Privacy Policy from time to time to reflect changes in our practices, legal requirements, or platform features. When material changes are made, we will notify you at least 10 calendar days in advance via an in-app notification or by email to the address associated with your account.",
+          "p2": "Continued use of the Platform after the updated Policy takes effect constitutes your acceptance of the changes. If you do not agree with any change, you may delete your account before the new Policy takes effect."
+        },
+        "contact": {
+          "title": "13. Contact and Complaints",
+          "p1": "For any questions, requests, or complaints regarding this Privacy Policy or the processing of your personal data, contact us at:",
+          "email": "admin@chamucotravel.com",
+          "p2": "If you believe your data protection rights have been violated and we have not resolved your complaint satisfactorily, you may file a complaint directly with the Superintendencia de Industria y Comercio (SIC) at www.sic.gov.co."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms and Conditions of Use",
+      "subtitle": "Last updated: April 13, 2026",
+      "preamble": "These Terms and Conditions of Use (\"Terms\") govern your access to and use of Chamuco Travel, operated by Manuel Nuñez Torres, a natural person domiciled in Colombia. By registering or using the Platform, you agree to be bound by these Terms and our Privacy Policy.",
+      "sections": {
+        "acceptance": {
+          "title": "1. Acceptance of Terms",
+          "p1": "By creating an account, accessing, or using Chamuco Travel (\"the Platform\"), you confirm that you have read, understood, and agreed to these Terms and our Privacy Policy, which is incorporated herein by reference.",
+          "p2": "If you do not agree to these Terms in their entirety, you must not register or use the Platform."
+        },
+        "service": {
+          "title": "2. Description of the Service",
+          "p1": "Chamuco Travel is a group travel coordination platform. It enables users to plan trips, manage participants and invitations, track shared expenses (without processing real monetary transactions), communicate through announcements, and build a personal travel history with achievements and statistics.",
+          "p2": "The Platform includes a gamification system — Traveler Score, Level Points, achievements, Chamuco Points, recognitions, and a Discovery Map — designed to celebrate real travel experiences and group history.",
+          "p3": "Chamuco Travel is in active development. Features may be added, modified, or removed over time. We will make reasonable efforts to notify users of significant changes affecting existing functionality."
+        },
+        "eligibility": {
+          "title": "3. Eligibility",
+          "p1": "You must be at least 18 years of age to register and use Chamuco Travel. By creating an account, you represent and warrant that you are 18 years of age or older.",
+          "p2": "If we discover that a user is under 18 years of age, we will immediately suspend their account and permanently delete their personal data."
+        },
+        "account": {
+          "title": "4. Registration and Account",
+          "p1": "Registration requires authentication via Google Sign-In or Facebook Sign-In through Firebase Authentication. During onboarding, you must choose a unique username (3–30 characters; lowercase letters, numbers, underscores, and hyphens only). Your display name is pre-filled from your OAuth provider and may be edited.",
+          "p2": "You are solely responsible for maintaining the confidentiality of your credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized access or suspected security breach at admin@chamucotravel.com.",
+          "p3": "You may link both Google and Facebook sign-in methods to the same Chamuco Travel account."
+        },
+        "acceptableUse": {
+          "title": "5. Acceptable Use",
+          "intro": "You agree to use the Platform only for lawful purposes and in accordance with these Terms. You agree not to:",
+          "illegal": "Use the Platform for any activity that violates Colombian law, international law, or the rights of third parties.",
+          "impersonation": "Impersonate another person, create a false identity, or misrepresent your affiliation with any person or entity.",
+          "harmful": "Post, upload, or transmit content that is defamatory, discriminatory, harassing, obscene, or factually false.",
+          "unauthorized": "Attempt to access, modify, or delete another user's account or personal data without explicit authorization.",
+          "spam": "Use the Platform to send spam, unsolicited commercial communications, or bulk messages.",
+          "scraping": "Scrape, crawl, or systematically extract Platform data using automated means without our prior written consent.",
+          "interference": "Interfere with, disrupt, or attempt to gain unauthorized access to the Platform's infrastructure, servers, or networks.",
+          "consequences": "Violation of these use restrictions may result in immediate account suspension or termination, and may give rise to civil or criminal liability under applicable Colombian law."
+        },
+        "expenses": {
+          "title": "6. Expense Module",
+          "p1": "The expense module is a collaborative accounting ledger designed to help groups record costs and calculate suggested settlement amounts among participants.",
+          "p2": "Chamuco Travel does not process, hold, transfer, or intermediate real monetary transactions of any kind. The calculated balances and settlement suggestions are informational and non-binding.",
+          "p3": "Settlement between participants occurs entirely outside the Platform, through whatever means the participants choose. Chamuco Travel is not a party to any such transaction and bears no responsibility for financial disputes, defaults, or disagreements arising from expenses recorded on the Platform."
+        },
+        "ip": {
+          "title": "7. Intellectual Property",
+          "p1": "All intellectual property rights in the Chamuco Travel brand, trademark, logo, user interface design, source code, algorithms, databases, and original platform content belong exclusively to Manuel Nuñez Torres.",
+          "p2": "You retain ownership of content you create and upload to the Platform (trip notes, group descriptions, profile information, etc.). By submitting content to the Platform, you grant Chamuco Travel a non-exclusive, worldwide, royalty-free, sublicensable license to store, display, and distribute that content within the Platform solely for the purpose of providing the service to you and other users.",
+          "p3": "You may not reproduce, distribute, modify, create derivative works of, publicly display, or commercially exploit any Platform content or technology without prior written authorization."
+        },
+        "gamification": {
+          "title": "8. Gamification System",
+          "p1": "Chamuco Points, Traveler Score, Level Points, achievements, recognitions, and rankings have no monetary value, are non-transferable between users, and cannot be exchanged for cash, goods, or any real-world benefit.",
+          "p2": "Chamuco Travel reserves the right to adjust, recalculate, reset, or remove gamification data — including points, scores, levels, and achievements — at any time, without prior notice, in cases of fraudulent activity, data integrity issues, technical corrections, or significant platform changes.",
+          "p3": "Gamification metrics are derived exclusively from completed trips and verified peer interactions on the Platform. No score, level, achievement, or ranking can be obtained through payment or through engagement with the application itself outside of actual travel."
+        },
+        "notifications": {
+          "title": "9. Communications and Notifications",
+          "p1": "By registering and using Chamuco Travel, you consent to receive push notifications and platform communications via Firebase Cloud Messaging (FCM) and other in-app channels. These communications fall into two categories:",
+          "transactionalTitle": "Transactional and service notifications (core service):",
+          "transactional": {
+            "trips": "Trip invitations, join request decisions, status changes, and cancellations.",
+            "feedback": "Post-trip feedback window opened after a trip is completed.",
+            "passport": "Passport expiry alerts (Expiring Soon and Expired).",
+            "gamification": "Level-up notifications, achievement unlocked, and recognition received.",
+            "keyDates": "Key date reminders set by trip organizers.",
+            "announcements": "Broadcast announcements from trip organizers and group administrators."
+          },
+          "platformTitle": "Platform communications:",
+          "platform": {
+            "news": "Updates about new features, improvements, and changes to the Chamuco Travel platform.",
+            "promotional": "Promotional content and announcements related exclusively to Chamuco Travel — not from third-party advertisers."
+          },
+          "p2": "You may manage your notification preferences from the Platform settings. Disabling certain transactional notifications may affect the functionality of the service.",
+          "p3": "Chamuco Travel does not send notifications on behalf of external third parties and does not use push notifications to advertise products or services outside the Platform."
+        },
+        "privacy": {
+          "title": "10. Privacy and Personal Data",
+          "p1": "The collection, use, storage, and protection of your personal data are governed exclusively by our Privacy Policy, available at chamucotravel.com/privacy-policy, which forms an integral part of these Terms.",
+          "p2": "By accepting these Terms, you expressly authorize the processing of your personal data — including sensitive data categories such as health information — in accordance with the Privacy Policy and applicable Colombian data protection law (Law 1581 of 2012 and its implementing decrees)."
+        },
+        "liability": {
+          "title": "11. Limitation of Liability",
+          "intro": "To the maximum extent permitted by applicable Colombian law, Chamuco Travel and its operator shall not be liable for any indirect, incidental, consequential, or punitive damages arising from:",
+          "decisions": "Decisions made by trip organizers, including decisions about participant acceptance, itinerary design, or logistics.",
+          "userContent": "Loss, damage, or harm arising from inaccurate, incomplete, or misleading information entered by users.",
+          "service": "Interruptions, errors, or unavailability of the Platform caused by factors outside our reasonable control, including third-party service outages (Google, Firebase, Meta), network failures, or force majeure events.",
+          "financial": "Financial losses or disputes arising from use of the expense module or from settlements between participants conducted outside the Platform.",
+          "agreements": "Breach of agreements, commitments, or arrangements made between participants outside or beyond the Platform.",
+          "caveat": "Nothing in these Terms excludes or limits liability for fraud, gross negligence, willful misconduct, or any liability that cannot be lawfully excluded under Colombian consumer protection law (Law 1480 of 2011) or other mandatory statutes."
+        },
+        "termination": {
+          "title": "12. Account Suspension and Termination",
+          "p1": "You may delete your account at any time from within the Platform. A 30-day recovery window begins immediately upon deletion. After 30 days, your account and all associated personal data are permanently and irreversibly deleted.",
+          "p2": "Chamuco Travel may suspend or terminate your account without prior notice if you violate these Terms, engage in fraudulent activity, cause harm to other users, or if required by applicable law or regulatory order. Where reasonably practicable, we will attempt to notify you before suspension.",
+          "p3": "Upon termination, your license to access and use the Platform is revoked immediately. Provisions of these Terms that by their nature survive termination — including intellectual property, limitation of liability, governing law, and dispute resolution — remain in full force and effect."
+        },
+        "modifications": {
+          "title": "13. Modifications to the Terms",
+          "p1": "We may update these Terms at any time to reflect changes in our service, applicable law, or business practices. When material changes are made, we will notify you at least 10 calendar days before the new Terms take effect, via in-app notification or by email to the address associated with your account.",
+          "p2": "Continued use of the Platform after the effective date of the updated Terms constitutes your acceptance of the changes. If you do not agree with any modification, you must stop using the Platform and delete your account before the new Terms take effect."
+        },
+        "governingLaw": {
+          "title": "14. Governing Law and Jurisdiction",
+          "p1": "These Terms are governed by and construed in accordance with the laws of the Republic of Colombia, including but not limited to: Law 527 of 1999 (electronic commerce and digital signatures), Law 1480 of 2011 (Consumer Statute), and Law 1581 of 2012 (Personal Data Protection).",
+          "p2": "Any dispute, controversy, or claim arising out of or in connection with these Terms, or the breach, termination, or invalidity thereof, shall be subject to the jurisdiction of the competent courts of Bogotá D.C., Colombia, or to the Superintendencia de Industria y Comercio (SIC) for matters within its administrative jurisdiction.",
+          "p3": "Disputes specifically related to the processing of personal data may be submitted to the SIC's Data Protection Division (Delegatura para la Protección de Datos Personales) at www.sic.gov.co, in accordance with the procedure established in Law 1581 of 2012."
+        },
+        "contact": {
+          "title": "15. Contact",
+          "p1": "For questions, clarifications, or concerns regarding these Terms and Conditions, contact us at:",
+          "email": "admin@chamucotravel.com",
+          "p2": "We aim to respond to all inquiries within 5 business days."
+        }
+      }
+    }
   }
 }
