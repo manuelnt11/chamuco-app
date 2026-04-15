@@ -9,13 +9,18 @@ if [ $? -ne 0 ]; then
 fi
 
 # 2. Dependency security audit
-echo "🔒 Auditing dependencies for security vulnerabilities..."
-pnpm audit --audit-level=high
-if [ $? -ne 0 ]; then
-  echo "❌ High or critical security vulnerabilities found"
-  echo "💡 Run 'pnpm audit' to see details and 'pnpm audit --fix' to auto-fix"
-  exit 1
-fi
+# TODO: Restore when pnpm 11 is stable (project already satisfies Node >=22).
+#       pnpm 10.x uses retired npm audit endpoints that return HTTP 410.
+#       Tracked: https://github.com/pnpm/pnpm/issues/11265
+#       Vulnerability scanning is handled by Dependabot (.github/dependabot.yml).
+#
+# echo "🔒 Auditing dependencies for security vulnerabilities..."
+# pnpm audit --audit-level=high
+# if [ $? -ne 0 ]; then
+#   echo "❌ High or critical security vulnerabilities found"
+#   echo "💡 Run 'pnpm audit' to see details and 'pnpm audit --fix' to auto-fix"
+#   exit 1
+# fi
 
 # 3. Type checking (only affected packages)
 echo "🔧 Type checking affected packages..."

@@ -1,0 +1,56 @@
+version: 2
+
+updates:
+  # Scans the entire pnpm workspace via the root pnpm-lock.yaml.
+  # Covers all packages under apps/ and packages/.
+  # Replaces `pnpm audit` until pnpm 11 supports the new npm advisory endpoint.
+  # See: https://github.com/pnpm/pnpm/issues/11265
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'America/Mexico_City'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+    groups:
+      nestjs:
+        patterns: ['@nestjs/*']
+      drizzle:
+        patterns: ['drizzle-*']
+      firebase:
+        patterns: ['firebase', 'firebase-admin']
+      react:
+        patterns: ['react', 'react-dom']
+      next:
+        patterns: ['next', 'next-themes', 'eslint-config-next']
+      tailwind:
+        patterns: ['tailwindcss', 'tailwind-merge', 'autoprefixer', 'postcss']
+      i18n:
+        patterns: ['i18next', 'i18next-*', 'react-i18next', 'nestjs-i18n']
+      testing:
+        patterns: ['@testing-library/*', 'vitest', '@vitest/*', 'jest', '@swc/*']
+      typescript-eslint:
+        patterns: ['@typescript-eslint/*']
+      eslint:
+        patterns: ['eslint', 'eslint-config-*', 'eslint-plugin-*']
+      types:
+        patterns: ['@types/*']
+
+  # GitHub Actions — group all action updates into a single weekly PR
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'America/Mexico_City'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'ci'
+    groups:
+      github-actions:
+        patterns: ['*']
