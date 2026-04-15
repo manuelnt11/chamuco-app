@@ -28,7 +28,6 @@
     "sourceMap": true,
     "composite": true,
     "incremental": true,
-    "baseUrl": ".",
     "paths": {
       "@chamuco/shared-types": ["./packages/shared-types/src"],
       "@chamuco/shared-utils": ["./packages/shared-utils/src"]
