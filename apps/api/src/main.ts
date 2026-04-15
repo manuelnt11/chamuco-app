@@ -35,7 +35,7 @@ async function bootstrap(): Promise<void> {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document);
+    SwaggerModule.setup('docs', app, document);
   }
 
   // Start server
@@ -44,7 +44,7 @@ async function bootstrap(): Promise<void> {
 
   console.log(`Application is running on: http://localhost:${port}`);
   if (swaggerEnabled) {
-    console.log(`Swagger UI available at: http://localhost:${port}/api/docs`);
+    console.log(`Swagger UI available at: http://localhost:${port}/docs`);
   }
 }
 
