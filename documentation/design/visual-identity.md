@@ -78,7 +78,7 @@ Evolved from the original "Cielos Abiertos" proposal. The dark anchor was soften
 
 **Personality:** Fresh, youthful, modern. Sky blue conveys freedom and open skies. Orange brings warmth and the chamuco's playful energy without dominating. The reduced contrast between the dark anchor and the light background makes the palette feel approachable rather than stark.
 
-**Tailwind configuration:** these five base colors should be registered as a custom palette in `tailwind.config.ts` under a `chamuco` namespace (e.g., `chamuco-cielo`, `chamuco-naranja`, etc.), with each base color generating a full 50–950 shade scale for utility coverage.
+**Tailwind configuration:** these five base colors are registered as a custom palette in `apps/web/src/app/globals.css` under the `@theme` block using a `horizonte` namespace (e.g., `--color-horizonte-cielo`, `--color-horizonte-naranja`, etc.), making them available as Tailwind utilities (`bg-horizonte-cielo`, `text-horizonte-naranja`, etc.).
 
 ---
 
@@ -111,11 +111,11 @@ A single-family system using Plus Jakarta Sans across all weights (Light 300 →
 | `body`    | 14px    | 400    | Secondary text, labels                           |
 | `caption` | 12px    | 300    | Timestamps, metadata, hints                      |
 
-**Next.js configuration:** load via `next/font/google` with `subsets: ['latin']` and `display: 'swap'`. Declare all required weights in a single import to avoid multiple round-trips. Variable font (`variable: '--font-pjs'`) is available and preferred — enables smooth weight transitions in gamification animations.
+**Next.js configuration:** load via `next/font/google` with `subsets: ['latin']` and `display: 'swap'`. Declare all required weights in a single import to avoid multiple round-trips. Use `variable: '--font-jakarta'` to expose the font as a CSS custom property.
 
-**Tailwind configuration:** register the CSS variable as `fontFamily.sans` override so all Tailwind text utilities resolve to Plus Jakarta Sans automatically.
+**Tailwind configuration (v4):** in `apps/web/src/app/globals.css`, define `--font-sans: var(--font-jakarta), ui-sans-serif, ...` inside the `@theme` block. This makes all Tailwind `font-sans` utilities resolve to Plus Jakarta Sans automatically.
 
-**Implementation note (2026-04-02):** Plus Jakarta Sans has been fully integrated as the default sans-serif font via `next/font/google` in `apps/web/src/app/layout.tsx`. All weights (300-800) are configured with `display: 'swap'` for optimal loading performance. The font is accessible throughout the application via the `font-sans` Tailwind utility class and `var(--font-sans)` CSS variable.
+**Implementation note (2026-04-02):** Plus Jakarta Sans has been fully integrated as the default sans-serif font via `next/font/google` in `apps/web/src/app/layout.tsx`. All weights (300-800) are configured with `display: 'swap'` for optimal loading performance. The font is accessible throughout the application via the `font-sans` Tailwind utility class and `var(--font-jakarta)` CSS variable.
 
 ---
 
@@ -184,7 +184,7 @@ The tradeoff is a slightly steeper learning curve compared to Radix's higher-lev
 
 The `Drawer` component (built on Vaul) provides the bottom-sheet pattern required by the PWA navigation spec. The `Dialog`, `Sheet`, `Popover`, and `Command` primitives cover the core overlay patterns across the app without additional libraries.
 
-**Integration notes:** initialize with `shadcn init --defaults` (uses `base-nova` preset by default), configure `tailwind.config.ts` to use the `chamuco` color namespace defined in section 2, and set the CSS variable prefix to `--chamuco` to avoid conflicts. All added components live in `apps/web/src/components/ui/`. Icon library is set to `none` — Phosphor Icons is used instead (see section 4).
+**Integration notes:** initialize with `shadcn init --defaults` (uses `base-nova` preset by default). In Tailwind v4, color configuration is done via the `@theme` block in `apps/web/src/app/globals.css` — no `tailwind.config.ts` is needed. All added components live in `apps/web/src/components/ui/`. Icon library is set to `none` — Phosphor Icons is used instead (see section 4).
 
 ---
 

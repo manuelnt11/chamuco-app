@@ -127,15 +127,15 @@ The **`next-themes`** library handles theme management in Next.js. It:
 - Handles `SYSTEM` mode automatically via `prefers-color-scheme`.
 - Exposes a `useTheme()` hook for the preference toggle component.
 
-**Tailwind dark mode strategy:** `class` (not `media`). This is required to support the `SYSTEM` → user override flow, since `media` strategy cannot be toggled programmatically.
+**Tailwind dark mode strategy:** class-based (not `media`). This is required to support the `SYSTEM` → user override flow, since `media` strategy cannot be toggled programmatically.
 
-```ts
-// apps/web/tailwind.config.ts
-export default {
-  darkMode: 'class',
-  // ...
-};
+In Tailwind v4, this is configured via a custom variant in `apps/web/src/app/globals.css`:
+
+```css
+@custom-variant dark (&:where(.dark, .dark *));
 ```
+
+`next-themes` adds the `.dark` class to `<html>` when dark mode is active, which activates all `dark:` utility variants.
 
 ### Language: `i18next`
 
