@@ -1,7 +1,7 @@
 # Chamuco App — Monorepo Structure
 
 **Status:** Defined
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-04-15
 
 ---
 
@@ -86,7 +86,7 @@ chamuco-app/
 │   └── pre-commit                  # Runs lint-staged then turbo test with coverage
 ├── turbo.json                      # Turborepo pipeline configuration
 ├── package.json                    # Root package.json (pnpm workspaces)
-├── pnpm-workspace.yaml             # pnpm workspace declaration
+├── pnpm-workspace.yaml             # pnpm workspace declaration + shared devDependency catalog
 ├── tsconfig.base.json              # Base TypeScript config extended by all packages
 ├── .eslintrc.js                    # Root ESLint config
 ├── .prettierrc                     # Prettier config (indentation, quotes, trailing commas)
@@ -105,6 +105,35 @@ The monorepo uses **pnpm workspaces** as the package manager and **Turborepo** a
 - Significantly faster installs via content-addressable storage (packages are never duplicated on disk).
 - Strict dependency isolation — a package can only import what is declared in its own `package.json`, preventing accidental cross-package leakage.
 - Native workspace support with `pnpm-workspace.yaml`.
+- **Catalog** — pnpm's `catalog:` feature defines a single canonical version for shared `devDependencies` in `pnpm-workspace.yaml`. Each `package.json` references that version with `"catalog:"` instead of a pinned string. This eliminates version drift across packages and ensures Dependabot only needs to update `pnpm-workspace.yaml` for shared packages.
+
+### pnpm Catalog
+
+Shared `devDependencies` that appear in more than one package must be declared in the `catalog:` block of `pnpm-workspace.yaml`:
+
+```yaml
+catalog:
+  '@types/node': ^25.6.0
+  '@typescript-eslint/eslint-plugin': ^8.57.2
+  '@typescript-eslint/parser': ^8.57.2
+  eslint: ^10.2.0
+  eslint-config-prettier: ^10.0.1
+  eslint-plugin-i18next: ^6.1.4
+  eslint-plugin-prettier: ^5.5.5
+  prettier: ^3.8.1
+  typescript: ^6.0.2
+```
+
+Each `package.json` that uses one of these packages references it as:
+
+```json
+"devDependencies": {
+  "typescript": "catalog:",
+  "eslint": "catalog:"
+}
+```
+
+**Rule:** When adding a new `devDependency` that already exists in another package, or when upgrading a shared tool, always add it to (or update it in) `pnpm-workspace.yaml`'s `catalog:` block — never pin a duplicate version in an individual `package.json`.
 
 **Turborepo** sits on top of pnpm workspaces and provides:
 
