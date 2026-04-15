@@ -10,7 +10,7 @@ fi
 
 # 2. Dependency security audit
 echo "🔒 Auditing dependencies for security vulnerabilities..."
-pnpm audit --audit-level=high
+pnpm audit --audit-level=high --ignore-registry-errors
 if [ $? -ne 0 ]; then
   echo "❌ High or critical security vulnerabilities found"
   echo "💡 Run 'pnpm audit' to see details and 'pnpm audit --fix' to auto-fix"

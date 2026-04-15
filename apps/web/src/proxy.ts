@@ -22,7 +22,7 @@ import type { NextRequest } from 'next/server';
  *   /onboarding — unauthenticated → /sign-in; auth+unregistered → next(); auth+registered → /
  *   all others  — unauthenticated → /sign-in; auth+unregistered → /onboarding; auth+registered → next()
  */
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const isAuthenticated = request.cookies.has('chamuco-auth');
   const isRegistered = request.cookies.has('chamuco-registered');
   const { pathname } = request.nextUrl;
