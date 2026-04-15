@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ThemeProvider } from './ThemeProvider';
-import type { ThemeProviderProps } from 'next-themes/dist/types';
+import type { ThemeProviderProps } from 'next-themes';
 
 const mockThemeProvider = vi.fn(({ children }: ThemeProviderProps) => <div>{children}</div>);
 
