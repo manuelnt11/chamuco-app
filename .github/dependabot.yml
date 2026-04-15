@@ -15,8 +15,31 @@ updates:
     open-pull-requests-limit: 10
     labels:
       - 'dependencies'
+    groups:
+      nestjs:
+        patterns: ['@nestjs/*']
+      drizzle:
+        patterns: ['drizzle-*']
+      firebase:
+        patterns: ['firebase', 'firebase-admin']
+      react:
+        patterns: ['react', 'react-dom']
+      next:
+        patterns: ['next', 'next-themes', 'eslint-config-next']
+      tailwind:
+        patterns: ['tailwindcss', 'tailwind-merge', 'autoprefixer', 'postcss']
+      i18n:
+        patterns: ['i18next', 'i18next-*', 'react-i18next', 'nestjs-i18n']
+      testing:
+        patterns: ['@testing-library/*', 'vitest', '@vitest/*', 'jest', '@swc/*']
+      typescript-eslint:
+        patterns: ['@typescript-eslint/*']
+      eslint:
+        patterns: ['eslint', 'eslint-config-*', 'eslint-plugin-*']
+      types:
+        patterns: ['@types/*']
 
-  # GitHub Actions — keep action versions up to date
+  # GitHub Actions — group all action updates into a single weekly PR
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
@@ -28,3 +51,6 @@ updates:
     labels:
       - 'dependencies'
       - 'ci'
+    groups:
+      github-actions:
+        patterns: ['*']
