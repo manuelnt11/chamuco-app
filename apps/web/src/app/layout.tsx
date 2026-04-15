@@ -12,7 +12,7 @@ import { SIDEBAR_STORAGE_KEY, SIDEBAR_COLLAPSED_WIDTH } from '@/lib/sidebar-cons
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-sans',
+  variable: '--font-jakarta',
   weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
 });
