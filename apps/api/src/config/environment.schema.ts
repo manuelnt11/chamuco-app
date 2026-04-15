@@ -51,6 +51,10 @@ class EnvironmentVariables {
   @IsString()
   @IsJSON()
   FIREBASE_SERVICE_ACCOUNT_JSON!: string;
+
+  @IsOptional()
+  @IsString()
+  CORS_ORIGIN?: string;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {

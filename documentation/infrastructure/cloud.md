@@ -222,7 +222,8 @@ Both services are deployed to Cloud Run in `us-central1` region with serverless,
 
 ### API Service (`chamuco-api`)
 
-**Service URL:** `https://chamuco-api-393715267650.us-central1.run.app`
+**Production URL:** `https://api.chamucotravel.com`
+**Internal Cloud Run URL:** `https://chamuco-api-393715267650.us-central1.run.app`
 **Current Revision:** `chamuco-api-00012-tfr` (or latest)
 
 **Configuration:**
@@ -291,7 +292,7 @@ gcloud run deploy chamuco-api \
 **Health Check:**
 
 ```bash
-curl https://chamuco-api-393715267650.us-central1.run.app/health
+curl https://api.chamucotravel.com/health
 # Returns: {"status":"ok","info":{},"error":{},"details":{}}
 ```
 
@@ -307,7 +308,8 @@ curl https://chamuco-api-393715267650.us-central1.run.app/health
 
 ### Web Service (`chamuco-web`)
 
-**Service URL:** `https://chamuco-web-393715267650.us-central1.run.app`
+**Production URL:** `https://chamucotravel.com`
+**Internal Cloud Run URL:** `https://chamuco-web-393715267650.us-central1.run.app`
 **Current Revision:** `chamuco-web-00001-4km` (or latest)
 
 **Configuration:**
@@ -336,7 +338,7 @@ Environment:
   Execution Environment: gen2
   PORT: 3000 (Cloud Run injects automatically)
   NODE_ENV: production
-  NEXT_PUBLIC_API_URL: https://chamuco-api-393715267650.us-central1.run.app
+  NEXT_PUBLIC_API_URL: https://api.chamucotravel.com
 ```
 
 **Deployment Command:**
@@ -346,7 +348,7 @@ gcloud run deploy chamuco-web \
   --image=us-central1-docker.pkg.dev/chamuco-app-mn/chamuco-images/web:latest \
   --region=us-central1 \
   --platform=managed \
-  --set-env-vars="NODE_ENV=production,NEXT_PUBLIC_API_URL=https://chamuco-api-393715267650.us-central1.run.app" \
+  --set-env-vars="NODE_ENV=production,NEXT_PUBLIC_API_URL=https://api.chamucotravel.com" \
   --memory=1Gi \
   --cpu=1 \
   --min-instances=0 \
@@ -364,7 +366,7 @@ gcloud run deploy chamuco-web \
 **Health Check:**
 
 ```bash
-curl -I https://chamuco-web-393715267650.us-central1.run.app
+curl -I https://chamucotravel.com
 # Returns: HTTP/2 200
 ```
 
