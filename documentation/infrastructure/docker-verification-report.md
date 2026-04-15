@@ -97,7 +97,7 @@ docker run --rm -d \
 [Nest] Nest application successfully started
 
 Application is running on: http://localhost:3000
-Swagger UI available at: http://localhost:3000/api/docs
+Swagger UI available at: http://localhost:3000/docs
 ```
 
 **Endpoint Tests:**
@@ -105,7 +105,7 @@ Swagger UI available at: http://localhost:3000/api/docs
 | Test                            | Result  | Response                                            |
 | ------------------------------- | ------- | --------------------------------------------------- |
 | Health endpoint (`GET /health`) | ✅ PASS | `{"status":"ok","info":{},"error":{},"details":{}}` |
-| Swagger docs (`GET /api/docs`)  | ✅ PASS | HTTP 200 OK                                         |
+| Swagger docs (`GET /docs`)      | ✅ PASS | HTTP 200 OK                                         |
 | Docker health check             | ✅ PASS | Status: "healthy"                                   |
 
 **Database Connectivity:**

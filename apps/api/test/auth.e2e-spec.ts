@@ -84,13 +84,13 @@ describe('Auth endpoints (integration)', () => {
   });
 
   // -------------------------------------------------------------------------
-  // GET /api/v1/auth/username/:username/available
+  // GET /v1/auth/username/:username/available
   // -------------------------------------------------------------------------
 
-  describe('GET /api/v1/users/username-available', () => {
+  describe('GET /v1/users/username-available', () => {
     it('returns available:true for a username that does not exist', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/v1/users/username-available?username=nonexistent_user_e2e')
+        .get('/v1/users/username-available?username=nonexistent_user_e2e')
         .expect(200);
 
       expect(res.body).toMatchObject({ available: true });
@@ -98,29 +98,29 @@ describe('Auth endpoints (integration)', () => {
 
     it('returns 400 for an invalid username format', async () => {
       await request(app.getHttpServer())
-        .get('/api/v1/users/username-available?username=INVALID+USER!')
+        .get('/v1/users/username-available?username=INVALID+USER!')
         .expect(400);
     });
 
     it('returns 400 for a username that is too short', async () => {
       await request(app.getHttpServer())
-        .get('/api/v1/users/username-available?username=ab')
+        .get('/v1/users/username-available?username=ab')
         .expect(400);
     });
   });
 
   // -------------------------------------------------------------------------
-  // POST /api/v1/auth/register
+  // POST /v1/auth/register
   // -------------------------------------------------------------------------
 
-  describe('POST /api/v1/auth/register', () => {
+  describe('POST /v1/auth/register', () => {
     it('creates a new user, normalises username to lowercase, and returns 201', async () => {
       mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
 
       // Send an uppercase username — the @Transform on RegisterDto lowercases it before
       // validation and persistence, so the stored username must be lowercase.
       const res = await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
+        .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
         .send({ username: 'E2E_Test_User', displayName: 'E2E Test User' })
         .expect(201);
@@ -139,7 +139,7 @@ describe('Auth endpoints (integration)', () => {
 
       // Second attempt with same Firebase UID — user already exists.
       await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
+        .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
         .send({ username: 'different_username', displayName: 'E2E Test User' })
         .expect(409);
@@ -155,7 +155,7 @@ describe('Auth endpoints (integration)', () => {
       });
 
       await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
+        .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
         .send({ username: 'e2e_test_user', displayName: 'Other User' }) // same username as registered above
         .expect(409);
@@ -165,7 +165,7 @@ describe('Auth endpoints (integration)', () => {
       mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
 
       await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
+        .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
         .send({ username: 'INVALID USERNAME!', displayName: 'E2E Test User' })
         .expect(400);
@@ -175,7 +175,7 @@ describe('Auth endpoints (integration)', () => {
       mockVerifyIdToken.mockRejectedValue(new Error('Firebase: invalid token'));
 
       await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
+        .post('/v1/auth/register')
         .set('Authorization', 'Bearer bad-token')
         .send({ username: 'some_user', displayName: 'Some User' })
         .expect(401);
@@ -183,17 +183,17 @@ describe('Auth endpoints (integration)', () => {
 
     it('returns 401 when no Authorization header is provided', async () => {
       await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
+        .post('/v1/auth/register')
         .send({ username: 'some_user', displayName: 'Some User' })
         .expect(401);
     });
   });
 
   // -------------------------------------------------------------------------
-  // POST /api/v1/auth/logout
+  // POST /v1/auth/logout
   // -------------------------------------------------------------------------
 
-  describe('POST /api/v1/auth/logout', () => {
+  describe('POST /v1/auth/logout', () => {
     it('returns 204 and revokes refresh tokens for an authenticated user', async () => {
       // The guard verifies the token and attaches the user; we need a real user in the DB.
       mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
@@ -201,7 +201,7 @@ describe('Auth endpoints (integration)', () => {
       // Set up: the guard queries the DB for the user by UID.
       // Our test user was registered in the register suite above.
       await request(app.getHttpServer())
-        .post('/api/v1/auth/logout')
+        .post('/v1/auth/logout')
         .set('Authorization', VALID_GOOGLE_TOKEN)
         .expect(204);
 
@@ -209,7 +209,7 @@ describe('Auth endpoints (integration)', () => {
     });
 
     it('returns 401 when no Authorization header is provided', async () => {
-      await request(app.getHttpServer()).post('/api/v1/auth/logout').expect(401);
+      await request(app.getHttpServer()).post('/v1/auth/logout').expect(401);
     });
   });
 });

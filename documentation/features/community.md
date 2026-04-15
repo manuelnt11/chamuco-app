@@ -223,7 +223,7 @@ The `members` map on each channel document is what Firestore security rules use 
 
 **Sending a message:**
 
-1. Frontend calls `POST /api/v1/channels/:id/messages` on the NestJS backend.
+1. Frontend calls `POST /v1/channels/:id/messages` on the NestJS backend.
 2. NestJS validates auth, verifies the user is an active member (PostgreSQL), and writes the message to Firestore via Admin SDK.
 3. Firestore delivers the message in real time to all connected subscribers (other channel members).
 

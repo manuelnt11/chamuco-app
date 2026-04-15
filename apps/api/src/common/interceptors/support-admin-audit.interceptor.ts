@@ -165,7 +165,7 @@ export class SupportAdminAuditInterceptor implements NestInterceptor {
    * a best-effort fallback for routes without the decorator — add `@AuditTarget` to any
    * route where precise auditing matters.
    *
-   * URL fallback: /api/v1/users/abc-123 → table='users', id='abc-123'
+   * URL fallback: /v1/users/abc-123 → table='users', id='abc-123'
    */
   private resolveTarget(
     metadata: AuditTargetMetadata | undefined,

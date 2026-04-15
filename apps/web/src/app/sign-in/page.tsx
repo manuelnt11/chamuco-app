@@ -95,7 +95,7 @@ export default function SignInPage() {
 
       // Determine if this is a new or returning Chamuco user
       try {
-        await apiClient.get('/api/v1/users/me');
+        await apiClient.get('/v1/users/me');
         document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
         hasNavigated.current = true;
         router.replace('/'); // 200 → returning user → home

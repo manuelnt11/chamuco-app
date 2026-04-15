@@ -6,6 +6,7 @@ import {
   IsBoolean,
   IsOptional,
   IsString,
+  IsUrl,
   Matches,
   Min,
   Max,
@@ -53,7 +54,7 @@ class EnvironmentVariables {
   FIREBASE_SERVICE_ACCOUNT_JSON!: string;
 
   @IsOptional()
-  @IsString()
+  @IsUrl({ require_protocol: true, require_tld: true })
   CORS_ORIGIN?: string;
 }
 

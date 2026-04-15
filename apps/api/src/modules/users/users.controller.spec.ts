@@ -53,7 +53,7 @@ describe('UsersController', () => {
     controller = module.get<UsersController>(UsersController);
   });
 
-  describe('GET /api/v1/users/me', () => {
+  describe('GET /v1/users/me', () => {
     it('returns the authenticated user without the firebaseUid field', () => {
       const result = controller.getMe(mockAuthUser);
 
@@ -64,7 +64,7 @@ describe('UsersController', () => {
     });
   });
 
-  describe('GET /api/v1/users/username-available', () => {
+  describe('GET /v1/users/username-available', () => {
     it('delegates to UsersService and returns the availability result', async () => {
       mockCheckUsernameAvailability.mockResolvedValue({ available: true, username: 'john_doe' });
 

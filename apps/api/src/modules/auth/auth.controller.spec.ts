@@ -50,7 +50,7 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
   });
 
-  describe('POST /api/v1/auth/register', () => {
+  describe('POST /v1/auth/register', () => {
     it('should delegate to AuthService and return the created user', async () => {
       const req = buildRequest('Bearer valid-token');
       const dto = { username: 'john_doe', displayName: 'John Doe' };
@@ -82,7 +82,7 @@ describe('AuthController', () => {
     });
   });
 
-  describe('POST /api/v1/auth/logout', () => {
+  describe('POST /v1/auth/logout', () => {
     const mockAuthUser = { firebaseUid: 'firebase-uid-123' } as AuthenticatedUser;
 
     it('should delegate to AuthService.logout with the current user firebaseUid', async () => {

@@ -10,7 +10,7 @@ import { RegisterResponseDto } from './dto/register-response.dto';
 
 @ApiTags('auth')
 @ApiBearerAuth()
-@Controller('api/v1/auth')
+@Controller('v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
