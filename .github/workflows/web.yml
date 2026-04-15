@@ -54,8 +54,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Audit dependencies for vulnerabilities
-        run: pnpm audit --audit-level high
+      # TODO: Restore when pnpm 11 is stable (Node 22 already satisfied).
+      #       pnpm 10.x uses retired npm audit endpoints (HTTP 410).
+      #       Tracked: https://github.com/pnpm/pnpm/issues/11265
+      #       Vulnerability scanning handled by Dependabot (.github/dependabot.yml).
+      # - name: Audit dependencies for vulnerabilities
+      #   run: pnpm audit --audit-level high
 
       - name: Build workspace packages
         run: pnpm --filter @chamuco/shared-types --filter @chamuco/shared-utils build

@@ -18,7 +18,7 @@
     "test:coverage": "turbo run test:coverage",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
-    "validate": "pnpm format:check && pnpm lint && pnpm audit --audit-level=high && pnpm typecheck && pnpm test && pnpm test:coverage",
+    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:coverage",
     "prepare": "husky",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "db:start": "./scripts/db/start.sh",

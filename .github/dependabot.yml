@@ -1,0 +1,30 @@
+version: 2
+
+updates:
+  # Scans the entire pnpm workspace via the root pnpm-lock.yaml.
+  # Covers all packages under apps/ and packages/.
+  # Replaces `pnpm audit` until pnpm 11 supports the new npm advisory endpoint.
+  # See: https://github.com/pnpm/pnpm/issues/11265
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'America/Mexico_City'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+
+  # GitHub Actions — keep action versions up to date
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'America/Mexico_City'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'ci'
