@@ -26,8 +26,8 @@ let responseFulfilled: (res: unknown) => unknown;
 let responseRejected: (err: unknown) => Promise<unknown>;
 
 beforeAll(() => {
-  requestFulfilled = mockRequestUse.mock.calls[0][0] as typeof requestFulfilled;
-  [responseFulfilled, responseRejected] = mockResponseUse.mock.calls[0] as [
+  requestFulfilled = mockRequestUse.mock.calls[0]![0] as typeof requestFulfilled;
+  [responseFulfilled, responseRejected] = mockResponseUse.mock.calls[0]! as [
     typeof responseFulfilled,
     typeof responseRejected,
   ];

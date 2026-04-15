@@ -1,5 +1,7 @@
-const mockGoogleAuthProvider = vi.fn();
-const mockFacebookAuthProvider = vi.fn();
+import type { Mock } from 'vitest';
+
+const mockGoogleAuthProvider: Mock = vi.fn();
+const mockFacebookAuthProvider: Mock = vi.fn();
 
 vi.mock('firebase/auth', () => ({
   GoogleAuthProvider: mockGoogleAuthProvider,
