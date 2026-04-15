@@ -33,34 +33,35 @@ The project is currently in the **design and documentation phase** — no source
 
 ## Tech Stack (All Decided)
 
-| Layer               | Technology                                                                                  |
-| ------------------- | ------------------------------------------------------------------------------------------- |
-| Runtime             | Node.js + TypeScript                                                                        |
-| Backend framework   | NestJS                                                                                      |
-| Frontend framework  | Next.js (React)                                                                             |
-| PWA                 | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background messages)         |
-| Theme management    | `next-themes` — SSR-safe dark/light/system toggle, cookie-backed, Tailwind `class` strategy |
-| Styling             | Tailwind CSS                                                                                |
-| ORM                 | Drizzle ORM                                                                                 |
-| Migrations          | drizzle-kit — generates `.sql` files committed to Git                                       |
-| Primary database    | PostgreSQL (Cloud SQL)                                                                      |
-| Real-time messaging | Firestore (Firebase)                                                                        |
-| Authentication      | Firebase Authentication (Google Sign-In + Facebook Sign-In)                                 |
-| Push notifications  | Firebase Cloud Messaging (FCM)                                                              |
-| API documentation   | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs`                                  |
-| Backend testing     | Jest + `@swc/jest` — unit and integration tests                                             |
-| Frontend testing    | Vitest + React Testing Library — unit and component tests                                   |
-| E2E testing         | Playwright — cross-browser end-to-end tests                                                 |
-| Code formatting     | Prettier — indentation, quotes, trailing commas; config at `.prettierrc`                    |
-| Code linting        | ESLint 9.x — flat config format; config at `eslint.config.mjs` per package                  |
-| Git hooks           | Husky + lint-staged — pre-commit enforces lint, format, unit tests, and 90% coverage        |
-| Frontend i18n       | `i18next` + `react-i18next`                                                                 |
-| Backend i18n        | `nestjs-i18n`                                                                               |
-| Cloud               | Google Cloud Platform (GCP)                                                                 |
-| Hosting             | Cloud Run (containerized, serverless, scales to zero)                                       |
-| File storage        | Cloud Storage                                                                               |
-| CI/CD               | GitHub Actions (two independent pipelines: `api` and `web`)                                 |
-| Repository          | Monorepo — pnpm workspaces + Turborepo                                                      |
+| Layer               | Technology                                                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime             | Node.js + TypeScript                                                                                                            |
+| Backend framework   | NestJS                                                                                                                          |
+| Frontend framework  | Next.js (React)                                                                                                                 |
+| PWA                 | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background messages)                                             |
+| Theme management    | `next-themes` — SSR-safe dark/light/system toggle, cookie-backed, Tailwind `class` strategy                                     |
+| Styling             | Tailwind CSS                                                                                                                    |
+| ORM                 | Drizzle ORM                                                                                                                     |
+| Migrations          | drizzle-kit — generates `.sql` files committed to Git                                                                           |
+| Primary database    | PostgreSQL (Cloud SQL)                                                                                                          |
+| Real-time messaging | Firestore (Firebase)                                                                                                            |
+| Authentication      | Firebase Authentication (Google Sign-In + Facebook Sign-In)                                                                     |
+| Push notifications  | Firebase Cloud Messaging (FCM)                                                                                                  |
+| API documentation   | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs`                                                                      |
+| Backend testing     | Jest + `@swc/jest` — unit and integration tests                                                                                 |
+| Frontend testing    | Vitest + React Testing Library — unit and component tests                                                                       |
+| E2E testing         | Playwright — cross-browser end-to-end tests                                                                                     |
+| Code formatting     | Prettier — indentation, quotes, trailing commas; config at `.prettierrc`                                                        |
+| Code linting        | ESLint 9.x — flat config format; config at `eslint.config.mjs` per package                                                      |
+| Git hooks           | Husky + lint-staged — pre-commit enforces lint, format, unit tests, and 90% coverage                                            |
+| Frontend i18n       | `i18next` + `react-i18next`                                                                                                     |
+| Backend i18n        | `nestjs-i18n`                                                                                                                   |
+| Cloud               | Google Cloud Platform (GCP)                                                                                                     |
+| Hosting             | Cloud Run (containerized, serverless, scales to zero)                                                                           |
+| File storage        | Cloud Storage                                                                                                                   |
+| CI/CD               | GitHub Actions (two independent pipelines: `api` and `web`)                                                                     |
+| Dependency catalog  | pnpm catalog (`pnpm-workspace.yaml`) — shared `devDependencies` versioned once, referenced as `catalog:` in each `package.json` |
+| Repository          | Monorepo — pnpm workspaces + Turborepo                                                                                          |
 
 ---
 
@@ -389,6 +390,18 @@ TypeScript's type system is a critical safety net. **Never use `any` or `unknown
 - Every use of `any` or `unknown` requires a comment explaining why it's necessary.
 - If a better-typed alternative exists, request changes.
 - Temporary workarounds with `@ts-expect-error` should reference a tracking issue or version number.
+
+### 6. pnpm catalog — shared devDependency versioning
+
+Shared `devDependencies` that appear in more than one package are versioned exactly once in the `catalog:` block of `pnpm-workspace.yaml`. Individual `package.json` files reference them with `"catalog:"` instead of a pinned version string.
+
+**Rule:** When adding a new `devDependency` that already exists in another package, or upgrading a shared tool, always update `pnpm-workspace.yaml` — never add a duplicate pinned version to an individual `package.json`.
+
+Currently cataloged packages: `@types/node`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `eslint`, `eslint-config-prettier`, `eslint-plugin-i18next`, `eslint-plugin-prettier`, `prettier`, `typescript`.
+
+See [`documentation/architecture/monorepo-structure.md`](documentation/architecture/monorepo-structure.md) — "pnpm Catalog" section for the full spec.
+
+---
 
 ### Package-specific standing rules
 

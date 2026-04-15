@@ -1,7 +1,7 @@
 # Chamuco App — Technology Stack
 
 **Status:** Defined (subject to review)
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-04-15
 
 ---
 
@@ -140,12 +140,13 @@ See [`infrastructure/cloud.md`](../infrastructure/cloud.md) and [`infrastructure
 
 The entire project lives in a single Git repository structured as a monorepo, managed with **pnpm workspaces** and **Turborepo**.
 
-| Concern             | Technology                                                                  |
-| ------------------- | --------------------------------------------------------------------------- |
-| Package manager     | pnpm — fast installs, strict dependency isolation, native workspace support |
-| Build orchestration | Turborepo — task pipelines, local and remote caching, parallel execution    |
+| Concern                         | Technology                                                                                                |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Package manager                 | pnpm — fast installs, strict dependency isolation, native workspace support                               |
+| Shared devDependency versioning | pnpm catalog — single version declared in `pnpm-workspace.yaml`, referenced as `catalog:` in each package |
+| Build orchestration             | Turborepo — task pipelines, local and remote caching, parallel execution                                  |
 
-See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md) for the full directory layout and Turborepo pipeline configuration.
+See [`architecture/monorepo-structure.md`](../architecture/monorepo-structure.md) for the full directory layout, Turborepo pipeline configuration, and pnpm catalog spec.
 
 ---
 
