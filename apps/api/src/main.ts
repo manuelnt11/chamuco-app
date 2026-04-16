@@ -7,8 +7,10 @@ import { AppModule } from '@/app.module';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS
-  app.enableCors();
+  // Enable CORS — restrict to configured origin in production.
+  // CORS_ORIGIN must be a single URL. Unset locally to allow all origins.
+  const corsOrigin = process.env.CORS_ORIGIN;
+  app.enableCors(corsOrigin ? { origin: corsOrigin } : undefined);
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -30,7 +32,7 @@ async function bootstrap(): Promise<void> {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document);
+    SwaggerModule.setup('docs', app, document);
   }
 
   // Start server
@@ -39,7 +41,7 @@ async function bootstrap(): Promise<void> {
 
   console.log(`Application is running on: http://localhost:${port}`);
   if (swaggerEnabled) {
-    console.log(`Swagger UI available at: http://localhost:${port}/api/docs`);
+    console.log(`Swagger UI available at: http://localhost:${port}/docs`);
   }
 }
 

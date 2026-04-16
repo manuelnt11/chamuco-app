@@ -80,7 +80,7 @@ These are handled in the `common/` folder and applied globally or selectively vi
 ## API Design
 
 - **Style:** REST
-- **Versioning:** URI-based versioning (`/api/v1/...`) to allow non-breaking iteration.
+- **Versioning:** URI-based versioning (`/v1/...`) to allow non-breaking iteration.
 - **Response format:** Consistent envelope for all responses:
 
 ```json
@@ -120,7 +120,7 @@ The entire API surface is documented following the **OpenAPI 3.0** standard, enf
 
 ### Swagger UI
 
-The interactive documentation interface is served at `/api/docs` in non-production environments. It allows any developer or reviewer to:
+The interactive documentation interface is served at `/docs` in non-production environments. It allows any developer or reviewer to:
 
 - Browse all available endpoints grouped by module.
 - See full request/response schemas with field-level descriptions.
@@ -146,7 +146,7 @@ Because the backend runs on **Cloud Run** (which scales to zero), in-process sch
 
 ```
 Cloud Scheduler
-  └── HTTP POST → /api/v1/jobs/<job-name>   (NestJS, Cloud Run)
+  └── HTTP POST → /v1/jobs/<job-name>   (NestJS, Cloud Run)
                        └── SchedulerModule handler
                              └── service logic + FCM / DB writes
 ```
@@ -165,11 +165,11 @@ The secret is stored as a Cloud Run environment variable and injected into Cloud
 
 ### Jobs in MVP
 
-| Job                        | Endpoint                               | Schedule           | Description                                                                                                                                                                                                                                            |
-| -------------------------- | -------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Passport expiry check      | `POST /api/v1/jobs/passport-expiry`    | Daily at 02:00 UTC | Scans `user_nationalities` for records with non-null `passport_expiry_date`. Transitions `ACTIVE` → `EXPIRING_SOON` (≤ 30 days) and `EXPIRING_SOON` → `EXPIRED` (≤ 0 days). Sends FCM notification for each affected user.                             |
-| Trip lifecycle transitions | `POST /api/v1/jobs/trip-transitions`   | Every 30 minutes   | Transitions `OPEN`/`CONFIRMED` → `IN_PROGRESS` for trips whose `start_date` boundary has passed, and `IN_PROGRESS` → `COMPLETED` for trips whose `end_date` boundary has passed. Triggers the post-trip completion flow for each newly completed trip. |
-| Key date reminders         | `POST /api/v1/jobs/key-date-reminders` | Daily at 09:00 UTC | Scans `trip_key_dates` where `reminder_enabled = true` and `date = tomorrow`. Sends FCM push notification to all confirmed participants of each matching trip.                                                                                         |
+| Job                        | Endpoint                           | Schedule           | Description                                                                                                                                                                                                                                            |
+| -------------------------- | ---------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Passport expiry check      | `POST /v1/jobs/passport-expiry`    | Daily at 02:00 UTC | Scans `user_nationalities` for records with non-null `passport_expiry_date`. Transitions `ACTIVE` → `EXPIRING_SOON` (≤ 30 days) and `EXPIRING_SOON` → `EXPIRED` (≤ 0 days). Sends FCM notification for each affected user.                             |
+| Trip lifecycle transitions | `POST /v1/jobs/trip-transitions`   | Every 30 minutes   | Transitions `OPEN`/`CONFIRMED` → `IN_PROGRESS` for trips whose `start_date` boundary has passed, and `IN_PROGRESS` → `COMPLETED` for trips whose `end_date` boundary has passed. Triggers the post-trip completion flow for each newly completed trip. |
+| Key date reminders         | `POST /v1/jobs/key-date-reminders` | Daily at 09:00 UTC | Scans `trip_key_dates` where `reminder_enabled = true` and `date = tomorrow`. Sends FCM push notification to all confirmed participants of each matching trip.                                                                                         |
 
 ### Job Handler Structure
 
@@ -178,7 +178,7 @@ Each job handler lives in `SchedulerModule` and follows the same pattern:
 ```
 src/modules/scheduler/
 ├── scheduler.module.ts
-├── scheduler.controller.ts       # Exposes POST /api/v1/jobs/* endpoints
+├── scheduler.controller.ts       # Exposes POST /v1/jobs/* endpoints
 ├── jobs/
 │   ├── passport-expiry.job.ts
 │   ├── trip-transitions.job.ts

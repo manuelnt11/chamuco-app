@@ -10,7 +10,7 @@ import { UsernameAvailabilityDto } from './dto/username-availability.dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
-@Controller('api/v1/users')
+@Controller('v1/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

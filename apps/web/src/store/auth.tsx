@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // firebaseSignOut runs unconditionally so the client is never stuck in a signed-in
     // state if the server-side revocation call fails.
     try {
-      await apiClient.post('/api/v1/auth/logout');
+      await apiClient.post('/v1/auth/logout');
     } catch (err) {
       // 404 = user not yet registered (e.g. cancelling onboarding before completing
       // registration). No server session to revoke — proceed to Firebase sign-out.

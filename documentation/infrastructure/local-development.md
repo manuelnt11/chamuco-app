@@ -152,7 +152,7 @@ pnpm dev
 This runs:
 
 - **API:** `http://localhost:3000` (NestJS backend)
-  - Swagger docs: `http://localhost:3000/api/docs`
+  - Swagger docs: `http://localhost:3000/docs`
   - Health check: `http://localhost:3000/health`
 - **Web:** `http://localhost:3001` (Next.js frontend)
 

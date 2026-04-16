@@ -476,7 +476,7 @@ describe('OnboardingPage', () => {
       await user.click(screen.getByTestId('submit-btn'));
 
       await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
-      expect(mocks.mockApiPost).toHaveBeenCalledWith('/api/v1/auth/register', {
+      expect(mocks.mockApiPost).toHaveBeenCalledWith('/v1/auth/register', {
         username: 'newuser',
         displayName: 'Test User',
       });

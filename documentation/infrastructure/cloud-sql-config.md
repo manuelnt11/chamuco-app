@@ -165,7 +165,8 @@ When ready to scale, upgrade to:
 ## Deployment Configuration
 
 **Status:** Deployed (Issue #19 - 2026-03-29)
-**Service URL:** `https://chamuco-api-393715267650.us-central1.run.app`
+**Production URL:** `https://api.chamucotravel.com`
+**Internal Cloud Run URL:** `https://chamuco-api-393715267650.us-central1.run.app`
 
 ### Cloud Run Deploy Command
 

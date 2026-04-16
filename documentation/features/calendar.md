@@ -109,7 +109,7 @@ Each event shows:
 
 The calendar does not introduce any new data models. All displayed data is owned by `features/trips.md`, `features/events.md`, and `features/participants.md`. The calendar is a **read-only projection**.
 
-Backend implementation: a single `GET /api/v1/calendar` endpoint with `from` and `to` date range parameters returns a sorted union of the user's trips and events within that range.
+Backend implementation: a single `GET /v1/calendar` endpoint with `from` and `to` date range parameters returns a sorted union of the user's trips and events within that range.
 
 ---
 

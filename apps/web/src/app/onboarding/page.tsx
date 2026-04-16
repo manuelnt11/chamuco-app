@@ -76,7 +76,7 @@ export default function OnboardingPage() {
     if (isLoading || !currentUser) return;
     let cancelled = false;
     apiClient
-      .get('/api/v1/users/me')
+      .get('/v1/users/me')
       .then(() => {
         if (!cancelled) router.replace('/'); // 200 → user already has a Chamuco account
       })
@@ -99,7 +99,7 @@ export default function OnboardingPage() {
     if (usernameStatus !== 'checking') return;
     const timer = setTimeout(() => {
       apiClient
-        .get<{ available: boolean }>(`/api/v1/users/username-available?username=${username}`)
+        .get<{ available: boolean }>(`/v1/users/username-available?username=${username}`)
         .then(({ data }) => setUsernameStatus(data.available ? 'available' : 'taken'))
         .catch(() => setUsernameStatus('idle'));
     }, 300);
@@ -121,7 +121,7 @@ export default function OnboardingPage() {
     if (usernameStatus !== 'available' || !displayName.trim()) return;
     setIsSubmitting(true);
     try {
-      await apiClient.post('/api/v1/auth/register', {
+      await apiClient.post('/v1/auth/register', {
         username,
         displayName: displayName.trim(),
       });

@@ -186,7 +186,7 @@ describe('AuthProvider', () => {
     );
   });
 
-  it('signOut calls POST /api/v1/auth/logout then firebaseSignOut', async () => {
+  it('signOut calls POST /v1/auth/logout then firebaseSignOut', async () => {
     const user = makeUser();
     mockAuthWith(user);
     firebaseMocks.signOut.mockResolvedValue(undefined);
@@ -207,7 +207,7 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(ctx?.currentUser).toBe(user));
     await act(async () => ctx?.signOut());
 
-    expect(mockApiClientPost).toHaveBeenCalledWith('/api/v1/auth/logout');
+    expect(mockApiClientPost).toHaveBeenCalledWith('/v1/auth/logout');
     expect(firebaseMocks.signOut).toHaveBeenCalledWith({ name: 'mock-auth' });
   });
 

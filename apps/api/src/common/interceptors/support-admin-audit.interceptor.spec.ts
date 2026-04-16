@@ -39,7 +39,7 @@ function makeContext(overrides: {
     method: overrides.method ?? 'GET',
     user: overrides.user !== undefined ? overrides.user : makeUser(PlatformRole.SUPPORT_ADMIN),
     params: overrides.params ?? {},
-    path: overrides.path ?? '/api/v1/users',
+    path: overrides.path ?? '/v1/users',
   };
 
   return {
@@ -151,7 +151,7 @@ describe('SupportAdminAuditInterceptor', () => {
   describe('audit logging for SUPPORT_ADMIN writes', () => {
     it('logs a POST with action=CREATE, no before_state, after_state from response', (done) => {
       reflector.getAllAndOverride.mockReturnValue({ table: 'users', idParam: 'id' });
-      const ctx = makeContext({ method: 'POST', path: '/api/v1/users' });
+      const ctx = makeContext({ method: 'POST', path: '/v1/users' });
       const responseBody = { id: 'created-uuid', email: 'x@test.com' };
       const handler = makeCallHandler(responseBody);
 
@@ -177,7 +177,7 @@ describe('SupportAdminAuditInterceptor', () => {
       const ctx = makeContext({
         method: 'PATCH',
         params: { id: 'target-uuid' },
-        path: '/api/v1/users/target-uuid',
+        path: '/v1/users/target-uuid',
       });
       const responseBody = { id: 'target-uuid', email: 'new@test.com' };
       const handler = makeCallHandler(responseBody);
@@ -203,7 +203,7 @@ describe('SupportAdminAuditInterceptor', () => {
       const ctx = makeContext({
         method: 'PUT',
         params: { id: 'target-uuid' },
-        path: '/api/v1/users/target-uuid',
+        path: '/v1/users/target-uuid',
       });
 
       interceptor.intercept(ctx, makeCallHandler({ id: 'target-uuid' })).subscribe({
@@ -223,7 +223,7 @@ describe('SupportAdminAuditInterceptor', () => {
       const ctx = makeContext({
         method: 'DELETE',
         params: { id: 'target-uuid' },
-        path: '/api/v1/users/target-uuid',
+        path: '/v1/users/target-uuid',
       });
       const handler = makeCallHandler(null);
 
@@ -245,7 +245,7 @@ describe('SupportAdminAuditInterceptor', () => {
       const ctx = makeContext({
         method: 'PATCH',
         params: { id: 'ghost-uuid' },
-        path: '/api/v1/users/ghost-uuid',
+        path: '/v1/users/ghost-uuid',
       });
 
       interceptor.intercept(ctx, makeCallHandler({ id: 'ghost-uuid' })).subscribe({
@@ -259,7 +259,7 @@ describe('SupportAdminAuditInterceptor', () => {
 
     it('uses NIL_UUID as target_id when POST has no id param and handler fails', (done) => {
       reflector.getAllAndOverride.mockReturnValue({ table: 'users', idParam: 'id' });
-      const ctx = makeContext({ method: 'POST', params: {}, path: '/api/v1/users' });
+      const ctx = makeContext({ method: 'POST', params: {}, path: '/v1/users' });
       const error = new Error('validation error');
 
       interceptor.intercept(ctx, makeThrowingCallHandler(error)).subscribe({
@@ -286,7 +286,7 @@ describe('SupportAdminAuditInterceptor', () => {
       const ctx = makeContext({
         method: 'PATCH',
         params: { id: 'target-uuid' },
-        path: '/api/v1/users/target-uuid',
+        path: '/v1/users/target-uuid',
       });
       const originalError = new Error('something broke');
 
@@ -310,7 +310,7 @@ describe('SupportAdminAuditInterceptor', () => {
       const ctx = makeContext({
         method: 'DELETE',
         params: { id: 'target-uuid' },
-        path: '/api/v1/users/target-uuid',
+        path: '/v1/users/target-uuid',
       });
       const originalError = new Error('handler blew up');
 
@@ -334,7 +334,7 @@ describe('SupportAdminAuditInterceptor', () => {
       const ctx = makeContext({
         method: 'PATCH',
         params: { id: 'abc12345-0000-0000-0000-000000000001' },
-        path: '/api/v1/users/abc12345-0000-0000-0000-000000000001',
+        path: '/v1/users/abc12345-0000-0000-0000-000000000001',
       });
       db.execute.mockResolvedValue([{ id: 'abc12345-0000-0000-0000-000000000001' }]);
 
@@ -351,7 +351,7 @@ describe('SupportAdminAuditInterceptor', () => {
     it('uses table name as targetTable when URL has no id segment', (done) => {
       reflector.getAllAndOverride.mockReturnValue(undefined);
 
-      const ctx = makeContext({ method: 'POST', params: {}, path: '/api/v1/trips' });
+      const ctx = makeContext({ method: 'POST', params: {}, path: '/v1/trips' });
 
       interceptor.intercept(ctx, makeCallHandler({ id: 'new-trip' })).subscribe({
         complete: () => {
@@ -371,7 +371,7 @@ describe('SupportAdminAuditInterceptor', () => {
       const ctx = makeContext({
         method: 'PATCH',
         params: {},
-        path: `/api/v1/agencies/${urlId}`,
+        path: `/v1/agencies/${urlId}`,
       });
 
       interceptor.intercept(ctx, makeCallHandler({ id: urlId })).subscribe({
@@ -396,7 +396,7 @@ describe('SupportAdminAuditInterceptor', () => {
     const ctx = makeContext({
       method: 'DELETE',
       params: { id: 'some-id' },
-      path: '/api/v1/unknown_table/some-id',
+      path: '/v1/unknown_table/some-id',
     });
 
     interceptor.intercept(ctx, makeCallHandler(null)).subscribe({
@@ -418,7 +418,7 @@ describe('SupportAdminAuditInterceptor', () => {
     const ctx = makeContext({
       method: 'DELETE',
       params: { id: suspiciousId },
-      path: `/api/v1/User$Table/${suspiciousId}`, // "User$Table" is invalid per TABLE_NAME_RE
+      path: `/v1/User$Table/${suspiciousId}`, // "User$Table" is invalid per TABLE_NAME_RE
     });
 
     interceptor.intercept(ctx, makeCallHandler(null)).subscribe({
@@ -439,7 +439,7 @@ describe('SupportAdminAuditInterceptor', () => {
     insertValues.mockRejectedValueOnce(new Error('audit table write failed'));
     reflector.getAllAndOverride.mockReturnValue({ table: 'users', idParam: 'id' });
 
-    const ctx = makeContext({ method: 'POST', params: {}, path: '/api/v1/users' });
+    const ctx = makeContext({ method: 'POST', params: {}, path: '/v1/users' });
     const response = { id: 'new-user' };
 
     interceptor.intercept(ctx, makeCallHandler(response)).subscribe({
@@ -462,7 +462,7 @@ describe('SupportAdminAuditInterceptor', () => {
     const ctx = makeContext({
       method: 'PATCH',
       params: { tripId: 'trip-uuid' },
-      path: '/api/v1/trips/trip-uuid',
+      path: '/v1/trips/trip-uuid',
     });
 
     interceptor.intercept(ctx, makeCallHandler({ id: 'trip-uuid' })).subscribe({
@@ -488,7 +488,7 @@ describe('SupportAdminAuditInterceptor', () => {
     const ctx = makeContext({
       method: 'PATCH',
       params: { id: 'some-uuid' },
-      path: '/api/v1/UserPreferences/some-uuid',
+      path: '/v1/UserPreferences/some-uuid',
     });
 
     interceptor.intercept(ctx, makeCallHandler({ id: 'some-uuid' })).subscribe({

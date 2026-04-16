@@ -11,7 +11,7 @@ This file provides essential context for working on Chamuco App. Read it in full
 
 ## What Is Chamuco App
 
-**Public name:** Chamuco Travel · **Domain:** chamucotravel.com (tentative)
+**Public name:** Chamuco Travel · **Domain:** chamucotravel.com
 
 **Chamuco is not a travel app. It is an app for groups that travel.**
 

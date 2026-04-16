@@ -6,6 +6,7 @@ import {
   IsBoolean,
   IsOptional,
   IsString,
+  IsUrl,
   Matches,
   Min,
   Max,
@@ -51,6 +52,10 @@ class EnvironmentVariables {
   @IsString()
   @IsJSON()
   FIREBASE_SERVICE_ACCOUNT_JSON!: string;
+
+  @IsOptional()
+  @IsUrl({ require_protocol: true, require_tld: true })
+  CORS_ORIGIN?: string;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {

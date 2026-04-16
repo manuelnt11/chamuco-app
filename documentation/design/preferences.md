@@ -65,7 +65,7 @@ The cookie is written by the frontend whenever the user changes a preference whi
 
 ### Layer 2 — Authenticated preferences (database-backed)
 
-For logged-in users, preferences are stored in the `user_preferences` table in PostgreSQL (see schema below). They are loaded once after authentication and cached in client state for the session. Changes are persisted via `PATCH /api/v1/users/me/preferences`.
+For logged-in users, preferences are stored in the `user_preferences` table in PostgreSQL (see schema below). They are loaded once after authentication and cached in client state for the session. Changes are persisted via `PATCH /v1/users/me/preferences`.
 
 ---
 

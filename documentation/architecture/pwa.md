@@ -302,7 +302,7 @@ The Service Worker caching strategy determines what the user sees without a netw
 | ------------------------------ | ------------------------------------- | --------------------------------------------------------------------------- |
 | App shell (HTML, JS, CSS)      | Cache-first (precache)                | The app loads instantly even offline; `next-pwa` precaches the build output |
 | Static assets (images, icons)  | Cache-first with network fallback     | Avatars and trip photos load from cache                                     |
-| API calls (`/api/v1/**`)       | Network-first                         | Always attempt fresh data; fall back to a cached response if network fails  |
+| API calls (`/v1/**`)           | Network-first                         | Always attempt fresh data; fall back to a cached response if network fails  |
 | Firestore real-time connection | Offline persistence via Firestore SDK | Firestore's `enableIndexedDbPersistence()` caches recent documents locally  |
 
 The app should indicate clearly when it is operating in offline mode (e.g., a top banner). Write operations (sending a message, updating an itinerary item) performed offline should be queued and retried when the connection is restored — this is handled by Firestore's offline persistence for message operations.
