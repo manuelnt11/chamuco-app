@@ -1,6 +1,16 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+allowBuilds:
+  '@firebase/util': true
+  '@nestjs/core': true
+  '@scarf/scarf': true
+  '@swc/core': true
+  esbuild: true
+  msw: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
 
 catalog:
   '@types/node': ^25.6.0

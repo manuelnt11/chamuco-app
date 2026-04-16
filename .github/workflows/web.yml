@@ -30,12 +30,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 10.33.0
           run_install: false
 
       - name: Get pnpm store directory
@@ -77,7 +76,7 @@ jobs:
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
-          NEXT_PUBLIC_API_URL: https://api.chamucotravel.com
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
         run: pnpm --filter web build
 
       - name: Upload coverage to GitHub
@@ -100,12 +99,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 10.33.0
           run_install: false
 
       - name: Install dependencies
@@ -154,7 +152,7 @@ jobs:
             --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }} \
             --build-arg NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }} \
             --build-arg NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }} \
-            --build-arg NEXT_PUBLIC_API_URL=https://api.chamucotravel.com \
+            --build-arg NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }} \
             -t ${{ env.ARTIFACT_REGISTRY }}/web:${{ github.sha }} \
             -t ${{ env.ARTIFACT_REGISTRY }}/web:latest \
             .
