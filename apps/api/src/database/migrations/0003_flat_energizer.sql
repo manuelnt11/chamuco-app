@@ -27,3 +27,7 @@ CREATE TABLE "user_profiles" (
 );
 --> statement-breakpoint
 ALTER TABLE "user_profiles" ADD CONSTRAINT "user_profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+--> statement-breakpoint
+CREATE TRIGGER user_profiles_set_updated_at
+  BEFORE UPDATE ON "user_profiles"
+  FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
