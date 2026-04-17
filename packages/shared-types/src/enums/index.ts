@@ -6,5 +6,6 @@ export * from './dietary-preference.enum';
 export * from './food-allergen.enum';
 export * from './medical-condition-type.enum';
 export * from './phobia-type.enum';
+export * from './passport-status.enum';
 export * from './physical-limitation-type.enum';
 export * from './platform-role.enum';
