@@ -1,8 +1,10 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
+import { AuthProvider, DietaryPreference, FoodAllergen, PlatformRole } from '@chamuco/shared-types';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import type { UserHealthResponseDto } from './dto/user-health-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 const NOW = new Date('2026-01-01T00:00:00.000Z');
@@ -26,16 +28,30 @@ const mockAuthUser: AuthenticatedUser = {
 // mockUser is the expected shape after getMe strips firebaseUid
 const { firebaseUid: _, ...mockUser } = mockAuthUser;
 
+const mockHealthResponse: UserHealthResponseDto = {
+  dietaryPreference: DietaryPreference.OMNIVORE,
+  dietaryNotes: null,
+  generalMedicalNotes: null,
+  foodAllergies: [],
+  phobias: [],
+  physicalLimitations: [],
+  medicalConditions: [],
+};
+
 describe('UsersController', () => {
   let controller: UsersController;
   let mockFindByFirebaseUid: jest.Mock;
   let mockCheckUsernameAvailability: jest.Mock;
+  let mockGetHealth: jest.Mock;
+  let mockUpdateHealth: jest.Mock;
 
   beforeEach(async () => {
     mockFindByFirebaseUid = jest.fn().mockResolvedValue(mockUser);
     mockCheckUsernameAvailability = jest
       .fn()
       .mockResolvedValue({ available: true, username: 'john_doe' });
+    mockGetHealth = jest.fn().mockResolvedValue(mockHealthResponse);
+    mockUpdateHealth = jest.fn().mockResolvedValue(mockHealthResponse);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -45,6 +61,8 @@ describe('UsersController', () => {
           useValue: {
             findByFirebaseUid: mockFindByFirebaseUid,
             checkUsernameAvailability: mockCheckUsernameAvailability,
+            getHealth: mockGetHealth,
+            updateHealth: mockUpdateHealth,
           },
         },
       ],
@@ -111,6 +129,49 @@ describe('UsersController', () => {
         BadRequestException,
       );
       expect(mockCheckUsernameAvailability).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('GET /v1/users/me/health', () => {
+    it('delegates to usersService.getHealth with the authenticated user id', async () => {
+      const result = await controller.getHealthProfile(mockAuthUser);
+
+      expect(mockGetHealth).toHaveBeenCalledWith(mockAuthUser.id);
+      expect(result).toEqual(mockHealthResponse);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockGetHealth.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.getHealthProfile(mockAuthUser)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('PATCH /v1/users/me/health', () => {
+    it('delegates to usersService.updateHealth with the user id and dto', async () => {
+      const dto: UpdateUserHealthDto = {
+        dietaryPreference: DietaryPreference.VEGAN,
+        foodAllergies: [{ allergen: FoodAllergen.GLUTEN, description: null }],
+      };
+      const updated: UserHealthResponseDto = {
+        ...mockHealthResponse,
+        dietaryPreference: DietaryPreference.VEGAN,
+        foodAllergies: [{ allergen: FoodAllergen.GLUTEN, description: null }],
+      };
+      mockUpdateHealth.mockResolvedValue(updated);
+
+      const result = await controller.updateHealthProfile(mockAuthUser, dto);
+
+      expect(mockUpdateHealth).toHaveBeenCalledWith(mockAuthUser.id, dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdateHealth.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.updateHealthProfile(mockAuthUser, {} as UpdateUserHealthDto),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });
