@@ -11,4 +11,5 @@
 
 export * from '@/modules/users/schema/users.schema';
 export * from '@/modules/users/schema/user-preferences.schema';
+export * from '@/modules/users/schema/user-profiles.schema';
 export * from '@/modules/users/schema/support-admin-audit-log.schema';
