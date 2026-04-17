@@ -11,6 +11,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -42,6 +43,9 @@ export const userNationalities = pgTable(
   (table) => [
     unique('user_nationalities_user_id_country_code_unique').on(table.userId, table.countryCode),
     index('user_nationalities_user_id_idx').on(table.userId),
+    uniqueIndex('user_nationalities_one_primary_per_user')
+      .on(table.userId)
+      .where(sql`${table.isPrimary} = true`),
     check(
       'passport_data_consistency',
       sql`(${table.passportStatus} = 'OMITTED'

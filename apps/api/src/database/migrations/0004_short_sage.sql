@@ -28,3 +28,5 @@ CREATE INDEX "user_nationalities_user_id_idx" ON "user_nationalities" USING btre
 CREATE TRIGGER user_nationalities_set_updated_at
   BEFORE UPDATE ON "user_nationalities"
   FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+--> statement-breakpoint
+CREATE UNIQUE INDEX "user_nationalities_one_primary_per_user" ON "user_nationalities" USING btree ("user_id") WHERE "user_nationalities"."is_primary" = true;

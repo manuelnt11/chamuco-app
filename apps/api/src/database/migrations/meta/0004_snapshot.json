@@ -419,6 +419,22 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "user_nationalities_one_primary_per_user": {
+          "name": "user_nationalities_one_primary_per_user",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"user_nationalities\".\"is_primary\" = true",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
