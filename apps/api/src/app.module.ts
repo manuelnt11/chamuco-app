@@ -8,7 +8,6 @@ import { DatabaseModule } from '@/database/database.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { HealthModule } from '@/modules/health/health.module';
 import { JobsModule } from '@/modules/jobs/jobs.module';
-import { NotificationsModule } from '@/modules/notifications/notifications.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
 import { I18nModule } from 'nestjs-i18n';
@@ -23,7 +22,6 @@ import * as path from 'path';
     AuthModule,
     UsersModule,
     HealthModule,
-    NotificationsModule,
     JobsModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',

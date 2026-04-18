@@ -78,6 +78,14 @@ describe('PassportStatusJob', () => {
       expect(notificationsService.sendPassportStatusNotification).not.toHaveBeenCalled();
     });
 
+    it('logs error and resolves when db.execute throws', async () => {
+      db.execute.mockRejectedValue(new Error('DB unavailable'));
+      const logSpy = jest.spyOn(job['logger'], 'error').mockImplementation(() => undefined);
+
+      await expect(job.runPassportStatusRefresh()).resolves.toBeUndefined();
+      expect(logSpy).toHaveBeenCalledWith('Passport status refresh failed', expect.any(Error));
+    });
+
     it('sends notifications in parallel for multiple changed rows', async () => {
       db.execute.mockResolvedValue([
         { user_id: 'user-1', country_code: 'MX', passport_status: PassportStatus.EXPIRING_SOON },
