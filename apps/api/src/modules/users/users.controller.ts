@@ -15,8 +15,10 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UserHealthResponseDto } from './dto/user-health-response.dto';
 import { UserPreferencesResponseDto } from './dto/user-preferences-response.dto';
+import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsernameAvailabilityDto } from './dto/username-availability.dto';
 
@@ -100,6 +102,42 @@ export class UsersController {
     @Body() dto: UpdateUserHealthDto,
   ): Promise<UserHealthResponseDto> {
     return this.usersService.updateHealth(user.id, dto);
+  }
+
+  @Get('me/profile')
+  @ApiOperation({
+    summary: "Get the current user's personal profile",
+    description:
+      "Returns the personal-detail fields from the authenticated user's profile: " +
+      'first name, last name, date of birth, birth country/city, home country/city, ' +
+      'phone number, and bio.',
+  })
+  @ApiResponse({ status: 200, type: UserProfileResponseDto })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile not found' })
+  getProfile(@CurrentUser() user: AuthenticatedUser): Promise<UserProfileResponseDto> {
+    return this.usersService.getProfile(user.id);
+  }
+
+  @Patch('me/profile')
+  @HttpCode(200)
+  @ApiBody({ type: UpdateUserProfileDto })
+  @ApiOperation({
+    summary: "Update the current user's personal profile",
+    description:
+      'Updates any subset of personal-detail fields. ' +
+      'Country codes must be ISO 3166-1 alpha-2 (two uppercase letters). ' +
+      'Empty or whitespace-only text fields (birthCity, homeCity, bio) are stored as null.',
+  })
+  @ApiResponse({ status: 200, type: UserProfileResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile not found' })
+  updateProfile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateUserProfileDto,
+  ): Promise<UserProfileResponseDto> {
+    return this.usersService.updateProfile(user.id, dto);
   }
 
   @Get('me/preferences')
