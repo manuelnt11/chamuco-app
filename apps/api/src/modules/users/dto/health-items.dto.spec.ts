@@ -60,6 +60,24 @@ describe('FoodAllergyItemDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
+  it('is invalid when description exceeds 100 characters for a non-OTHER allergen', async () => {
+    const dto = plainToInstance(FoodAllergyItemDto, {
+      allergen: FoodAllergen.GLUTEN,
+      description: 'a'.repeat(101),
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('is invalid when description exceeds 100 characters', async () => {
+    const dto = plainToInstance(FoodAllergyItemDto, {
+      allergen: FoodAllergen.OTHER,
+      description: 'a'.repeat(101),
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
   it('is invalid when allergen is an unknown value', async () => {
     const dto = plainToInstance(FoodAllergyItemDto, { allergen: 'UNKNOWN', description: null });
     const errors = await validate(dto);

@@ -59,6 +59,7 @@ describe('UsersService', () => {
   let mockFindFirst: jest.Mock;
   let mockProfileFindFirst: jest.Mock;
   let mockReturning: jest.Mock;
+  let mockSet: jest.Mock;
 
   beforeEach(async () => {
     mockFindFirst = jest.fn();
@@ -66,7 +67,7 @@ describe('UsersService', () => {
     mockReturning = jest.fn();
 
     const mockWhere = jest.fn().mockReturnValue({ returning: mockReturning });
-    const mockSet = jest.fn().mockReturnValue({ where: mockWhere });
+    mockSet = jest.fn().mockReturnValue({ where: mockWhere });
     const mockUpdate = jest.fn().mockReturnValue({ set: mockSet });
 
     const module: TestingModule = await Test.createTestingModule({
@@ -177,6 +178,19 @@ describe('UsersService', () => {
 
       expect(result.dietaryPreference).toBe(DietaryPreference.OMNIVORE);
       expect(mockReturning).not.toHaveBeenCalled();
+    });
+
+    it('normalizes empty and whitespace-only text fields to null before saving', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      mockReturning.mockResolvedValue([
+        { ...mockHealthProfile, dietaryNotes: null, generalMedicalNotes: null },
+      ]);
+
+      await service.updateHealth('user-uuid', { dietaryNotes: '', generalMedicalNotes: '   ' });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ dietaryNotes: null, generalMedicalNotes: null }),
+      );
     });
 
     it('updates and returns the mapped health response on success', async () => {

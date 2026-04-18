@@ -16,9 +16,9 @@ export class FoodAllergyItemDto {
   @ApiProperty({
     example: null,
     nullable: true,
-    description: 'Required when allergen is OTHER; null otherwise.',
+    description: 'Required when allergen is OTHER; null otherwise. Max 100 characters.',
   })
-  @IsHealthDescription('allergen', FoodAllergen.OTHER)
+  @IsHealthDescription('allergen', FoodAllergen.OTHER, 100)
   description!: string | null;
 }
 
@@ -30,9 +30,9 @@ export class PhobiaItemDto {
   @ApiProperty({
     example: null,
     nullable: true,
-    description: 'Required when phobia is OTHER; null otherwise.',
+    description: 'Required when phobia is OTHER; null otherwise. Max 100 characters.',
   })
-  @IsHealthDescription('phobia', PhobiaType.OTHER)
+  @IsHealthDescription('phobia', PhobiaType.OTHER, 100)
   description!: string | null;
 }
 
@@ -44,9 +44,9 @@ export class PhysicalLimitationItemDto {
   @ApiProperty({
     example: null,
     nullable: true,
-    description: 'Required when limitation is OTHER; null otherwise.',
+    description: 'Required when limitation is OTHER; null otherwise. Max 100 characters.',
   })
-  @IsHealthDescription('limitation', PhysicalLimitationType.OTHER)
+  @IsHealthDescription('limitation', PhysicalLimitationType.OTHER, 100)
   description!: string | null;
 }
 
@@ -58,8 +58,8 @@ export class MedicalConditionItemDto {
   @ApiProperty({
     example: null,
     nullable: true,
-    description: 'Required when condition is OTHER; null otherwise.',
+    description: 'Required when condition is OTHER; null otherwise. Max 100 characters.',
   })
-  @IsHealthDescription('condition', MedicalConditionType.OTHER)
+  @IsHealthDescription('condition', MedicalConditionType.OTHER, 100)
   description!: string | null;
 }

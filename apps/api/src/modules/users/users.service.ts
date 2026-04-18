@@ -49,8 +49,9 @@ export class UsersService {
 
     const patch: Partial<typeof userProfiles.$inferInsert> = {};
     if (dto.dietaryPreference !== undefined) patch.dietaryPreference = dto.dietaryPreference;
-    if (dto.dietaryNotes !== undefined) patch.dietaryNotes = dto.dietaryNotes;
-    if (dto.generalMedicalNotes !== undefined) patch.generalMedicalNotes = dto.generalMedicalNotes;
+    if (dto.dietaryNotes !== undefined) patch.dietaryNotes = dto.dietaryNotes?.trim() || null;
+    if (dto.generalMedicalNotes !== undefined)
+      patch.generalMedicalNotes = dto.generalMedicalNotes?.trim() || null;
     if (dto.foodAllergies !== undefined) patch.foodAllergies = dto.foodAllergies;
     if (dto.phobias !== undefined) patch.phobias = dto.phobias;
     if (dto.physicalLimitations !== undefined) patch.physicalLimitations = dto.physicalLimitations;
