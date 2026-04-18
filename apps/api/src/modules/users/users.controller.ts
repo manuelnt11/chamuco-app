@@ -1,10 +1,19 @@
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Get, HttpCode, Patch, Query } from '@nestjs/common';
+import {
+  ApiBody,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { Public } from '@/common/decorators/public.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { UsersService } from './users.service';
+import { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import { UserHealthResponseDto } from './dto/user-health-response.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsernameAvailabilityDto } from './dto/username-availability.dto';
 
@@ -31,6 +40,45 @@ export class UsersController {
     // the serialized response.
     const { firebaseUid: _, ...dto } = user;
     return dto;
+  }
+
+  @Get('me/health')
+  @ApiOperation({
+    summary: "Get the current user's health profile",
+    description:
+      "Returns the health-related fields from the authenticated user's profile: " +
+      'dietary preference, dietary notes, general medical notes, food allergies, ' +
+      'phobias, physical limitations, and medical conditions.',
+  })
+  @ApiResponse({ status: 200, type: UserHealthResponseDto })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile not found' })
+  getHealthProfile(@CurrentUser() user: AuthenticatedUser): Promise<UserHealthResponseDto> {
+    return this.usersService.getHealth(user.id);
+  }
+
+  @Patch('me/health')
+  @HttpCode(200)
+  @ApiBody({ type: UpdateUserHealthDto })
+  @ApiOperation({
+    summary: "Update the current user's health profile",
+    description:
+      'Replaces any subset of health fields. JSONB arrays (food allergies, phobias, ' +
+      'physical limitations, medical conditions) are replaced wholesale, not merged. ' +
+      'description is required when the enum value is OTHER.',
+  })
+  @ApiResponse({ status: 200, type: UserHealthResponseDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed — invalid enum value or missing description for OTHER',
+  })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile not found' })
+  updateHealthProfile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateUserHealthDto,
+  ): Promise<UserHealthResponseDto> {
+    return this.usersService.updateHealth(user.id, dto);
   }
 
   @Get('username-available')
