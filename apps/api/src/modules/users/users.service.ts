@@ -6,7 +6,7 @@ import { users } from '@/modules/users/schema/users.schema';
 import type { AuthenticatedUser } from '@/types/express';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
-import { UsernameAvailabilityDto } from './dto/username-availability.dto';
+import type { UsernameAvailabilityDto } from './dto/username-availability.dto';
 
 @Injectable()
 export class UsersService {
@@ -66,7 +66,10 @@ export class UsersService {
       .where(eq(userProfiles.userId, userId))
       .returning();
 
-    return this.mapHealthResponse(updated!);
+    if (!updated) {
+      throw new NotFoundException('User profile not found');
+    }
+    return this.mapHealthResponse(updated);
   }
 
   private mapHealthResponse(profile: typeof userProfiles.$inferSelect): UserHealthResponseDto {

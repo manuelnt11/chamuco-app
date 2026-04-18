@@ -245,6 +245,15 @@ describe('UsersService', () => {
       ).rejects.toThrow(dbError);
     });
 
+    it('throws NotFoundException when the profile is deleted between check and update', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      mockReturning.mockResolvedValue([]);
+
+      await expect(
+        service.updateHealth('user-uuid', { dietaryPreference: DietaryPreference.VEGAN }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
     it('propagates unexpected database errors on the update', async () => {
       mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
       const dbError = new Error('update failed');

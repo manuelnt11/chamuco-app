@@ -1,5 +1,12 @@
 import { BadRequestException, Body, Controller, Get, HttpCode, Patch, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { Public } from '@/common/decorators/public.decorator';
@@ -52,6 +59,7 @@ export class UsersController {
 
   @Patch('me/health')
   @HttpCode(200)
+  @ApiBody({ type: UpdateUserHealthDto })
   @ApiOperation({
     summary: "Update the current user's health profile",
     description:

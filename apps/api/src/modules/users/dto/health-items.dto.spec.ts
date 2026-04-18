@@ -51,6 +51,15 @@ describe('FoodAllergyItemDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
+  it('is invalid when allergen is not OTHER and description is a non-string non-null value', async () => {
+    const dto = plainToInstance(FoodAllergyItemDto, {
+      allergen: FoodAllergen.GLUTEN,
+      description: 123,
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
   it('is invalid when allergen is an unknown value', async () => {
     const dto = plainToInstance(FoodAllergyItemDto, { allergen: 'UNKNOWN', description: null });
     const errors = await validate(dto);
@@ -85,6 +94,12 @@ describe('PhobiaItemDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  it('is invalid when phobia is not OTHER and description is a non-string non-null value', async () => {
+    const dto = plainToInstance(PhobiaItemDto, { phobia: PhobiaType.HEIGHTS, description: 42 });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
 });
 
 describe('PhysicalLimitationItemDto', () => {
@@ -114,6 +129,24 @@ describe('PhysicalLimitationItemDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  it('is invalid when limitation is OTHER and description is empty string', async () => {
+    const dto = plainToInstance(PhysicalLimitationItemDto, {
+      limitation: PhysicalLimitationType.OTHER,
+      description: '',
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('is invalid when limitation is not OTHER and description is a non-string non-null value', async () => {
+    const dto = plainToInstance(PhysicalLimitationItemDto, {
+      limitation: PhysicalLimitationType.WHEELCHAIR_USER,
+      description: true,
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
 });
 
 describe('MedicalConditionItemDto', () => {
@@ -139,6 +172,24 @@ describe('MedicalConditionItemDto', () => {
     const dto = plainToInstance(MedicalConditionItemDto, {
       condition: MedicalConditionType.OTHER,
       description: null,
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('is invalid when condition is OTHER and description is empty string', async () => {
+    const dto = plainToInstance(MedicalConditionItemDto, {
+      condition: MedicalConditionType.OTHER,
+      description: '',
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('is invalid when condition is not OTHER and description is a non-string non-null value', async () => {
+    const dto = plainToInstance(MedicalConditionItemDto, {
+      condition: MedicalConditionType.DIABETES,
+      description: [],
     });
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);

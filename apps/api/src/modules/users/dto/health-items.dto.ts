@@ -5,7 +5,8 @@ import {
   PhobiaType,
   PhysicalLimitationType,
 } from '@chamuco/shared-types';
-import { IsEnum, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
+import { IsEnum } from 'class-validator';
+import { IsHealthDescription } from './health-description.validator';
 
 export class FoodAllergyItemDto {
   @ApiProperty({ enum: FoodAllergen, example: FoodAllergen.GLUTEN })
@@ -17,9 +18,7 @@ export class FoodAllergyItemDto {
     nullable: true,
     description: 'Required when allergen is OTHER; null otherwise.',
   })
-  @ValidateIf((o: FoodAllergyItemDto) => o.allergen === FoodAllergen.OTHER)
-  @IsNotEmpty()
-  @IsString()
+  @IsHealthDescription('allergen', FoodAllergen.OTHER)
   description!: string | null;
 }
 
@@ -33,9 +32,7 @@ export class PhobiaItemDto {
     nullable: true,
     description: 'Required when phobia is OTHER; null otherwise.',
   })
-  @ValidateIf((o: PhobiaItemDto) => o.phobia === PhobiaType.OTHER)
-  @IsNotEmpty()
-  @IsString()
+  @IsHealthDescription('phobia', PhobiaType.OTHER)
   description!: string | null;
 }
 
@@ -49,9 +46,7 @@ export class PhysicalLimitationItemDto {
     nullable: true,
     description: 'Required when limitation is OTHER; null otherwise.',
   })
-  @ValidateIf((o: PhysicalLimitationItemDto) => o.limitation === PhysicalLimitationType.OTHER)
-  @IsNotEmpty()
-  @IsString()
+  @IsHealthDescription('limitation', PhysicalLimitationType.OTHER)
   description!: string | null;
 }
 
@@ -65,8 +60,6 @@ export class MedicalConditionItemDto {
     nullable: true,
     description: 'Required when condition is OTHER; null otherwise.',
   })
-  @ValidateIf((o: MedicalConditionItemDto) => o.condition === MedicalConditionType.OTHER)
-  @IsNotEmpty()
-  @IsString()
+  @IsHealthDescription('condition', MedicalConditionType.OTHER)
   description!: string | null;
 }
