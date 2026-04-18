@@ -14,10 +14,10 @@ export class DateOfBirthDto {
   @Max(12)
   month!: number;
 
-  @ApiProperty({ example: 1990, minimum: 1900, maximum: new Date().getFullYear() })
+  @ApiProperty({ example: 1990, minimum: 1900, maximum: new Date().getFullYear() - 15 })
   @IsInt()
   @Min(1900)
-  @Max(new Date().getFullYear())
+  @Max(new Date().getFullYear() - 15)
   year!: number;
 
   @ApiProperty({ example: true })

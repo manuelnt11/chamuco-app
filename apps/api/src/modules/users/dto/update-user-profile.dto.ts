@@ -1,27 +1,29 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
-  IsNotEmpty,
   IsOptional,
   IsString,
   Matches,
   MaxLength,
+  MinLength,
   ValidateNested,
 } from 'class-validator';
 import { DateOfBirthDto } from './date-of-birth.dto';
 
 export class UpdateUserProfileDto {
-  @ApiProperty({ example: 'John', maxLength: 100, required: false })
+  @ApiProperty({ example: 'John', minLength: 2, maxLength: 100, required: false })
   @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  @IsNotEmpty()
+  @MinLength(2)
   @MaxLength(100)
   firstName?: string;
 
-  @ApiProperty({ example: 'Doe', maxLength: 100, required: false })
+  @ApiProperty({ example: 'Doe', minLength: 2, maxLength: 100, required: false })
   @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  @IsNotEmpty()
+  @MinLength(2)
   @MaxLength(100)
   lastName?: string;
 
@@ -60,11 +62,20 @@ export class UpdateUserProfileDto {
   @IsString()
   homeCity?: string | null;
 
-  @ApiProperty({ example: '+573001234567', maxLength: 30, required: false })
+  @ApiProperty({
+    example: '+573001234567',
+    description:
+      'Phone number in E.164 format (e.g. +573001234567). ' +
+      'Must start with + followed by country code and subscriber number (max 15 digits total). ' +
+      'Frontend must enforce this format before submitting.',
+    required: false,
+  })
   @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(30)
+  @Matches(/^\+[1-9]\d{1,14}$/, {
+    message: 'phoneNumber must be a valid E.164 number (e.g. +573001234567)',
+  })
   phoneNumber?: string;
 
   @ApiProperty({ example: 'Travel enthusiast.', nullable: true, required: false })
