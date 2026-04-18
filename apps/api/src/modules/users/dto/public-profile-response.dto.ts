@@ -35,7 +35,7 @@ export class PublicProfileResponseDto {
   profileVisibility!: ProfileVisibility;
 
   @ApiProperty({
-    description: 'Traveler score. Null when profile is not PUBLIC.',
+    description: 'Traveler score. Always null in MVP — populated once user_stats table exists.',
     example: 1420,
     nullable: true,
   })
@@ -58,7 +58,8 @@ export class PublicProfileResponseDto {
   recognitions!: string[] | null;
 
   @ApiProperty({
-    description: 'Key travel statistics. Null when profile is not PUBLIC.',
+    description:
+      'Key travel statistics. Always null in MVP — populated once user_stats table exists.',
     type: KeyStatsDto,
     nullable: true,
   })
