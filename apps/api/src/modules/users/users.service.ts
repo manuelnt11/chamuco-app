@@ -37,7 +37,7 @@ export class UsersService {
   async updateMe(existingUser: AuthenticatedUser, dto: UpdateUserDto): Promise<UserResponseDto> {
     const patch: Partial<typeof users.$inferInsert> = {};
     if (dto.displayName !== undefined) patch.displayName = dto.displayName.trim();
-    if (dto.avatarUrl !== undefined) patch.avatarUrl = dto.avatarUrl;
+    if (dto.avatarUrl !== undefined) patch.avatarUrl = dto.avatarUrl?.trim() || null;
     if (dto.timezone !== undefined) patch.timezone = dto.timezone;
 
     if (Object.keys(patch).length === 0) {

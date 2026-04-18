@@ -182,6 +182,14 @@ describe('UsersService', () => {
       expect(result).not.toHaveProperty('firebaseUid');
     });
 
+    it('normalizes empty and whitespace-only avatarUrl to null before saving', async () => {
+      mockReturning.mockResolvedValue([{ ...mockUser, avatarUrl: null }]);
+
+      await service.updateMe(mockUser, { avatarUrl: '' });
+
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ avatarUrl: null }));
+    });
+
     it('throws NotFoundException when user is deleted between check and update', async () => {
       mockReturning.mockResolvedValue([]);
 
