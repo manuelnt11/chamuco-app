@@ -27,6 +27,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 import { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
+import { PublicProfileResponseDto } from './dto/public-profile-response.dto';
 import {
   CreateNationalityDto,
   NationalityResponseDto,
@@ -46,6 +47,25 @@ import { UsernameAvailabilityDto } from './dto/username-availability.dto';
 @Controller('v1/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get(':username/profile')
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({
+    summary: "Get a user's public profile",
+    description:
+      'Returns the public-facing profile of any user by their username (without @ prefix). ' +
+      'Does not require authentication. ' +
+      'Gamification fields (travelerScore, achievements, recognitions, keyStats, discoveryMap) are ' +
+      'included only when the target user has set their profile visibility to PUBLIC.',
+  })
+  @ApiParam({ name: 'username', description: 'Username without @ prefix' })
+  @ApiResponse({ status: 200, type: PublicProfileResponseDto })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 429, description: 'Too many requests' })
+  getPublicProfile(@Param('username') username: string): Promise<PublicProfileResponseDto> {
+    return this.usersService.getPublicProfile(username);
+  }
 
   @Get('me')
   @ApiOperation({

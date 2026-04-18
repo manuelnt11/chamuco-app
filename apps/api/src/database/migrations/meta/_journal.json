@@ -43,6 +43,13 @@
       "when": 1776533154010,
       "tag": "0005_split_phone_number",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776542796206,
+      "tag": "0006_panoramic_vector",
+      "breakpoints": true
     }
   ]
 }

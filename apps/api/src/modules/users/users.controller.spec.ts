@@ -9,6 +9,7 @@ import {
   FoodAllergen,
   PassportStatus,
   PlatformRole,
+  ProfileVisibility,
 } from '@chamuco/shared-types';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -20,6 +21,7 @@ import type {
   UpdateNationalityDto,
 } from './dto/nationality.dto';
 import type { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
+import type { PublicProfileResponseDto } from './dto/public-profile-response.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -40,6 +42,7 @@ const mockAuthUser: AuthenticatedUser = {
   firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
   platformRole: PlatformRole.USER,
+  profileVisibility: ProfileVisibility.PRIVATE,
   agencyId: null,
   createdAt: NOW,
   updatedAt: NOW,
@@ -101,6 +104,20 @@ describe('UsersController', () => {
   let mockAddLoyaltyProgram: jest.Mock;
   let mockUpdateLoyaltyProgram: jest.Mock;
   let mockDeleteLoyaltyProgram: jest.Mock;
+  let mockGetPublicProfile: jest.Mock;
+
+  const mockPublicProfileResponse: PublicProfileResponseDto = {
+    username: 'john_doe',
+    displayName: 'John Doe',
+    avatarUrl: null,
+    bio: null,
+    profileVisibility: ProfileVisibility.PRIVATE,
+    travelerScore: null,
+    achievements: null,
+    recognitions: null,
+    keyStats: null,
+    discoveryMap: null,
+  };
 
   const mockContactResponse: EmergencyContactDto = {
     id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -153,6 +170,7 @@ describe('UsersController', () => {
     mockAddLoyaltyProgram = jest.fn().mockResolvedValue(mockLoyaltyProgramResponse);
     mockUpdateLoyaltyProgram = jest.fn().mockResolvedValue(mockLoyaltyProgramResponse);
     mockDeleteLoyaltyProgram = jest.fn().mockResolvedValue(undefined);
+    mockGetPublicProfile = jest.fn().mockResolvedValue(mockPublicProfileResponse);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -181,6 +199,7 @@ describe('UsersController', () => {
             addLoyaltyProgram: mockAddLoyaltyProgram,
             updateLoyaltyProgram: mockUpdateLoyaltyProgram,
             deleteLoyaltyProgram: mockDeleteLoyaltyProgram,
+            getPublicProfile: mockGetPublicProfile,
           },
         },
       ],
@@ -614,6 +633,21 @@ describe('UsersController', () => {
       await expect(controller.deleteLoyaltyProgram(mockAuthUser, 'prog-uuid')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('GET /v1/users/:username/profile', () => {
+    it('delegates to usersService.getPublicProfile with the username param', async () => {
+      const result = await controller.getPublicProfile('john_doe');
+
+      expect(mockGetPublicProfile).toHaveBeenCalledWith('john_doe');
+      expect(result).toEqual(mockPublicProfileResponse);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockGetPublicProfile.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.getPublicProfile('unknown')).rejects.toThrow(NotFoundException);
     });
   });
 });

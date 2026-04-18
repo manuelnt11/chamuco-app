@@ -12,6 +12,7 @@ import {
   PhobiaType,
   PhysicalLimitationType,
   PlatformRole,
+  ProfileVisibility,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { UsersService } from './users.service';
@@ -66,6 +67,7 @@ const mockUser: AuthenticatedUser = {
   firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
   platformRole: PlatformRole.USER,
+  profileVisibility: ProfileVisibility.PRIVATE,
   agencyId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -1524,6 +1526,100 @@ describe('UsersService', () => {
       await expect(service.deleteLoyaltyProgram('user-uuid', 'prog-uuid')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('getPublicProfile', () => {
+    const mockProfile = {
+      ...mockHealthProfile,
+      bio: 'Avid traveler',
+    };
+
+    it('returns public profile with bio when user and profile exist', async () => {
+      mockFindFirst.mockResolvedValue(mockUser);
+      mockProfileFindFirst.mockResolvedValue(mockProfile);
+
+      const result = await service.getPublicProfile('john_doe');
+
+      expect(result).toMatchObject({
+        username: 'john_doe',
+        displayName: 'John Doe',
+        avatarUrl: null,
+        bio: 'Avid traveler',
+        profileVisibility: ProfileVisibility.PRIVATE,
+      });
+    });
+
+    it('returns bio as null when profile row does not exist', async () => {
+      mockFindFirst.mockResolvedValue(mockUser);
+      mockProfileFindFirst.mockResolvedValue(undefined);
+
+      const result = await service.getPublicProfile('john_doe');
+
+      expect(result.bio).toBeNull();
+    });
+
+    it('returns null gamification fields when profileVisibility is PRIVATE', async () => {
+      mockFindFirst.mockResolvedValue({
+        ...mockUser,
+        profileVisibility: ProfileVisibility.PRIVATE,
+      });
+      mockProfileFindFirst.mockResolvedValue(mockProfile);
+
+      const result = await service.getPublicProfile('john_doe');
+
+      expect(result.achievements).toBeNull();
+      expect(result.recognitions).toBeNull();
+      expect(result.discoveryMap).toBeNull();
+      expect(result.travelerScore).toBeNull();
+      expect(result.keyStats).toBeNull();
+    });
+
+    it('returns null gamification fields when profileVisibility is CONNECTIONS_ONLY', async () => {
+      mockFindFirst.mockResolvedValue({
+        ...mockUser,
+        profileVisibility: ProfileVisibility.CONNECTIONS_ONLY,
+      });
+      mockProfileFindFirst.mockResolvedValue(mockProfile);
+
+      const result = await service.getPublicProfile('john_doe');
+
+      expect(result.achievements).toBeNull();
+      expect(result.recognitions).toBeNull();
+      expect(result.discoveryMap).toBeNull();
+    });
+
+    it('returns null gamification fields when profileVisibility is MEMBERS_ONLY', async () => {
+      mockFindFirst.mockResolvedValue({
+        ...mockUser,
+        profileVisibility: ProfileVisibility.MEMBERS_ONLY,
+      });
+      mockProfileFindFirst.mockResolvedValue(mockProfile);
+
+      const result = await service.getPublicProfile('john_doe');
+
+      expect(result.achievements).toBeNull();
+      expect(result.recognitions).toBeNull();
+      expect(result.discoveryMap).toBeNull();
+    });
+
+    it('returns empty gamification stubs when profileVisibility is PUBLIC', async () => {
+      mockFindFirst.mockResolvedValue({ ...mockUser, profileVisibility: ProfileVisibility.PUBLIC });
+      mockProfileFindFirst.mockResolvedValue(mockProfile);
+
+      const result = await service.getPublicProfile('john_doe');
+
+      expect(result.achievements).toEqual([]);
+      expect(result.recognitions).toEqual([]);
+      expect(result.discoveryMap).toEqual([]);
+      expect(result.travelerScore).toBeNull();
+      expect(result.keyStats).toBeNull();
+    });
+
+    it('throws NotFoundException when username not found', async () => {
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getPublicProfile('unknown')).rejects.toThrow(NotFoundException);
     });
   });
 });
