@@ -1,8 +1,20 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, Patch, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -13,6 +25,7 @@ import { Public } from '@/common/decorators/public.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 import { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -102,6 +115,83 @@ export class UsersController {
     @Body() dto: UpdateUserHealthDto,
   ): Promise<UserHealthResponseDto> {
     return this.usersService.updateHealth(user.id, dto);
+  }
+
+  @Get('me/emergency-contacts')
+  @ApiOperation({
+    summary: "List the current user's emergency contacts",
+    description: "Returns all emergency contacts stored on the authenticated user's profile.",
+  })
+  @ApiResponse({ status: 200, type: EmergencyContactDto, isArray: true })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile not found' })
+  getEmergencyContacts(@CurrentUser() user: AuthenticatedUser): Promise<EmergencyContactDto[]> {
+    return this.usersService.getEmergencyContacts(user.id);
+  }
+
+  @Post('me/emergency-contacts')
+  @HttpCode(201)
+  @ApiBody({ type: EmergencyContactDto })
+  @ApiOperation({
+    summary: 'Add an emergency contact',
+    description:
+      'Adds a new emergency contact. The id must be a client-generated UUID. ' +
+      'If isPrimary is true, the current primary contact is automatically demoted.',
+  })
+  @ApiResponse({ status: 201, type: EmergencyContactDto })
+  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile not found' })
+  addEmergencyContact(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: EmergencyContactDto,
+  ): Promise<EmergencyContactDto> {
+    return this.usersService.addEmergencyContact(user.id, dto);
+  }
+
+  @Patch('me/emergency-contacts/:id')
+  @HttpCode(200)
+  @ApiParam({ name: 'id', description: 'UUID of the emergency contact to update' })
+  @ApiBody({ type: UpdateEmergencyContactDto })
+  @ApiOperation({
+    summary: 'Update an emergency contact',
+    description:
+      'Updates any subset of fields on a single emergency contact identified by its UUID. ' +
+      'If isPrimary is set to true, all other contacts are automatically demoted.',
+  })
+  @ApiResponse({ status: 200, type: EmergencyContactDto })
+  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile or emergency contact not found' })
+  updateEmergencyContact(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') contactId: string,
+    @Body() dto: UpdateEmergencyContactDto,
+  ): Promise<EmergencyContactDto> {
+    return this.usersService.updateEmergencyContact(user.id, contactId, dto);
+  }
+
+  @Delete('me/emergency-contacts/:id')
+  @HttpCode(204)
+  @ApiParam({ name: 'id', description: 'UUID of the emergency contact to delete' })
+  @ApiOperation({
+    summary: 'Delete an emergency contact',
+    description:
+      'Removes a single emergency contact. ' +
+      'Returns 409 if the contact is the primary and other contacts exist — re-assign primary first.',
+  })
+  @ApiResponse({ status: 204, description: 'Contact deleted' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile or emergency contact not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'Cannot delete primary contact while other contacts exist',
+  })
+  deleteEmergencyContact(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') contactId: string,
+  ): Promise<void> {
+    return this.usersService.deleteEmergencyContact(user.id, contactId);
   }
 
   @Get('me/profile')
