@@ -120,8 +120,8 @@ export class UsersService {
     }
 
     const patch: Partial<typeof userProfiles.$inferInsert> = {};
-    if (dto.firstName !== undefined) patch.firstName = dto.firstName.trim();
-    if (dto.lastName !== undefined) patch.lastName = dto.lastName.trim();
+    if (dto.firstName !== undefined) patch.firstName = dto.firstName;
+    if (dto.lastName !== undefined) patch.lastName = dto.lastName;
     if (dto.dateOfBirth !== undefined) {
       const { yearVisible, ...rest } = dto.dateOfBirth;
       patch.dateOfBirth = { ...rest, year_visible: yearVisible };
@@ -130,8 +130,8 @@ export class UsersService {
     if (dto.birthCity !== undefined) patch.birthCity = dto.birthCity?.trim() || null;
     if (dto.homeCountry !== undefined) patch.homeCountry = dto.homeCountry;
     if (dto.homeCity !== undefined) patch.homeCity = dto.homeCity?.trim() || null;
-    if (dto.phoneCountryCode !== undefined) patch.phoneCountryCode = dto.phoneCountryCode.trim();
-    if (dto.phoneLocalNumber !== undefined) patch.phoneLocalNumber = dto.phoneLocalNumber.trim();
+    if (dto.phoneCountryCode !== undefined) patch.phoneCountryCode = dto.phoneCountryCode;
+    if (dto.phoneLocalNumber !== undefined) patch.phoneLocalNumber = dto.phoneLocalNumber;
     if (dto.bio !== undefined) patch.bio = dto.bio?.trim() || null;
 
     if (Object.keys(patch).length === 0) {

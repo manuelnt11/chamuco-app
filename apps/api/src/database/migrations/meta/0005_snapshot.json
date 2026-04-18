@@ -1,6 +1,6 @@
 {
-  "id": "0005_split_phone_number",
-  "prevId": "0005_split_phone_number",
+  "id": "b63d0408-6527-4136-969f-0e463c4a523d",
+  "prevId": "3b07df81-3c62-401b-b83b-a855db987edf",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
