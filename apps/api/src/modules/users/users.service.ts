@@ -1,11 +1,16 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
+import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
 import type { AuthenticatedUser } from '@/types/express';
+import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
+import type { UserPreferencesResponseDto } from './dto/user-preferences-response.dto';
+import type { UserResponseDto } from './dto/user-response.dto';
 import type { UsernameAvailabilityDto } from './dto/username-availability.dto';
 
 @Injectable()
@@ -27,6 +32,70 @@ export class UsersService {
       where: eq(users.username, username),
     });
     return { available: !existing, username };
+  }
+
+  async updateMe(existingUser: AuthenticatedUser, dto: UpdateUserDto): Promise<UserResponseDto> {
+    const patch: Partial<typeof users.$inferInsert> = {};
+    if (dto.displayName !== undefined) patch.displayName = dto.displayName.trim();
+    if (dto.avatarUrl !== undefined) patch.avatarUrl = dto.avatarUrl?.trim() || null;
+    if (dto.timezone !== undefined) patch.timezone = dto.timezone;
+
+    if (Object.keys(patch).length === 0) {
+      return this.mapUserResponse(existingUser);
+    }
+
+    const [updated] = await this.db
+      .update(users)
+      .set(patch)
+      .where(eq(users.id, existingUser.id))
+      .returning();
+
+    if (!updated) {
+      throw new NotFoundException('User not found');
+    }
+    return this.mapUserResponse(updated);
+  }
+
+  async getPreferences(userId: string): Promise<UserPreferencesResponseDto> {
+    const prefs = await this.db.query.userPreferences.findFirst({
+      where: eq(userPreferences.userId, userId),
+    });
+    if (!prefs) {
+      throw new NotFoundException('User preferences not found');
+    }
+    return this.mapPreferencesResponse(prefs);
+  }
+
+  async updatePreferences(
+    userId: string,
+    dto: UpdateUserPreferencesDto,
+  ): Promise<UserPreferencesResponseDto> {
+    const existing = await this.db.query.userPreferences.findFirst({
+      where: eq(userPreferences.userId, userId),
+    });
+    if (!existing) {
+      throw new NotFoundException('User preferences not found');
+    }
+
+    const patch: Partial<typeof userPreferences.$inferInsert> = {};
+    if (dto.language !== undefined) patch.language = dto.language;
+    if (dto.currency !== undefined) patch.currency = dto.currency;
+    if (dto.theme !== undefined) patch.theme = dto.theme;
+
+    if (Object.keys(patch).length === 0) {
+      return this.mapPreferencesResponse(existing);
+    }
+
+    const [updated] = await this.db
+      .update(userPreferences)
+      .set(patch)
+      .where(eq(userPreferences.userId, userId))
+      .returning();
+
+    if (!updated) {
+      throw new NotFoundException('User preferences not found');
+    }
+    return this.mapPreferencesResponse(updated);
   }
 
   async getHealth(userId: string): Promise<UserHealthResponseDto> {
@@ -71,6 +140,21 @@ export class UsersService {
       throw new NotFoundException('User profile not found');
     }
     return this.mapHealthResponse(updated);
+  }
+
+  private mapUserResponse(user: typeof users.$inferSelect): UserResponseDto {
+    const { firebaseUid: _, ...dto } = user;
+    return dto;
+  }
+
+  private mapPreferencesResponse(
+    prefs: typeof userPreferences.$inferSelect,
+  ): UserPreferencesResponseDto {
+    return {
+      language: prefs.language,
+      currency: prefs.currency,
+      theme: prefs.theme,
+    };
   }
 
   private mapHealthResponse(profile: typeof userProfiles.$inferSelect): UserHealthResponseDto {

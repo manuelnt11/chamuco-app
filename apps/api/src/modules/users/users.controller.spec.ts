@@ -1,10 +1,21 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthProvider, DietaryPreference, FoodAllergen, PlatformRole } from '@chamuco/shared-types';
+import {
+  AppCurrency,
+  AppLanguage,
+  AppTheme,
+  AuthProvider,
+  DietaryPreference,
+  FoodAllergen,
+  PlatformRole,
+} from '@chamuco/shared-types';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
+import type { UserPreferencesResponseDto } from './dto/user-preferences-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 const NOW = new Date('2026-01-01T00:00:00.000Z');
@@ -28,6 +39,12 @@ const mockAuthUser: AuthenticatedUser = {
 // mockUser is the expected shape after getMe strips firebaseUid
 const { firebaseUid: _, ...mockUser } = mockAuthUser;
 
+const mockPreferencesResponse: UserPreferencesResponseDto = {
+  language: AppLanguage.ES,
+  currency: AppCurrency.COP,
+  theme: AppTheme.SYSTEM,
+};
+
 const mockHealthResponse: UserHealthResponseDto = {
   dietaryPreference: DietaryPreference.OMNIVORE,
   dietaryNotes: null,
@@ -42,16 +59,22 @@ describe('UsersController', () => {
   let controller: UsersController;
   let mockFindByFirebaseUid: jest.Mock;
   let mockCheckUsernameAvailability: jest.Mock;
+  let mockUpdateMe: jest.Mock;
   let mockGetHealth: jest.Mock;
   let mockUpdateHealth: jest.Mock;
+  let mockGetPreferences: jest.Mock;
+  let mockUpdatePreferences: jest.Mock;
 
   beforeEach(async () => {
     mockFindByFirebaseUid = jest.fn().mockResolvedValue(mockUser);
     mockCheckUsernameAvailability = jest
       .fn()
       .mockResolvedValue({ available: true, username: 'john_doe' });
+    mockUpdateMe = jest.fn().mockResolvedValue(mockUser);
     mockGetHealth = jest.fn().mockResolvedValue(mockHealthResponse);
     mockUpdateHealth = jest.fn().mockResolvedValue(mockHealthResponse);
+    mockGetPreferences = jest.fn().mockResolvedValue(mockPreferencesResponse);
+    mockUpdatePreferences = jest.fn().mockResolvedValue(mockPreferencesResponse);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -61,8 +84,11 @@ describe('UsersController', () => {
           useValue: {
             findByFirebaseUid: mockFindByFirebaseUid,
             checkUsernameAvailability: mockCheckUsernameAvailability,
+            updateMe: mockUpdateMe,
             getHealth: mockGetHealth,
             updateHealth: mockUpdateHealth,
+            getPreferences: mockGetPreferences,
+            updatePreferences: mockUpdatePreferences,
           },
         },
       ],
@@ -147,6 +173,27 @@ describe('UsersController', () => {
     });
   });
 
+  describe('PATCH /v1/users/me', () => {
+    it('delegates to usersService.updateMe with the authenticated user and dto', async () => {
+      const dto: UpdateUserDto = { displayName: 'Jane Doe' };
+      const updated = { ...mockUser, displayName: 'Jane Doe' };
+      mockUpdateMe.mockResolvedValue(updated);
+
+      const result = await controller.updateMe(mockAuthUser, dto);
+
+      expect(mockUpdateMe).toHaveBeenCalledWith(mockAuthUser, dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdateMe.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.updateMe(mockAuthUser, {} as UpdateUserDto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
   describe('PATCH /v1/users/me/health', () => {
     it('delegates to usersService.updateHealth with the user id and dto', async () => {
       const dto: UpdateUserHealthDto = {
@@ -171,6 +218,45 @@ describe('UsersController', () => {
 
       await expect(
         controller.updateHealthProfile(mockAuthUser, {} as UpdateUserHealthDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('GET /v1/users/me/preferences', () => {
+    it('delegates to usersService.getPreferences with the authenticated user id', async () => {
+      const result = await controller.getPreferences(mockAuthUser);
+
+      expect(mockGetPreferences).toHaveBeenCalledWith(mockAuthUser.id);
+      expect(result).toEqual(mockPreferencesResponse);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockGetPreferences.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.getPreferences(mockAuthUser)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('PATCH /v1/users/me/preferences', () => {
+    it('delegates to usersService.updatePreferences with the user id and dto', async () => {
+      const dto: UpdateUserPreferencesDto = { theme: AppTheme.DARK };
+      const updated: UserPreferencesResponseDto = {
+        ...mockPreferencesResponse,
+        theme: AppTheme.DARK,
+      };
+      mockUpdatePreferences.mockResolvedValue(updated);
+
+      const result = await controller.updatePreferences(mockAuthUser, dto);
+
+      expect(mockUpdatePreferences).toHaveBeenCalledWith(mockAuthUser.id, dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdatePreferences.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.updatePreferences(mockAuthUser, {} as UpdateUserPreferencesDto),
       ).rejects.toThrow(NotFoundException);
     });
   });

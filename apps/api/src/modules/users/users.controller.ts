@@ -12,8 +12,11 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { Public } from '@/common/decorators/public.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { UsersService } from './users.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import { UserHealthResponseDto } from './dto/user-health-response.dto';
+import { UserPreferencesResponseDto } from './dto/user-preferences-response.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsernameAvailabilityDto } from './dto/username-availability.dto';
 
@@ -40,6 +43,24 @@ export class UsersController {
     // the serialized response.
     const { firebaseUid: _, ...dto } = user;
     return dto;
+  }
+
+  @Patch('me')
+  @HttpCode(200)
+  @ApiBody({ type: UpdateUserDto })
+  @ApiOperation({
+    summary: 'Update the current authenticated user',
+    description: 'Updates any subset of editable user fields: displayName, avatarUrl, timezone.',
+  })
+  @ApiResponse({ status: 200, type: UserResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async updateMe(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    return this.usersService.updateMe(user, dto);
   }
 
   @Get('me/health')
@@ -79,6 +100,36 @@ export class UsersController {
     @Body() dto: UpdateUserHealthDto,
   ): Promise<UserHealthResponseDto> {
     return this.usersService.updateHealth(user.id, dto);
+  }
+
+  @Get('me/preferences')
+  @ApiOperation({
+    summary: "Get the current user's preferences",
+    description: "Returns the authenticated user's preferences: language, currency, theme.",
+  })
+  @ApiResponse({ status: 200, type: UserPreferencesResponseDto })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User preferences not found' })
+  getPreferences(@CurrentUser() user: AuthenticatedUser): Promise<UserPreferencesResponseDto> {
+    return this.usersService.getPreferences(user.id);
+  }
+
+  @Patch('me/preferences')
+  @HttpCode(200)
+  @ApiBody({ type: UpdateUserPreferencesDto })
+  @ApiOperation({
+    summary: "Update the current user's preferences",
+    description: 'Updates any subset of preference fields: language, currency, theme.',
+  })
+  @ApiResponse({ status: 200, type: UserPreferencesResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation failed — invalid enum value' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User preferences not found' })
+  updatePreferences(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateUserPreferencesDto,
+  ): Promise<UserPreferencesResponseDto> {
+    return this.usersService.updatePreferences(user.id, dto);
   }
 
   @Get('username-available')

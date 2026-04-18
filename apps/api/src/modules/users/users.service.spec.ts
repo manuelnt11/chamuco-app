@@ -1,6 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  AppCurrency,
+  AppLanguage,
+  AppTheme,
   AuthProvider,
   DietaryPreference,
   FoodAllergen,
@@ -11,9 +14,19 @@ import {
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { UsersService } from './users.service';
+import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
+
+const mockPreferences = {
+  userId: 'user-uuid',
+  language: AppLanguage.ES,
+  currency: AppCurrency.COP,
+  theme: AppTheme.SYSTEM,
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+};
 
 const mockHealthProfile = {
   userId: 'user-uuid',
@@ -58,12 +71,14 @@ describe('UsersService', () => {
   let service: UsersService;
   let mockFindFirst: jest.Mock;
   let mockProfileFindFirst: jest.Mock;
+  let mockPrefFindFirst: jest.Mock;
   let mockReturning: jest.Mock;
   let mockSet: jest.Mock;
 
   beforeEach(async () => {
     mockFindFirst = jest.fn();
     mockProfileFindFirst = jest.fn();
+    mockPrefFindFirst = jest.fn();
     mockReturning = jest.fn();
 
     const mockWhere = jest.fn().mockReturnValue({ returning: mockReturning });
@@ -79,6 +94,7 @@ describe('UsersService', () => {
             query: {
               users: { findFirst: mockFindFirst },
               userProfiles: { findFirst: mockProfileFindFirst },
+              userPreferences: { findFirst: mockPrefFindFirst },
             },
             update: mockUpdate,
           },
@@ -135,6 +151,142 @@ describe('UsersService', () => {
       mockFindFirst.mockRejectedValue(dbError);
 
       await expect(service.checkUsernameAvailability('some_user')).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('updateMe', () => {
+    it('returns existing user unchanged when dto has no fields', async () => {
+      const result = await service.updateMe(mockUser, {} as UpdateUserDto);
+
+      expect(result.displayName).toBe('John Doe');
+      expect(result).not.toHaveProperty('firebaseUid');
+      expect(mockReturning).not.toHaveBeenCalled();
+    });
+
+    it('updates and returns the mapped response on success', async () => {
+      const updated = {
+        ...mockUser,
+        displayName: 'Jane Doe',
+        avatarUrl: 'https://example.com/a.jpg',
+      };
+      mockReturning.mockResolvedValue([updated]);
+
+      const dto: UpdateUserDto = {
+        displayName: 'Jane Doe',
+        avatarUrl: 'https://example.com/a.jpg',
+      };
+      const result = await service.updateMe(mockUser, dto);
+
+      expect(result.displayName).toBe('Jane Doe');
+      expect(result.avatarUrl).toBe('https://example.com/a.jpg');
+      expect(result).not.toHaveProperty('firebaseUid');
+    });
+
+    it('normalizes empty and whitespace-only avatarUrl to null before saving', async () => {
+      mockReturning.mockResolvedValue([{ ...mockUser, avatarUrl: null }]);
+
+      await service.updateMe(mockUser, { avatarUrl: '' });
+
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ avatarUrl: null }));
+    });
+
+    it('throws NotFoundException when user is deleted between check and update', async () => {
+      mockReturning.mockResolvedValue([]);
+
+      await expect(service.updateMe(mockUser, { displayName: 'Jane' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('propagates unexpected database errors', async () => {
+      const dbError = new Error('update failed');
+      mockReturning.mockRejectedValue(dbError);
+
+      await expect(service.updateMe(mockUser, { displayName: 'Jane' })).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('getPreferences', () => {
+    it('returns the mapped preferences when found', async () => {
+      mockPrefFindFirst.mockResolvedValue(mockPreferences);
+
+      const result = await service.getPreferences('user-uuid');
+
+      expect(result).toEqual({
+        language: AppLanguage.ES,
+        currency: AppCurrency.COP,
+        theme: AppTheme.SYSTEM,
+      });
+    });
+
+    it('throws NotFoundException when preferences do not exist', async () => {
+      mockPrefFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getPreferences('unknown-uuid')).rejects.toThrow(NotFoundException);
+    });
+
+    it('propagates unexpected database errors', async () => {
+      const dbError = new Error('connection lost');
+      mockPrefFindFirst.mockRejectedValue(dbError);
+
+      await expect(service.getPreferences('user-uuid')).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('updatePreferences', () => {
+    it('returns existing preferences unchanged when dto has no fields', async () => {
+      mockPrefFindFirst.mockResolvedValue(mockPreferences);
+
+      const result = await service.updatePreferences('user-uuid', {} as UpdateUserPreferencesDto);
+
+      expect(result.language).toBe(AppLanguage.ES);
+      expect(mockReturning).not.toHaveBeenCalled();
+    });
+
+    it('updates and returns the mapped preferences on success', async () => {
+      mockPrefFindFirst.mockResolvedValue(mockPreferences);
+      const updated = { ...mockPreferences, theme: AppTheme.DARK };
+      mockReturning.mockResolvedValue([updated]);
+
+      const result = await service.updatePreferences('user-uuid', { theme: AppTheme.DARK });
+
+      expect(result.theme).toBe(AppTheme.DARK);
+    });
+
+    it('throws NotFoundException when preferences do not exist', async () => {
+      mockPrefFindFirst.mockResolvedValue(undefined);
+
+      await expect(
+        service.updatePreferences('unknown-uuid', { theme: AppTheme.DARK }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException when preferences deleted between check and update', async () => {
+      mockPrefFindFirst.mockResolvedValue(mockPreferences);
+      mockReturning.mockResolvedValue([]);
+
+      await expect(
+        service.updatePreferences('user-uuid', { theme: AppTheme.DARK }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('propagates unexpected database errors on the initial fetch', async () => {
+      const dbError = new Error('connection lost');
+      mockPrefFindFirst.mockRejectedValue(dbError);
+
+      await expect(
+        service.updatePreferences('user-uuid', { theme: AppTheme.DARK }),
+      ).rejects.toThrow(dbError);
+    });
+
+    it('propagates unexpected database errors on the update', async () => {
+      mockPrefFindFirst.mockResolvedValue(mockPreferences);
+      const dbError = new Error('update failed');
+      mockReturning.mockRejectedValue(dbError);
+
+      await expect(
+        service.updatePreferences('user-uuid', { theme: AppTheme.DARK }),
+      ).rejects.toThrow(dbError);
     });
   });
 
