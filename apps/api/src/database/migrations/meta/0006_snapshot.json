@@ -1,6 +1,6 @@
 {
-  "id": "b63d0408-6527-4136-969f-0e463c4a523d",
-  "prevId": "3b07df81-3c62-401b-b83b-a855db987edf",
+  "id": "84a5eb6b-8c14-46d9-8059-88ffab7e900a",
+  "prevId": "b63d0408-6527-4136-969f-0e463c4a523d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -66,6 +66,14 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'USER'"
+        },
+        "profile_visibility": {
+          "name": "profile_visibility",
+          "type": "profile_visibility",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PRIVATE'"
         },
         "agency_id": {
           "name": "agency_id",
@@ -236,6 +244,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "phone_country_code": {
+          "name": "phone_country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone_local_number": {
+          "name": "phone_local_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "bio": {
           "name": "bio",
           "type": "text",
@@ -310,18 +330,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "phone_country_code": {
-          "name": "phone_country_code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "phone_local_number": {
-          "name": "phone_local_number",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
@@ -586,6 +594,11 @@
       "name": "platform_role",
       "schema": "public",
       "values": ["USER", "SUPPORT_ADMIN"]
+    },
+    "public.profile_visibility": {
+      "name": "profile_visibility",
+      "schema": "public",
+      "values": ["PRIVATE", "CONNECTIONS_ONLY", "MEMBERS_ONLY", "PUBLIC"]
     },
     "public.app_currency": {
       "name": "app_currency",

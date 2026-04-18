@@ -1,7 +1,7 @@
 import { ExecutionContext, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
+import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 import { FirebaseAuthGuard } from '@/modules/auth/firebase-auth.guard';
@@ -18,6 +18,7 @@ const mockUser: AuthenticatedUser = {
   firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
   platformRole: PlatformRole.USER,
+  profileVisibility: ProfileVisibility.PRIVATE,
   agencyId: null,
   createdAt: new Date(),
   updatedAt: new Date(),

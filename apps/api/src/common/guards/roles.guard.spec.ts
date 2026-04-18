@@ -1,7 +1,7 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
+import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import type { AuthenticatedUser } from '@/types/express.d';
 
@@ -15,6 +15,7 @@ const buildUser = (role: PlatformRole): AuthenticatedUser => ({
   firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
   platformRole: role,
+  profileVisibility: ProfileVisibility.PRIVATE,
   agencyId: null,
   createdAt: new Date(),
   updatedAt: new Date(),

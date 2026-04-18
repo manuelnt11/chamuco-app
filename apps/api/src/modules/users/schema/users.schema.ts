@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { check, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
-import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
+import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 
 export const authProviderEnum = pgEnum('auth_provider', [
   AuthProvider.GOOGLE,
@@ -11,6 +11,13 @@ export const authProviderEnum = pgEnum('auth_provider', [
 export const platformRoleEnum = pgEnum('platform_role', [
   PlatformRole.USER,
   PlatformRole.SUPPORT_ADMIN,
+]);
+
+export const profileVisibilityEnum = pgEnum('profile_visibility', [
+  ProfileVisibility.PRIVATE,
+  ProfileVisibility.CONNECTIONS_ONLY,
+  ProfileVisibility.MEMBERS_ONLY,
+  ProfileVisibility.PUBLIC,
 ]);
 
 export const users = pgTable(
@@ -25,6 +32,9 @@ export const users = pgTable(
     firebaseUid: text('firebase_uid').notNull().unique(),
     timezone: text('timezone').notNull().default('UTC'),
     platformRole: platformRoleEnum('platform_role').notNull().default(PlatformRole.USER),
+    profileVisibility: profileVisibilityEnum('profile_visibility')
+      .notNull()
+      .default(ProfileVisibility.PRIVATE),
     // Will reference agencies.id once the agencies table is created
     agencyId: uuid('agency_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

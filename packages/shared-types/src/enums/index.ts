@@ -9,3 +9,4 @@ export * from './passport-status.enum';
 export * from './phobia-type.enum';
 export * from './physical-limitation-type.enum';
 export * from './platform-role.enum';
+export * from './profile-visibility.enum';

@@ -1,0 +1,6 @@
+export enum ProfileVisibility {
+  PRIVATE = 'PRIVATE',
+  CONNECTIONS_ONLY = 'CONNECTIONS_ONLY',
+  MEMBERS_ONLY = 'MEMBERS_ONLY',
+  PUBLIC = 'PUBLIC',
+}

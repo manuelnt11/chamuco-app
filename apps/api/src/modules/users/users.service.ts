@@ -11,7 +11,7 @@ import { userNationalities } from '@/modules/users/schema/user-nationalities.sch
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
-import { PassportStatus } from '@chamuco/shared-types';
+import { PassportStatus, ProfileVisibility } from '@chamuco/shared-types';
 import type { AuthenticatedUser } from '@/types/express';
 import type { DateOfBirthDto } from './dto/date-of-birth.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
@@ -22,6 +22,7 @@ import type {
 } from './dto/nationality.dto';
 import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 import type { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
+import type { PublicProfileResponseDto } from './dto/public-profile-response.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -423,6 +424,32 @@ export class UsersService {
     await this.db
       .delete(userNationalities)
       .where(and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)));
+  }
+
+  async getPublicProfile(username: string): Promise<PublicProfileResponseDto> {
+    const user = await this.db.query.users.findFirst({
+      where: eq(users.username, username),
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const profile = await this.db.query.userProfiles.findFirst({
+      where: eq(userProfiles.userId, user.id),
+    });
+
+    const showGamification = user.profileVisibility === ProfileVisibility.PUBLIC;
+
+    return {
+      username: user.username,
+      displayName: user.displayName,
+      avatarUrl: user.avatarUrl ?? null,
+      bio: profile?.bio ?? null,
+      profileVisibility: user.profileVisibility,
+      travelerScore: null,
+      achievements: showGamification ? [] : null,
+      recognitions: showGamification ? [] : null,
+      keyStats: null,
+      discoveryMap: showGamification ? [] : null,
+    };
   }
 
   async getLoyaltyPrograms(userId: string): Promise<LoyaltyProgramDto[]> {
