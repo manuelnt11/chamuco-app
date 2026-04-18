@@ -8,6 +8,7 @@ import {
   DietaryPreference,
   FoodAllergen,
   MedicalConditionType,
+  PassportStatus,
   PhobiaType,
   PhysicalLimitationType,
   PlatformRole,
@@ -18,6 +19,7 @@ import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
+import type { CreateNationalityDto, UpdateNationalityDto } from './dto/nationality.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
@@ -77,16 +79,27 @@ describe('UsersService', () => {
   let mockPrefFindFirst: jest.Mock;
   let mockReturning: jest.Mock;
   let mockSet: jest.Mock;
+  let mockNationalitiesFindFirst: jest.Mock;
+  let mockNationalitiesFindMany: jest.Mock;
+  let mockInsertReturning: jest.Mock;
+  let mockDeleteWhere: jest.Mock;
 
   beforeEach(async () => {
     mockFindFirst = jest.fn();
     mockProfileFindFirst = jest.fn();
     mockPrefFindFirst = jest.fn();
     mockReturning = jest.fn();
+    mockNationalitiesFindFirst = jest.fn();
+    mockNationalitiesFindMany = jest.fn();
+    mockInsertReturning = jest.fn();
+    mockDeleteWhere = jest.fn();
 
     const mockWhere = jest.fn().mockReturnValue({ returning: mockReturning });
     mockSet = jest.fn().mockReturnValue({ where: mockWhere });
     const mockUpdate = jest.fn().mockReturnValue({ set: mockSet });
+    const mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
+    const mockInsert = jest.fn().mockReturnValue({ values: mockInsertValues });
+    const mockDelete = jest.fn().mockReturnValue({ where: mockDeleteWhere });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -98,8 +111,14 @@ describe('UsersService', () => {
               users: { findFirst: mockFindFirst },
               userProfiles: { findFirst: mockProfileFindFirst },
               userPreferences: { findFirst: mockPrefFindFirst },
+              userNationalities: {
+                findFirst: mockNationalitiesFindFirst,
+                findMany: mockNationalitiesFindMany,
+              },
             },
             update: mockUpdate,
+            insert: mockInsert,
+            delete: mockDelete,
           },
         },
       ],
@@ -976,6 +995,358 @@ describe('UsersService', () => {
       await expect(
         service.deleteEmergencyContact('user-uuid', secondaryContact.id),
       ).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('getNationalities', () => {
+    const mockNationality = {
+      id: 'nat-uuid',
+      userId: 'user-uuid',
+      countryCode: 'CO',
+      isPrimary: true,
+      nationalIdNumber: null,
+      passportNumber: null,
+      passportIssueDate: null,
+      passportExpiryDate: null,
+      passportStatus: PassportStatus.OMITTED,
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    };
+
+    it('returns mapped nationalities array', async () => {
+      mockNationalitiesFindMany.mockResolvedValue([mockNationality]);
+
+      const result = await service.getNationalities('user-uuid');
+
+      expect(result).toEqual([
+        {
+          id: mockNationality.id,
+          countryCode: mockNationality.countryCode,
+          isPrimary: mockNationality.isPrimary,
+          nationalIdNumber: null,
+          passportNumber: null,
+          passportIssueDate: null,
+          passportExpiryDate: null,
+          passportStatus: PassportStatus.OMITTED,
+        },
+      ]);
+    });
+
+    it('returns empty array when user has no nationalities', async () => {
+      mockNationalitiesFindMany.mockResolvedValue([]);
+
+      const result = await service.getNationalities('user-uuid');
+
+      expect(result).toEqual([]);
+    });
+
+    it('propagates unexpected database errors', async () => {
+      const dbError = new Error('connection lost');
+      mockNationalitiesFindMany.mockRejectedValue(dbError);
+
+      await expect(service.getNationalities('user-uuid')).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('addNationality', () => {
+    const mockNationality = {
+      id: 'nat-uuid',
+      userId: 'user-uuid',
+      countryCode: 'CO',
+      isPrimary: false,
+      nationalIdNumber: null,
+      passportNumber: null,
+      passportIssueDate: null,
+      passportExpiryDate: null,
+      passportStatus: PassportStatus.OMITTED,
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    };
+
+    it('inserts and returns the new nationality', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      mockInsertReturning.mockResolvedValue([mockNationality]);
+
+      const dto: CreateNationalityDto = { countryCode: 'CO', isPrimary: false };
+      const result = await service.addNationality('user-uuid', dto);
+
+      expect(result).toEqual(expect.objectContaining({ countryCode: 'CO', isPrimary: false }));
+      expect(mockInsertReturning).toHaveBeenCalledTimes(1);
+    });
+
+    it('demotes current primary when isPrimary is true', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      mockInsertReturning.mockResolvedValue([{ ...mockNationality, isPrimary: true }]);
+
+      const dto: CreateNationalityDto = { countryCode: 'CO', isPrimary: true };
+      await service.addNationality('user-uuid', dto);
+
+      expect(mockSet).toHaveBeenCalledWith({ isPrimary: false });
+    });
+
+    it('does not call demote update when isPrimary is false', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      mockInsertReturning.mockResolvedValue([mockNationality]);
+
+      const dto: CreateNationalityDto = { countryCode: 'CO', isPrimary: false };
+      await service.addNationality('user-uuid', dto);
+
+      expect(mockSet).not.toHaveBeenCalled();
+    });
+
+    it('throws ConflictException on duplicate countryCode', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+
+      const dto: CreateNationalityDto = { countryCode: 'CO', isPrimary: false };
+      await expect(service.addNationality('user-uuid', dto)).rejects.toThrow(ConflictException);
+    });
+
+    it('computes passportStatus ACTIVE for a far-future expiry date', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      mockInsertReturning.mockResolvedValue([
+        {
+          ...mockNationality,
+          passportExpiryDate: '2035-01-15',
+          passportStatus: PassportStatus.ACTIVE,
+        },
+      ]);
+
+      const dto: CreateNationalityDto = {
+        countryCode: 'CO',
+        isPrimary: false,
+        passportNumber: 'AB123456',
+        passportIssueDate: '2020-01-15',
+        passportExpiryDate: '2035-01-15',
+      };
+      const result = await service.addNationality('user-uuid', dto);
+
+      expect(result.passportStatus).toBe(PassportStatus.ACTIVE);
+    });
+
+    it('computes passportStatus EXPIRED for a past expiry date', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      mockInsertReturning.mockResolvedValue([
+        {
+          ...mockNationality,
+          passportExpiryDate: '2000-01-01',
+          passportStatus: PassportStatus.EXPIRED,
+        },
+      ]);
+
+      const dto: CreateNationalityDto = {
+        countryCode: 'CO',
+        isPrimary: false,
+        passportNumber: 'AB123456',
+        passportIssueDate: '1995-01-01',
+        passportExpiryDate: '2000-01-01',
+      };
+      const result = await service.addNationality('user-uuid', dto);
+
+      expect(result.passportStatus).toBe(PassportStatus.EXPIRED);
+    });
+
+    it('computes passportStatus EXPIRING_SOON for an expiry within 6 months', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      const soonExpiry = new Date();
+      soonExpiry.setUTCMonth(soonExpiry.getUTCMonth() + 2);
+      const expiryStr = soonExpiry.toISOString().slice(0, 10);
+      mockInsertReturning.mockResolvedValue([
+        {
+          ...mockNationality,
+          passportExpiryDate: expiryStr,
+          passportStatus: PassportStatus.EXPIRING_SOON,
+        },
+      ]);
+
+      const dto: CreateNationalityDto = {
+        countryCode: 'CO',
+        isPrimary: false,
+        passportNumber: 'AB123456',
+        passportIssueDate: '2020-01-15',
+        passportExpiryDate: expiryStr,
+      };
+      const result = await service.addNationality('user-uuid', dto);
+
+      expect(result.passportStatus).toBe(PassportStatus.EXPIRING_SOON);
+    });
+
+    it('propagates unexpected database errors', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      const dbError = new Error('insert failed');
+      mockInsertReturning.mockRejectedValue(dbError);
+
+      const dto: CreateNationalityDto = { countryCode: 'CO', isPrimary: false };
+      await expect(service.addNationality('user-uuid', dto)).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('updateNationality', () => {
+    const mockNationality = {
+      id: 'nat-uuid',
+      userId: 'user-uuid',
+      countryCode: 'CO',
+      isPrimary: false,
+      nationalIdNumber: null,
+      passportNumber: null,
+      passportIssueDate: null,
+      passportExpiryDate: null,
+      passportStatus: PassportStatus.OMITTED,
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    };
+
+    it('updates fields and returns updated nationality', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      const updated = { ...mockNationality, nationalIdNumber: '12345678' };
+      mockReturning.mockResolvedValue([updated]);
+
+      const dto: UpdateNationalityDto = { nationalIdNumber: '12345678' };
+      const result = await service.updateNationality('user-uuid', 'nat-uuid', dto);
+
+      expect(result.nationalIdNumber).toBe('12345678');
+    });
+
+    it('returns existing record without a DB write when dto is empty', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+
+      const result = await service.updateNationality('user-uuid', 'nat-uuid', {});
+
+      expect(mockSet).not.toHaveBeenCalled();
+      expect(result.countryCode).toBe(mockNationality.countryCode);
+    });
+
+    it('demotes other nationalities when isPrimary is true', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockReturning.mockResolvedValue([{ ...mockNationality, isPrimary: true }]);
+
+      const dto: UpdateNationalityDto = { isPrimary: true };
+      await service.updateNationality('user-uuid', 'nat-uuid', dto);
+
+      expect(mockSet).toHaveBeenNthCalledWith(1, { isPrimary: false });
+    });
+
+    it('does not demote when isPrimary is not in dto', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockReturning.mockResolvedValue([mockNationality]);
+
+      const dto: UpdateNationalityDto = { nationalIdNumber: '12345' };
+      await service.updateNationality('user-uuid', 'nat-uuid', dto);
+
+      expect(mockSet).toHaveBeenCalledTimes(1);
+      expect(mockSet).not.toHaveBeenCalledWith({ isPrimary: false });
+    });
+
+    it('throws BadRequestException when isPrimary is false', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+
+      const dto: UpdateNationalityDto = { isPrimary: false };
+      await expect(service.updateNationality('user-uuid', 'nat-uuid', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('throws NotFoundException when nationality does not exist', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+
+      const dto: UpdateNationalityDto = { nationalIdNumber: '12345' };
+      await expect(service.updateNationality('user-uuid', 'nat-uuid', dto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('recomputes passportStatus when passport fields are in the dto', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockReturning.mockResolvedValue([
+        { ...mockNationality, passportStatus: PassportStatus.ACTIVE },
+      ]);
+
+      const dto: UpdateNationalityDto = {
+        passportNumber: 'AB123456',
+        passportIssueDate: '2020-01-15',
+        passportExpiryDate: '2035-01-15',
+      };
+      await service.updateNationality('user-uuid', 'nat-uuid', dto);
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ passportStatus: PassportStatus.ACTIVE }),
+      );
+    });
+
+    it('preserves existing passportStatus when no passport fields are in the dto', async () => {
+      const withActiveStatus = { ...mockNationality, passportStatus: PassportStatus.ACTIVE };
+      mockNationalitiesFindFirst.mockResolvedValue(withActiveStatus);
+      mockReturning.mockResolvedValue([withActiveStatus]);
+
+      const dto: UpdateNationalityDto = { nationalIdNumber: '12345' };
+      await service.updateNationality('user-uuid', 'nat-uuid', dto);
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.not.objectContaining({ passportStatus: expect.anything() }),
+      );
+    });
+
+    it('propagates unexpected database errors', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      const dbError = new Error('update failed');
+      mockReturning.mockRejectedValue(dbError);
+
+      const dto: UpdateNationalityDto = { nationalIdNumber: '12345' };
+      await expect(service.updateNationality('user-uuid', 'nat-uuid', dto)).rejects.toThrow(
+        dbError,
+      );
+    });
+  });
+
+  describe('deleteNationality', () => {
+    const mockNationality = {
+      id: 'nat-uuid',
+      userId: 'user-uuid',
+      countryCode: 'CO',
+      isPrimary: false,
+      nationalIdNumber: null,
+      passportNumber: null,
+      passportIssueDate: null,
+      passportExpiryDate: null,
+      passportStatus: PassportStatus.OMITTED,
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    };
+    const primaryNationality = { ...mockNationality, id: 'nat-primary-uuid', isPrimary: true };
+
+    it('deletes the nationality successfully', async () => {
+      mockNationalitiesFindMany.mockResolvedValue([mockNationality]);
+
+      await service.deleteNationality('user-uuid', 'nat-uuid');
+
+      expect(mockDeleteWhere).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws ConflictException when deleting the primary with other nationalities remaining', async () => {
+      mockNationalitiesFindMany.mockResolvedValue([primaryNationality, mockNationality]);
+
+      await expect(service.deleteNationality('user-uuid', 'nat-primary-uuid')).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('allows deleting the primary when it is the only nationality', async () => {
+      mockNationalitiesFindMany.mockResolvedValue([primaryNationality]);
+
+      await service.deleteNationality('user-uuid', 'nat-primary-uuid');
+
+      expect(mockDeleteWhere).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws NotFoundException when nationality does not exist', async () => {
+      mockNationalitiesFindMany.mockResolvedValue([mockNationality]);
+
+      await expect(service.deleteNationality('user-uuid', 'nonexistent-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('propagates unexpected database errors', async () => {
+      mockNationalitiesFindMany.mockResolvedValue([mockNationality]);
+      const dbError = new Error('delete failed');
+      mockDeleteWhere.mockRejectedValue(dbError);
+
+      await expect(service.deleteNationality('user-uuid', 'nat-uuid')).rejects.toThrow(dbError);
     });
   });
 });

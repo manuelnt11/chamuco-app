@@ -26,6 +26,11 @@ import type { AuthenticatedUser } from '@/types/express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
+import {
+  CreateNationalityDto,
+  NationalityResponseDto,
+  UpdateNationalityDto,
+} from './dto/nationality.dto';
 import { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -196,6 +201,93 @@ export class UsersController {
     @Param('id') contactId: string,
   ): Promise<void> {
     return this.usersService.deleteEmergencyContact(user.id, contactId);
+  }
+
+  @Get('me/nationalities')
+  @ApiOperation({
+    summary: "List the current user's nationalities",
+    description:
+      'Returns all nationality records for the authenticated user, ordered by primary first.',
+  })
+  @ApiResponse({ status: 200, type: NationalityResponseDto, isArray: true })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  getNationalities(@CurrentUser() user: AuthenticatedUser): Promise<NationalityResponseDto[]> {
+    return this.usersService.getNationalities(user.id);
+  }
+
+  @Post('me/nationalities')
+  @HttpCode(201)
+  @ApiBody({ type: CreateNationalityDto })
+  @ApiOperation({
+    summary: 'Add a nationality',
+    description:
+      'Adds a new nationality record. If isPrimary is true, the current primary is automatically demoted. ' +
+      'Returns 409 if a nationality for the same country already exists. ' +
+      'If any passport field is provided, all three must be present.',
+  })
+  @ApiResponse({ status: 201, type: NationalityResponseDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed — invalid field value or incomplete passport data',
+  })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 409, description: 'Nationality for this country already exists' })
+  addNationality(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateNationalityDto,
+  ): Promise<NationalityResponseDto> {
+    return this.usersService.addNationality(user.id, dto);
+  }
+
+  @Patch('me/nationalities/:id')
+  @HttpCode(200)
+  @ApiParam({ name: 'id', description: 'UUID of the nationality record to update' })
+  @ApiBody({ type: UpdateNationalityDto })
+  @ApiOperation({
+    summary: 'Update a nationality',
+    description:
+      'Updates any subset of fields on a single nationality record. ' +
+      'If isPrimary is true, all other nationalities are automatically demoted. ' +
+      'isPrimary: false is rejected — assign a new primary instead. ' +
+      'If any passport field is provided, all three must be present.',
+  })
+  @ApiResponse({ status: 200, type: NationalityResponseDto })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Validation failed — invalid field value, incomplete passport data, or isPrimary: false',
+  })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  updateNationality(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') nationalityId: string,
+    @Body() dto: UpdateNationalityDto,
+  ): Promise<NationalityResponseDto> {
+    return this.usersService.updateNationality(user.id, nationalityId, dto);
+  }
+
+  @Delete('me/nationalities/:id')
+  @HttpCode(204)
+  @ApiParam({ name: 'id', description: 'UUID of the nationality record to delete' })
+  @ApiOperation({
+    summary: 'Delete a nationality',
+    description:
+      'Removes a single nationality record. ' +
+      'Returns 409 if the record is the primary and other nationalities exist — re-assign primary first.',
+  })
+  @ApiResponse({ status: 204, description: 'Nationality deleted' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'Cannot delete primary nationality while other nationalities exist',
+  })
+  deleteNationality(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') nationalityId: string,
+  ): Promise<void> {
+    return this.usersService.deleteNationality(user.id, nationalityId);
   }
 
   @Get('me/profile')
