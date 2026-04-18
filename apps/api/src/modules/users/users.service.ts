@@ -5,14 +5,21 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
+import { userNationalities } from '@/modules/users/schema/user-nationalities.schema';
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
+import { PassportStatus } from '@chamuco/shared-types';
 import type { AuthenticatedUser } from '@/types/express';
 import type { DateOfBirthDto } from './dto/date-of-birth.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
+import type {
+  CreateNationalityDto,
+  NationalityResponseDto,
+  UpdateNationalityDto,
+} from './dto/nationality.dto';
 import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
@@ -290,6 +297,158 @@ export class UsersService {
       .update(userProfiles)
       .set({ emergencyContacts: updated })
       .where(eq(userProfiles.userId, userId));
+  }
+
+  async getNationalities(userId: string): Promise<NationalityResponseDto[]> {
+    const records = await this.db.query.userNationalities.findMany({
+      where: eq(userNationalities.userId, userId),
+      orderBy: (t, { desc, asc }) => [desc(t.isPrimary), asc(t.countryCode)],
+    });
+    return records.map((r) => this.mapNationalityResponse(r));
+  }
+
+  async addNationality(userId: string, dto: CreateNationalityDto): Promise<NationalityResponseDto> {
+    const existing = await this.db.query.userNationalities.findFirst({
+      where: and(
+        eq(userNationalities.userId, userId),
+        eq(userNationalities.countryCode, dto.countryCode),
+      ),
+    });
+    if (existing) {
+      throw new ConflictException('Nationality for this country already exists');
+    }
+
+    if (dto.isPrimary) {
+      await this.db
+        .update(userNationalities)
+        .set({ isPrimary: false })
+        .where(and(eq(userNationalities.userId, userId), eq(userNationalities.isPrimary, true)));
+    }
+
+    const passportStatus = this.computePassportStatus(dto.passportExpiryDate);
+
+    const [inserted] = await this.db
+      .insert(userNationalities)
+      .values({
+        userId,
+        countryCode: dto.countryCode,
+        isPrimary: dto.isPrimary,
+        nationalIdNumber: dto.nationalIdNumber ?? null,
+        passportNumber: dto.passportNumber ?? null,
+        passportIssueDate: dto.passportIssueDate ?? null,
+        passportExpiryDate: dto.passportExpiryDate ?? null,
+        passportStatus,
+      })
+      .returning();
+
+    if (!inserted) {
+      throw new NotFoundException('User not found');
+    }
+    return this.mapNationalityResponse(inserted);
+  }
+
+  async updateNationality(
+    userId: string,
+    nationalityId: string,
+    dto: UpdateNationalityDto,
+  ): Promise<NationalityResponseDto> {
+    const existing = await this.db.query.userNationalities.findFirst({
+      where: and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)),
+    });
+    if (!existing) {
+      throw new NotFoundException('Nationality not found');
+    }
+
+    if (dto.isPrimary === false) {
+      throw new BadRequestException(
+        'Cannot unset the primary nationality directly — assign a new primary first.',
+      );
+    }
+
+    if (dto.isPrimary === true) {
+      await this.db
+        .update(userNationalities)
+        .set({ isPrimary: false })
+        .where(and(eq(userNationalities.userId, userId), ne(userNationalities.id, nationalityId)));
+    }
+
+    const passportChanged =
+      dto.passportNumber !== undefined ||
+      dto.passportIssueDate !== undefined ||
+      dto.passportExpiryDate !== undefined;
+
+    const newPassportStatus = passportChanged
+      ? this.computePassportStatus(dto.passportExpiryDate)
+      : (existing.passportStatus as PassportStatus);
+
+    const patch: Partial<typeof userNationalities.$inferInsert> = {};
+    if (dto.isPrimary !== undefined) patch.isPrimary = dto.isPrimary;
+    if (dto.nationalIdNumber !== undefined) patch.nationalIdNumber = dto.nationalIdNumber;
+    if (dto.passportNumber !== undefined) patch.passportNumber = dto.passportNumber ?? null;
+    if (dto.passportIssueDate !== undefined)
+      patch.passportIssueDate = dto.passportIssueDate ?? null;
+    if (dto.passportExpiryDate !== undefined)
+      patch.passportExpiryDate = dto.passportExpiryDate ?? null;
+    patch.passportStatus = newPassportStatus;
+
+    const [updated] = await this.db
+      .update(userNationalities)
+      .set(patch)
+      .where(and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)))
+      .returning();
+
+    if (!updated) {
+      throw new NotFoundException('Nationality not found');
+    }
+    return this.mapNationalityResponse(updated);
+  }
+
+  async deleteNationality(userId: string, nationalityId: string): Promise<void> {
+    const all = await this.db.query.userNationalities.findMany({
+      where: eq(userNationalities.userId, userId),
+    });
+
+    const target = all.find((n) => n.id === nationalityId);
+    if (!target) {
+      throw new NotFoundException('Nationality not found');
+    }
+
+    if (target.isPrimary && all.length > 1) {
+      throw new ConflictException(
+        'Cannot delete the primary nationality. Re-assign primary first.',
+      );
+    }
+
+    await this.db
+      .delete(userNationalities)
+      .where(and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)));
+  }
+
+  private computePassportStatus(expiryDate: string | undefined | null): PassportStatus {
+    if (!expiryDate) return PassportStatus.OMITTED;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sixMonthsFromNow = new Date(today);
+    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+    const expiry = new Date(expiryDate);
+    if (expiry < today) return PassportStatus.EXPIRED;
+    if (expiry < sixMonthsFromNow) return PassportStatus.EXPIRING_SOON;
+    return PassportStatus.ACTIVE;
+  }
+
+  private mapNationalityResponse(
+    record: typeof userNationalities.$inferSelect,
+  ): NationalityResponseDto {
+    return {
+      id: record.id,
+      countryCode: record.countryCode,
+      isPrimary: record.isPrimary,
+      nationalIdNumber: record.nationalIdNumber ?? null,
+      passportNumber: record.passportNumber ?? null,
+      passportIssueDate: record.passportIssueDate ?? null,
+      passportExpiryDate: record.passportExpiryDate ?? null,
+      passportStatus: record.passportStatus as PassportStatus,
+    };
   }
 
   private async fetchContacts(

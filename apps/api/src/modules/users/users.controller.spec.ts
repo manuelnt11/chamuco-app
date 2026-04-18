@@ -7,12 +7,18 @@ import {
   AuthProvider,
   DietaryPreference,
   FoodAllergen,
+  PassportStatus,
   PlatformRole,
 } from '@chamuco/shared-types';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
+import type {
+  CreateNationalityDto,
+  NationalityResponseDto,
+  UpdateNationalityDto,
+} from './dto/nationality.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -86,6 +92,10 @@ describe('UsersController', () => {
   let mockAddEmergencyContact: jest.Mock;
   let mockUpdateEmergencyContact: jest.Mock;
   let mockDeleteEmergencyContact: jest.Mock;
+  let mockGetNationalities: jest.Mock;
+  let mockAddNationality: jest.Mock;
+  let mockUpdateNationality: jest.Mock;
+  let mockDeleteNationality: jest.Mock;
 
   const mockContactResponse: EmergencyContactDto = {
     id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -94,6 +104,17 @@ describe('UsersController', () => {
     phoneLocalNumber: '3001234567',
     relationship: 'mother',
     isPrimary: true,
+  };
+
+  const mockNationalityResponse: NationalityResponseDto = {
+    id: 'nat-uuid',
+    countryCode: 'CO',
+    isPrimary: true,
+    nationalIdNumber: null,
+    passportNumber: null,
+    passportIssueDate: null,
+    passportExpiryDate: null,
+    passportStatus: PassportStatus.OMITTED,
   };
 
   beforeEach(async () => {
@@ -112,6 +133,10 @@ describe('UsersController', () => {
     mockAddEmergencyContact = jest.fn().mockResolvedValue(mockContactResponse);
     mockUpdateEmergencyContact = jest.fn().mockResolvedValue(mockContactResponse);
     mockDeleteEmergencyContact = jest.fn().mockResolvedValue(undefined);
+    mockGetNationalities = jest.fn().mockResolvedValue([mockNationalityResponse]);
+    mockAddNationality = jest.fn().mockResolvedValue(mockNationalityResponse);
+    mockUpdateNationality = jest.fn().mockResolvedValue(mockNationalityResponse);
+    mockDeleteNationality = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -132,6 +157,10 @@ describe('UsersController', () => {
             addEmergencyContact: mockAddEmergencyContact,
             updateEmergencyContact: mockUpdateEmergencyContact,
             deleteEmergencyContact: mockDeleteEmergencyContact,
+            getNationalities: mockGetNationalities,
+            addNationality: mockAddNationality,
+            updateNationality: mockUpdateNationality,
+            deleteNationality: mockDeleteNationality,
           },
         },
       ],
@@ -419,6 +448,80 @@ describe('UsersController', () => {
       await expect(
         controller.deleteEmergencyContact(mockAuthUser, mockContactResponse.id),
       ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('GET /v1/users/me/nationalities', () => {
+    it('delegates to usersService.getNationalities with the authenticated user id', async () => {
+      const result = await controller.getNationalities(mockAuthUser);
+
+      expect(mockGetNationalities).toHaveBeenCalledWith(mockAuthUser.id);
+      expect(result).toEqual([mockNationalityResponse]);
+    });
+
+    it('propagates unexpected errors from the service', async () => {
+      mockGetNationalities.mockRejectedValue(new Error('db error'));
+
+      await expect(controller.getNationalities(mockAuthUser)).rejects.toThrow('db error');
+    });
+  });
+
+  describe('POST /v1/users/me/nationalities', () => {
+    it('delegates to usersService.addNationality with the user id and dto', async () => {
+      const dto: CreateNationalityDto = { countryCode: 'CO', isPrimary: true };
+
+      const result = await controller.addNationality(mockAuthUser, dto);
+
+      expect(mockAddNationality).toHaveBeenCalledWith(mockAuthUser.id, dto);
+      expect(result).toEqual(mockNationalityResponse);
+    });
+
+    it('propagates ConflictException from the service', async () => {
+      mockAddNationality.mockRejectedValue(new ConflictException());
+
+      await expect(
+        controller.addNationality(mockAuthUser, { countryCode: 'CO', isPrimary: true }),
+      ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('PATCH /v1/users/me/nationalities/:id', () => {
+    it('delegates to usersService.updateNationality with the user id, nationality id, and dto', async () => {
+      const dto: UpdateNationalityDto = { nationalIdNumber: '12345678' };
+      const updated: NationalityResponseDto = {
+        ...mockNationalityResponse,
+        nationalIdNumber: '12345678',
+      };
+      mockUpdateNationality.mockResolvedValue(updated);
+
+      const result = await controller.updateNationality(mockAuthUser, 'nat-uuid', dto);
+
+      expect(mockUpdateNationality).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid', dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdateNationality.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.updateNationality(mockAuthUser, 'nonexistent-uuid', {}),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('DELETE /v1/users/me/nationalities/:id', () => {
+    it('delegates to usersService.deleteNationality with the user id and nationality id', async () => {
+      await controller.deleteNationality(mockAuthUser, 'nat-uuid');
+
+      expect(mockDeleteNationality).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid');
+    });
+
+    it('propagates ConflictException from the service', async () => {
+      mockDeleteNationality.mockRejectedValue(new ConflictException());
+
+      await expect(controller.deleteNationality(mockAuthUser, 'nat-uuid')).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 });
