@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   AppCurrency,
@@ -12,6 +12,7 @@ import {
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import type { UpdateUserDto } from './dto/update-user.dto';
+import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -81,6 +82,19 @@ describe('UsersController', () => {
   let mockUpdatePreferences: jest.Mock;
   let mockGetProfile: jest.Mock;
   let mockUpdateProfile: jest.Mock;
+  let mockGetEmergencyContacts: jest.Mock;
+  let mockAddEmergencyContact: jest.Mock;
+  let mockUpdateEmergencyContact: jest.Mock;
+  let mockDeleteEmergencyContact: jest.Mock;
+
+  const mockContactResponse: EmergencyContactDto = {
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    fullName: 'María López',
+    phoneCountryCode: '+57',
+    phoneLocalNumber: '3001234567',
+    relationship: 'mother',
+    isPrimary: true,
+  };
 
   beforeEach(async () => {
     mockFindByFirebaseUid = jest.fn().mockResolvedValue(mockUser);
@@ -94,6 +108,10 @@ describe('UsersController', () => {
     mockUpdatePreferences = jest.fn().mockResolvedValue(mockPreferencesResponse);
     mockGetProfile = jest.fn().mockResolvedValue(mockProfileResponse);
     mockUpdateProfile = jest.fn().mockResolvedValue(mockProfileResponse);
+    mockGetEmergencyContacts = jest.fn().mockResolvedValue([mockContactResponse]);
+    mockAddEmergencyContact = jest.fn().mockResolvedValue(mockContactResponse);
+    mockUpdateEmergencyContact = jest.fn().mockResolvedValue(mockContactResponse);
+    mockDeleteEmergencyContact = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -110,6 +128,10 @@ describe('UsersController', () => {
             updatePreferences: mockUpdatePreferences,
             getProfile: mockGetProfile,
             updateProfile: mockUpdateProfile,
+            getEmergencyContacts: mockGetEmergencyContacts,
+            addEmergencyContact: mockAddEmergencyContact,
+            updateEmergencyContact: mockUpdateEmergencyContact,
+            deleteEmergencyContact: mockDeleteEmergencyContact,
           },
         },
       ],
@@ -315,6 +337,88 @@ describe('UsersController', () => {
       await expect(
         controller.updateProfile(mockAuthUser, {} as UpdateUserProfileDto),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('GET /v1/users/me/emergency-contacts', () => {
+    it('delegates to usersService.getEmergencyContacts with the authenticated user id', async () => {
+      const result = await controller.getEmergencyContacts(mockAuthUser);
+
+      expect(mockGetEmergencyContacts).toHaveBeenCalledWith(mockAuthUser.id);
+      expect(result).toEqual([mockContactResponse]);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockGetEmergencyContacts.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.getEmergencyContacts(mockAuthUser)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('POST /v1/users/me/emergency-contacts', () => {
+    it('delegates to usersService.addEmergencyContact with the user id and dto', async () => {
+      const result = await controller.addEmergencyContact(mockAuthUser, mockContactResponse);
+
+      expect(mockAddEmergencyContact).toHaveBeenCalledWith(mockAuthUser.id, mockContactResponse);
+      expect(result).toEqual(mockContactResponse);
+    });
+
+    it('propagates ConflictException from the service', async () => {
+      mockAddEmergencyContact.mockRejectedValue(new ConflictException());
+
+      await expect(
+        controller.addEmergencyContact(mockAuthUser, mockContactResponse),
+      ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('PATCH /v1/users/me/emergency-contacts/:id', () => {
+    it('delegates to usersService.updateEmergencyContact with the user id, contact id, and dto', async () => {
+      const dto: UpdateEmergencyContactDto = { fullName: 'Ana López' };
+      const updated = { ...mockContactResponse, fullName: 'Ana López' };
+      mockUpdateEmergencyContact.mockResolvedValue(updated);
+
+      const result = await controller.updateEmergencyContact(
+        mockAuthUser,
+        mockContactResponse.id,
+        dto,
+      );
+
+      expect(mockUpdateEmergencyContact).toHaveBeenCalledWith(
+        mockAuthUser.id,
+        mockContactResponse.id,
+        dto,
+      );
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdateEmergencyContact.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.updateEmergencyContact(mockAuthUser, 'nonexistent-id', {}),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('DELETE /v1/users/me/emergency-contacts/:id', () => {
+    it('delegates to usersService.deleteEmergencyContact with the user id and contact id', async () => {
+      await controller.deleteEmergencyContact(mockAuthUser, mockContactResponse.id);
+
+      expect(mockDeleteEmergencyContact).toHaveBeenCalledWith(
+        mockAuthUser.id,
+        mockContactResponse.id,
+      );
+    });
+
+    it('propagates ConflictException from the service', async () => {
+      mockDeleteEmergencyContact.mockRejectedValue(new ConflictException());
+
+      await expect(
+        controller.deleteEmergencyContact(mockAuthUser, mockContactResponse.id),
+      ).rejects.toThrow(ConflictException);
     });
   });
 });
