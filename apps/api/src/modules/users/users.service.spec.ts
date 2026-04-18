@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   AppCurrency,
@@ -841,6 +841,17 @@ describe('UsersService', () => {
           ]),
         }),
       );
+    });
+
+    it('throws BadRequestException when isPrimary is explicitly set to false', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        emergencyContacts: [contactA, contactB],
+      });
+
+      await expect(
+        service.updateEmergencyContact('user-uuid', contactA.id, { isPrimary: false }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('throws NotFoundException when contact id is not found', async () => {

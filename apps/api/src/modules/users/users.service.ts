@@ -1,4 +1,10 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
@@ -235,9 +241,15 @@ export class UsersService {
       throw new NotFoundException('Emergency contact not found');
     }
 
+    if (dto.isPrimary === false) {
+      throw new BadRequestException(
+        'Cannot unset the primary contact directly — assign a new primary first.',
+      );
+    }
+
     const withPrimary =
       dto.isPrimary === true
-        ? contacts.map((c) => ({ ...c, isPrimary: c.id === contactId ? true : false }))
+        ? contacts.map((c) => ({ ...c, isPrimary: c.id === contactId }))
         : contacts;
 
     const updated = withPrimary.map((c, i) =>

@@ -160,7 +160,11 @@ export class UsersController {
       'If isPrimary is set to true, all other contacts are automatically demoted.',
   })
   @ApiResponse({ status: 200, type: EmergencyContactDto })
-  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Validation failed — invalid field value, or isPrimary: false (assign a new primary instead)',
+  })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
   @ApiResponse({ status: 404, description: 'User profile or emergency contact not found' })
   updateEmergencyContact(
