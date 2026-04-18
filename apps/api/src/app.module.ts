@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@/config/config.module';
 import { SupportAdminAuditInterceptor } from '@/common/interceptors';
 import { DatabaseModule } from '@/database/database.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { HealthModule } from '@/modules/health/health.module';
+import { JobsModule } from '@/modules/jobs/jobs.module';
+import { NotificationsModule } from '@/modules/notifications/notifications.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
 import { I18nModule } from 'nestjs-i18n';
@@ -13,12 +16,15 @@ import * as path from 'path';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     ConfigModule,
     DatabaseModule,
     AuthModule,
     UsersModule,
     HealthModule,
+    NotificationsModule,
+    JobsModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
