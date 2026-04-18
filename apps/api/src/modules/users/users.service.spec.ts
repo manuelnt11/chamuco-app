@@ -1170,6 +1170,14 @@ describe('UsersService', () => {
       expect(result.passportStatus).toBe(PassportStatus.EXPIRING_SOON);
     });
 
+    it('throws NotFoundException when the insert returns an empty array', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      mockInsertReturning.mockResolvedValue([]);
+
+      const dto: CreateNationalityDto = { countryCode: 'CO', isPrimary: false };
+      await expect(service.addNationality('user-uuid', dto)).rejects.toThrow(NotFoundException);
+    });
+
     it('propagates unexpected database errors', async () => {
       mockNationalitiesFindFirst.mockResolvedValue(undefined);
       const dbError = new Error('insert failed');
@@ -1281,6 +1289,16 @@ describe('UsersService', () => {
 
       expect(mockSet).toHaveBeenCalledWith(
         expect.not.objectContaining({ passportStatus: expect.anything() }),
+      );
+    });
+
+    it('throws NotFoundException when the update returns an empty array', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockReturning.mockResolvedValue([]);
+
+      const dto: UpdateNationalityDto = { nationalIdNumber: '12345' };
+      await expect(service.updateNationality('user-uuid', 'nat-uuid', dto)).rejects.toThrow(
+        NotFoundException,
       );
     });
 
@@ -1421,6 +1439,15 @@ describe('UsersService', () => {
       );
     });
 
+    it('throws NotFoundException when the update returns an empty array', async () => {
+      mockProfileFindFirst.mockResolvedValue({ ...mockHealthProfile, loyaltyPrograms: [] });
+      mockReturning.mockResolvedValue([]);
+
+      await expect(service.addLoyaltyProgram('user-uuid', newProgram)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
     it('throws NotFoundException when user profile does not exist', async () => {
       mockProfileFindFirst.mockResolvedValue(undefined);
 
@@ -1480,6 +1507,18 @@ describe('UsersService', () => {
 
       await expect(
         service.updateLoyaltyProgram('user-uuid', 'nonexistent-uuid', { memberId: 'X' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException when the update returns an empty array', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [existingProgram],
+      });
+      mockReturning.mockResolvedValue([]);
+
+      await expect(
+        service.updateLoyaltyProgram('user-uuid', 'prog-uuid', { memberId: 'X' }),
       ).rejects.toThrow(NotFoundException);
     });
 
