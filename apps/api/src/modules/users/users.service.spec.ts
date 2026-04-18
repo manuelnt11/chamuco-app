@@ -17,6 +17,7 @@ import { UsersService } from './users.service';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
+import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
@@ -37,7 +38,8 @@ const mockHealthProfile = {
   birthCity: null,
   homeCountry: 'CO',
   homeCity: null,
-  phoneNumber: '+573001234567',
+  phoneCountryCode: '+57',
+  phoneLocalNumber: '3001234567',
   bio: null,
   dietaryPreference: DietaryPreference.OMNIVORE,
   dietaryNotes: null,
@@ -182,6 +184,16 @@ describe('UsersService', () => {
       expect(result).not.toHaveProperty('firebaseUid');
     });
 
+    it('updates timezone and returns the mapped response', async () => {
+      const updated = { ...mockUser, timezone: 'America/Bogota' };
+      mockReturning.mockResolvedValue([updated]);
+
+      const result = await service.updateMe(mockUser, { timezone: 'America/Bogota' });
+
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ timezone: 'America/Bogota' }));
+      expect(result.timezone).toBe('America/Bogota');
+    });
+
     it('normalizes empty and whitespace-only avatarUrl to null before saving', async () => {
       mockReturning.mockResolvedValue([{ ...mockUser, avatarUrl: null }]);
 
@@ -245,11 +257,22 @@ describe('UsersService', () => {
 
     it('updates and returns the mapped preferences on success', async () => {
       mockPrefFindFirst.mockResolvedValue(mockPreferences);
-      const updated = { ...mockPreferences, theme: AppTheme.DARK };
+      const updated = {
+        ...mockPreferences,
+        language: AppLanguage.EN,
+        currency: AppCurrency.USD,
+        theme: AppTheme.DARK,
+      };
       mockReturning.mockResolvedValue([updated]);
 
-      const result = await service.updatePreferences('user-uuid', { theme: AppTheme.DARK });
+      const result = await service.updatePreferences('user-uuid', {
+        language: AppLanguage.EN,
+        currency: AppCurrency.USD,
+        theme: AppTheme.DARK,
+      });
 
+      expect(result.language).toBe(AppLanguage.EN);
+      expect(result.currency).toBe(AppCurrency.USD);
       expect(result.theme).toBe(AppTheme.DARK);
     });
 
@@ -428,6 +451,168 @@ describe('UsersService', () => {
       await expect(
         service.updateHealth('user-uuid', { dietaryPreference: DietaryPreference.VEGAN }),
       ).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('getProfile', () => {
+    it('returns the mapped profile response when found', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+
+      const result = await service.getProfile('user-uuid');
+
+      expect(result.firstName).toBe('John');
+      expect(result.lastName).toBe('Doe');
+      expect(result.homeCountry).toBe('CO');
+      expect(result.phoneCountryCode).toBe('+57');
+      expect(result.phoneLocalNumber).toBe('3001234567');
+    });
+
+    it('translates year_visible to yearVisible in the response', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+
+      const result = await service.getProfile('user-uuid');
+
+      expect(result.dateOfBirth).toEqual({ day: 1, month: 1, year: 1990, yearVisible: true });
+      expect(result.dateOfBirth).not.toHaveProperty('year_visible');
+    });
+
+    it('throws NotFoundException when the profile does not exist', async () => {
+      mockProfileFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getProfile('unknown-uuid')).rejects.toThrow(NotFoundException);
+    });
+
+    it('propagates unexpected database errors', async () => {
+      const dbError = new Error('connection lost');
+      mockProfileFindFirst.mockRejectedValue(dbError);
+
+      await expect(service.getProfile('user-uuid')).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('returns existing profile unchanged when dto has no fields', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+
+      const result = await service.updateProfile('user-uuid', {} as UpdateUserProfileDto);
+
+      expect(result.firstName).toBe('John');
+      expect(mockReturning).not.toHaveBeenCalled();
+    });
+
+    it('trims text fields and normalizes empty nullable fields to null', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, bio: null }]);
+
+      await service.updateProfile('user-uuid', { bio: '   ' });
+
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ bio: null }));
+    });
+
+    it('stores dateOfBirth with year_visible key (not yearVisible)', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      const updatedDob = { day: 20, month: 6, year: 1995, year_visible: false };
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, dateOfBirth: updatedDob }]);
+
+      await service.updateProfile('user-uuid', {
+        dateOfBirth: { day: 20, month: 6, year: 1995, yearVisible: false },
+      });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dateOfBirth: { day: 20, month: 6, year: 1995, year_visible: false },
+        }),
+      );
+    });
+
+    it('updates all text fields and returns the mapped response', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      const updated = {
+        ...mockHealthProfile,
+        firstName: 'Jane',
+        lastName: 'Smith',
+        birthCity: 'Cali',
+        homeCountry: 'US',
+        homeCity: 'Miami',
+        phoneCountryCode: '+1',
+        phoneLocalNumber: '3055551234',
+      };
+      mockReturning.mockResolvedValue([updated]);
+
+      const result = await service.updateProfile('user-uuid', {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        birthCity: 'Cali',
+        homeCountry: 'US',
+        homeCity: 'Miami',
+        phoneCountryCode: '+1',
+        phoneLocalNumber: '3055551234',
+      });
+
+      expect(result.firstName).toBe('Jane');
+      expect(result.lastName).toBe('Smith');
+      expect(result.birthCity).toBe('Cali');
+      expect(result.homeCountry).toBe('US');
+      expect(result.homeCity).toBe('Miami');
+      expect(result.phoneCountryCode).toBe('+1');
+      expect(result.phoneLocalNumber).toBe('3055551234');
+    });
+
+    it('normalizes null birthCity and homeCity to null before saving', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, birthCity: null, homeCity: null }]);
+
+      await service.updateProfile('user-uuid', { birthCity: null, homeCity: null });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ birthCity: null, homeCity: null }),
+      );
+    });
+
+    it('sets birthCountry to null', async () => {
+      mockProfileFindFirst.mockResolvedValue({ ...mockHealthProfile, birthCountry: 'US' });
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, birthCountry: null }]);
+
+      const result = await service.updateProfile('user-uuid', { birthCountry: null });
+
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ birthCountry: null }));
+      expect(result.birthCountry).toBeNull();
+    });
+
+    it('throws NotFoundException when the profile does not exist', async () => {
+      mockProfileFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.updateProfile('unknown-uuid', { firstName: 'Jane' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws NotFoundException when profile is deleted between check and update', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      mockReturning.mockResolvedValue([]);
+
+      await expect(service.updateProfile('user-uuid', { firstName: 'Jane' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('propagates unexpected database errors on the initial fetch', async () => {
+      const dbError = new Error('connection lost');
+      mockProfileFindFirst.mockRejectedValue(dbError);
+
+      await expect(service.updateProfile('user-uuid', { firstName: 'Jane' })).rejects.toThrow(
+        dbError,
+      );
+    });
+
+    it('propagates unexpected database errors on the update', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      const dbError = new Error('update failed');
+      mockReturning.mockRejectedValue(dbError);
+
+      await expect(service.updateProfile('user-uuid', { firstName: 'Jane' })).rejects.toThrow(
+        dbError,
+      );
     });
   });
 });

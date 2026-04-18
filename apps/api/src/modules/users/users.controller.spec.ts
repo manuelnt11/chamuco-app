@@ -14,8 +14,10 @@ import { UsersService } from './users.service';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
+import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
 import type { UserPreferencesResponseDto } from './dto/user-preferences-response.dto';
+import type { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 const NOW = new Date('2026-01-01T00:00:00.000Z');
@@ -55,6 +57,19 @@ const mockHealthResponse: UserHealthResponseDto = {
   medicalConditions: [],
 };
 
+const mockProfileResponse: UserProfileResponseDto = {
+  firstName: 'John',
+  lastName: 'Doe',
+  dateOfBirth: { day: 1, month: 1, year: 1990, yearVisible: true },
+  birthCountry: null,
+  birthCity: null,
+  homeCountry: 'CO',
+  homeCity: null,
+  phoneCountryCode: '+57',
+  phoneLocalNumber: '3001234567',
+  bio: null,
+};
+
 describe('UsersController', () => {
   let controller: UsersController;
   let mockFindByFirebaseUid: jest.Mock;
@@ -64,6 +79,8 @@ describe('UsersController', () => {
   let mockUpdateHealth: jest.Mock;
   let mockGetPreferences: jest.Mock;
   let mockUpdatePreferences: jest.Mock;
+  let mockGetProfile: jest.Mock;
+  let mockUpdateProfile: jest.Mock;
 
   beforeEach(async () => {
     mockFindByFirebaseUid = jest.fn().mockResolvedValue(mockUser);
@@ -75,6 +92,8 @@ describe('UsersController', () => {
     mockUpdateHealth = jest.fn().mockResolvedValue(mockHealthResponse);
     mockGetPreferences = jest.fn().mockResolvedValue(mockPreferencesResponse);
     mockUpdatePreferences = jest.fn().mockResolvedValue(mockPreferencesResponse);
+    mockGetProfile = jest.fn().mockResolvedValue(mockProfileResponse);
+    mockUpdateProfile = jest.fn().mockResolvedValue(mockProfileResponse);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -89,6 +108,8 @@ describe('UsersController', () => {
             updateHealth: mockUpdateHealth,
             getPreferences: mockGetPreferences,
             updatePreferences: mockUpdatePreferences,
+            getProfile: mockGetProfile,
+            updateProfile: mockUpdateProfile,
           },
         },
       ],
@@ -257,6 +278,42 @@ describe('UsersController', () => {
 
       await expect(
         controller.updatePreferences(mockAuthUser, {} as UpdateUserPreferencesDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('GET /v1/users/me/profile', () => {
+    it('delegates to usersService.getProfile with the authenticated user id', async () => {
+      const result = await controller.getProfile(mockAuthUser);
+
+      expect(mockGetProfile).toHaveBeenCalledWith(mockAuthUser.id);
+      expect(result).toEqual(mockProfileResponse);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockGetProfile.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.getProfile(mockAuthUser)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('PATCH /v1/users/me/profile', () => {
+    it('delegates to usersService.updateProfile with the user id and dto', async () => {
+      const dto: UpdateUserProfileDto = { firstName: 'Jane' };
+      const updated: UserProfileResponseDto = { ...mockProfileResponse, firstName: 'Jane' };
+      mockUpdateProfile.mockResolvedValue(updated);
+
+      const result = await controller.updateProfile(mockAuthUser, dto);
+
+      expect(mockUpdateProfile).toHaveBeenCalledWith(mockAuthUser.id, dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdateProfile.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.updateProfile(mockAuthUser, {} as UpdateUserProfileDto),
       ).rejects.toThrow(NotFoundException);
     });
   });
