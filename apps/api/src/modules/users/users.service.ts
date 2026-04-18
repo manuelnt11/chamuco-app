@@ -21,6 +21,7 @@ import type {
   UpdateNationalityDto,
 } from './dto/nationality.dto';
 import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
+import type { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -424,6 +425,76 @@ export class UsersService {
       .where(and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)));
   }
 
+  async getLoyaltyPrograms(userId: string): Promise<LoyaltyProgramDto[]> {
+    const { programs } = await this.fetchLoyaltyPrograms(userId);
+    return programs;
+  }
+
+  async addLoyaltyProgram(userId: string, dto: LoyaltyProgramDto): Promise<LoyaltyProgramDto> {
+    const { programs } = await this.fetchLoyaltyPrograms(userId);
+
+    const [saved] = await this.db
+      .update(userProfiles)
+      .set({ loyaltyPrograms: [...programs, dto] })
+      .where(eq(userProfiles.userId, userId))
+      .returning();
+
+    if (!saved) {
+      throw new NotFoundException('User profile not found');
+    }
+    return (saved.loyaltyPrograms as LoyaltyProgramDto[]).find(
+      (p: LoyaltyProgramDto) => p.id === dto.id,
+    )!;
+  }
+
+  async updateLoyaltyProgram(
+    userId: string,
+    programId: string,
+    dto: UpdateLoyaltyProgramDto,
+  ): Promise<LoyaltyProgramDto> {
+    const { programs } = await this.fetchLoyaltyPrograms(userId);
+
+    const index = programs.findIndex((p) => p.id === programId);
+    if (index === -1) {
+      throw new NotFoundException('Loyalty program not found');
+    }
+
+    const updated = programs.map((p: LoyaltyProgramDto, i: number) =>
+      i === index
+        ? { ...p, ...Object.fromEntries(Object.entries(dto).filter(([, v]) => v !== undefined)) }
+        : p,
+    );
+
+    const [saved] = await this.db
+      .update(userProfiles)
+      .set({ loyaltyPrograms: updated })
+      .where(eq(userProfiles.userId, userId))
+      .returning();
+
+    if (!saved) {
+      throw new NotFoundException('User profile not found');
+    }
+    return (saved.loyaltyPrograms as LoyaltyProgramDto[]).find(
+      (p: LoyaltyProgramDto) => p.id === programId,
+    )!;
+  }
+
+  async deleteLoyaltyProgram(userId: string, programId: string): Promise<void> {
+    const { programs } = await this.fetchLoyaltyPrograms(userId);
+
+    const program = programs.find((p: LoyaltyProgramDto) => p.id === programId);
+    if (!program) {
+      throw new NotFoundException('Loyalty program not found');
+    }
+
+    const updated = programs.filter((p: LoyaltyProgramDto) => p.id !== programId);
+
+    await this.db
+      .update(userProfiles)
+      .set({ loyaltyPrograms: updated })
+      .where(eq(userProfiles.userId, userId));
+  }
+
   private computePassportStatus(expiryDate: string | undefined | null): PassportStatus {
     if (!expiryDate) return PassportStatus.OMITTED;
     const today = new Date();
@@ -449,6 +520,18 @@ export class UsersService {
       passportExpiryDate: record.passportExpiryDate ?? null,
       passportStatus: record.passportStatus as PassportStatus,
     };
+  }
+
+  private async fetchLoyaltyPrograms(
+    userId: string,
+  ): Promise<{ profile: typeof userProfiles.$inferSelect; programs: LoyaltyProgramDto[] }> {
+    const profile = await this.db.query.userProfiles.findFirst({
+      where: eq(userProfiles.userId, userId),
+    });
+    if (!profile) {
+      throw new NotFoundException('User profile not found');
+    }
+    return { profile, programs: (profile.loyaltyPrograms as LoyaltyProgramDto[]) ?? [] };
   }
 
   private async fetchContacts(

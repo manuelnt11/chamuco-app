@@ -1349,4 +1349,181 @@ describe('UsersService', () => {
       await expect(service.deleteNationality('user-uuid', 'nat-uuid')).rejects.toThrow(dbError);
     });
   });
+
+  describe('getLoyaltyPrograms', () => {
+    it('returns the loyalty programs array from the profile', async () => {
+      const programs = [
+        { id: 'prog-uuid-1', programName: 'LifeMiles', memberId: 'LM123', notes: null },
+      ];
+      mockProfileFindFirst.mockResolvedValue({ ...mockHealthProfile, loyaltyPrograms: programs });
+
+      const result = await service.getLoyaltyPrograms('user-uuid');
+
+      expect(result).toEqual(programs);
+    });
+
+    it('returns an empty array when the user has no programs', async () => {
+      mockProfileFindFirst.mockResolvedValue({ ...mockHealthProfile, loyaltyPrograms: [] });
+
+      const result = await service.getLoyaltyPrograms('user-uuid');
+
+      expect(result).toEqual([]);
+    });
+
+    it('throws NotFoundException when user profile does not exist', async () => {
+      mockProfileFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getLoyaltyPrograms('user-uuid')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('addLoyaltyProgram', () => {
+    const newProgram = {
+      id: 'prog-new-uuid',
+      programName: 'Delta SkyMiles',
+      memberId: 'DL999',
+      notes: null,
+    };
+
+    it('appends the new program and returns it', async () => {
+      mockProfileFindFirst.mockResolvedValue({ ...mockHealthProfile, loyaltyPrograms: [] });
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, loyaltyPrograms: [newProgram] }]);
+
+      const result = await service.addLoyaltyProgram('user-uuid', newProgram);
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ loyaltyPrograms: [newProgram] }),
+      );
+      expect(result).toEqual(newProgram);
+    });
+
+    it('appends to existing programs without removing them', async () => {
+      const existing = {
+        id: 'prog-existing',
+        programName: 'LifeMiles',
+        memberId: 'LM1',
+        notes: null,
+      };
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [existing],
+      });
+      mockReturning.mockResolvedValue([
+        { ...mockHealthProfile, loyaltyPrograms: [existing, newProgram] },
+      ]);
+
+      await service.addLoyaltyProgram('user-uuid', newProgram);
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ loyaltyPrograms: [existing, newProgram] }),
+      );
+    });
+
+    it('throws NotFoundException when user profile does not exist', async () => {
+      mockProfileFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.addLoyaltyProgram('user-uuid', newProgram)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('updateLoyaltyProgram', () => {
+    const existingProgram = {
+      id: 'prog-uuid',
+      programName: 'LifeMiles',
+      memberId: 'LM123',
+      notes: null,
+    };
+
+    it('updates the specified fields and returns the updated program', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [existingProgram],
+      });
+      const updated = { ...existingProgram, memberId: 'LM999' };
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, loyaltyPrograms: [updated] }]);
+
+      const result = await service.updateLoyaltyProgram('user-uuid', 'prog-uuid', {
+        memberId: 'LM999',
+      });
+
+      expect(result).toEqual(updated);
+    });
+
+    it('does not modify other programs in the array', async () => {
+      const other = { id: 'prog-other', programName: 'Bonvoy', memberId: 'BV1', notes: null };
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [existingProgram, other],
+      });
+      mockReturning.mockResolvedValue([
+        { ...mockHealthProfile, loyaltyPrograms: [{ ...existingProgram, notes: 'Gold' }, other] },
+      ]);
+
+      await service.updateLoyaltyProgram('user-uuid', 'prog-uuid', { notes: 'Gold' });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          loyaltyPrograms: expect.arrayContaining([expect.objectContaining({ id: 'prog-other' })]),
+        }),
+      );
+    });
+
+    it('throws NotFoundException when the program id is not found', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [existingProgram],
+      });
+
+      await expect(
+        service.updateLoyaltyProgram('user-uuid', 'nonexistent-uuid', { memberId: 'X' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException when user profile does not exist', async () => {
+      mockProfileFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.updateLoyaltyProgram('user-uuid', 'prog-uuid', {})).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('deleteLoyaltyProgram', () => {
+    const program = {
+      id: 'prog-uuid',
+      programName: 'LifeMiles',
+      memberId: 'LM123',
+      notes: null,
+    };
+
+    it('removes the program and saves the remaining array', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [program],
+      });
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, loyaltyPrograms: [] }]);
+
+      await service.deleteLoyaltyProgram('user-uuid', 'prog-uuid');
+
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ loyaltyPrograms: [] }));
+    });
+
+    it('throws NotFoundException when the program is not found', async () => {
+      mockProfileFindFirst.mockResolvedValue({ ...mockHealthProfile, loyaltyPrograms: [] });
+
+      await expect(service.deleteLoyaltyProgram('user-uuid', 'prog-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws NotFoundException when user profile does not exist', async () => {
+      mockProfileFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.deleteLoyaltyProgram('user-uuid', 'prog-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 });

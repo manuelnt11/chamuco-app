@@ -26,6 +26,7 @@ import type { AuthenticatedUser } from '@/types/express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
+import { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
 import {
   CreateNationalityDto,
   NationalityResponseDto,
@@ -288,6 +289,77 @@ export class UsersController {
     @Param('id') nationalityId: string,
   ): Promise<void> {
     return this.usersService.deleteNationality(user.id, nationalityId);
+  }
+
+  @Get('me/loyalty-programs')
+  @ApiOperation({
+    summary: "List the current user's loyalty programs",
+    description:
+      "Returns all loyalty programs stored on the authenticated user's profile. " +
+      'Visible only to the user themselves.',
+  })
+  @ApiResponse({ status: 200, type: LoyaltyProgramDto, isArray: true })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile not found' })
+  getLoyaltyPrograms(@CurrentUser() user: AuthenticatedUser): Promise<LoyaltyProgramDto[]> {
+    return this.usersService.getLoyaltyPrograms(user.id);
+  }
+
+  @Post('me/loyalty-programs')
+  @HttpCode(201)
+  @ApiBody({ type: LoyaltyProgramDto })
+  @ApiOperation({
+    summary: 'Add a loyalty program',
+    description:
+      'Adds a new loyalty program. The id must be a client-generated UUID. ' +
+      'No uniqueness check — a user may hold multiple memberships in the same program.',
+  })
+  @ApiResponse({ status: 201, type: LoyaltyProgramDto })
+  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile not found' })
+  addLoyaltyProgram(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: LoyaltyProgramDto,
+  ): Promise<LoyaltyProgramDto> {
+    return this.usersService.addLoyaltyProgram(user.id, dto);
+  }
+
+  @Patch('me/loyalty-programs/:id')
+  @HttpCode(200)
+  @ApiParam({ name: 'id', description: 'UUID of the loyalty program to update' })
+  @ApiBody({ type: UpdateLoyaltyProgramDto })
+  @ApiOperation({
+    summary: 'Update a loyalty program',
+    description: 'Updates any subset of fields on a single loyalty program identified by its UUID.',
+  })
+  @ApiResponse({ status: 200, type: LoyaltyProgramDto })
+  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile or loyalty program not found' })
+  updateLoyaltyProgram(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') programId: string,
+    @Body() dto: UpdateLoyaltyProgramDto,
+  ): Promise<LoyaltyProgramDto> {
+    return this.usersService.updateLoyaltyProgram(user.id, programId, dto);
+  }
+
+  @Delete('me/loyalty-programs/:id')
+  @HttpCode(204)
+  @ApiParam({ name: 'id', description: 'UUID of the loyalty program to delete' })
+  @ApiOperation({
+    summary: 'Delete a loyalty program',
+    description: 'Removes a single loyalty program identified by its UUID.',
+  })
+  @ApiResponse({ status: 204, description: 'Loyalty program deleted' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User profile or loyalty program not found' })
+  deleteLoyaltyProgram(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') programId: string,
+  ): Promise<void> {
+    return this.usersService.deleteLoyaltyProgram(user.id, programId);
   }
 
   @Get('me/profile')

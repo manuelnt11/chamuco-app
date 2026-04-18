@@ -19,6 +19,7 @@ import type {
   NationalityResponseDto,
   UpdateNationalityDto,
 } from './dto/nationality.dto';
+import type { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -96,6 +97,10 @@ describe('UsersController', () => {
   let mockAddNationality: jest.Mock;
   let mockUpdateNationality: jest.Mock;
   let mockDeleteNationality: jest.Mock;
+  let mockGetLoyaltyPrograms: jest.Mock;
+  let mockAddLoyaltyProgram: jest.Mock;
+  let mockUpdateLoyaltyProgram: jest.Mock;
+  let mockDeleteLoyaltyProgram: jest.Mock;
 
   const mockContactResponse: EmergencyContactDto = {
     id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -104,6 +109,13 @@ describe('UsersController', () => {
     phoneLocalNumber: '3001234567',
     relationship: 'mother',
     isPrimary: true,
+  };
+
+  const mockLoyaltyProgramResponse: LoyaltyProgramDto = {
+    id: 'prog-uuid',
+    programName: 'LifeMiles',
+    memberId: 'LM123',
+    notes: null,
   };
 
   const mockNationalityResponse: NationalityResponseDto = {
@@ -137,6 +149,10 @@ describe('UsersController', () => {
     mockAddNationality = jest.fn().mockResolvedValue(mockNationalityResponse);
     mockUpdateNationality = jest.fn().mockResolvedValue(mockNationalityResponse);
     mockDeleteNationality = jest.fn().mockResolvedValue(undefined);
+    mockGetLoyaltyPrograms = jest.fn().mockResolvedValue([mockLoyaltyProgramResponse]);
+    mockAddLoyaltyProgram = jest.fn().mockResolvedValue(mockLoyaltyProgramResponse);
+    mockUpdateLoyaltyProgram = jest.fn().mockResolvedValue(mockLoyaltyProgramResponse);
+    mockDeleteLoyaltyProgram = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -161,6 +177,10 @@ describe('UsersController', () => {
             addNationality: mockAddNationality,
             updateNationality: mockUpdateNationality,
             deleteNationality: mockDeleteNationality,
+            getLoyaltyPrograms: mockGetLoyaltyPrograms,
+            addLoyaltyProgram: mockAddLoyaltyProgram,
+            updateLoyaltyProgram: mockUpdateLoyaltyProgram,
+            deleteLoyaltyProgram: mockDeleteLoyaltyProgram,
           },
         },
       ],
@@ -521,6 +541,78 @@ describe('UsersController', () => {
 
       await expect(controller.deleteNationality(mockAuthUser, 'nat-uuid')).rejects.toThrow(
         ConflictException,
+      );
+    });
+  });
+
+  describe('GET /v1/users/me/loyalty-programs', () => {
+    it('delegates to usersService.getLoyaltyPrograms with the authenticated user id', async () => {
+      const result = await controller.getLoyaltyPrograms(mockAuthUser);
+
+      expect(mockGetLoyaltyPrograms).toHaveBeenCalledWith(mockAuthUser.id);
+      expect(result).toEqual([mockLoyaltyProgramResponse]);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockGetLoyaltyPrograms.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.getLoyaltyPrograms(mockAuthUser)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('POST /v1/users/me/loyalty-programs', () => {
+    it('delegates to usersService.addLoyaltyProgram with the user id and dto', async () => {
+      const result = await controller.addLoyaltyProgram(mockAuthUser, mockLoyaltyProgramResponse);
+
+      expect(mockAddLoyaltyProgram).toHaveBeenCalledWith(
+        mockAuthUser.id,
+        mockLoyaltyProgramResponse,
+      );
+      expect(result).toEqual(mockLoyaltyProgramResponse);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockAddLoyaltyProgram.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.addLoyaltyProgram(mockAuthUser, mockLoyaltyProgramResponse),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('PATCH /v1/users/me/loyalty-programs/:id', () => {
+    it('delegates to usersService.updateLoyaltyProgram with the user id, program id, and dto', async () => {
+      const dto: UpdateLoyaltyProgramDto = { memberId: 'LM999' };
+      const updated: LoyaltyProgramDto = { ...mockLoyaltyProgramResponse, memberId: 'LM999' };
+      mockUpdateLoyaltyProgram.mockResolvedValue(updated);
+
+      const result = await controller.updateLoyaltyProgram(mockAuthUser, 'prog-uuid', dto);
+
+      expect(mockUpdateLoyaltyProgram).toHaveBeenCalledWith(mockAuthUser.id, 'prog-uuid', dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdateLoyaltyProgram.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.updateLoyaltyProgram(mockAuthUser, 'nonexistent-uuid', {}),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('DELETE /v1/users/me/loyalty-programs/:id', () => {
+    it('delegates to usersService.deleteLoyaltyProgram with the user id and program id', async () => {
+      await controller.deleteLoyaltyProgram(mockAuthUser, 'prog-uuid');
+
+      expect(mockDeleteLoyaltyProgram).toHaveBeenCalledWith(mockAuthUser.id, 'prog-uuid');
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockDeleteLoyaltyProgram.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.deleteLoyaltyProgram(mockAuthUser, 'prog-uuid')).rejects.toThrow(
+        NotFoundException,
       );
     });
   });
