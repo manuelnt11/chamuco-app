@@ -119,7 +119,12 @@ export class CreateNationalityDto {
 }
 
 export class UpdateNationalityDto {
-  @ApiProperty({ example: true, required: false })
+  @ApiProperty({
+    example: true,
+    description:
+      'Promote this nationality to primary. isPrimary: false is rejected — assign a new primary instead.',
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   isPrimary?: boolean;

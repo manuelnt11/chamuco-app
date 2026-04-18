@@ -1101,14 +1101,13 @@ describe('UsersService', () => {
 
     it('computes passportStatus ACTIVE for a far-future expiry date', async () => {
       mockNationalitiesFindFirst.mockResolvedValue(undefined);
-      const withPassport = {
-        ...mockNationality,
-        passportNumber: 'AB123456',
-        passportIssueDate: '2020-01-15',
-        passportExpiryDate: '2035-01-15',
-        passportStatus: PassportStatus.ACTIVE,
-      };
-      mockInsertReturning.mockResolvedValue([withPassport]);
+      mockInsertReturning.mockResolvedValue([
+        {
+          ...mockNationality,
+          passportExpiryDate: '2035-01-15',
+          passportStatus: PassportStatus.ACTIVE,
+        },
+      ]);
 
       const dto: CreateNationalityDto = {
         countryCode: 'CO',
@@ -1120,6 +1119,53 @@ describe('UsersService', () => {
       const result = await service.addNationality('user-uuid', dto);
 
       expect(result.passportStatus).toBe(PassportStatus.ACTIVE);
+    });
+
+    it('computes passportStatus EXPIRED for a past expiry date', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      mockInsertReturning.mockResolvedValue([
+        {
+          ...mockNationality,
+          passportExpiryDate: '2000-01-01',
+          passportStatus: PassportStatus.EXPIRED,
+        },
+      ]);
+
+      const dto: CreateNationalityDto = {
+        countryCode: 'CO',
+        isPrimary: false,
+        passportNumber: 'AB123456',
+        passportIssueDate: '1995-01-01',
+        passportExpiryDate: '2000-01-01',
+      };
+      const result = await service.addNationality('user-uuid', dto);
+
+      expect(result.passportStatus).toBe(PassportStatus.EXPIRED);
+    });
+
+    it('computes passportStatus EXPIRING_SOON for an expiry within 6 months', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+      const soonExpiry = new Date();
+      soonExpiry.setUTCMonth(soonExpiry.getUTCMonth() + 2);
+      const expiryStr = soonExpiry.toISOString().slice(0, 10);
+      mockInsertReturning.mockResolvedValue([
+        {
+          ...mockNationality,
+          passportExpiryDate: expiryStr,
+          passportStatus: PassportStatus.EXPIRING_SOON,
+        },
+      ]);
+
+      const dto: CreateNationalityDto = {
+        countryCode: 'CO',
+        isPrimary: false,
+        passportNumber: 'AB123456',
+        passportIssueDate: '2020-01-15',
+        passportExpiryDate: expiryStr,
+      };
+      const result = await service.addNationality('user-uuid', dto);
+
+      expect(result.passportStatus).toBe(PassportStatus.EXPIRING_SOON);
     });
 
     it('propagates unexpected database errors', async () => {
@@ -1155,6 +1201,15 @@ describe('UsersService', () => {
       const result = await service.updateNationality('user-uuid', 'nat-uuid', dto);
 
       expect(result.nationalIdNumber).toBe('12345678');
+    });
+
+    it('returns existing record without a DB write when dto is empty', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+
+      const result = await service.updateNationality('user-uuid', 'nat-uuid', {});
+
+      expect(mockSet).not.toHaveBeenCalled();
+      expect(result.countryCode).toBe(mockNationality.countryCode);
     });
 
     it('demotes other nationalities when isPrimary is true', async () => {
@@ -1223,7 +1278,7 @@ describe('UsersService', () => {
       await service.updateNationality('user-uuid', 'nat-uuid', dto);
 
       expect(mockSet).toHaveBeenCalledWith(
-        expect.objectContaining({ passportStatus: PassportStatus.ACTIVE }),
+        expect.not.objectContaining({ passportStatus: expect.anything() }),
       );
     });
 

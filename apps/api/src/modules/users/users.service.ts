@@ -342,7 +342,7 @@ export class UsersService {
       .returning();
 
     if (!inserted) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Nationality not found after insert');
     }
     return this.mapNationalityResponse(inserted);
   }
@@ -377,10 +377,6 @@ export class UsersService {
       dto.passportIssueDate !== undefined ||
       dto.passportExpiryDate !== undefined;
 
-    const newPassportStatus = passportChanged
-      ? this.computePassportStatus(dto.passportExpiryDate)
-      : (existing.passportStatus as PassportStatus);
-
     const patch: Partial<typeof userNationalities.$inferInsert> = {};
     if (dto.isPrimary !== undefined) patch.isPrimary = dto.isPrimary;
     if (dto.nationalIdNumber !== undefined) patch.nationalIdNumber = dto.nationalIdNumber;
@@ -389,7 +385,11 @@ export class UsersService {
       patch.passportIssueDate = dto.passportIssueDate ?? null;
     if (dto.passportExpiryDate !== undefined)
       patch.passportExpiryDate = dto.passportExpiryDate ?? null;
-    patch.passportStatus = newPassportStatus;
+    if (passportChanged) patch.passportStatus = this.computePassportStatus(dto.passportExpiryDate);
+
+    if (Object.keys(patch).length === 0) {
+      return this.mapNationalityResponse(existing);
+    }
 
     const [updated] = await this.db
       .update(userNationalities)
@@ -427,9 +427,9 @@ export class UsersService {
   private computePassportStatus(expiryDate: string | undefined | null): PassportStatus {
     if (!expiryDate) return PassportStatus.OMITTED;
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
     const sixMonthsFromNow = new Date(today);
-    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+    sixMonthsFromNow.setUTCMonth(sixMonthsFromNow.getUTCMonth() + 6);
     const expiry = new Date(expiryDate);
     if (expiry < today) return PassportStatus.EXPIRED;
     if (expiry < sixMonthsFromNow) return PassportStatus.EXPIRING_SOON;
