@@ -66,34 +66,60 @@ describe('UpdateUserProfileDto', () => {
       expect(errors).toHaveLength(0);
     });
 
-    it('accepts a valid E.164 phoneNumber', async () => {
-      const dto = plainToInstance(UpdateUserProfileDto, { phoneNumber: '+573001234567' });
+    it('accepts valid phoneCountryCode and phoneLocalNumber', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, {
+        phoneCountryCode: '+57',
+        phoneLocalNumber: '3001234567',
+      });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
 
-    it('rejects phoneNumber without leading +', async () => {
-      const dto = plainToInstance(UpdateUserProfileDto, { phoneNumber: '573001234567' });
+    it('accepts single-digit country code (+1)', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, {
+        phoneCountryCode: '+1',
+        phoneLocalNumber: '3055551234',
+      });
       const errors = await validate(dto);
-      expect(errors.some((e) => e.property === 'phoneNumber')).toBe(true);
+      expect(errors).toHaveLength(0);
     });
 
-    it('rejects phoneNumber with invalid E.164 format', async () => {
-      const dto = plainToInstance(UpdateUserProfileDto, { phoneNumber: '+0123456' });
+    it('rejects phoneCountryCode without leading +', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { phoneCountryCode: '57' });
       const errors = await validate(dto);
-      expect(errors.some((e) => e.property === 'phoneNumber')).toBe(true);
+      expect(errors.some((e) => e.property === 'phoneCountryCode')).toBe(true);
+    });
+
+    it('rejects phoneCountryCode starting with +0', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { phoneCountryCode: '+0' });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'phoneCountryCode')).toBe(true);
+    });
+
+    it('rejects phoneLocalNumber with letters or symbols', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { phoneLocalNumber: '300-123-4567' });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'phoneLocalNumber')).toBe(true);
+    });
+
+    it('rejects phoneLocalNumber shorter than 4 digits', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { phoneLocalNumber: '123' });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'phoneLocalNumber')).toBe(true);
     });
 
     it('passes non-string values through the trim transform and rejects with IsString', async () => {
       const dto = plainToInstance(UpdateUserProfileDto, {
         firstName: 42,
         lastName: true,
-        phoneNumber: [],
+        phoneCountryCode: [],
+        phoneLocalNumber: {},
       });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'firstName')).toBe(true);
       expect(errors.some((e) => e.property === 'lastName')).toBe(true);
-      expect(errors.some((e) => e.property === 'phoneNumber')).toBe(true);
+      expect(errors.some((e) => e.property === 'phoneCountryCode')).toBe(true);
+      expect(errors.some((e) => e.property === 'phoneLocalNumber')).toBe(true);
     });
   });
 

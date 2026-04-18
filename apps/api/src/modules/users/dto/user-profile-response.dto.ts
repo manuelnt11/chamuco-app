@@ -23,8 +23,11 @@ export class UserProfileResponseDto {
   @ApiProperty({ example: 'Medellín', nullable: true })
   homeCity!: string | null;
 
-  @ApiProperty({ example: '+573001234567' })
-  phoneNumber!: string;
+  @ApiProperty({ example: '+57', description: 'Phone country code (e.g. +57, +1, +593)' })
+  phoneCountryCode!: string;
+
+  @ApiProperty({ example: '3001234567', description: 'Local phone number — digits only' })
+  phoneLocalNumber!: string;
 
   @ApiProperty({ example: 'Travel enthusiast.', nullable: true })
   bio!: string | null;

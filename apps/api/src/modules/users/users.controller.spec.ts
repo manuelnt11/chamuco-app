@@ -65,7 +65,8 @@ const mockProfileResponse: UserProfileResponseDto = {
   birthCity: null,
   homeCountry: 'CO',
   homeCity: null,
-  phoneNumber: '+573001234567',
+  phoneCountryCode: '+57',
+  phoneLocalNumber: '3001234567',
   bio: null,
 };
 

@@ -93,7 +93,8 @@ export const userProfiles = pgTable('user_profiles', {
   birthCity: text('birth_city'),
   homeCountry: char('home_country', { length: 2 }).notNull(),
   homeCity: text('home_city'),
-  phoneNumber: text('phone_number').notNull(),
+  phoneCountryCode: text('phone_country_code').notNull(),
+  phoneLocalNumber: text('phone_local_number').notNull(),
   bio: text('bio'),
   dietaryPreference: dietaryPreferenceEnum('dietary_preference')
     .notNull()

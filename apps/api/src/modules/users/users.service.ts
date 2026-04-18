@@ -130,7 +130,8 @@ export class UsersService {
     if (dto.birthCity !== undefined) patch.birthCity = dto.birthCity?.trim() || null;
     if (dto.homeCountry !== undefined) patch.homeCountry = dto.homeCountry;
     if (dto.homeCity !== undefined) patch.homeCity = dto.homeCity?.trim() || null;
-    if (dto.phoneNumber !== undefined) patch.phoneNumber = dto.phoneNumber.trim();
+    if (dto.phoneCountryCode !== undefined) patch.phoneCountryCode = dto.phoneCountryCode.trim();
+    if (dto.phoneLocalNumber !== undefined) patch.phoneLocalNumber = dto.phoneLocalNumber.trim();
     if (dto.bio !== undefined) patch.bio = dto.bio?.trim() || null;
 
     if (Object.keys(patch).length === 0) {
@@ -228,7 +229,8 @@ export class UsersService {
       birthCity: profile.birthCity ?? null,
       homeCountry: profile.homeCountry,
       homeCity: profile.homeCity ?? null,
-      phoneNumber: profile.phoneNumber,
+      phoneCountryCode: profile.phoneCountryCode,
+      phoneLocalNumber: profile.phoneLocalNumber,
       bio: profile.bio ?? null,
     };
   }

@@ -63,20 +63,32 @@ export class UpdateUserProfileDto {
   homeCity?: string | null;
 
   @ApiProperty({
-    example: '+573001234567',
+    example: '+57',
     description:
-      'Phone number in E.164 format (e.g. +573001234567). ' +
-      'Must start with + followed by country code and subscriber number (max 15 digits total). ' +
-      'Frontend must enforce this format before submitting.',
+      'Phone country code in E.164 format (e.g. +57, +1, +593). ' +
+      'Must start with + followed by 1–3 digits. Frontend must enforce this format.',
     required: false,
   })
   @IsOptional()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  @Matches(/^\+[1-9]\d{1,14}$/, {
-    message: 'phoneNumber must be a valid E.164 number (e.g. +573001234567)',
+  @Matches(/^\+[1-9]\d{0,2}$/, {
+    message: 'phoneCountryCode must be a valid country code (e.g. +57, +1, +593)',
   })
-  phoneNumber?: string;
+  phoneCountryCode?: string;
+
+  @ApiProperty({
+    example: '3001234567',
+    description: 'Local phone number without country code — digits only, 4–14 digits.',
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString()
+  @Matches(/^\d{4,14}$/, {
+    message: 'phoneLocalNumber must contain 4–14 digits with no spaces or symbols',
+  })
+  phoneLocalNumber?: string;
 
   @ApiProperty({ example: 'Travel enthusiast.', nullable: true, required: false })
   @IsOptional()

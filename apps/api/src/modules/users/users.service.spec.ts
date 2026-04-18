@@ -38,7 +38,8 @@ const mockHealthProfile = {
   birthCity: null,
   homeCountry: 'CO',
   homeCity: null,
-  phoneNumber: '+573001234567',
+  phoneCountryCode: '+57',
+  phoneLocalNumber: '3001234567',
   bio: null,
   dietaryPreference: DietaryPreference.OMNIVORE,
   dietaryNotes: null,
@@ -462,7 +463,8 @@ describe('UsersService', () => {
       expect(result.firstName).toBe('John');
       expect(result.lastName).toBe('Doe');
       expect(result.homeCountry).toBe('CO');
-      expect(result.phoneNumber).toBe('+573001234567');
+      expect(result.phoneCountryCode).toBe('+57');
+      expect(result.phoneLocalNumber).toBe('3001234567');
     });
 
     it('translates year_visible to yearVisible in the response', async () => {
@@ -532,7 +534,8 @@ describe('UsersService', () => {
         birthCity: 'Cali',
         homeCountry: 'US',
         homeCity: 'Miami',
-        phoneNumber: '+13055551234',
+        phoneCountryCode: '+1',
+        phoneLocalNumber: '3055551234',
       };
       mockReturning.mockResolvedValue([updated]);
 
@@ -542,7 +545,8 @@ describe('UsersService', () => {
         birthCity: 'Cali',
         homeCountry: 'US',
         homeCity: 'Miami',
-        phoneNumber: '+13055551234',
+        phoneCountryCode: '+1',
+        phoneLocalNumber: '3055551234',
       });
 
       expect(result.firstName).toBe('Jane');
@@ -550,7 +554,8 @@ describe('UsersService', () => {
       expect(result.birthCity).toBe('Cali');
       expect(result.homeCountry).toBe('US');
       expect(result.homeCity).toBe('Miami');
-      expect(result.phoneNumber).toBe('+13055551234');
+      expect(result.phoneCountryCode).toBe('+1');
+      expect(result.phoneLocalNumber).toBe('3055551234');
     });
 
     it('normalizes null birthCity and homeCity to null before saving', async () => {
