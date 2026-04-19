@@ -5,16 +5,16 @@ import type { NextRequest } from 'next/server';
  * Route-level auth guards with three-state logic.
  *
  * Two cookies drive routing decisions:
- *   chamuco-auth        — set by AuthProvider when Firebase reports a signed-in user
- *   chamuco-registered  — set by sign-in and onboarding pages when Chamuco registration
- *                         is confirmed (GET /users/me → 200 or POST /auth/register → 201)
+ *   __Host-chamuco-auth        — set by AuthProvider when Firebase reports a signed-in user
+ *   __Host-chamuco-registered  — set by sign-in and onboarding pages when Chamuco registration
+ *                                is confirmed (GET /users/me → 200 or POST /auth/register → 201)
  *
  * Neither cookie is cryptographically verified here — they are used for routing only.
  * Real auth verification always happens server-side via Firebase Admin SDK.
  *
  * Three states:
- *   unauthenticated     — no chamuco-auth            → redirect to /sign-in
- *   auth + unregistered — chamuco-auth, no chamuco-registered → redirect to /onboarding
+ *   unauthenticated     — no __Host-chamuco-auth                         → redirect to /sign-in
+ *   auth + unregistered — __Host-chamuco-auth, no __Host-chamuco-registered → redirect to /onboarding
  *   auth + registered   — both cookies present       → allow through
  *
  * Route overrides:
@@ -23,8 +23,8 @@ import type { NextRequest } from 'next/server';
  *   all others  — unauthenticated → /sign-in; auth+unregistered → /onboarding; auth+registered → next()
  */
 export function proxy(request: NextRequest): NextResponse {
-  const isAuthenticated = request.cookies.has('chamuco-auth');
-  const isRegistered = request.cookies.has('chamuco-registered');
+  const isAuthenticated = request.cookies.has('__Host-chamuco-auth');
+  const isRegistered = request.cookies.has('__Host-chamuco-registered');
   const { pathname } = request.nextUrl;
 
   if (pathname === '/sign-in') {
@@ -50,8 +50,10 @@ export function proxy(request: NextRequest): NextResponse {
   return NextResponse.next();
 }
 
-// api/ is excluded from the matcher so Next.js Route Handlers (/api/*) are never
-// intercepted by this middleware — they handle their own auth at the handler level.
+// api/ is excluded from the matcher so cookie-redirect logic never intercepts
+// Next.js Route Handlers. Without this, /api/cities would receive a 307 redirect
+// instead of JSON when called from the onboarding page (chamuco-auth present,
+// chamuco-registered absent). Route Handlers must implement their own auth if needed.
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|api/|.*\\..*).*)'],
 };
