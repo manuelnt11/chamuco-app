@@ -105,14 +105,6 @@
         "title": "¿Dónde vives?",
         "subtitle": "Tu ubicación de residencia"
       },
-      "step4": {
-        "title": "Tus nacionalidades",
-        "subtitle": "Agrega al menos una nacionalidad"
-      },
-      "step5": {
-        "title": "Contacto de emergencia",
-        "subtitle": "¿A quién debemos contactar en caso de emergencia?"
-      },
       "username": {
         "label": "Nombre de usuario",
         "placeholder": "ej. juan_perez",
@@ -159,23 +151,6 @@
         "label": "Ciudad de residencia (opcional)",
         "placeholder": "ej. Medellín"
       },
-      "nationality": {
-        "label": "Nacionalidad",
-        "countryCode": "Código de país",
-        "add": "Agregar nacionalidad",
-        "addedCount": "{{count}} nacionalidad agregada",
-        "addedCount_other": "{{count}} nacionalidades agregadas"
-      },
-      "emergencyContact": {
-        "label": "Contacto de emergencia",
-        "fullName": "Nombre completo",
-        "relationship": "Relación",
-        "phoneCountryCode": "Código de país",
-        "phoneLocalNumber": "Número de teléfono",
-        "add": "Agregar contacto",
-        "addedCount": "{{count}} contacto agregado",
-        "addedCount_other": "{{count}} contactos agregados"
-      },
       "submit": "Crear mi cuenta",
       "terms": {
         "accept": "Acepto la <privacyLink>Política de Privacidad</privacyLink> y los <termsLink>Términos y Condiciones</termsLink> de Chamuco Travel.",
@@ -190,9 +165,7 @@
         "minAge": "Debes tener al menos 16 años para registrarte",
         "invalidCountryCode": "Ingresa un código de país de 2 letras mayúsculas (ej. CO)",
         "invalidPhone": "Ingresa un número de teléfono válido (4–14 dígitos)",
-        "invalidPhoneCode": "Ingresa un código de país válido (ej. +57)",
-        "atLeastOneNationality": "Agrega al menos una nacionalidad",
-        "atLeastOneContact": "Agrega al menos un contacto de emergencia"
+        "invalidPhoneCode": "Ingresa un código de país válido (ej. +57)"
       }
     }
   },

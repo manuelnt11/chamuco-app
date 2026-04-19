@@ -105,14 +105,6 @@
         "title": "Where are you based?",
         "subtitle": "Your home location"
       },
-      "step4": {
-        "title": "Your nationalities",
-        "subtitle": "Add at least one nationality"
-      },
-      "step5": {
-        "title": "Emergency contact",
-        "subtitle": "Who should we contact in case of emergency?"
-      },
       "username": {
         "label": "Username",
         "placeholder": "e.g. jane_doe",
@@ -159,23 +151,6 @@
         "label": "Home city (optional)",
         "placeholder": "e.g. Medellín"
       },
-      "nationality": {
-        "label": "Nationality",
-        "countryCode": "Country code",
-        "add": "Add nationality",
-        "addedCount": "{{count}} nationality added",
-        "addedCount_other": "{{count}} nationalities added"
-      },
-      "emergencyContact": {
-        "label": "Emergency contact",
-        "fullName": "Full name",
-        "relationship": "Relationship",
-        "phoneCountryCode": "Country code",
-        "phoneLocalNumber": "Phone number",
-        "add": "Add contact",
-        "addedCount": "{{count}} contact added",
-        "addedCount_other": "{{count}} contacts added"
-      },
       "submit": "Create my account",
       "terms": {
         "accept": "I accept the <privacyLink>Privacy Policy</privacyLink> and the <termsLink>Terms and Conditions</termsLink> of Chamuco Travel.",
@@ -190,9 +165,7 @@
         "minAge": "You must be at least 16 years old to register",
         "invalidCountryCode": "Enter a 2-letter uppercase country code (e.g. CO)",
         "invalidPhone": "Enter a valid phone number (4–14 digits)",
-        "invalidPhoneCode": "Enter a valid country code (e.g. +57)",
-        "atLeastOneNationality": "Add at least one nationality",
-        "atLeastOneContact": "Add at least one emergency contact"
+        "invalidPhoneCode": "Enter a valid country code (e.g. +57)"
       }
     }
   },

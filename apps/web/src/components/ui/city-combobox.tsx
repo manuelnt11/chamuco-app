@@ -37,7 +37,7 @@ function CityCombobox({
   function handleChange(raw: string) {
     const upper = raw.toUpperCase();
     setQuery(upper);
-    onChange(upper);
+    if (upper === '') onChange('');
     setOpen(upper.length >= 2);
   }
 

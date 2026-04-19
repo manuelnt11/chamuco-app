@@ -50,6 +50,8 @@ export function proxy(request: NextRequest): NextResponse {
   return NextResponse.next();
 }
 
+// api/ is excluded from the matcher so Next.js Route Handlers (/api/*) are never
+// intercepted by this middleware — they handle their own auth at the handler level.
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|api/|.*\\..*).*)'],
 };

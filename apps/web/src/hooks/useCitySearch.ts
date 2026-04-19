@@ -24,21 +24,29 @@ export function useCitySearch(country: string, query: string) {
       return;
     }
 
+    const controller = new AbortController();
+
     const timer = setTimeout(() => {
       setIsLoading(true);
       const params = new URLSearchParams({ country, q: query });
-      fetch(`/api/cities?${params.toString()}`)
+      fetch(`/api/cities?${params.toString()}`, { signal: controller.signal })
         .then((res) => (res.ok ? res.json() : { geonames: [] }))
         .then((data: GeonamesResponse) => {
           setResults(
             (data.geonames ?? []).map((g) => ({ name: g.name, region: g.adminName1 ?? '' })),
           );
         })
-        .catch(() => setResults([]))
+        .catch((err: unknown) => {
+          if (err instanceof DOMException && err.name === 'AbortError') return;
+          setResults([]);
+        })
         .finally(() => setIsLoading(false));
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [country, query]);
 
   return { results, isLoading };
