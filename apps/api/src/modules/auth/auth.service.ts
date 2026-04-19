@@ -9,8 +9,11 @@ import { eq } from 'drizzle-orm';
 import { AuthProvider } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
+import { userNationalities } from '@/modules/users/schema/user-nationalities.schema';
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
+import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
+import { computePassportStatus } from '@/common/utils/passport-status.util';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
 
@@ -68,12 +71,28 @@ export class AuthService {
       throw new ConflictException('User already registered');
     }
 
+    if (dto.nationalities?.length) {
+      const primaryNationalityCount = dto.nationalities.filter((n) => n.isPrimary).length;
+      if (primaryNationalityCount !== 1) {
+        throw new BadRequestException('Exactly one nationality must have isPrimary: true');
+      }
+    }
+
+    if (dto.emergencyContacts?.length) {
+      const primaryContactCount = dto.emergencyContacts.filter((c) => c.isPrimary).length;
+      if (primaryContactCount !== 1) {
+        throw new BadRequestException('Exactly one emergency contact must have isPrimary: true');
+      }
+    }
+
     const signInProvider = decodedToken.firebase?.sign_in_provider;
     const authProvider = PROVIDER_MAP[signInProvider];
 
     if (!authProvider) {
       throw new BadRequestException('Unsupported authentication provider');
     }
+
+    const { day, month, year, yearVisible } = dto.dateOfBirth;
 
     const newUser = await this.db
       .transaction(async (trx) => {
@@ -96,6 +115,33 @@ export class AuthService {
         }
 
         await trx.insert(userPreferences).values({ userId: created.id });
+
+        await trx.insert(userProfiles).values({
+          userId: created.id,
+          firstName: dto.firstName.trim(),
+          lastName: dto.lastName.trim(),
+          dateOfBirth: { day, month, year, year_visible: yearVisible },
+          homeCountry: dto.homeCountry,
+          homeCity: dto.homeCity ?? null,
+          phoneCountryCode: dto.phoneCountryCode,
+          phoneLocalNumber: dto.phoneLocalNumber,
+          ...(dto.emergencyContacts ? { emergencyContacts: dto.emergencyContacts } : {}),
+        });
+
+        if (dto.nationalities?.length) {
+          await trx.insert(userNationalities).values(
+            dto.nationalities.map((n) => ({
+              userId: created.id,
+              countryCode: n.countryCode,
+              isPrimary: n.isPrimary,
+              nationalIdNumber: n.nationalIdNumber ?? null,
+              passportNumber: n.passportNumber ?? null,
+              passportIssueDate: n.passportIssueDate ?? null,
+              passportExpiryDate: n.passportExpiryDate ?? null,
+              passportStatus: computePassportStatus(n.passportExpiryDate),
+            })),
+          );
+        }
 
         return created;
       })

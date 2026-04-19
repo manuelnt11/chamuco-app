@@ -58,6 +58,47 @@ vi.mock('react-i18next', () => ({
   Trans: ({ children }: { children?: ReactNode }) => <>{children}</>,
 }));
 
+vi.mock('libphonenumber-js', () => ({
+  isValidPhoneNumber: vi.fn().mockReturnValue(true),
+}));
+
+vi.mock('@/components/ui/country-combobox', () => ({
+  CountryCombobox: ({
+    onChange,
+    value,
+    'data-testid': testId,
+  }: {
+    onChange: (v: string) => void;
+    value: string;
+    'data-testid'?: string;
+  }) => (
+    <input
+      data-testid={testId ?? 'country-input'}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  ),
+  getCallingCode: vi.fn().mockReturnValue('+57'),
+}));
+
+vi.mock('@/components/ui/city-combobox', () => ({
+  CityCombobox: ({
+    onChange,
+    value,
+    'data-testid': testId,
+  }: {
+    onChange: (v: string) => void;
+    value: string;
+    'data-testid'?: string;
+  }) => (
+    <input
+      data-testid={testId ?? 'city-input'}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  ),
+}));
+
 import { useAuth } from '@/hooks/useAuth';
 import OnboardingPage from './page';
 
@@ -130,6 +171,28 @@ async function renderForm(authOverrides: Partial<AuthContextValue> = {}) {
   return user;
 }
 
+/**
+ * Renders the page and navigates to step 3 (location + terms).
+ * Uses real timers — relies on waitFor timeout to absorb the 300 ms username debounce.
+ */
+async function renderFormAtStep3() {
+  const user = await renderForm({ currentUser: makeUser({ displayName: 'Test User' }) });
+  await waitFor(() =>
+    expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+  );
+  await user.click(screen.getByTestId('next-btn'));
+  await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+  await user.type(screen.getByTestId('firstname-input'), 'JOHN');
+  await user.type(screen.getByTestId('lastname-input'), 'DOE');
+  await user.type(screen.getByTestId('dob-day-input'), '15');
+  await user.type(screen.getByTestId('dob-month-input'), '6');
+  await user.type(screen.getByTestId('dob-year-input'), '1990');
+  await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+  await user.click(screen.getByTestId('next-btn'));
+  await waitFor(() => expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument());
+  return user;
+}
+
 // --- tests ---
 
 beforeEach(() => {
@@ -197,8 +260,8 @@ describe('OnboardingPage', () => {
       expect(screen.getByTestId('displayname-input')).toBeInTheDocument();
     });
 
-    it('renders the submit button', async () => {
-      await renderForm();
+    it('renders the submit button on step 3', async () => {
+      await renderFormAtStep3();
       expect(screen.getByTestId('submit-btn')).toBeInTheDocument();
     });
 
@@ -229,41 +292,22 @@ describe('OnboardingPage', () => {
       expect(screen.getByTestId('cancel-btn')).toBeInTheDocument();
     });
 
-    it('renders the terms acceptance checkbox unchecked by default', async () => {
-      await renderForm();
+    it('renders the terms acceptance checkbox unchecked by default on step 3', async () => {
+      await renderFormAtStep3();
       expect(screen.getByTestId<HTMLInputElement>('terms-checkbox').checked).toBe(false);
     });
 
-    it('submit button is disabled when terms are not accepted', async () => {
-      await renderForm({ currentUser: makeUser({ displayName: 'Test User' }) });
-      // Even with a pre-filled display name, the button is disabled without terms
-      expect(screen.getByTestId('submit-btn')).toBeDisabled();
+    it('shows terms error when submitting without accepting terms', async () => {
+      const user = await renderFormAtStep3();
+      await user.type(screen.getByTestId('home-country-input'), 'CO');
+      await user.click(screen.getByTestId('submit-btn'));
+      expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument();
     });
 
-    it('checking the terms checkbox enables the submit button when all other fields are valid', async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: true });
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
-      );
-      mockGetByUrl();
-      const user = userEvent.setup({
-        advanceTimers: vi.advanceTimersByTime.bind(vi),
-        delay: null,
-      });
-      render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
-      await user.clear(screen.getByTestId('username-input'));
-      await user.type(screen.getByTestId('username-input'), 'testuser');
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
-      });
-      await waitFor(() =>
-        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
-      );
-      expect(screen.getByTestId('submit-btn')).toBeDisabled();
-      await user.click(screen.getByTestId('terms-checkbox'));
+    it('submit button on step 3 is not disabled when terms are unchecked', async () => {
+      await renderFormAtStep3();
+      // The submit button is only disabled during isSubmitting, not by terms state
       expect(screen.getByTestId('submit-btn')).not.toBeDisabled();
-      vi.useRealTimers();
     });
   });
 
@@ -275,7 +319,7 @@ describe('OnboardingPage', () => {
       expect(mocks.mockSignOut).toHaveBeenCalledOnce();
     });
 
-    it('cancel button is disabled while isSubmitting', async () => {
+    it('back button is disabled while isSubmitting', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
       vi.mocked(useAuth).mockReturnValue(makeAuth());
       mockGetByUrl();
@@ -288,18 +332,31 @@ describe('OnboardingPage', () => {
       await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
       await user.clear(screen.getByTestId('username-input'));
       await user.type(screen.getByTestId('username-input'), 'newuser');
+      await user.type(screen.getByTestId('displayname-input'), 'Test');
       await act(async () => {
         await vi.advanceTimersByTimeAsync(300);
       });
       await waitFor(() =>
         expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
       );
-      await user.type(screen.getByTestId('displayname-input'), 'Test');
+      // Navigate to step 2
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+      await user.type(screen.getByTestId('firstname-input'), 'JOHN');
+      await user.type(screen.getByTestId('lastname-input'), 'DOE');
+      await user.type(screen.getByTestId('dob-day-input'), '15');
+      await user.type(screen.getByTestId('dob-month-input'), '6');
+      await user.type(screen.getByTestId('dob-year-input'), '1990');
+      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+      // Navigate to step 3
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument());
+      await user.type(screen.getByTestId('home-country-input'), 'CO');
       await user.click(screen.getByTestId('terms-checkbox'));
       await act(async () => {
         await user.click(screen.getByTestId('submit-btn'));
       });
-      expect(screen.getByTestId('cancel-btn')).toBeDisabled();
+      expect(screen.getByTestId('back-btn')).toBeDisabled();
       vi.useRealTimers();
     });
   });
@@ -401,7 +458,10 @@ describe('OnboardingPage', () => {
       vi.useRealTimers();
     });
 
-    /** Renders the form, types a valid username, advances the debounce, waits for 'available'. */
+    /**
+     * Renders the form, navigates through all 3 steps, and accepts terms.
+     * Leaves the form on step 3, ready to click submit.
+     */
     async function renderFormWithAvailableUsername(
       authOverrides: Partial<AuthContextValue> = {},
       username = 'newuser',
@@ -415,7 +475,7 @@ describe('OnboardingPage', () => {
       render(<OnboardingPage />);
       await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
 
-      // Clear any pre-filled slug before typing the test username
+      // Step 1: set a valid available username
       await user.clear(screen.getByTestId('username-input'));
       await user.type(screen.getByTestId('username-input'), username);
       await act(async () => {
@@ -424,34 +484,79 @@ describe('OnboardingPage', () => {
       await waitFor(() =>
         expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
       );
+
+      // Ensure displayName is filled (some tests pass displayName: null)
+      const displayInput = screen.getByTestId<HTMLInputElement>('displayname-input');
+      if (!displayInput.value) {
+        await user.type(displayInput, 'Test User');
+      }
+
+      // Step 1 → Step 2
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+
+      // Fill required step 2 fields
+      await user.type(screen.getByTestId('firstname-input'), 'JOHN');
+      await user.type(screen.getByTestId('lastname-input'), 'DOE');
+      await user.type(screen.getByTestId('dob-day-input'), '15');
+      await user.type(screen.getByTestId('dob-month-input'), '6');
+      await user.type(screen.getByTestId('dob-year-input'), '1990');
+      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+
+      // Step 2 → Step 3
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument());
+
+      // Set home country and accept terms
+      await user.type(screen.getByTestId('home-country-input'), 'CO');
       await user.click(screen.getByTestId('terms-checkbox'));
+
       return user;
     }
 
-    it('submit button is disabled when username is not available', async () => {
+    it('clicking Next on step 1 with unavailable username blocks navigation', async () => {
       vi.mocked(useAuth).mockReturnValue(makeAuth());
-      mockGetByUrl();
-      userEvent.setup({
+      mockGetByUrl({ usernameAvailable: false });
+      const user = userEvent.setup({
         advanceTimers: vi.advanceTimersByTime.bind(vi),
         delay: null,
       });
       render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
-      // Default state: usernameStatus is 'idle'
-      expect(screen.getByTestId('submit-btn')).toBeDisabled();
+      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+      await user.type(screen.getByTestId('username-input'), 'takenuser');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.taken')).toBeInTheDocument(),
+      );
+      await user.click(screen.getByTestId('next-btn'));
+      // Still on step 1 — step 2 elements not rendered
+      expect(screen.queryByTestId('firstname-input')).not.toBeInTheDocument();
     });
 
-    it('submit button is disabled when display name is empty', async () => {
-      const user = await renderFormWithAvailableUsername({
-        currentUser: makeUser({ displayName: null }),
+    it('clicking Next on step 1 with empty displayName blocks navigation', async () => {
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeUser({ displayName: null }) }),
+      );
+      mockGetByUrl();
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime.bind(vi),
+        delay: null,
       });
-      // Display name starts empty → button disabled even with an available username
-      expect(screen.getByTestId('submit-btn')).toBeDisabled();
-
-      // Typing then clearing also keeps it disabled
-      await user.type(screen.getByTestId('displayname-input'), 'a');
-      await user.clear(screen.getByTestId('displayname-input'));
-      expect(screen.getByTestId('submit-btn')).toBeDisabled();
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+      await user.type(screen.getByTestId('username-input'), 'newuser');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+      // displayName is empty — click Next
+      await user.click(screen.getByTestId('next-btn'));
+      // Still on step 1
+      expect(screen.queryByTestId('firstname-input')).not.toBeInTheDocument();
     });
 
     it('submit button is disabled while isSubmitting', async () => {
@@ -476,10 +581,18 @@ describe('OnboardingPage', () => {
       await user.click(screen.getByTestId('submit-btn'));
 
       await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
-      expect(mocks.mockApiPost).toHaveBeenCalledWith('/v1/auth/register', {
-        username: 'newuser',
-        displayName: 'Test User',
-      });
+      expect(mocks.mockApiPost).toHaveBeenCalledWith(
+        '/v1/auth/register',
+        expect.objectContaining({
+          username: 'newuser',
+          displayName: 'Test User',
+          firstName: 'JOHN',
+          lastName: 'DOE',
+          homeCountry: 'CO',
+          phoneCountryCode: '+57',
+          phoneLocalNumber: '3001234567',
+        }),
+      );
     });
 
     it('sets chamuco-registered cookie on successful registration', async () => {

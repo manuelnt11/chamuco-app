@@ -3,6 +3,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* App shell layout — spacing utilities: top-header, pt-header, h-header, pl-sidebar, w-sidebar */
+  --spacing-header: 4rem;   /* 64px — synced with --layout-header-height */
+  --spacing-sidebar: 10rem; /* 160px — synced with --layout-sidebar-width */
+
   /* Font family — references the CSS variable set by Next.js font optimization */
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",

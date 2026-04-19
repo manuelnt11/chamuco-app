@@ -53,7 +53,7 @@ describe('AuthController', () => {
   describe('POST /v1/auth/register', () => {
     it('should delegate to AuthService and return the created user', async () => {
       const req = buildRequest('Bearer valid-token');
-      const dto = { username: 'john_doe', displayName: 'John Doe' };
+      const dto = { username: 'john_doe', displayName: 'John Doe' } as never;
 
       const result = await controller.register(req, dto);
 
@@ -63,7 +63,7 @@ describe('AuthController', () => {
 
     it('should pass undefined authorization header when absent', async () => {
       const req = buildRequest(undefined);
-      const dto = { username: 'john_doe', displayName: 'John Doe' };
+      const dto = { username: 'john_doe', displayName: 'John Doe' } as never;
 
       await controller.register(req, dto);
 
@@ -75,7 +75,7 @@ describe('AuthController', () => {
       const req = buildRequest('Bearer valid-token');
 
       await expect(
-        controller.register(req, { username: 'john_doe', displayName: 'John Doe' }),
+        controller.register(req, { username: 'john_doe', displayName: 'John Doe' } as never),
       ).rejects.toMatchObject({
         status: HttpStatus.CONFLICT,
       });

@@ -62,6 +62,12 @@
       "title": "Sin Conexión",
       "message": "No se detectó conexión a internet. Algunas funciones pueden no estar disponibles.",
       "retry": "Intentar de Nuevo"
+    },
+    "profileIncomplete": {
+      "title": "Completa tu perfil",
+      "description": "Agrega tus nacionalidades y contactos de emergencia para acceder a todas las funciones.",
+      "action": "Completar perfil",
+      "dismiss": "Descartar"
     }
   },
   "auth": {
@@ -85,6 +91,28 @@
     "onboarding": {
       "title": "Configura tu perfil",
       "subtitle": "Elige un nombre de usuario para comenzar en Chamuco Travel",
+      "step": "Paso",
+      "of": "de",
+      "step1": {
+        "title": "Crea tu cuenta",
+        "subtitle": "Elige un nombre de usuario y nombre para mostrar"
+      },
+      "step2": {
+        "title": "Información personal",
+        "subtitle": "Cuéntanos un poco sobre ti"
+      },
+      "step3": {
+        "title": "¿Dónde vives?",
+        "subtitle": "Tu ubicación de residencia"
+      },
+      "step4": {
+        "title": "Tus nacionalidades",
+        "subtitle": "Agrega al menos una nacionalidad"
+      },
+      "step5": {
+        "title": "Contacto de emergencia",
+        "subtitle": "¿A quién debemos contactar en caso de emergencia?"
+      },
       "username": {
         "label": "Nombre de usuario",
         "placeholder": "ej. juan_perez",
@@ -97,6 +125,55 @@
         "label": "Nombre para mostrar",
         "placeholder": "¿Cómo debemos llamarte?"
       },
+      "firstName": {
+        "label": "Nombre(s)",
+        "placeholder": "JUAN CARLOS",
+        "hint": "Como aparece en tu pasaporte o documento de identidad. Puede incluir dos nombres."
+      },
+      "lastName": {
+        "label": "Apellido(s)",
+        "placeholder": "GARCÍA LÓPEZ",
+        "hint": "Como aparece en tu pasaporte o documento de identidad. Puede incluir dos apellidos."
+      },
+      "dateOfBirth": {
+        "label": "Fecha de nacimiento",
+        "day": "Día",
+        "month": "Mes",
+        "year": "Año"
+      },
+      "phone": {
+        "label": "Número de teléfono",
+        "countryCode": "Código de país",
+        "number": "Número local",
+        "countryPlaceholder": "País",
+        "search": "Buscar países…",
+        "noResults": "No se encontraron países."
+      },
+      "homeCountry": {
+        "label": "País de residencia",
+        "placeholder": "Seleccionar país"
+      },
+      "homeCity": {
+        "label": "Ciudad de residencia (opcional)",
+        "placeholder": "ej. Medellín"
+      },
+      "nationality": {
+        "label": "Nacionalidad",
+        "countryCode": "Código de país",
+        "add": "Agregar nacionalidad",
+        "addedCount": "{{count}} nacionalidad agregada",
+        "addedCount_other": "{{count}} nacionalidades agregadas"
+      },
+      "emergencyContact": {
+        "label": "Contacto de emergencia",
+        "fullName": "Nombre completo",
+        "relationship": "Relación",
+        "phoneCountryCode": "Código de país",
+        "phoneLocalNumber": "Número de teléfono",
+        "add": "Agregar contacto",
+        "addedCount": "{{count}} contacto agregado",
+        "addedCount_other": "{{count}} contactos agregados"
+      },
       "submit": "Crear mi cuenta",
       "terms": {
         "accept": "Acepto la <privacyLink>Política de Privacidad</privacyLink> y los <termsLink>Términos y Condiciones</termsLink> de Chamuco Travel.",
@@ -105,6 +182,15 @@
       "error": {
         "failed": "El registro falló. Por favor intenta de nuevo.",
         "usernameTaken": "Ese nombre de usuario ya está en uso. Por favor elige otro."
+      },
+      "validation": {
+        "required": "Este campo es obligatorio",
+        "minAge": "Debes tener al menos 16 años para registrarte",
+        "invalidCountryCode": "Ingresa un código de país de 2 letras mayúsculas (ej. CO)",
+        "invalidPhone": "Ingresa un número de teléfono válido (4–14 dígitos)",
+        "invalidPhoneCode": "Ingresa un código de país válido (ej. +57)",
+        "atLeastOneNationality": "Agrega al menos una nacionalidad",
+        "atLeastOneContact": "Agrega al menos un contacto de emergencia"
       }
     }
   },
