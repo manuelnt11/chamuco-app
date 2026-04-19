@@ -7,6 +7,12 @@ interface GeonamesResult {
 }
 
 export async function GET(req: NextRequest) {
+  // Require the routing cookie as a lightweight gate against unauthenticated bots.
+  // Not cryptographic auth — real auth happens via Firebase on the NestJS API.
+  if (!req.cookies.has('__Host-chamuco-auth')) {
+    return NextResponse.json({ geonames: [] }, { status: 401 });
+  }
+
   const { searchParams } = req.nextUrl;
   const q = searchParams.get('q') ?? '';
   const country = searchParams.get('country') ?? '';
