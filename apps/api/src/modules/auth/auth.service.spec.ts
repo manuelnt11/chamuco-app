@@ -33,8 +33,8 @@ const mockDecodedToken = {
 const validRegisterDto: RegisterDto = {
   username: 'john_doe',
   displayName: 'John Doe',
-  firstName: 'John',
-  lastName: 'Doe',
+  firstName: 'JOHN',
+  lastName: 'DOE',
   dateOfBirth: { day: 15, month: 6, year: 2000, yearVisible: false },
   homeCountry: 'CO',
   phoneCountryCode: '+57',
@@ -341,8 +341,8 @@ describe('AuthService', () => {
       const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
       expect(profileInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({
-          firstName: 'John',
-          lastName: 'Doe',
+          firstName: 'JOHN',
+          lastName: 'DOE',
           homeCountry: 'CO',
           phoneCountryCode: '+57',
         }),

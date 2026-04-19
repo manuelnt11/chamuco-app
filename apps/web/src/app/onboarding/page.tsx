@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Trans, useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
-import { isValidPhoneNumber } from 'libphonenumber-js';
+import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
+import type { TFunction } from 'i18next';
 
 import { useAuth } from '@/hooks/useAuth';
 import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
@@ -30,6 +31,7 @@ import { CityCombobox } from '@/components/ui/city-combobox';
 const USERNAME_RE = /^[a-z0-9_-]{3,30}$/;
 const COUNTRY_CODE_RE = /^[A-Z]{2}$/;
 const TOTAL_STEPS = 3;
+const STEP_KEYS = ['step1', 'step2', 'step3'] as const;
 
 function toUsernameSlug(name: string): string {
   return name
@@ -41,6 +43,9 @@ function toUsernameSlug(name: string): string {
     .slice(0, 30);
 }
 
+// Mirrors the logic in apps/api/src/modules/users/dto/minimum-age.validator.ts.
+// Intentionally duplicated — the frontend needs a client-side gate before the API call,
+// and importing backend code across packages is not possible here.
 function computeAge(day: number, month: number, year: number): number {
   const today = new Date();
   let age = today.getFullYear() - year;
@@ -83,7 +88,7 @@ function validateStep2(
   if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900) return 'dob';
   if (computeAge(d, m, y) < 16) return 'minAge';
   if (!COUNTRY_CODE_RE.test(phoneCountry)) return 'phoneCode';
-  if (!isValidPhoneNumber(phoneNumber, phoneCountry as never)) return 'phoneNumber';
+  if (!isValidPhoneNumber(phoneNumber, phoneCountry as CountryCode)) return 'phoneNumber';
   return null;
 }
 
@@ -300,10 +305,10 @@ export default function OnboardingPage() {
         {/* Step header */}
         <div className="flex flex-col gap-1 text-center">
           <h1 className="text-2xl font-bold tracking-tight">
-            {t(`onboarding.step${step}.title` as never)}
+            {t(`onboarding.${STEP_KEYS[step - 1]}.title`)}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {t(`onboarding.step${step}.subtitle` as never)}
+            {t(`onboarding.${STEP_KEYS[step - 1]}.subtitle`)}
           </p>
         </div>
 
@@ -451,7 +456,7 @@ interface Step1Props {
   stepError: string | null;
   onUsernameChange: (v: string) => void;
   onDisplayNameChange: (v: string) => void;
-  t: (key: string) => string;
+  t: TFunction;
 }
 
 function Step1({
@@ -528,7 +533,7 @@ interface Step2Props {
   onDobYearChange: (v: string) => void;
   onPhoneCountryChange: (v: string) => void;
   onPhoneNumberChange: (v: string) => void;
-  t: (key: string) => string;
+  t: TFunction;
 }
 
 function Step2({
@@ -683,7 +688,7 @@ interface Step3Props {
   onHomeCountryChange: (v: string) => void;
   onHomeCityChange: (v: string) => void;
   onTermsChange: (v: boolean) => void;
-  t: (key: string) => string;
+  t: TFunction;
 }
 
 function Step3({
@@ -705,8 +710,8 @@ function Step3({
           onChange={onHomeCountryChange}
           displayMode="name"
           placeholder={t('onboarding.homeCountry.placeholder')}
-          searchPlaceholder={t('onboarding.phone.search')}
-          noResultsText={t('onboarding.phone.noResults')}
+          searchPlaceholder={t('onboarding.homeCountry.search')}
+          noResultsText={t('onboarding.homeCountry.noResults')}
           aria-invalid={stepError === 'homeCountry'}
           data-testid="home-country-input"
           className="w-full"
@@ -776,7 +781,7 @@ function Step3({
 
 interface UsernameStatusMessageProps {
   status: UsernameStatus;
-  t: (key: string) => string;
+  t: TFunction;
 }
 
 function UsernameStatusMessage({ status, t }: UsernameStatusMessageProps) {

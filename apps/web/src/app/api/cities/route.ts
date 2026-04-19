@@ -29,19 +29,13 @@ export async function GET(req: NextRequest) {
     url.searchParams.set('maxRows', '15');
     url.searchParams.set('username', username);
 
-    console.log('[cities] fetching:', url.toString());
     const res = await fetch(url.toString(), { cache: 'no-store' });
-    console.log('[cities] status:', res.status, 'redirected:', res.redirected, 'url:', res.url);
 
     if (!res.ok) {
-      console.log('[cities] non-ok response, returning empty');
       return NextResponse.json({ geonames: [] });
     }
 
-    const raw = await res.text();
-    console.log('[cities] raw response (first 300 chars):', raw.slice(0, 300));
-
-    const data = JSON.parse(raw) as GeonamesResult;
+    const data = (await res.json()) as GeonamesResult;
     return NextResponse.json(data);
   } catch (err) {
     console.error('[cities] error:', err);

@@ -125,6 +125,10 @@ export class AuthService {
           homeCity: dto.homeCity ?? null,
           phoneCountryCode: dto.phoneCountryCode,
           phoneLocalNumber: dto.phoneLocalNumber,
+          // Design decision: emergency contacts are stored as JSONB inside user_profiles rather
+          // than as a separate user_emergency_contacts table. Independent queries on individual
+          // contacts (e.g. "find all users whose emergency contact is X") are never needed, so a
+          // separate entity would add join overhead without any query benefit.
           ...(dto.emergencyContacts ? { emergencyContacts: dto.emergencyContacts } : {}),
         });
 

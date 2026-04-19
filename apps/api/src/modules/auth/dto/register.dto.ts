@@ -127,6 +127,12 @@ export class RegisterDto {
   })
   phoneLocalNumber!: string;
 
+  // Design decision: nationalities and emergencyContacts are optional at registration.
+  // The domain requires at least one of each per user, but collecting them at sign-up is too
+  // demanding for the onboarding UX. Users who omit them are guided to complete their profile
+  // via the ProfileCompletionBanner (TODO: re-enable banner — see AppShell.tsx). The primary
+  // constraint (exactly one isPrimary: true) is validated in AuthService.register() only when
+  // the fields are present.
   @ApiProperty({
     type: () => [CreateNationalityDto],
     required: false,

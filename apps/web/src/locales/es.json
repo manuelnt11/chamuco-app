@@ -151,7 +151,9 @@
       },
       "homeCountry": {
         "label": "País de residencia",
-        "placeholder": "Seleccionar país"
+        "placeholder": "Seleccionar país",
+        "search": "Buscar países…",
+        "noResults": "No se encontraron países."
       },
       "homeCity": {
         "label": "Ciudad de residencia (opcional)",

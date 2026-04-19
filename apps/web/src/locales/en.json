@@ -151,7 +151,9 @@
       },
       "homeCountry": {
         "label": "Home country",
-        "placeholder": "Select country"
+        "placeholder": "Select country",
+        "search": "Search countries…",
+        "noResults": "No countries found."
       },
       "homeCity": {
         "label": "Home city (optional)",

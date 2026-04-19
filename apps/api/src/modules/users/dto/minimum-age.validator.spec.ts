@@ -1,8 +1,6 @@
-import { computeAge } from '@/modules/users/dto/minimum-age.validator';
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Type } from 'class-transformer';
 import { IsObject, validate, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { IsMinimumAge } from '@/modules/users/dto/minimum-age.validator';
+import { computeAge, IsMinimumAge } from '@/modules/users/dto/minimum-age.validator';
 import { DateOfBirthDto } from '@/modules/users/dto/date-of-birth.dto';
 
 class TestDto {
