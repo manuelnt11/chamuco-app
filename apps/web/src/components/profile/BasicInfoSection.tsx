@@ -1,0 +1,244 @@
+'use client';
+
+import { useState, useEffect, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/components/ui/toast';
+import { apiClient } from '@/services/api-client';
+import { cn } from '@/lib/utils';
+import { TIMEZONES, COUNTRY_TIMEZONE, formatTimezoneLabel } from '@/lib/timezones';
+
+export interface BasicInfoUser {
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  timezone: string;
+}
+
+export interface BasicInfoProfile {
+  bio: string | null;
+  homeCountry: string | null;
+}
+
+interface BasicInfoSectionProps {
+  user: BasicInfoUser;
+  userProfile: BasicInfoProfile;
+  onRefresh: () => void;
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+interface TimezoneComboboxProps {
+  id: string;
+  value: string;
+  onChange: (tz: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}
+
+function TimezoneCombobox({ id, value, onChange, placeholder, disabled }: TimezoneComboboxProps) {
+  const [query, setQuery] = useState(value);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
+
+  const filtered =
+    query.length >= 1
+      ? TIMEZONES.filter((tz) =>
+          tz.toLowerCase().includes(query.toLowerCase().replace(/\s+/g, '_')),
+        ).slice(0, 20)
+      : [];
+
+  function handleChange(raw: string) {
+    setQuery(raw);
+    setOpen(raw.length >= 1);
+  }
+
+  function handleSelect(tz: string) {
+    setQuery(tz);
+    onChange(tz);
+    setOpen(false);
+  }
+
+  function handleBlur() {
+    setTimeout(() => {
+      setOpen(false);
+      if (!TIMEZONES.includes(query)) {
+        setQuery(value);
+      }
+    }, 150);
+  }
+
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        value={query}
+        onChange={(e) => handleChange(e.target.value)}
+        onFocus={() => {
+          if (query.length >= 1) setOpen(true);
+        }}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+        disabled={disabled}
+        autoComplete="off"
+      />
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
+          <ul className="max-h-60 overflow-auto py-1">
+            {filtered.map((tz) => (
+              <li key={tz}>
+                <button
+                  type="button"
+                  className={cn(
+                    'flex w-full items-center px-3 py-2 text-left text-sm hover:bg-muted',
+                    tz === value && 'bg-muted/50 font-medium',
+                  )}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSelect(tz);
+                  }}
+                >
+                  {formatTimezoneLabel(tz)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSectionProps) {
+  const { t } = useTranslation('profile');
+
+  const [displayName, setDisplayName] = useState(user.displayName);
+  const [bio, setBio] = useState(userProfile.bio ?? '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
+
+  const suggestedTimezone =
+    user.timezone === 'UTC' && userProfile.homeCountry
+      ? (COUNTRY_TIMEZONE[userProfile.homeCountry] ?? 'UTC')
+      : user.timezone;
+  const [timezone, setTimezone] = useState(suggestedTimezone);
+
+  useEffect(() => {
+    setDisplayName(user.displayName);
+    setBio(userProfile.bio ?? '');
+    const suggested =
+      user.timezone === 'UTC' && userProfile.homeCountry
+        ? (COUNTRY_TIMEZONE[userProfile.homeCountry] ?? 'UTC')
+        : user.timezone;
+    setTimezone(suggested);
+  }, [user, userProfile]);
+
+  async function handleSave(e: FormEvent) {
+    e.preventDefault();
+    const trimmedName = displayName.trim();
+    if (!trimmedName || trimmedName.length > 100) {
+      setDisplayNameError(t('basicInfo.validDisplayName'));
+      return;
+    }
+    setDisplayNameError(null);
+    setIsSaving(true);
+    try {
+      await Promise.all([
+        apiClient.patch('/v1/users/me', {
+          displayName: trimmedName,
+          timezone,
+        }),
+        apiClient.patch('/v1/users/me/profile', {
+          bio: bio.trim() || null,
+        }),
+      ]);
+      toast.success(t('basicInfo.saveSuccess'));
+      onRefresh();
+    } catch {
+      toast.error(t('basicInfo.saveError'));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSave} className="max-w-lg space-y-6">
+      <h2 className="text-xl font-semibold">{t('basicInfo.heading')}</h2>
+
+      <div className="flex items-center gap-4">
+        <Avatar
+          src={user.avatarUrl ?? undefined}
+          alt=""
+          fallback={getInitials(user.displayName)}
+          size="lg"
+        />
+        <div>
+          <p className="text-sm font-medium">{t('basicInfo.avatar')}</p>
+          <p className="text-xs text-muted-foreground">{t('basicInfo.avatarHint')}</p>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="displayName">{t('basicInfo.displayName')}</Label>
+        <Input
+          id="displayName"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          aria-invalid={displayNameError !== null}
+          disabled={isSaving}
+        />
+        {displayNameError && <p className="text-sm text-destructive">{displayNameError}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="username">{t('basicInfo.username')}</Label>
+        <Input id="username" value={`@${user.username}`} readOnly disabled />
+        <p className="text-xs text-muted-foreground">{t('basicInfo.usernameHint')}</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="bio">{t('basicInfo.bio')}</Label>
+        <Textarea
+          id="bio"
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          placeholder={t('basicInfo.bioPlaceholder')}
+          rows={3}
+          disabled={isSaving}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="timezone">{t('basicInfo.timezone')}</Label>
+        <TimezoneCombobox
+          id="timezone"
+          value={timezone}
+          onChange={setTimezone}
+          placeholder={t('basicInfo.timezonePlaceholder')}
+          disabled={isSaving}
+        />
+      </div>
+
+      <Button type="submit" disabled={isSaving} className="gap-2">
+        {isSaving && <Spinner size="sm" />}
+        {isSaving ? t('basicInfo.saving') : t('basicInfo.save')}
+      </Button>
+    </form>
+  );
+}

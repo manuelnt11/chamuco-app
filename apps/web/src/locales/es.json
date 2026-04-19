@@ -205,7 +205,67 @@
     "personalInfo": "Información Personal",
     "travelPreferences": "Preferencias de Viaje",
     "achievements": "Logros",
-    "statistics": "Estadísticas"
+    "statistics": "Estadísticas",
+    "tabs": {
+      "basicInfo": "Información Básica",
+      "preferences": "Preferencias",
+      "loyaltyPrograms": "Programas de Fidelidad"
+    },
+    "basicInfo": {
+      "heading": "Información Básica",
+      "avatar": "Foto de Perfil",
+      "avatarHint": "Foto de tu cuenta de inicio de sesión",
+      "displayName": "Nombre para mostrar",
+      "username": "Nombre de usuario",
+      "usernameHint": "El nombre de usuario no se puede cambiar",
+      "bio": "Biografía",
+      "bioPlaceholder": "Cuéntales a otros sobre ti...",
+      "timezone": "Zona horaria",
+      "timezonePlaceholder": "Buscar zonas horarias...",
+      "save": "Guardar cambios",
+      "saving": "Guardando...",
+      "saveSuccess": "Perfil actualizado",
+      "saveError": "Error al guardar el perfil",
+      "validDisplayName": "El nombre para mostrar debe tener entre 1 y 100 caracteres"
+    },
+    "preferences": {
+      "heading": "Preferencias",
+      "language": "Idioma",
+      "currency": "Moneda",
+      "theme": "Tema",
+      "languages": {
+        "EN": "English",
+        "ES": "Español"
+      },
+      "currencies": {
+        "COP": "Peso Colombiano (COP)",
+        "USD": "Dólar Estadounidense (USD)"
+      },
+      "themes": {
+        "LIGHT": "Claro",
+        "DARK": "Oscuro",
+        "SYSTEM": "Sistema"
+      },
+      "saveError": "Error al guardar las preferencias"
+    },
+    "loyaltyPrograms": {
+      "heading": "Programas de Fidelidad",
+      "empty": "No hay programas de fidelidad agregados",
+      "add": "Agregar programa",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Eliminar este programa?",
+      "programName": "Nombre del programa",
+      "memberId": "ID de miembro",
+      "notes": "Notas",
+      "notesPlaceholder": "Notas opcionales...",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "addSuccess": "Programa agregado",
+      "updateSuccess": "Programa actualizado",
+      "deleteSuccess": "Programa eliminado",
+      "saveError": "Error al guardar"
+    }
   },
   "explore": {
     "title": "Explorar",
