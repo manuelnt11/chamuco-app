@@ -62,6 +62,12 @@
       "title": "You're Offline",
       "message": "No internet connection detected. Some features may be unavailable.",
       "retry": "Try Again"
+    },
+    "profileIncomplete": {
+      "title": "Complete your profile",
+      "description": "Add your nationalities and emergency contacts to access all features.",
+      "action": "Complete profile",
+      "dismiss": "Dismiss"
     }
   },
   "auth": {
@@ -85,6 +91,20 @@
     "onboarding": {
       "title": "Set up your profile",
       "subtitle": "Choose a username to get started on Chamuco Travel",
+      "step": "Step",
+      "of": "of",
+      "step1": {
+        "title": "Create your account",
+        "subtitle": "Choose a username and display name"
+      },
+      "step2": {
+        "title": "Personal information",
+        "subtitle": "Tell us a bit about yourself"
+      },
+      "step3": {
+        "title": "Where are you based?",
+        "subtitle": "Your home location"
+      },
       "username": {
         "label": "Username",
         "placeholder": "e.g. jane_doe",
@@ -97,6 +117,40 @@
         "label": "Display name",
         "placeholder": "How should we call you?"
       },
+      "firstName": {
+        "label": "Given name(s)",
+        "placeholder": "JUAN CARLOS",
+        "hint": "As on your passport or ID. May include two given names."
+      },
+      "lastName": {
+        "label": "Surname(s)",
+        "placeholder": "GARCÍA LÓPEZ",
+        "hint": "As on your passport or ID. May include two surnames."
+      },
+      "dateOfBirth": {
+        "label": "Date of birth",
+        "day": "Day",
+        "month": "Month",
+        "year": "Year"
+      },
+      "phone": {
+        "label": "Phone number",
+        "countryCode": "Country code",
+        "number": "Local number",
+        "countryPlaceholder": "Country",
+        "search": "Search countries…",
+        "noResults": "No countries found."
+      },
+      "homeCountry": {
+        "label": "Home country",
+        "placeholder": "Select country",
+        "search": "Search countries…",
+        "noResults": "No countries found."
+      },
+      "homeCity": {
+        "label": "Home city (optional)",
+        "placeholder": "e.g. Medellín"
+      },
       "submit": "Create my account",
       "terms": {
         "accept": "I accept the <privacyLink>Privacy Policy</privacyLink> and the <termsLink>Terms and Conditions</termsLink> of Chamuco Travel.",
@@ -105,6 +159,13 @@
       "error": {
         "failed": "Registration failed. Please try again.",
         "usernameTaken": "That username is already taken. Please choose another."
+      },
+      "validation": {
+        "required": "This field is required",
+        "minAge": "You must be at least 16 years old to register",
+        "invalidCountryCode": "Enter a 2-letter uppercase country code (e.g. CO)",
+        "invalidPhone": "Enter a valid phone number (4–14 digits)",
+        "invalidPhoneCode": "Enter a valid country code (e.g. +57)"
       }
     }
   },

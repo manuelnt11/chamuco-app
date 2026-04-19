@@ -168,7 +168,7 @@ jobs:
             --image=${{ env.ARTIFACT_REGISTRY }}/web:${{ github.sha }} \
             --region=${{ env.GCP_REGION }} \
             --platform=managed \
-            --set-env-vars="NODE_ENV=production" \
+            --set-env-vars="NODE_ENV=production,GEONAMES_USERNAME=${{ secrets.GEONAMES_USERNAME }}" \
             --quiet
 
       - name: Verify deployment

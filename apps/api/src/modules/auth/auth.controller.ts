@@ -20,16 +20,20 @@ export class AuthController {
   @ApiOperation({
     summary: 'Register a new user on first login',
     description:
-      'Creates a user record and default preferences on the first login. ' +
+      'Creates a user record, default preferences, user profile, and nationalities atomically on the first login. ' +
       'Requires a valid Firebase ID token in the Authorization header. ' +
-      'The username must be unique and match the allowed format.',
+      'The username must be unique and match the allowed format. ' +
+      'Exactly one nationality and one emergency contact must have isPrimary: true.',
   })
   @ApiResponse({
     status: 201,
     description: 'User successfully registered',
     type: RegisterResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Invalid username format or unsupported auth provider' })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error, invalid primary constraint, or unsupported auth provider',
+  })
   @ApiResponse({
     status: 401,
     description:

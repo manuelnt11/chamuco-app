@@ -47,6 +47,29 @@ const VALID_DECODED_TOKEN = {
   firebase: { sign_in_provider: 'google.com' },
 };
 
+// Full valid registration payload — all required fields
+const validRegisterPayload = {
+  username: 'E2E_Test_User',
+  displayName: 'E2E Test User',
+  firstName: 'E2E',
+  lastName: 'TEST',
+  dateOfBirth: { day: 15, month: 6, year: 2000, yearVisible: false },
+  homeCountry: 'CO',
+  phoneCountryCode: '+57',
+  phoneLocalNumber: '3001234567',
+  nationalities: [{ countryCode: 'CO', isPrimary: true }],
+  emergencyContacts: [
+    {
+      id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      fullName: 'María López',
+      phoneCountryCode: '+57',
+      phoneLocalNumber: '3001234567',
+      relationship: 'mother',
+      isPrimary: true,
+    },
+  ],
+};
+
 // ---------------------------------------------------------------------------
 // Setup / teardown
 // ---------------------------------------------------------------------------
@@ -114,15 +137,13 @@ describe('Auth endpoints (integration)', () => {
   // -------------------------------------------------------------------------
 
   describe('POST /v1/auth/register', () => {
-    it('creates a new user, normalises username to lowercase, and returns 201', async () => {
+    it('creates a new user, profile and nationalities atomically, normalises username to lowercase, returns 201', async () => {
       mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
 
-      // Send an uppercase username — the @Transform on RegisterDto lowercases it before
-      // validation and persistence, so the stored username must be lowercase.
       const res = await request(app.getHttpServer())
         .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'E2E_Test_User', displayName: 'E2E Test User' })
+        .send(validRegisterPayload)
         .expect(201);
 
       expect(res.body).toMatchObject({
@@ -137,17 +158,15 @@ describe('Auth endpoints (integration)', () => {
     it('returns 409 when registering the same Firebase UID twice', async () => {
       mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
 
-      // Second attempt with same Firebase UID — user already exists.
       await request(app.getHttpServer())
         .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'different_username', displayName: 'E2E Test User' })
+        .send({ ...validRegisterPayload, username: 'different_username' })
         .expect(409);
     });
 
     it('returns 409 when username is already taken', async () => {
       // A different Firebase UID but same username.
-      // The token string itself is irrelevant — Firebase verification is mocked per test.
       mockVerifyIdToken.mockResolvedValue({
         ...VALID_DECODED_TOKEN,
         uid: 'firebase-uid-e2e-test-2',
@@ -157,7 +176,7 @@ describe('Auth endpoints (integration)', () => {
       await request(app.getHttpServer())
         .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'e2e_test_user', displayName: 'Other User' }) // same username as registered above
+        .send({ ...validRegisterPayload, username: 'e2e_test_user' }) // same username as registered above
         .expect(409);
     });
 
@@ -167,7 +186,43 @@ describe('Auth endpoints (integration)', () => {
       await request(app.getHttpServer())
         .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
-        .send({ username: 'INVALID USERNAME!', displayName: 'E2E Test User' })
+        .send({ ...validRegisterPayload, username: 'INVALID USERNAME!' })
+        .expect(400);
+    });
+
+    it('returns 400 when no primary nationality is provided', async () => {
+      mockVerifyIdToken.mockResolvedValue({
+        ...VALID_DECODED_TOKEN,
+        uid: 'firebase-uid-e2e-age-test',
+        email: 'age-test@chamuco.dev',
+      });
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/register')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
+        .send({
+          ...validRegisterPayload,
+          username: 'e2e_no_primary',
+          nationalities: [{ countryCode: 'CO', isPrimary: false }],
+        })
+        .expect(400);
+    });
+
+    it('returns 400 when no primary emergency contact is provided', async () => {
+      mockVerifyIdToken.mockResolvedValue({
+        ...VALID_DECODED_TOKEN,
+        uid: 'firebase-uid-e2e-contact-test',
+        email: 'contact-test@chamuco.dev',
+      });
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/register')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
+        .send({
+          ...validRegisterPayload,
+          username: 'e2e_no_primary_contact',
+          emergencyContacts: [{ ...validRegisterPayload.emergencyContacts[0]!, isPrimary: false }],
+        })
         .expect(400);
     });
 
@@ -177,14 +232,14 @@ describe('Auth endpoints (integration)', () => {
       await request(app.getHttpServer())
         .post('/v1/auth/register')
         .set('Authorization', 'Bearer bad-token')
-        .send({ username: 'some_user', displayName: 'Some User' })
+        .send(validRegisterPayload)
         .expect(401);
     });
 
     it('returns 401 when no Authorization header is provided', async () => {
       await request(app.getHttpServer())
         .post('/v1/auth/register')
-        .send({ username: 'some_user', displayName: 'Some User' })
+        .send(validRegisterPayload)
         .expect(401);
     });
   });

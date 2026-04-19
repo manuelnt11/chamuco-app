@@ -45,6 +45,10 @@ export default [
         HTMLSelectElement: 'readonly',
         HTMLButtonElement: 'readonly',
         HTMLElement: 'readonly',
+        AbortController: 'readonly',
+        AbortSignal: 'readonly',
+        DOMException: 'readonly',
+        RequestInit: 'readonly',
         // Test globals (Vitest)
         describe: 'readonly',
         it: 'readonly',

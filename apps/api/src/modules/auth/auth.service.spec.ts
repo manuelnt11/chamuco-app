@@ -5,6 +5,7 @@ import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { AuthService } from '@/modules/auth/auth.service';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 import type { RegisterResponseDto } from './dto/register-response.dto';
+import type { RegisterDto } from './dto/register.dto';
 
 const mockCreatedUser: RegisterResponseDto = {
   id: 'user-uuid',
@@ -27,6 +28,28 @@ const mockDecodedToken = {
   name: 'John Doe',
   picture: 'https://example.com/avatar.jpg',
   firebase: { sign_in_provider: 'google.com' },
+};
+
+const validRegisterDto: RegisterDto = {
+  username: 'john_doe',
+  displayName: 'John Doe',
+  firstName: 'JOHN',
+  lastName: 'DOE',
+  dateOfBirth: { day: 15, month: 6, year: 2000, yearVisible: false },
+  homeCountry: 'CO',
+  phoneCountryCode: '+57',
+  phoneLocalNumber: '3001234567',
+  nationalities: [{ countryCode: 'CO', isPrimary: true }],
+  emergencyContacts: [
+    {
+      id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      fullName: 'María López',
+      phoneCountryCode: '+57',
+      phoneLocalNumber: '3001234567',
+      relationship: 'mother',
+      isPrimary: true,
+    },
+  ],
 };
 
 describe('AuthService', () => {
@@ -79,33 +102,33 @@ describe('AuthService', () => {
 
   describe('token extraction', () => {
     it('should throw UnauthorizedException when Authorization header is absent', async () => {
-      await expect(
-        service.register(undefined, { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.register(undefined, validRegisterDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
       expect(mockVerifyIdToken).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when header does not start with "Bearer "', async () => {
-      await expect(
-        service.register('Token some-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.register('Token some-token', validRegisterDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
       expect(mockVerifyIdToken).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when verifyIdToken rejects', async () => {
       mockVerifyIdToken.mockRejectedValue(new Error('Token expired'));
 
-      await expect(
-        service.register('Bearer invalid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.register('Bearer invalid-token', validRegisterDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw BadRequestException when email claim is missing from the token', async () => {
       mockVerifyIdToken.mockResolvedValue({ ...mockDecodedToken, email: undefined });
 
-      await expect(
-        service.register('Bearer valid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.register('Bearer valid-token', validRegisterDto)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(mockFindFirst).not.toHaveBeenCalled();
     });
   });
@@ -115,9 +138,9 @@ describe('AuthService', () => {
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
       mockFindFirst.mockResolvedValueOnce(mockCreatedUser);
 
-      await expect(
-        service.register('Bearer valid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(new ConflictException('User already registered'));
+      await expect(service.register('Bearer valid-token', validRegisterDto)).rejects.toThrow(
+        new ConflictException('User already registered'),
+      );
       expect(mockTransaction).not.toHaveBeenCalled();
     });
 
@@ -126,9 +149,9 @@ describe('AuthService', () => {
       mockFindFirst.mockResolvedValue(undefined);
       mockTransaction.mockRejectedValue({ code: '23505' });
 
-      await expect(
-        service.register('Bearer valid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(new ConflictException('Username is already taken'));
+      await expect(service.register('Bearer valid-token', validRegisterDto)).rejects.toThrow(
+        new ConflictException('Username is already taken'),
+      );
     });
 
     it('should throw ConflictException when DrizzleQueryError wraps a unique violation in cause', async () => {
@@ -138,9 +161,9 @@ describe('AuthService', () => {
       // has no `code` property — only `cause.code` carries the PG error code.
       mockTransaction.mockRejectedValue({ cause: { code: '23505' } });
 
-      await expect(
-        service.register('Bearer valid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(new ConflictException('Username is already taken'));
+      await expect(service.register('Bearer valid-token', validRegisterDto)).rejects.toThrow(
+        new ConflictException('Username is already taken'),
+      );
     });
 
     it('should rethrow non-unique-violation DB errors', async () => {
@@ -149,9 +172,9 @@ describe('AuthService', () => {
       const dbError = new Error('connection lost');
       mockTransaction.mockRejectedValue(dbError);
 
-      await expect(
-        service.register('Bearer valid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(dbError);
+      await expect(service.register('Bearer valid-token', validRegisterDto)).rejects.toThrow(
+        dbError,
+      );
     });
 
     it('should rethrow when the DB rejects with a non-object value', async () => {
@@ -160,9 +183,59 @@ describe('AuthService', () => {
       // Covers the isUniqueViolation(err) guard: typeof err !== 'object'
       mockTransaction.mockRejectedValue('unexpected string rejection');
 
-      await expect(
-        service.register('Bearer valid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toBe('unexpected string rejection');
+      await expect(service.register('Bearer valid-token', validRegisterDto)).rejects.toBe(
+        'unexpected string rejection',
+      );
+    });
+  });
+
+  describe('primary validation', () => {
+    it('should throw BadRequestException when no nationality has isPrimary: true', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const dto: RegisterDto = {
+        ...validRegisterDto,
+        nationalities: [{ countryCode: 'CO', isPrimary: false }],
+      };
+
+      await expect(service.register('Bearer valid-token', dto)).rejects.toThrow(
+        new BadRequestException('Exactly one nationality must have isPrimary: true'),
+      );
+      expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when multiple nationalities have isPrimary: true', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const dto: RegisterDto = {
+        ...validRegisterDto,
+        nationalities: [
+          { countryCode: 'CO', isPrimary: true },
+          { countryCode: 'US', isPrimary: true },
+        ],
+      };
+
+      await expect(service.register('Bearer valid-token', dto)).rejects.toThrow(
+        new BadRequestException('Exactly one nationality must have isPrimary: true'),
+      );
+      expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when no emergency contact has isPrimary: true', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const dto: RegisterDto = {
+        ...validRegisterDto,
+        emergencyContacts: [{ ...validRegisterDto.emergencyContacts![0]!, isPrimary: false }],
+      };
+
+      await expect(service.register('Bearer valid-token', dto)).rejects.toThrow(
+        new BadRequestException('Exactly one emergency contact must have isPrimary: true'),
+      );
+      expect(mockTransaction).not.toHaveBeenCalled();
     });
   });
 
@@ -174,19 +247,16 @@ describe('AuthService', () => {
       });
       mockFindFirst.mockResolvedValue(undefined);
 
-      await expect(
-        service.register('Bearer valid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.register('Bearer valid-token', validRegisterDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should set authProvider to GOOGLE for google.com sign_in_provider', async () => {
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
       mockFindFirst.mockResolvedValue(undefined);
 
-      const result = await service.register('Bearer valid-token', {
-        username: 'john_doe',
-        displayName: 'John Doe',
-      });
+      const result = await service.register('Bearer valid-token', validRegisterDto);
 
       expect(result).toEqual(mockCreatedUser);
       expect(mockTransaction).toHaveBeenCalled();
@@ -199,10 +269,7 @@ describe('AuthService', () => {
       });
       mockFindFirst.mockResolvedValue(undefined);
 
-      await service.register('Bearer valid-token', {
-        username: 'john_doe',
-        displayName: 'John Doe',
-      });
+      await service.register('Bearer valid-token', validRegisterDto);
 
       const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
       expect(insertValues).toHaveBeenCalledWith(
@@ -227,19 +294,16 @@ describe('AuthService', () => {
   });
 
   describe('successful registration', () => {
-    it('should create user and preferences in a transaction and return the user', async () => {
+    it('should create user, preferences, profile and nationalities atomically and return the user', async () => {
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
       mockFindFirst.mockResolvedValue(undefined);
 
-      const result = await service.register('Bearer valid-token', {
-        username: 'john_doe',
-        displayName: 'John Doe',
-      });
+      const result = await service.register('Bearer valid-token', validRegisterDto);
 
       expect(result).toEqual(mockCreatedUser);
       expect(mockTransaction).toHaveBeenCalledTimes(1);
-      // Two inserts: users + user_preferences
-      expect(mockTrxInsert).toHaveBeenCalledTimes(2);
+      // Four inserts: users + user_preferences + user_profiles + user_nationalities
+      expect(mockTrxInsert).toHaveBeenCalledTimes(4);
     });
 
     it('should use dto.displayName in the insert', async () => {
@@ -247,7 +311,7 @@ describe('AuthService', () => {
       mockFindFirst.mockResolvedValue(undefined);
 
       await service.register('Bearer valid-token', {
-        username: 'john_doe',
+        ...validRegisterDto,
         displayName: 'Custom Name',
       });
 
@@ -261,13 +325,28 @@ describe('AuthService', () => {
       mockVerifyIdToken.mockResolvedValue({ ...mockDecodedToken, picture: undefined });
       mockFindFirst.mockResolvedValue(undefined);
 
-      await service.register('Bearer valid-token', {
-        username: 'john_doe',
-        displayName: 'John Doe',
-      });
+      await service.register('Bearer valid-token', validRegisterDto);
 
       const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
       expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({ avatarUrl: null }));
+    });
+
+    it('should insert profile with firstName, lastName, homeCountry and emergency contacts', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', validRegisterDto);
+
+      // Third insert call is userProfiles (index 2)
+      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          firstName: 'JOHN',
+          lastName: 'DOE',
+          homeCountry: 'CO',
+          phoneCountryCode: '+57',
+        }),
+      );
     });
 
     it('should throw when the DB insert returns no rows (defensive guard)', async () => {
@@ -281,9 +360,9 @@ describe('AuthService', () => {
 
       // The transaction callback throws; the .catch in AuthService re-throws
       // because an empty returning is not a unique violation.
-      await expect(
-        service.register('Bearer valid-token', { username: 'john_doe', displayName: 'John Doe' }),
-      ).rejects.toThrow('Failed to create user record');
+      await expect(service.register('Bearer valid-token', validRegisterDto)).rejects.toThrow(
+        'Failed to create user record',
+      );
     });
   });
 });

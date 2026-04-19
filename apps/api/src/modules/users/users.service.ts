@@ -12,6 +12,7 @@ import { userPreferences } from '@/modules/users/schema/user-preferences.schema'
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
 import { PassportStatus, ProfileVisibility } from '@chamuco/shared-types';
+import { computePassportStatus } from '@/common/utils/passport-status.util';
 import type { AuthenticatedUser } from '@/types/express';
 import type { DateOfBirthDto } from './dto/date-of-birth.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
@@ -327,7 +328,7 @@ export class UsersService {
         .where(and(eq(userNationalities.userId, userId), eq(userNationalities.isPrimary, true)));
     }
 
-    const passportStatus = this.computePassportStatus(dto.passportExpiryDate);
+    const passportStatus = computePassportStatus(dto.passportExpiryDate);
 
     const [inserted] = await this.db
       .insert(userNationalities)
@@ -387,7 +388,7 @@ export class UsersService {
       patch.passportIssueDate = dto.passportIssueDate ?? null;
     if (dto.passportExpiryDate !== undefined)
       patch.passportExpiryDate = dto.passportExpiryDate ?? null;
-    if (passportChanged) patch.passportStatus = this.computePassportStatus(dto.passportExpiryDate);
+    if (passportChanged) patch.passportStatus = computePassportStatus(dto.passportExpiryDate);
 
     if (Object.keys(patch).length === 0) {
       return this.mapNationalityResponse(existing);
@@ -520,18 +521,6 @@ export class UsersService {
       .update(userProfiles)
       .set({ loyaltyPrograms: updated })
       .where(eq(userProfiles.userId, userId));
-  }
-
-  private computePassportStatus(expiryDate: string | undefined | null): PassportStatus {
-    if (!expiryDate) return PassportStatus.OMITTED;
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    const sixMonthsFromNow = new Date(today);
-    sixMonthsFromNow.setUTCMonth(sixMonthsFromNow.getUTCMonth() + 6);
-    const expiry = new Date(expiryDate);
-    if (expiry < today) return PassportStatus.EXPIRED;
-    if (expiry < sixMonthsFromNow) return PassportStatus.EXPIRING_SOON;
-    return PassportStatus.ACTIVE;
   }
 
   private mapNationalityResponse(
