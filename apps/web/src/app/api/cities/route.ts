@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     const data = (await res.json()) as GeonamesResult;
     return NextResponse.json(data);
   } catch (err) {
-    console.error('[cities] error:', err);
+    console.error('[cities] error:', err instanceof Error ? err.message : String(err));
     return NextResponse.json({ geonames: [] });
   }
 }

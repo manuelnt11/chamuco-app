@@ -122,7 +122,7 @@ export class AuthService {
           lastName: dto.lastName.trim(),
           dateOfBirth: { day, month, year, year_visible: yearVisible },
           homeCountry: dto.homeCountry,
-          homeCity: dto.homeCity ?? null,
+          homeCity: dto.homeCity?.trim() ?? null,
           phoneCountryCode: dto.phoneCountryCode,
           phoneLocalNumber: dto.phoneLocalNumber,
           // Design decision: emergency contacts are stored as JSONB inside user_profiles rather

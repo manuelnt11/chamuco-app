@@ -6,6 +6,7 @@ import { AuthService } from '@/modules/auth/auth.service';
 import type { AuthenticatedUser } from '@/types/express';
 import type { Request } from 'express';
 import type { RegisterResponseDto } from './dto/register-response.dto';
+import type { RegisterDto } from './dto/register.dto';
 
 const mockUser: RegisterResponseDto = {
   id: 'user-uuid',
@@ -53,7 +54,10 @@ describe('AuthController', () => {
   describe('POST /v1/auth/register', () => {
     it('should delegate to AuthService and return the created user', async () => {
       const req = buildRequest('Bearer valid-token');
-      const dto = { username: 'john_doe', displayName: 'John Doe' } as never;
+      const dto: RegisterDto = {
+        username: 'john_doe',
+        displayName: 'John Doe',
+      } as unknown as RegisterDto;
 
       const result = await controller.register(req, dto);
 
@@ -63,7 +67,10 @@ describe('AuthController', () => {
 
     it('should pass undefined authorization header when absent', async () => {
       const req = buildRequest(undefined);
-      const dto = { username: 'john_doe', displayName: 'John Doe' } as never;
+      const dto: RegisterDto = {
+        username: 'john_doe',
+        displayName: 'John Doe',
+      } as unknown as RegisterDto;
 
       await controller.register(req, dto);
 
@@ -75,7 +82,10 @@ describe('AuthController', () => {
       const req = buildRequest('Bearer valid-token');
 
       await expect(
-        controller.register(req, { username: 'john_doe', displayName: 'John Doe' } as never),
+        controller.register(req, {
+          username: 'john_doe',
+          displayName: 'John Doe',
+        } as unknown as RegisterDto),
       ).rejects.toMatchObject({
         status: HttpStatus.CONFLICT,
       });

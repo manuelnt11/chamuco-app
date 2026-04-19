@@ -29,7 +29,6 @@ import { CityCombobox } from '@/components/ui/city-combobox';
 // ---------------------------------------------------------------------------
 
 const USERNAME_RE = /^[a-z0-9_-]{3,30}$/;
-const COUNTRY_CODE_RE = /^[A-Z]{2}$/;
 const TOTAL_STEPS = 3;
 const STEP_KEYS = ['step1', 'step2', 'step3'] as const;
 
@@ -87,13 +86,12 @@ function validateStep2(
   if (!dobDay || !dobMonth || !dobYear || isNaN(d) || isNaN(m) || isNaN(y)) return 'dob';
   if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900) return 'dob';
   if (computeAge(d, m, y) < 16) return 'minAge';
-  if (!COUNTRY_CODE_RE.test(phoneCountry)) return 'phoneCode';
   if (!isValidPhoneNumber(phoneNumber, phoneCountry as CountryCode)) return 'phoneNumber';
   return null;
 }
 
 function validateStep3(homeCountry: string, termsAccepted: boolean): string | null {
-  if (!COUNTRY_CODE_RE.test(homeCountry)) return 'homeCountry';
+  if (!homeCountry) return 'homeCountry';
   if (!termsAccepted) return 'terms';
   return null;
 }
@@ -265,6 +263,7 @@ export default function OnboardingPage() {
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
         setStep(1);
+        setStepError(null);
         setUsernameStatus('taken');
         toast.error(t('onboarding.error.usernameTaken'));
       } else {
@@ -717,9 +716,7 @@ function Step3({
           className="w-full"
         />
         {stepError === 'homeCountry' && (
-          <p className="text-xs text-destructive">
-            {t('onboarding.validation.invalidCountryCode')}
-          </p>
+          <p className="text-xs text-destructive">{t('onboarding.validation.required')}</p>
         )}
       </div>
 

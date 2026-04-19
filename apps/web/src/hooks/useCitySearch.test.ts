@@ -107,6 +107,28 @@ describe('useCitySearch', () => {
     expect(aborted).toBe(true);
   });
 
+  it('aborts in-flight request when country changes before response arrives', async () => {
+    let aborted = false;
+    mockFetch.mockImplementation((_url: string, opts: RequestInit) => {
+      opts.signal?.addEventListener('abort', () => {
+        aborted = true;
+      });
+      return new Promise(() => {}); // never resolves
+    });
+
+    const { rerender } = renderHook(({ c }) => useCitySearch(c, 'Me'), {
+      initialProps: { c: 'CO' },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    rerender({ c: 'US' });
+    expect(aborted).toBe(true);
+  });
+
   it('returns empty results on fetch network error', async () => {
     mockFetch.mockRejectedValue(new Error('network error'));
 
