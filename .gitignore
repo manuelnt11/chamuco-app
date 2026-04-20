@@ -69,3 +69,6 @@ backups/
 # Misc
 .cache
 .parcel-cache
+
+# Playwright
+.playwright-mcp

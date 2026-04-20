@@ -9,22 +9,43 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { DateOfBirthDto } from './date-of-birth.dto';
+import { sanitizeProperNoun } from '@/common/transforms/proper-noun.transform';
 
 export class UpdateUserProfileDto {
-  @ApiProperty({ example: 'John', minLength: 2, maxLength: 100, required: false })
+  @ApiProperty({
+    example: 'JUAN CARLOS',
+    description: 'Given name(s). Uppercase only, accents allowed, no digits or symbols.',
+    minLength: 2,
+    maxLength: 100,
+    required: false,
+  })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }) => sanitizeProperNoun(value))
   @IsString()
   @MinLength(2)
   @MaxLength(100)
+  @Matches(/^[\p{L}\s]+$/u, {
+    message:
+      'firstName must contain only letters and spaces (accents allowed, no digits or symbols)',
+  })
   firstName?: string;
 
-  @ApiProperty({ example: 'Doe', minLength: 2, maxLength: 100, required: false })
+  @ApiProperty({
+    example: 'GARCÍA LÓPEZ',
+    description: 'Surname(s). Uppercase only, accents allowed, no digits or symbols.',
+    minLength: 2,
+    maxLength: 100,
+    required: false,
+  })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }) => sanitizeProperNoun(value))
   @IsString()
   @MinLength(2)
   @MaxLength(100)
+  @Matches(/^[\p{L}\s]+$/u, {
+    message:
+      'lastName must contain only letters and spaces (accents allowed, no digits or symbols)',
+  })
   lastName?: string;
 
   @ApiProperty({ type: DateOfBirthDto, required: false })
@@ -43,9 +64,21 @@ export class UpdateUserProfileDto {
   @Matches(/^[A-Z]{2}$/, { message: 'birthCountry must be a 2-letter uppercase ISO country code' })
   birthCountry?: string | null;
 
-  @ApiProperty({ example: 'Bogotá', nullable: true, required: false })
+  @ApiProperty({
+    example: 'BOGOTÁ',
+    description: 'City of birth. Uppercase only, accents allowed, no digits or symbols.',
+    nullable: true,
+    required: false,
+    maxLength: 100,
+  })
   @IsOptional()
+  @Transform(({ value }) => sanitizeProperNoun(value))
   @IsString()
+  @MaxLength(100)
+  @Matches(/^[\p{L}\s]+$/u, {
+    message:
+      'birthCity must contain only letters and spaces (accents allowed, no digits or symbols)',
+  })
   birthCity?: string | null;
 
   @ApiProperty({
@@ -57,9 +90,21 @@ export class UpdateUserProfileDto {
   @Matches(/^[A-Z]{2}$/, { message: 'homeCountry must be a 2-letter uppercase ISO country code' })
   homeCountry?: string;
 
-  @ApiProperty({ example: 'Medellín', nullable: true, required: false })
+  @ApiProperty({
+    example: 'MEDELLÍN',
+    description: 'Home city. Uppercase only, accents allowed, no digits or symbols.',
+    nullable: true,
+    required: false,
+    maxLength: 100,
+  })
   @IsOptional()
+  @Transform(({ value }) => sanitizeProperNoun(value))
   @IsString()
+  @MaxLength(100)
+  @Matches(/^[\p{L}\s]+$/u, {
+    message:
+      'homeCity must contain only letters and spaces (accents allowed, no digits or symbols)',
+  })
   homeCity?: string | null;
 
   @ApiProperty({

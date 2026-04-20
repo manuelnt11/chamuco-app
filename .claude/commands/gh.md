@@ -184,6 +184,16 @@ gh release create <TAG> \
 
 ---
 
+## Multi-account gh CLI — credential errors
+
+Multiple GitHub accounts may be configured. On any auth or permission error:
+
+1. Run `gh auth status` to see which account is active.
+2. If the wrong account is active, switch with `gh auth switch --user <correct-user>` and retry.
+3. The correct account for this project is `manuelnt11`.
+
+---
+
 ## How to respond
 
 The user will describe what they want to do. Pick the right command(s) from above, fill in the known values (repo, owner, project number), and only ask for what's truly missing (e.g. an issue number, a title).
