@@ -84,25 +84,6 @@ export class UsersController {
     return this.usersService.updateProfile(user.id, dto);
   }
 
-  @Get(':username/profile')
-  @Public()
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({
-    summary: "Get a user's public profile",
-    description:
-      'Returns the public-facing profile of any user by their username (without @ prefix). ' +
-      'Does not require authentication. ' +
-      'Gamification fields (travelerScore, achievements, recognitions, keyStats, discoveryMap) are ' +
-      'included only when the target user has set their profile visibility to PUBLIC.',
-  })
-  @ApiParam({ name: 'username', description: 'Username without @ prefix' })
-  @ApiResponse({ status: 200, type: PublicProfileResponseDto })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 429, description: 'Too many requests' })
-  getPublicProfile(@Param('username') username: string): Promise<PublicProfileResponseDto> {
-    return this.usersService.getPublicProfile(username);
-  }
-
   @Get('me')
   @ApiOperation({
     summary: 'Get the current authenticated user',
@@ -469,5 +450,24 @@ export class UsersController {
       );
     }
     return this.usersService.checkUsernameAvailability(normalized);
+  }
+
+  @Get(':username/profile')
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({
+    summary: "Get a user's public profile",
+    description:
+      'Returns the public-facing profile of any user by their username (without @ prefix). ' +
+      'Does not require authentication. ' +
+      'Gamification fields (travelerScore, achievements, recognitions, keyStats, discoveryMap) are ' +
+      'included only when the target user has set their profile visibility to PUBLIC.',
+  })
+  @ApiParam({ name: 'username', description: 'Username without @ prefix' })
+  @ApiResponse({ status: 200, type: PublicProfileResponseDto })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 429, description: 'Too many requests' })
+  getPublicProfile(@Param('username') username: string): Promise<PublicProfileResponseDto> {
+    return this.usersService.getPublicProfile(username);
   }
 }

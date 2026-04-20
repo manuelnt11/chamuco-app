@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { BasicInfoSection } from '@/components/profile/BasicInfoSection';
 import { PreferencesSection } from '@/components/profile/PreferencesSection';
@@ -34,6 +35,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<Tab>('basic');
   const [data, setData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadError, setHasLoadError] = useState(false);
   const loadedOnce = useRef(false);
 
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function ProfilePage() {
     // Only show full-page spinner on initial load; refreshes update data silently
     // so Avatar never unmounts, preventing repeated requests to Google's photo CDN.
     if (!loadedOnce.current) setIsLoading(true);
+    setHasLoadError(false);
     try {
       const [userRes, profileRes, prefRes, loyaltyRes] = await Promise.allSettled([
         apiClient.get('/v1/users/me'),
@@ -76,7 +79,11 @@ export default function ProfilePage() {
           loyaltyRes.status === 'fulfilled' ? (loyaltyRes.value.data as LoyaltyProgramDto[]) : [],
       }));
     } catch {
-      toast.error(t('errors.generic'));
+      if (!loadedOnce.current) {
+        setHasLoadError(true);
+      } else {
+        toast.error(t('errors.generic'));
+      }
     } finally {
       setIsLoading(false);
       loadedOnce.current = true;
@@ -97,6 +104,25 @@ export default function ProfilePage() {
     );
   }
 
+  if (hasLoadError) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center p-8">
+        <div className="space-y-4 text-center">
+          <p className="text-muted-foreground">{t('errors.loadError')}</p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              loadedOnce.current = false;
+              void loadData();
+            }}
+          >
+            {t('errors.retry')}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!data) return null;
 
   const tabs: { key: Tab; label: string }[] = [
@@ -109,10 +135,15 @@ export default function ProfilePage() {
     <div className="p-6 md:p-8">
       <h1 className="mb-6 text-2xl font-bold md:text-3xl">{t('title')}</h1>
 
-      <nav className="mb-8 flex gap-1 border-b border-border" aria-label={t('title')}>
+      <nav
+        role="tablist"
+        aria-label={t('title')}
+        className="mb-8 flex gap-1 border-b border-border"
+      >
         {tabs.map(({ key, label }) => (
           <button
             key={key}
+            role="tab"
             type="button"
             onClick={() => setActiveTab(key)}
             className={cn(

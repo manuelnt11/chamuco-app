@@ -265,6 +265,11 @@
       "updateSuccess": "Programa actualizado",
       "deleteSuccess": "Programa eliminado",
       "saveError": "Error al guardar"
+    },
+    "errors": {
+      "generic": "Algo salió mal. Por favor intenta de nuevo.",
+      "loadError": "Error al cargar los datos del perfil. Por favor intenta de nuevo.",
+      "retry": "Reintentar"
     }
   },
   "explore": {

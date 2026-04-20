@@ -31,6 +31,7 @@ interface LoyaltyProgramsSectionProps {
 }
 
 interface ProgramFormProps {
+  idPrefix: string;
   form: FormState;
   isSaving: boolean;
   onChangeProgramName: (v: string) => void;
@@ -42,6 +43,7 @@ interface ProgramFormProps {
 }
 
 function ProgramForm({
+  idPrefix,
   form,
   isSaving,
   onChangeProgramName,
@@ -55,9 +57,9 @@ function ProgramForm({
   return (
     <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border p-4">
       <div className="space-y-1.5">
-        <Label htmlFor="programName">{t('loyaltyPrograms.programName')}</Label>
+        <Label htmlFor={`${idPrefix}-programName`}>{t('loyaltyPrograms.programName')}</Label>
         <Input
-          id="programName"
+          id={`${idPrefix}-programName`}
           value={form.programName}
           onChange={(e) => onChangeProgramName(e.target.value)}
           required
@@ -65,9 +67,9 @@ function ProgramForm({
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="memberId">{t('loyaltyPrograms.memberId')}</Label>
+        <Label htmlFor={`${idPrefix}-memberId`}>{t('loyaltyPrograms.memberId')}</Label>
         <Input
-          id="memberId"
+          id={`${idPrefix}-memberId`}
           value={form.memberId}
           onChange={(e) => onChangeMemberId(e.target.value)}
           required
@@ -75,9 +77,9 @@ function ProgramForm({
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="notes">{t('loyaltyPrograms.notes')}</Label>
+        <Label htmlFor={`${idPrefix}-notes`}>{t('loyaltyPrograms.notes')}</Label>
         <Textarea
-          id="notes"
+          id={`${idPrefix}-notes`}
           value={form.notes}
           onChange={(e) => onChangeNotes(e.target.value)}
           placeholder={t('loyaltyPrograms.notesPlaceholder')}
@@ -206,6 +208,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
           editingId === program.id ? (
             <li key={program.id}>
               <ProgramForm
+                idPrefix={`edit-${program.id}`}
                 form={editForm}
                 isSaving={isSaving}
                 onChangeProgramName={(v) => setEditForm((f) => ({ ...f, programName: v }))}
@@ -257,6 +260,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
 
       {isAdding && (
         <ProgramForm
+          idPrefix="add"
           form={addForm}
           isSaving={isSaving}
           onChangeProgramName={(v) => setAddForm((f) => ({ ...f, programName: v }))}

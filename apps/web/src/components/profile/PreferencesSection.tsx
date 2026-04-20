@@ -64,14 +64,19 @@ export function PreferencesSection({ preferences, onRefresh }: PreferencesSectio
   const [current, setCurrent] = useState<PreferencesData>(preferences);
   const [saving, setSaving] = useState<keyof PreferencesData | null>(null);
 
-  async function save(patch: Partial<PreferencesData>, field: keyof PreferencesData) {
+  async function save(
+    patch: Partial<PreferencesData>,
+    field: keyof PreferencesData,
+  ): Promise<boolean> {
     setSaving(field);
     try {
       await apiClient.patch('/v1/users/me/preferences', patch);
       setCurrent((prev) => ({ ...prev, ...patch }));
       onRefresh();
+      return true;
     } catch {
       toast.error(t('preferences.saveError'));
+      return false;
     } finally {
       setSaving(null);
     }
@@ -79,8 +84,8 @@ export function PreferencesSection({ preferences, onRefresh }: PreferencesSectio
 
   async function handleLanguageChange(value: AppLanguage) {
     if (value === current.language) return;
-    await save({ language: value }, 'language');
-    await changeLanguage(value.toLowerCase());
+    const saved = await save({ language: value }, 'language');
+    if (saved) await changeLanguage(value.toLowerCase());
   }
 
   async function handleCurrencyChange(value: AppCurrency) {

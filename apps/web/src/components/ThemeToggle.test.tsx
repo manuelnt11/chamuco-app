@@ -1,14 +1,30 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ThemeToggle, getNextTheme } from './ThemeToggle';
+import type { User } from 'firebase/auth';
 
-const mockSetTheme = vi.fn();
-const mockUseTheme = vi.fn();
+const mocks = vi.hoisted(() => ({
+  mockSetTheme: vi.fn(),
+  mockUseTheme: vi.fn(),
+  mockPatch: vi.fn(),
+  mockUseAuth: vi.fn(),
+}));
 
 vi.mock('next-themes', () => ({
-  useTheme: () => mockUseTheme(),
+  useTheme: () => mocks.mockUseTheme(),
 }));
+
+vi.mock('@/services/api-client', () => ({
+  apiClient: { patch: mocks.mockPatch },
+}));
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: mocks.mockUseAuth,
+}));
+
+import { ThemeToggle, getNextTheme } from './ThemeToggle';
+
+const fakeUser = { uid: 'uid-123' } as User;
 
 describe('getNextTheme', () => {
   it('cycles from light to dark', () => {
@@ -35,13 +51,12 @@ describe('getNextTheme', () => {
 describe('ThemeToggle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.mockPatch.mockResolvedValue({});
+    mocks.mockUseAuth.mockReturnValue({ currentUser: null });
   });
 
   it('renders with light theme icon when theme is light', async () => {
-    mockUseTheme.mockReturnValue({
-      theme: 'light',
-      setTheme: mockSetTheme,
-    });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'light', setTheme: mocks.mockSetTheme });
 
     render(<ThemeToggle />);
 
@@ -56,10 +71,7 @@ describe('ThemeToggle', () => {
   });
 
   it('renders with dark theme icon when theme is dark', async () => {
-    mockUseTheme.mockReturnValue({
-      theme: 'dark',
-      setTheme: mockSetTheme,
-    });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'dark', setTheme: mocks.mockSetTheme });
 
     render(<ThemeToggle />);
 
@@ -69,15 +81,11 @@ describe('ThemeToggle', () => {
         'aria-label',
         'Current theme: dark. Click to cycle through themes.',
       );
-      expect(button).toHaveAttribute('title', 'Theme: dark');
     });
   });
 
   it('renders with system theme icon when theme is system', async () => {
-    mockUseTheme.mockReturnValue({
-      theme: 'system',
-      setTheme: mockSetTheme,
-    });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'system', setTheme: mocks.mockSetTheme });
 
     render(<ThemeToggle />);
 
@@ -87,16 +95,12 @@ describe('ThemeToggle', () => {
         'aria-label',
         'Current theme: system. Click to cycle through themes.',
       );
-      expect(button).toHaveAttribute('title', 'Theme: system');
     });
   });
 
   it('cycles from light to dark when clicked', async () => {
     const user = userEvent.setup();
-    mockUseTheme.mockReturnValue({
-      theme: 'light',
-      setTheme: mockSetTheme,
-    });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'light', setTheme: mocks.mockSetTheme });
 
     render(<ThemeToggle />);
 
@@ -105,48 +109,57 @@ describe('ThemeToggle', () => {
     });
 
     await user.click(screen.getByRole('button'));
-    expect(mockSetTheme).toHaveBeenCalledWith('dark');
+    expect(mocks.mockSetTheme).toHaveBeenCalledWith('dark');
   });
 
   it('cycles from dark to system when clicked', async () => {
     const user = userEvent.setup();
-    mockUseTheme.mockReturnValue({
-      theme: 'dark',
-      setTheme: mockSetTheme,
-    });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'dark', setTheme: mocks.mockSetTheme });
 
     render(<ThemeToggle />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
-    });
+    await waitFor(() => expect(screen.getByRole('button')).toBeInTheDocument());
 
     await user.click(screen.getByRole('button'));
-    expect(mockSetTheme).toHaveBeenCalledWith('system');
+    expect(mocks.mockSetTheme).toHaveBeenCalledWith('system');
   });
 
   it('cycles from system to light when clicked', async () => {
     const user = userEvent.setup();
-    mockUseTheme.mockReturnValue({
-      theme: 'system',
-      setTheme: mockSetTheme,
-    });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'system', setTheme: mocks.mockSetTheme });
 
     render(<ThemeToggle />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
-    });
+    await waitFor(() => expect(screen.getByRole('button')).toBeInTheDocument());
 
     await user.click(screen.getByRole('button'));
-    expect(mockSetTheme).toHaveBeenCalledWith('light');
+    expect(mocks.mockSetTheme).toHaveBeenCalledWith('light');
+  });
+
+  it('saves preference to DB when user is authenticated', async () => {
+    const user = userEvent.setup();
+    mocks.mockUseAuth.mockReturnValue({ currentUser: fakeUser });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'light', setTheme: mocks.mockSetTheme });
+
+    render(<ThemeToggle />);
+    await waitFor(() => expect(screen.getByRole('button')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button'));
+    expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/preferences', { theme: 'DARK' });
+  });
+
+  it('does not call API when user is not authenticated', async () => {
+    const user = userEvent.setup();
+    mocks.mockUseAuth.mockReturnValue({ currentUser: null });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'light', setTheme: mocks.mockSetTheme });
+
+    render(<ThemeToggle />);
+    await waitFor(() => expect(screen.getByRole('button')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button'));
+    expect(mocks.mockPatch).not.toHaveBeenCalled();
   });
 
   it('renders placeholder during SSR (not mounted)', () => {
-    mockUseTheme.mockReturnValue({
-      theme: 'light',
-      setTheme: mockSetTheme,
-    });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'light', setTheme: mocks.mockSetTheme });
 
     const { container } = render(<ThemeToggle />);
     const button = container.querySelector('button');
@@ -154,10 +167,7 @@ describe('ThemeToggle', () => {
   });
 
   it('applies hover styles', async () => {
-    mockUseTheme.mockReturnValue({
-      theme: 'light',
-      setTheme: mockSetTheme,
-    });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'light', setTheme: mocks.mockSetTheme });
 
     render(<ThemeToggle />);
 

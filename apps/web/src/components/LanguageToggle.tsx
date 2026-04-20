@@ -1,18 +1,13 @@
-/**
- * LanguageToggle Component
- *
- * Allows users to switch between supported languages (English and Spanish).
- * Uses i18next for language management and persists preference to localStorage.
- */
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TranslateIcon } from '@phosphor-icons/react';
 import type { SupportedLanguage } from '@/lib/i18n/config';
-import { LANGUAGE_STORAGE_KEY } from '@/lib/i18n/config';
 import { getNextLanguage } from '@/lib/i18n/utils';
+import { changeLanguage } from '@/lib/i18n/client';
+import { useAuth } from '@/hooks/useAuth';
+import { apiClient } from '@/services/api-client';
 
 const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
   en: 'English',
@@ -22,6 +17,7 @@ const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
 export function LanguageToggle() {
   const [mounted, setMounted] = useState(false);
   const { i18n } = useTranslation();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -43,10 +39,9 @@ export function LanguageToggle() {
 
   const cycleLanguage = async () => {
     const nextLang = getNextLanguage(currentLanguage);
-    await i18n.changeLanguage(nextLang);
-    // Persist language preference to localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLang);
+    await changeLanguage(nextLang);
+    if (currentUser) {
+      void apiClient.patch('/v1/users/me/preferences', { language: nextLang.toUpperCase() });
     }
   };
 

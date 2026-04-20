@@ -265,6 +265,11 @@
       "updateSuccess": "Program updated",
       "deleteSuccess": "Program deleted",
       "saveError": "Failed to save"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "loadError": "Failed to load profile data. Please try again.",
+      "retry": "Retry"
     }
   },
   "explore": {
