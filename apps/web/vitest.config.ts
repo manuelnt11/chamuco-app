@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  // @ts-expect-error - Vite version conflict: vitest uses v5.4.21, but @vitejs/plugin-react uses v7.3.1
+  // @ts-expect-error - @vitejs/plugin-react@6 declares peer dep vite ^8.0.0 but project uses vite 6.x; functionally compatible
   plugins: [react()],
   test: {
     globals: true,
