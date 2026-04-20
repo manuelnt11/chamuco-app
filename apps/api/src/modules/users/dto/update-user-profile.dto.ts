@@ -69,11 +69,13 @@ export class UpdateUserProfileDto {
     description: 'City of birth. Uppercase only, accents allowed, no digits or symbols.',
     nullable: true,
     required: false,
+    minLength: 1,
     maxLength: 100,
   })
   @IsOptional()
   @Transform(({ value }) => sanitizeProperNoun(value))
   @IsString()
+  @MinLength(1)
   @MaxLength(100)
   @Matches(/^[\p{L}\s]+$/u, {
     message:
@@ -95,11 +97,13 @@ export class UpdateUserProfileDto {
     description: 'Home city. Uppercase only, accents allowed, no digits or symbols.',
     nullable: true,
     required: false,
+    minLength: 1,
     maxLength: 100,
   })
   @IsOptional()
   @Transform(({ value }) => sanitizeProperNoun(value))
   @IsString()
+  @MinLength(1)
   @MaxLength(100)
   @Matches(/^[\p{L}\s]+$/u, {
     message:

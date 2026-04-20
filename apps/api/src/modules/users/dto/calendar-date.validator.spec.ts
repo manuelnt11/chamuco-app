@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
+import { validate, ValidationArguments } from 'class-validator';
 import { IsRealCalendarDayConstraint } from './calendar-date.validator';
 import { DateOfBirthDto } from './date-of-birth.dto';
 
@@ -9,8 +9,8 @@ async function validateDob(day: number, month: number, year: number): Promise<st
   return errors.flatMap((e) => Object.values(e.constraints ?? {}));
 }
 
-function makeArgs(object: object) {
-  return { object } as never;
+function makeArgs(object: object): ValidationArguments {
+  return { object, value: undefined, constraints: [], targetName: '', property: '' };
 }
 
 describe('IsRealCalendarDayConstraint — guard branches', () => {

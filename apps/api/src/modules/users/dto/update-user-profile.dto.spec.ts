@@ -152,6 +152,13 @@ describe('UpdateUserProfileDto', () => {
       expect(errors.some((e) => e.property === 'homeCity')).toBe(true);
     });
 
+    it('accepts single-character city name (e.g. Norwegian city "Å")', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { homeCity: 'Å' });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+      expect(dto.homeCity).toBe('Å');
+    });
+
     it('accepts null to clear city fields', async () => {
       const dto = plainToInstance(UpdateUserProfileDto, { birthCity: null, homeCity: null });
       const errors = await validate(dto);

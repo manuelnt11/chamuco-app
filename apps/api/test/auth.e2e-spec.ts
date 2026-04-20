@@ -190,6 +190,29 @@ describe('Auth endpoints (integration)', () => {
         .expect(400);
     });
 
+    it('returns 400 when firstName contains digits', async () => {
+      mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/register')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
+        .send({ ...validRegisterPayload, firstName: 'JUAN123' })
+        .expect(400);
+    });
+
+    it('returns 400 when dateOfBirth is a calendar-impossible date (Feb 31)', async () => {
+      mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/register')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
+        .send({
+          ...validRegisterPayload,
+          dateOfBirth: { day: 31, month: 2, year: 2000, yearVisible: false },
+        })
+        .expect(400);
+    });
+
     it('returns 400 when no primary nationality is provided', async () => {
       mockVerifyIdToken.mockResolvedValue({
         ...VALID_DECODED_TOKEN,

@@ -54,14 +54,14 @@ export class RegisterDto {
     minLength: 2,
     maxLength: 100,
   })
+  // Uppercase normalization: travel forms (visas, airlines, passports) require all-caps names.
+  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   @IsString()
   @Length(2, 100)
   @Matches(/^[\p{L}\s]+$/u, {
     message:
       'firstName must contain only letters and spaces (accents allowed, no digits or symbols)',
   })
-  // Uppercase normalization: travel forms (visas, airlines, passports) require all-caps names.
-  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   firstName!: string;
 
   @ApiProperty({
@@ -71,14 +71,14 @@ export class RegisterDto {
     minLength: 2,
     maxLength: 100,
   })
+  // Uppercase normalization: travel forms (visas, airlines, passports) require all-caps names.
+  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   @IsString()
   @Length(2, 100)
   @Matches(/^[\p{L}\s]+$/u, {
     message:
       'lastName must contain only letters and spaces (accents allowed, no digits or symbols)',
   })
-  // Uppercase normalization: travel forms (visas, airlines, passports) require all-caps names.
-  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   lastName!: string;
 
   @ApiProperty({
@@ -105,13 +105,13 @@ export class RegisterDto {
     description: 'Home city. Stored in uppercase to match travel document conventions.',
   })
   @IsOptional()
+  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   @IsString()
   @Length(1, 100)
   @Matches(/^[\p{L}\s]+$/u, {
     message:
       'homeCity must contain only letters and spaces (accents allowed, no digits or symbols)',
   })
-  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   homeCity?: string;
 
   @ApiProperty({
