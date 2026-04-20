@@ -159,7 +159,10 @@ export default function OnboardingPage() {
     apiClient
       .get('/v1/users/me')
       .then(() => {
-        if (!cancelled) router.replace('/');
+        if (!cancelled) {
+          document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
+          router.replace('/');
+        }
       })
       .catch((err) => {
         if (cancelled) return;
