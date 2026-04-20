@@ -22,7 +22,15 @@ Then verify and update:
 
 No endpoint may be left without a summary (`@ApiOperation`), at least one `@ApiResponse`, and fully annotated DTO fields.
 
-### 2. Migration file on every schema change
+### 2. City fields — minimum length is 1
+
+All city fields across all DTOs (`homeCity`, `birthCity`, `departure_city`, etc.) use **minimum length = 1** and maximum length = 100. The floor is 1 (not 2) because single-character city names are valid (e.g. "Å" in Norway). When adding a new city field:
+
+- `@MinLength(1)` + `@MaxLength(100)` (or `@Length(1, 100)`)
+- `@Matches(/^[\p{L}\s]+$/u)` — Unicode letters and spaces only, no digits or symbols
+- `@Transform(({ value }) => sanitizeProperNoun(value))` — trims, collapses spaces, uppercases
+
+### 3. Migration file on every schema change
 
 When any Drizzle schema file (`*.schema.ts`) is modified — new table, new column, renamed column, dropped column, new index, constraint change — a migration file must be generated:
 

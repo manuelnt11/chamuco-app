@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsInt, Max, Min } from 'class-validator';
+import { IsRealCalendarDay } from './calendar-date.validator';
 
 export class DateOfBirthDto {
   @ApiProperty({ example: 15, minimum: 1, maximum: 31 })
   @IsInt()
   @Min(1)
   @Max(31)
+  @IsRealCalendarDay()
   day!: number;
 
   @ApiProperty({ example: 6, minimum: 1, maximum: 12 })

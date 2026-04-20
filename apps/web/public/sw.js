@@ -1,8 +1,8 @@
 // Chamuco Travel Service Worker
-// Version: 2.0.0
+// Version: 2.1.0
 
-const CACHE_NAME = 'chamuco-v2';
-const RUNTIME_CACHE = 'chamuco-runtime-v2';
+const CACHE_NAME = 'chamuco-v3';
+const RUNTIME_CACHE = 'chamuco-runtime-v3';
 
 // Static assets to cache on install
 const PRECACHE_URLS = [
@@ -68,22 +68,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests (HTML pages) — stale-while-revalidate
-  // Serve from cache immediately, update cache in background for next visit
+  // Navigation requests (HTML pages) — network-first.
+  // Always hit the network so server-side auth redirects (307) are respected.
+  // Fall back to cache only when offline.
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        const networkFetch = fetch(event.request)
-          .then((response) => {
-            if (response && response.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
-            }
-            return response;
-          })
-          .catch(() => cachedResponse || caches.match('/offline'));
-
-        return cachedResponse || networkFetch;
-      }),
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+          }
+          return response;
+        })
+        .catch(() =>
+          caches
+            .match(event.request)
+            .then((cached) => cached || caches.match('/offline')),
+        ),
     );
     return;
   }
