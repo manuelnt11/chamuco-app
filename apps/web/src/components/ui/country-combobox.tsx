@@ -42,6 +42,7 @@ interface CountryComboboxProps {
   noResultsText?: string;
   className?: string;
   'aria-invalid'?: boolean;
+  'aria-labelledby'?: string;
   'data-testid'?: string;
 }
 
@@ -54,6 +55,7 @@ function CountryCombobox({
   noResultsText = 'No results.',
   className,
   'aria-invalid': ariaInvalid,
+  'aria-labelledby': ariaLabelledBy,
   'data-testid': testId,
 }: CountryComboboxProps) {
   const [open, setOpen] = React.useState(false);
@@ -72,6 +74,7 @@ function CountryCombobox({
           <Button
             variant="outline"
             aria-invalid={ariaInvalid}
+            aria-labelledby={ariaLabelledBy}
             data-testid={testId}
             className={cn('justify-between font-normal', className)}
           />

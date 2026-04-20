@@ -646,7 +646,7 @@ function Step2({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label>{t('onboarding.phone.label')}</Label>
+        <Label id="phone-country-label">{t('onboarding.phone.label')}</Label>
         <div className="grid grid-cols-[auto_1fr] gap-2">
           <CountryCombobox
             value={phoneCountry}
@@ -656,6 +656,7 @@ function Step2({
             searchPlaceholder={t('onboarding.phone.search')}
             noResultsText={t('onboarding.phone.noResults')}
             aria-invalid={stepError === 'phoneCode'}
+            aria-labelledby="phone-country-label"
             data-testid="phone-code-input"
           />
           <Input
@@ -706,7 +707,7 @@ function Step3({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="homeCountry">{t('onboarding.homeCountry.label')}</Label>
+        <Label id="home-country-label">{t('onboarding.homeCountry.label')}</Label>
         <CountryCombobox
           value={homeCountry}
           onChange={onHomeCountryChange}
@@ -715,6 +716,7 @@ function Step3({
           searchPlaceholder={t('onboarding.homeCountry.search')}
           noResultsText={t('onboarding.homeCountry.noResults')}
           aria-invalid={stepError === 'homeCountry'}
+          aria-labelledby="home-country-label"
           data-testid="home-country-input"
           className="w-full"
         />

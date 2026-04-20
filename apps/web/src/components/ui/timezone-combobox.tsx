@@ -25,6 +25,7 @@ interface TimezoneComboboxProps {
   className?: string;
   disabled?: boolean;
   'aria-invalid'?: boolean;
+  'aria-labelledby'?: string;
 }
 
 export function TimezoneCombobox({
@@ -36,6 +37,7 @@ export function TimezoneCombobox({
   className,
   disabled,
   'aria-invalid': ariaInvalid,
+  'aria-labelledby': ariaLabelledBy,
 }: TimezoneComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -49,6 +51,7 @@ export function TimezoneCombobox({
             variant="outline"
             disabled={disabled}
             aria-invalid={ariaInvalid}
+            aria-labelledby={ariaLabelledBy}
             className={cn('justify-between font-normal', className)}
           />
         }

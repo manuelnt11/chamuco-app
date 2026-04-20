@@ -275,14 +275,17 @@ describe('BasicInfoSection', () => {
   });
 
   describe('edit isolation', () => {
-    it('preserves unsaved edits when props change (no sync on refresh)', () => {
+    it('preserves unsaved edits when props change (no sync on refresh)', async () => {
+      const u = userEvent.setup();
       const { rerender } = render(
         <BasicInfoSection user={baseUser} userProfile={baseProfile} onRefresh={vi.fn()} />,
       );
       const displayNameInput = screen.getByLabelText('basicInfo.displayName');
-      expect(displayNameInput).toHaveValue('Jane Doe');
 
-      // Simulate a refresh passing new props — unsaved edits must not be wiped.
+      await u.clear(displayNameInput);
+      await u.type(displayNameInput, 'New Unsaved Name');
+
+      // Simulate a refresh: server still returns the original value.
       rerender(
         <BasicInfoSection
           user={{ ...baseUser, displayName: 'Jane Doe' }}
@@ -290,7 +293,9 @@ describe('BasicInfoSection', () => {
           onRefresh={vi.fn()}
         />,
       );
-      expect(displayNameInput).toHaveValue('Jane Doe');
+
+      // Unsaved edit must not be overwritten by the server value.
+      expect(displayNameInput).toHaveValue('New Unsaved Name');
     });
   });
 });

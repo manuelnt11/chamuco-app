@@ -143,6 +143,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
           searchPlaceholder={t('basicInfo.timezoneSearchPlaceholder')}
           noResultsText={t('basicInfo.timezoneNoResults')}
           disabled={isSaving}
+          aria-labelledby="timezone-label"
           className="w-full"
         />
       </div>
