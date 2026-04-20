@@ -52,6 +52,10 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY packages/shared-types ./packages/shared-types
 COPY packages/shared-utils ./packages/shared-utils
 
+# Build shared packages so their dist/ is available for type checking
+RUN pnpm --filter @chamuco/shared-types build
+RUN pnpm --filter @chamuco/shared-utils build
+
 # Copy web source code
 COPY apps/web ./apps/web
 
