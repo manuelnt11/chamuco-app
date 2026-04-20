@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -108,6 +108,13 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!confirmDeleteId) return;
+    const reset = () => setConfirmDeleteId(null);
+    document.addEventListener('mousedown', reset);
+    return () => document.removeEventListener('mousedown', reset);
+  }, [confirmDeleteId]);
 
   function startEdit(program: LoyaltyProgramDto) {
     setEditingId(program.id);
@@ -247,6 +254,9 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
                   type="button"
                   size="sm"
                   variant={confirmDeleteId === program.id ? 'destructive' : 'outline'}
+                  onMouseDown={(e) => {
+                    if (confirmDeleteId === program.id) e.stopPropagation();
+                  }}
                   onClick={() => handleDelete(program.id)}
                   disabled={isSaving}
                 >

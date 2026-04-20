@@ -59,9 +59,9 @@ describe('UpdateUserProfileDto', () => {
       expect(errors.some((e) => e.property === 'firstName')).toBe(true);
     });
 
-    it('trims firstName before validating', async () => {
+    it('trims and uppercases firstName before validating', async () => {
       const dto = plainToInstance(UpdateUserProfileDto, { firstName: '  John  ' });
-      expect(dto.firstName).toBe('John');
+      expect(dto.firstName).toBe('JOHN');
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
@@ -120,6 +120,49 @@ describe('UpdateUserProfileDto', () => {
       expect(errors.some((e) => e.property === 'lastName')).toBe(true);
       expect(errors.some((e) => e.property === 'phoneCountryCode')).toBe(true);
       expect(errors.some((e) => e.property === 'phoneLocalNumber')).toBe(true);
+    });
+  });
+
+  describe('city field validation (birthCity / homeCity)', () => {
+    it('accepts valid city names with accents', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, {
+        birthCity: 'bogotá',
+        homeCity: 'medellín',
+      });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+      expect(dto.birthCity).toBe('BOGOTÁ');
+      expect(dto.homeCity).toBe('MEDELLÍN');
+    });
+
+    it('collapses repeated spaces in city names', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { homeCity: '  SAN   JOSE  ' });
+      expect(dto.homeCity).toBe('SAN JOSE');
+    });
+
+    it('rejects city names with digits', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { birthCity: 'CIUDAD123' });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'birthCity')).toBe(true);
+    });
+
+    it('rejects city names with symbols', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { homeCity: 'SAN-JOSE' });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'homeCity')).toBe(true);
+    });
+
+    it('accepts single-character city name (e.g. Norwegian city "Å")', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { homeCity: 'Å' });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+      expect(dto.homeCity).toBe('Å');
+    });
+
+    it('accepts null to clear city fields', async () => {
+      const dto = plainToInstance(UpdateUserProfileDto, { birthCity: null, homeCity: null });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
     });
   });
 

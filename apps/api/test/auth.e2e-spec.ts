@@ -51,7 +51,7 @@ const VALID_DECODED_TOKEN = {
 const validRegisterPayload = {
   username: 'E2E_Test_User',
   displayName: 'E2E Test User',
-  firstName: 'E2E',
+  firstName: 'JUAN',
   lastName: 'TEST',
   dateOfBirth: { day: 15, month: 6, year: 2000, yearVisible: false },
   homeCountry: 'CO',
@@ -187,6 +187,29 @@ describe('Auth endpoints (integration)', () => {
         .post('/v1/auth/register')
         .set('Authorization', VALID_GOOGLE_TOKEN)
         .send({ ...validRegisterPayload, username: 'INVALID USERNAME!' })
+        .expect(400);
+    });
+
+    it('returns 400 when firstName contains digits', async () => {
+      mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/register')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
+        .send({ ...validRegisterPayload, firstName: 'JUAN123' })
+        .expect(400);
+    });
+
+    it('returns 400 when dateOfBirth is a calendar-impossible date (Feb 31)', async () => {
+      mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/register')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
+        .send({
+          ...validRegisterPayload,
+          dateOfBirth: { day: 31, month: 2, year: 2000, yearVisible: false },
+        })
         .expect(400);
     });
 
