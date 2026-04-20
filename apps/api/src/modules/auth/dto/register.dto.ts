@@ -15,6 +15,7 @@ import { DateOfBirthDto } from '@/modules/users/dto/date-of-birth.dto';
 import { CreateNationalityDto } from '@/modules/users/dto/nationality.dto';
 import { EmergencyContactDto } from '@/modules/users/dto/emergency-contact.dto';
 import { IsMinimumAge } from '@/modules/users/dto/minimum-age.validator';
+import { sanitizeProperNoun } from '@/common/transforms/proper-noun.transform';
 
 export class RegisterDto {
   @ApiProperty({
@@ -53,12 +54,14 @@ export class RegisterDto {
     minLength: 2,
     maxLength: 100,
   })
+  // Uppercase normalization: travel forms (visas, airlines, passports) require all-caps names.
+  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   @IsString()
   @Length(2, 100)
-  // Uppercase normalization: travel forms (visas, airlines, passports) require all-caps names.
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toUpperCase() : value,
-  )
+  @Matches(/^[\p{L}\s]+$/u, {
+    message:
+      'firstName must contain only letters and spaces (accents allowed, no digits or symbols)',
+  })
   firstName!: string;
 
   @ApiProperty({
@@ -68,12 +71,14 @@ export class RegisterDto {
     minLength: 2,
     maxLength: 100,
   })
+  // Uppercase normalization: travel forms (visas, airlines, passports) require all-caps names.
+  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   @IsString()
   @Length(2, 100)
-  // Uppercase normalization: travel forms (visas, airlines, passports) require all-caps names.
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toUpperCase() : value,
-  )
+  @Matches(/^[\p{L}\s]+$/u, {
+    message:
+      'lastName must contain only letters and spaces (accents allowed, no digits or symbols)',
+  })
   lastName!: string;
 
   @ApiProperty({
@@ -100,11 +105,13 @@ export class RegisterDto {
     description: 'Home city. Stored in uppercase to match travel document conventions.',
   })
   @IsOptional()
+  @Transform(({ value }: { value: unknown }) => sanitizeProperNoun(value))
   @IsString()
   @Length(1, 100)
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toUpperCase() : value,
-  )
+  @Matches(/^[\p{L}\s]+$/u, {
+    message:
+      'homeCity must contain only letters and spaces (accents allowed, no digits or symbols)',
+  })
   homeCity?: string;
 
   @ApiProperty({
