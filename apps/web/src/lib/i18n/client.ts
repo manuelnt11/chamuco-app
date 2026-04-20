@@ -78,6 +78,9 @@ export function getCurrentLanguage(): string {
  */
 export async function changeLanguage(language: string): Promise<void> {
   await i18next.changeLanguage(language);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  }
 }
 
 /**

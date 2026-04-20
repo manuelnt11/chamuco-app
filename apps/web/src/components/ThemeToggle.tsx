@@ -4,6 +4,9 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { SunDimIcon, MoonIcon, DesktopIcon } from '@phosphor-icons/react';
 
+import { useAuth } from '@/hooks/useAuth';
+import { apiClient } from '@/services/api-client';
+
 const THEME_CYCLE = {
   light: 'dark',
   dark: 'system',
@@ -21,6 +24,7 @@ export const getNextTheme = (current: string | undefined): string => {
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -38,7 +42,11 @@ export function ThemeToggle() {
   }
 
   const cycleTheme = () => {
-    setTheme(getNextTheme(theme));
+    const next = getNextTheme(theme);
+    setTheme(next);
+    if (currentUser) {
+      void apiClient.patch('/v1/users/me/preferences', { theme: next.toUpperCase() });
+    }
   };
 
   return (

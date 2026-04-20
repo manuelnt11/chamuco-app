@@ -90,8 +90,9 @@ export class UpdateUserProfileDto {
   })
   phoneLocalNumber?: string;
 
-  @ApiProperty({ example: 'Travel enthusiast.', nullable: true, required: false })
+  @ApiProperty({ example: 'Travel enthusiast.', maxLength: 200, nullable: true, required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   bio?: string | null;
 }

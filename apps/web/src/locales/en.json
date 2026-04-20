@@ -205,7 +205,74 @@
     "personalInfo": "Personal Information",
     "travelPreferences": "Travel Preferences",
     "achievements": "Achievements",
-    "statistics": "Statistics"
+    "statistics": "Statistics",
+    "tabs": {
+      "basicInfo": "Basic Info",
+      "preferences": "Preferences",
+      "loyaltyPrograms": "Loyalty Programs"
+    },
+    "basicInfo": {
+      "heading": "Basic Information",
+      "avatar": "Profile Photo",
+      "avatarHint": "Photo from your sign-in account",
+      "displayName": "Display Name",
+      "username": "Username",
+      "usernameHint": "Username cannot be changed",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell others about yourself...",
+      "timezone": "Timezone",
+      "timezonePlaceholder": "Select a timezone",
+      "timezoneSearchPlaceholder": "Search timezones...",
+      "timezoneNoResults": "No timezone found.",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "saveSuccess": "Profile updated",
+      "saveError": "Failed to save profile",
+      "validDisplayName": "Display name must be between 1 and 100 characters"
+    },
+    "preferences": {
+      "heading": "Preferences",
+      "language": "Language",
+      "currency": "Currency",
+      "theme": "Theme",
+      "languages": {
+        "EN": "English",
+        "ES": "Español"
+      },
+      "currencies": {
+        "COP": "Colombian Peso (COP)",
+        "USD": "US Dollar (USD)"
+      },
+      "themes": {
+        "LIGHT": "Light",
+        "DARK": "Dark",
+        "SYSTEM": "System"
+      },
+      "saveError": "Failed to save preferences"
+    },
+    "loyaltyPrograms": {
+      "heading": "Loyalty Programs",
+      "empty": "No loyalty programs added yet",
+      "add": "Add program",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this program?",
+      "programName": "Program name",
+      "memberId": "Member ID",
+      "notes": "Notes",
+      "notesPlaceholder": "Optional notes...",
+      "save": "Save",
+      "cancel": "Cancel",
+      "addSuccess": "Program added",
+      "updateSuccess": "Program updated",
+      "deleteSuccess": "Program deleted",
+      "saveError": "Failed to save"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "loadError": "Failed to load profile data. Please try again.",
+      "retry": "Retry"
+    }
   },
   "explore": {
     "title": "Explore",

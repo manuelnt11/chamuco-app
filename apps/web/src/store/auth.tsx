@@ -10,6 +10,8 @@ import { auth, googleProvider, facebookProvider } from '@/lib/firebase';
 import {
   COOKIE_CHAMUCO_AUTH_SET,
   COOKIE_CHAMUCO_AUTH_CLEAR,
+  COOKIE_CHAMUCO_REGISTERED_NAME,
+  COOKIE_CHAMUCO_REGISTERED_SET,
   COOKIE_CHAMUCO_REGISTERED_CLEAR,
 } from '@/lib/auth-cookies';
 import { apiClient, setTokenProvider } from '@/services/api-client';
@@ -60,6 +62,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // The cookie is not HttpOnly — it is deliberately readable only for routing purposes;
         // real auth verification always happens server-side via the Firebase ID token.
         document.cookie = COOKIE_CHAMUCO_AUTH_SET;
+        // Restore the registration cookie when it is absent — e.g. after the __Host- security
+        // hardening deployment, cookie expiry, or browser data clear. Without this, returning
+        // registered users hit the middleware's auth+unregistered branch and loop through /onboarding.
+        const hasRegisteredCookie = document.cookie
+          .split(';')
+          .some((c) => c.trim().startsWith(`${COOKIE_CHAMUCO_REGISTERED_NAME}=`));
+        if (!hasRegisteredCookie) {
+          try {
+            await apiClient.get('/v1/users/me');
+            document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
+          } catch {
+            // 404 = new user awaiting registration — middleware redirect to /onboarding is correct.
+            // All other errors are swallowed; the middleware fallback handles routing.
+          }
+        }
       } else {
         setIdToken(null);
         document.cookie = COOKIE_CHAMUCO_AUTH_CLEAR;
