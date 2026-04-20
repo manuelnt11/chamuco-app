@@ -51,7 +51,7 @@ const VALID_DECODED_TOKEN = {
 const validRegisterPayload = {
   username: 'E2E_Test_User',
   displayName: 'E2E Test User',
-  firstName: 'E2E',
+  firstName: 'JUAN',
   lastName: 'TEST',
   dateOfBirth: { day: 15, month: 6, year: 2000, yearVisible: false },
   homeCountry: 'CO',
