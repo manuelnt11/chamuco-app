@@ -5,7 +5,7 @@ import {
   PhobiaType,
   PhysicalLimitationType,
 } from '@chamuco/shared-types';
-import { char, jsonb, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { char, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 import { users } from './users.schema';
 
@@ -95,7 +95,7 @@ export const userProfiles = pgTable('user_profiles', {
   homeCity: text('home_city'),
   phoneCountryCode: text('phone_country_code').notNull(),
   phoneLocalNumber: text('phone_local_number').notNull(),
-  bio: text('bio'),
+  bio: varchar('bio', { length: 200 }),
   dietaryPreference: dietaryPreferenceEnum('dietary_preference')
     .notNull()
     .default(DietaryPreference.OMNIVORE),

@@ -95,8 +95,8 @@ export function PreferencesSection({ preferences, onRefresh }: PreferencesSectio
 
   async function handleThemeChange(value: AppTheme) {
     if (value === current.theme) return;
-    setTheme(value.toLowerCase());
-    await save({ theme: value }, 'theme');
+    const saved = await save({ theme: value }, 'theme');
+    if (saved) setTheme(value.toLowerCase());
   }
 
   return (

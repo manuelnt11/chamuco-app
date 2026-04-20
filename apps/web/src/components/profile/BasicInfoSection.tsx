@@ -213,13 +213,17 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="bio">{t('basicInfo.bio')}</Label>
+        <div className="flex items-baseline justify-between">
+          <Label htmlFor="bio">{t('basicInfo.bio')}</Label>
+          <span className="text-xs text-muted-foreground">{bio.length}/200</span>
+        </div>
         <Textarea
           id="bio"
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           placeholder={t('basicInfo.bioPlaceholder')}
           rows={3}
+          maxLength={200}
           disabled={isSaving}
         />
       </div>

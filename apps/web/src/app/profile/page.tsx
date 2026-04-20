@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -131,11 +131,37 @@ export default function ProfilePage() {
     { key: 'loyalty', label: t('tabs.loyaltyPrograms') },
   ];
 
+  const tabKeys = tabs.map((tab) => tab.key);
+
+  function handleTabKeyDown(e: KeyboardEvent, key: Tab) {
+    const currentIndex = tabKeys.indexOf(key);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = tabKeys[(currentIndex + 1) % tabKeys.length]!;
+      setActiveTab(next);
+      document.getElementById(`tab-${next}`)?.focus();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prev = tabKeys[(currentIndex - 1 + tabKeys.length) % tabKeys.length]!;
+      setActiveTab(prev);
+      document.getElementById(`tab-${prev}`)?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      setActiveTab(tabKeys[0]!);
+      document.getElementById(`tab-${tabKeys[0]}`)?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      const last = tabKeys[tabKeys.length - 1]!;
+      setActiveTab(last);
+      document.getElementById(`tab-${last}`)?.focus();
+    }
+  }
+
   return (
     <div className="p-6 md:p-8">
       <h1 className="mb-6 text-2xl font-bold md:text-3xl">{t('title')}</h1>
 
-      <nav
+      <div
         role="tablist"
         aria-label={t('title')}
         className="mb-8 flex gap-1 border-b border-border"
@@ -143,9 +169,14 @@ export default function ProfilePage() {
         {tabs.map(({ key, label }) => (
           <button
             key={key}
+            id={`tab-${key}`}
             role="tab"
             type="button"
             onClick={() => setActiveTab(key)}
+            onKeyDown={(e) => handleTabKeyDown(e, key)}
+            tabIndex={activeTab === key ? 0 : -1}
+            aria-selected={activeTab === key}
+            aria-controls={`panel-${key}`}
             className={cn(
               'px-4 py-2 text-sm font-medium transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-t',
@@ -154,22 +185,36 @@ export default function ProfilePage() {
                 ? 'border-primary text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground',
             )}
-            aria-selected={activeTab === key}
           >
             {label}
           </button>
         ))}
-      </nav>
+      </div>
 
-      {activeTab === 'basic' && (
+      <div
+        id="panel-basic"
+        role="tabpanel"
+        aria-labelledby="tab-basic"
+        hidden={activeTab !== 'basic'}
+      >
         <BasicInfoSection user={data.user} userProfile={data.userProfile} onRefresh={loadData} />
-      )}
-      {activeTab === 'preferences' && (
+      </div>
+      <div
+        id="panel-preferences"
+        role="tabpanel"
+        aria-labelledby="tab-preferences"
+        hidden={activeTab !== 'preferences'}
+      >
         <PreferencesSection preferences={data.preferences} onRefresh={loadData} />
-      )}
-      {activeTab === 'loyalty' && (
+      </div>
+      <div
+        id="panel-loyalty"
+        role="tabpanel"
+        aria-labelledby="tab-loyalty"
+        hidden={activeTab !== 'loyalty'}
+      >
         <LoyaltyProgramsSection programs={data.loyaltyPrograms} onRefresh={loadData} />
-      )}
+      </div>
     </div>
   );
 }

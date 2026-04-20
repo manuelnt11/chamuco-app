@@ -10,6 +10,7 @@ import { auth, googleProvider, facebookProvider } from '@/lib/firebase';
 import {
   COOKIE_CHAMUCO_AUTH_SET,
   COOKIE_CHAMUCO_AUTH_CLEAR,
+  COOKIE_CHAMUCO_REGISTERED_NAME,
   COOKIE_CHAMUCO_REGISTERED_SET,
   COOKIE_CHAMUCO_REGISTERED_CLEAR,
 } from '@/lib/auth-cookies';
@@ -66,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // registered users hit the middleware's auth+unregistered branch and loop through /onboarding.
         const hasRegisteredCookie = document.cookie
           .split(';')
-          .some((c) => c.trim().startsWith('__Host-chamuco-registered='));
+          .some((c) => c.trim().startsWith(`${COOKIE_CHAMUCO_REGISTERED_NAME}=`));
         if (!hasRegisteredCookie) {
           try {
             await apiClient.get('/v1/users/me');

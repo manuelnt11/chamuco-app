@@ -117,6 +117,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
       notes: program.notes ?? '',
     });
     setIsAdding(false);
+    setConfirmDeleteId(null);
   }
 
   function cancelEdit() {
@@ -128,6 +129,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     setIsAdding(true);
     setAddForm(EMPTY_FORM);
     setEditingId(null);
+    setConfirmDeleteId(null);
   }
 
   function cancelAdd() {

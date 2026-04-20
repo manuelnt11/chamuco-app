@@ -147,12 +147,6 @@ describe('PreferencesSection', () => {
   });
 
   describe('theme change', () => {
-    it('calls setTheme immediately when theme button is clicked', async () => {
-      const { user } = setup({ theme: AppTheme.SYSTEM });
-      await user.click(screen.getByRole('button', { name: 'preferences.themes.DARK' }));
-      expect(mocks.mockSetTheme).toHaveBeenCalledWith('dark');
-    });
-
     it('calls PATCH /users/me/preferences when theme changes', async () => {
       const { user } = setup({ theme: AppTheme.SYSTEM });
       await user.click(screen.getByRole('button', { name: 'preferences.themes.LIGHT' }));
@@ -161,6 +155,20 @@ describe('PreferencesSection', () => {
           theme: AppTheme.LIGHT,
         }),
       );
+    });
+
+    it('calls setTheme only after save succeeds', async () => {
+      const { user } = setup({ theme: AppTheme.SYSTEM });
+      await user.click(screen.getByRole('button', { name: 'preferences.themes.DARK' }));
+      await waitFor(() => expect(mocks.mockSetTheme).toHaveBeenCalledWith('dark'));
+    });
+
+    it('does not call setTheme when save fails', async () => {
+      mocks.mockPatch.mockRejectedValue(new Error('network error'));
+      const { user } = setup({ theme: AppTheme.SYSTEM });
+      await user.click(screen.getByRole('button', { name: 'preferences.themes.DARK' }));
+      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalled());
+      expect(mocks.mockSetTheme).not.toHaveBeenCalled();
     });
   });
 

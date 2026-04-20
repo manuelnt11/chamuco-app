@@ -9,5 +9,6 @@ export const COOKIE_CHAMUCO_AUTH_SET = `__Host-chamuco-auth=1; ${BASE}; Max-Age=
 export const COOKIE_CHAMUCO_AUTH_CLEAR = `__Host-chamuco-auth=; ${BASE}; Max-Age=0`;
 
 /** Set once Chamuco registration is confirmed (sign-in 200 or onboarding register 201). */
-export const COOKIE_CHAMUCO_REGISTERED_SET = `__Host-chamuco-registered=1; ${BASE}; Max-Age=${MAX_AGE}`;
-export const COOKIE_CHAMUCO_REGISTERED_CLEAR = `__Host-chamuco-registered=; ${BASE}; Max-Age=0`;
+export const COOKIE_CHAMUCO_REGISTERED_NAME = '__Host-chamuco-registered';
+export const COOKIE_CHAMUCO_REGISTERED_SET = `${COOKIE_CHAMUCO_REGISTERED_NAME}=1; ${BASE}; Max-Age=${MAX_AGE}`;
+export const COOKIE_CHAMUCO_REGISTERED_CLEAR = `${COOKIE_CHAMUCO_REGISTERED_NAME}=; ${BASE}; Max-Age=0`;
