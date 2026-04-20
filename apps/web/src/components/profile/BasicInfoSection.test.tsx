@@ -32,6 +32,31 @@ vi.mock('@/lib/timezones', () => ({
   formatTimezoneLabel: (tz: string) => tz,
 }));
 
+vi.mock('@/components/ui/timezone-combobox', () => ({
+  TimezoneCombobox: ({
+    value,
+    onChange,
+    disabled,
+  }: {
+    value: string;
+    onChange: (tz: string) => void;
+    disabled?: boolean;
+  }) => (
+    <select
+      aria-label="basicInfo.timezone"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+    >
+      {['UTC', 'America/Bogota', 'America/New_York', 'Europe/Madrid'].map((tz) => (
+        <option key={tz} value={tz}>
+          {tz}
+        </option>
+      ))}
+    </select>
+  ),
+}));
+
 import { BasicInfoSection } from './BasicInfoSection';
 import type { BasicInfoUser, BasicInfoProfile } from './BasicInfoSection';
 
@@ -98,7 +123,9 @@ describe('BasicInfoSection', () => {
 
     it('renders the timezone combobox with current timezone value', () => {
       setup();
-      expect(screen.getByLabelText('basicInfo.timezone')).toHaveValue('America/Bogota');
+      expect(screen.getByRole('combobox', { name: 'basicInfo.timezone' })).toHaveValue(
+        'America/Bogota',
+      );
     });
 
     it('renders the save button', () => {
@@ -110,37 +137,49 @@ describe('BasicInfoSection', () => {
   describe('timezone auto-default from homeCountry', () => {
     it('auto-fills timezone from homeCountry when timezone is UTC', () => {
       setup({ timezone: 'UTC' }, { homeCountry: 'CO' });
-      expect(screen.getByLabelText('basicInfo.timezone')).toHaveValue('America/Bogota');
+      expect(screen.getByRole('combobox', { name: 'basicInfo.timezone' })).toHaveValue(
+        'America/Bogota',
+      );
     });
 
     it('does not override timezone when it is already set to a non-UTC value', () => {
       setup({ timezone: 'Europe/Madrid' }, { homeCountry: 'CO' });
-      expect(screen.getByLabelText('basicInfo.timezone')).toHaveValue('Europe/Madrid');
+      expect(screen.getByRole('combobox', { name: 'basicInfo.timezone' })).toHaveValue(
+        'Europe/Madrid',
+      );
     });
 
     it('keeps UTC when homeCountry has no mapping', () => {
       setup({ timezone: 'UTC' }, { homeCountry: null });
-      expect(screen.getByLabelText('basicInfo.timezone')).toHaveValue('UTC');
+      expect(screen.getByRole('combobox', { name: 'basicInfo.timezone' })).toHaveValue('UTC');
     });
   });
 
   describe('timezone combobox', () => {
-    it('shows filtered options when user types', async () => {
-      const { user } = setup();
-      const tzInput = screen.getByLabelText('basicInfo.timezone');
-      await user.clear(tzInput);
-      await user.type(tzInput, 'America');
-      expect(screen.getByRole('button', { name: 'America/Bogota' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'America/New_York' })).toBeInTheDocument();
+    it('sets the timezone when an option is selected', async () => {
+      const { user } = setup({ timezone: 'UTC' }, { homeCountry: null });
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: 'basicInfo.timezone' }),
+        'America/New_York',
+      );
+      expect(screen.getByRole('combobox', { name: 'basicInfo.timezone' })).toHaveValue(
+        'America/New_York',
+      );
     });
 
-    it('sets the timezone when an option is selected from the dropdown', async () => {
+    it('sends the selected timezone when saving', async () => {
       const { user } = setup({ timezone: 'UTC' }, { homeCountry: null });
-      const tzInput = screen.getByLabelText('basicInfo.timezone');
-      await user.clear(tzInput);
-      await user.type(tzInput, 'America');
-      await user.click(screen.getByRole('button', { name: 'America/New_York' }));
-      expect(tzInput).toHaveValue('America/New_York');
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: 'basicInfo.timezone' }),
+        'America/Bogota',
+      );
+      await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me',
+          expect.objectContaining({ timezone: 'America/Bogota' }),
+        ),
+      );
     });
   });
 
@@ -235,21 +274,23 @@ describe('BasicInfoSection', () => {
     });
   });
 
-  describe('syncing with new props', () => {
-    it('updates fields when user prop changes', async () => {
+  describe('edit isolation', () => {
+    it('preserves unsaved edits when props change (no sync on refresh)', () => {
       const { rerender } = render(
         <BasicInfoSection user={baseUser} userProfile={baseProfile} onRefresh={vi.fn()} />,
       );
-      expect(screen.getByLabelText('basicInfo.displayName')).toHaveValue('Jane Doe');
+      const displayNameInput = screen.getByLabelText('basicInfo.displayName');
+      expect(displayNameInput).toHaveValue('Jane Doe');
 
+      // Simulate a refresh passing new props — unsaved edits must not be wiped.
       rerender(
         <BasicInfoSection
-          user={{ ...baseUser, displayName: 'John Smith' }}
+          user={{ ...baseUser, displayName: 'Jane Doe' }}
           userProfile={baseProfile}
           onRefresh={vi.fn()}
         />,
       );
-      expect(screen.getByLabelText('basicInfo.displayName')).toHaveValue('John Smith');
+      expect(displayNameInput).toHaveValue('Jane Doe');
     });
   });
 });

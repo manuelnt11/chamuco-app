@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar } from '@/components/ui/avatar';
@@ -9,10 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { TimezoneCombobox } from '@/components/ui/timezone-combobox';
 import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
-import { cn } from '@/lib/utils';
-import { TIMEZONES, COUNTRY_TIMEZONE, formatTimezoneLabel } from '@/lib/timezones';
+import { COUNTRY_TIMEZONE } from '@/lib/timezones';
 
 export interface BasicInfoUser {
   username: string;
@@ -41,90 +41,6 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-interface TimezoneComboboxProps {
-  id: string;
-  value: string;
-  onChange: (tz: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-}
-
-function TimezoneCombobox({ id, value, onChange, placeholder, disabled }: TimezoneComboboxProps) {
-  const [query, setQuery] = useState(value);
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    setQuery(value);
-  }, [value]);
-
-  const filtered =
-    query.length >= 1
-      ? TIMEZONES.filter((tz) =>
-          tz.toLowerCase().includes(query.toLowerCase().replace(/\s+/g, '_')),
-        ).slice(0, 20)
-      : [];
-
-  function handleChange(raw: string) {
-    setQuery(raw);
-    setOpen(raw.length >= 1);
-  }
-
-  function handleSelect(tz: string) {
-    setQuery(tz);
-    onChange(tz);
-    setOpen(false);
-  }
-
-  function handleBlur() {
-    setTimeout(() => {
-      setOpen(false);
-      if (!TIMEZONES.includes(query)) {
-        setQuery(value);
-      }
-    }, 150);
-  }
-
-  return (
-    <div className="relative">
-      <Input
-        id={id}
-        value={query}
-        onChange={(e) => handleChange(e.target.value)}
-        onFocus={() => {
-          if (query.length >= 1) setOpen(true);
-        }}
-        onBlur={handleBlur}
-        placeholder={placeholder}
-        disabled={disabled}
-        autoComplete="off"
-      />
-      {open && filtered.length > 0 && (
-        <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
-          <ul className="max-h-60 overflow-auto py-1">
-            {filtered.map((tz) => (
-              <li key={tz}>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex w-full items-center px-3 py-2 text-left text-sm hover:bg-muted',
-                    tz === value && 'bg-muted/50 font-medium',
-                  )}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleSelect(tz);
-                  }}
-                >
-                  {formatTimezoneLabel(tz)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSectionProps) {
   const { t } = useTranslation('profile');
 
@@ -138,16 +54,6 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
       ? (COUNTRY_TIMEZONE[userProfile.homeCountry] ?? 'UTC')
       : user.timezone;
   const [timezone, setTimezone] = useState(suggestedTimezone);
-
-  useEffect(() => {
-    setDisplayName(user.displayName);
-    setBio(userProfile.bio ?? '');
-    const suggested =
-      user.timezone === 'UTC' && userProfile.homeCountry
-        ? (COUNTRY_TIMEZONE[userProfile.homeCountry] ?? 'UTC')
-        : user.timezone;
-    setTimezone(suggested);
-  }, [user, userProfile]);
 
   async function handleSave(e: FormEvent) {
     e.preventDefault();
@@ -229,13 +135,15 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="timezone">{t('basicInfo.timezone')}</Label>
+        <Label id="timezone-label">{t('basicInfo.timezone')}</Label>
         <TimezoneCombobox
-          id="timezone"
           value={timezone}
           onChange={setTimezone}
           placeholder={t('basicInfo.timezonePlaceholder')}
+          searchPlaceholder={t('basicInfo.timezoneSearchPlaceholder')}
+          noResultsText={t('basicInfo.timezoneNoResults')}
           disabled={isSaving}
+          className="w-full"
         />
       </div>
 
