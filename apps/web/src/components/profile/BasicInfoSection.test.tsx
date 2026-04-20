@@ -274,6 +274,55 @@ describe('BasicInfoSection', () => {
     });
   });
 
+  describe('dirty indicator', () => {
+    it('hides indicator when form is untouched', () => {
+      setup();
+      expect(screen.queryByTestId('unsaved-indicator')).not.toBeInTheDocument();
+    });
+
+    it('shows indicator after editing displayName', async () => {
+      const { user } = setup();
+      await user.type(screen.getByLabelText('basicInfo.displayName'), ' Jr.');
+      expect(screen.getByTestId('unsaved-indicator')).toBeInTheDocument();
+    });
+
+    it('shows indicator after editing bio', async () => {
+      const { user } = setup();
+      await user.type(screen.getByLabelText('basicInfo.bio'), ' extra');
+      expect(screen.getByTestId('unsaved-indicator')).toBeInTheDocument();
+    });
+
+    it('shows indicator after changing timezone', async () => {
+      const { user } = setup({ timezone: 'UTC' }, { homeCountry: null });
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: 'basicInfo.timezone' }),
+        'America/New_York',
+      );
+      expect(screen.getByTestId('unsaved-indicator')).toBeInTheDocument();
+    });
+
+    it('shows indicator when auto-suggested timezone differs from server value', () => {
+      setup({ timezone: 'UTC' }, { homeCountry: 'CO' });
+      expect(screen.getByTestId('unsaved-indicator')).toBeInTheDocument();
+    });
+
+    it('hides indicator when displayName is reverted to original', async () => {
+      const { user } = setup();
+      const displayNameInput = screen.getByLabelText('basicInfo.displayName');
+      await user.clear(displayNameInput);
+      await user.type(displayNameInput, 'Jane Doe');
+      expect(screen.queryByTestId('unsaved-indicator')).not.toBeInTheDocument();
+    });
+
+    it('hides indicator while saving', async () => {
+      mocks.mockPatch.mockImplementation(() => new Promise(() => {}));
+      const { user } = setup();
+      await user.type(screen.getByLabelText('basicInfo.displayName'), ' Jr.');
+      await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
+      expect(screen.queryByTestId('unsaved-indicator')).not.toBeInTheDocument();
+    });
+  });
+
   describe('edit isolation', () => {
     it('preserves unsaved edits when props change (no sync on refresh)', async () => {
       const u = userEvent.setup();

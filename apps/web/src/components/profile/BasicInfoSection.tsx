@@ -155,7 +155,9 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
 
       <Button type="submit" disabled={isSaving} className="gap-2">
         {isSaving && <Spinner size="sm" />}
-        {!isSaving && isDirty && <span className="size-2 rounded-full bg-amber-500" />}
+        {!isSaving && isDirty && (
+          <span data-testid="unsaved-indicator" className="size-2 rounded-full bg-amber-500" />
+        )}
         {isSaving ? t('basicInfo.saving') : t('basicInfo.save')}
       </Button>
     </form>
