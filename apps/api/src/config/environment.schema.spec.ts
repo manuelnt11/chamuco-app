@@ -30,11 +30,20 @@ describe('environment.schema — validate()', () => {
       );
     });
 
-    it('rejects comma-separated URLs (single origin only)', () => {
+    it('accepts comma-separated https URLs', () => {
       expect(() =>
         validate({
           ...baseEnv,
-          CORS_ORIGIN: 'https://chamucotravel.com,https://staging.chamucotravel.com',
+          CORS_ORIGIN: 'https://chamucotravel.com,https://www.chamucotravel.com',
+        }),
+      ).not.toThrow();
+    });
+
+    it('rejects comma-separated URLs where any lacks protocol', () => {
+      expect(() =>
+        validate({
+          ...baseEnv,
+          CORS_ORIGIN: 'https://chamucotravel.com,www.chamucotravel.com',
         }),
       ).toThrow('Environment validation failed');
     });

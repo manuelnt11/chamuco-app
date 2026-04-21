@@ -7,10 +7,11 @@ import { AppModule } from '@/app.module';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS — restrict to configured origin in production.
-  // CORS_ORIGIN must be a single URL. Unset locally to allow all origins.
+  // Enable CORS — restrict to configured origins in production.
+  // CORS_ORIGIN is a comma-separated list of https URLs. Unset locally to allow all origins.
   const corsOrigin = process.env.CORS_ORIGIN;
-  app.enableCors(corsOrigin ? { origin: corsOrigin } : undefined);
+  const origins = corsOrigin ? corsOrigin.split(',').map((o) => o.trim()) : undefined;
+  app.enableCors(origins ? { origin: origins } : undefined);
 
   // Global validation pipe
   app.useGlobalPipes(

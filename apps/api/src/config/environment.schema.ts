@@ -6,7 +6,6 @@ import {
   IsBoolean,
   IsOptional,
   IsString,
-  IsUrl,
   Matches,
   Min,
   Max,
@@ -54,7 +53,10 @@ class EnvironmentVariables {
   FIREBASE_SERVICE_ACCOUNT_JSON!: string;
 
   @IsOptional()
-  @IsUrl({ require_protocol: true, require_tld: true })
+  @IsString()
+  @Matches(/^https:\/\/[^\s,]+(,https:\/\/[^\s,]+)*$/, {
+    message: 'CORS_ORIGIN must be one or more comma-separated https URLs',
+  })
   CORS_ORIGIN?: string;
 }
 
