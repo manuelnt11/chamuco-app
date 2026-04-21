@@ -165,7 +165,9 @@
         "minAge": "You must be at least 16 years old to register",
         "invalidCountryCode": "Enter a 2-letter uppercase country code (e.g. CO)",
         "invalidPhone": "Enter a valid phone number (4–14 digits)",
-        "invalidPhoneCode": "Enter a valid country code (e.g. +57)"
+        "invalidPhoneCode": "Enter a valid country code (e.g. +57)",
+        "invalidName": "Letters and spaces only (2–100 characters), as on your passport",
+        "invalidDob": "Enter a valid date of birth"
       }
     }
   },
@@ -208,6 +210,7 @@
     "statistics": "Statistics",
     "tabs": {
       "basicInfo": "Basic Info",
+      "personalDetails": "Personal Details",
       "preferences": "Preferences",
       "loyaltyPrograms": "Loyalty Programs"
     },
@@ -250,6 +253,53 @@
       },
       "saveError": "Failed to save preferences"
     },
+    "personalDetails": {
+      "heading": "Personal Details",
+      "firstName": "First Name",
+      "firstNamePlaceholder": "JUAN CARLOS",
+      "firstNameHint": "As on your passport or ID",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "GARCÍA LÓPEZ",
+      "lastNameHint": "As on your passport or ID",
+      "dateOfBirth": "Date of Birth",
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
+      "yearVisible": "Show birth year on public profile",
+      "phone": "Phone Number",
+      "phoneCountry": "Country Code",
+      "phoneCountryPlaceholder": "Country",
+      "phoneCountrySearch": "Search countries…",
+      "phoneCountryNoResults": "No countries found.",
+      "phoneNumber": "Local Number",
+      "phoneNumberPlaceholder": "e.g. 3001234567",
+      "birthLocation": "Birth Location",
+      "birthLocationOptional": "Birth Location (optional)",
+      "birthCountry": "Birth Country",
+      "birthCountryPlaceholder": "Select country",
+      "birthCountrySearch": "Search countries…",
+      "birthCountryNoResults": "No countries found.",
+      "birthCity": "Birth City",
+      "birthCityPlaceholder": "e.g. Bogotá",
+      "homeLocation": "Home Location",
+      "homeCountry": "Home Country",
+      "homeCountryPlaceholder": "Select country",
+      "homeCountrySearch": "Search countries…",
+      "homeCountryNoResults": "No countries found.",
+      "homeCity": "Home City",
+      "homeCityPlaceholder": "e.g. Medellín",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "saveSuccess": "Personal details updated",
+      "saveError": "Failed to save personal details",
+      "errors": {
+        "firstNameRequired": "First name: letters and spaces only, 2–100 characters",
+        "lastNameRequired": "Last name: letters and spaces only, 2–100 characters",
+        "invalidDob": "Enter a valid date of birth (min age: 15)",
+        "invalidPhone": "Enter a valid phone number",
+        "homeCountryRequired": "Home country is required"
+      }
+    },
     "loyaltyPrograms": {
       "heading": "Loyalty Programs",
       "empty": "No loyalty programs added yet",
@@ -287,7 +337,9 @@
     "notFound": "Page not found",
     "unauthorized": "You are not authorized to access this resource",
     "networkError": "Network error. Please check your connection.",
-    "sessionExpired": "Your session has expired. Please sign in again."
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "loadError": "Failed to load data. Please try again.",
+    "retry": "Retry"
   },
   "legal": {
     "privacy": {
