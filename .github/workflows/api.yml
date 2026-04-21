@@ -142,6 +142,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
+          printf 'NODE_ENV: production\nCORS_ORIGIN: "https://chamucotravel.com,https://www.chamucotravel.com"\n' > /tmp/env-vars.yaml
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.ARTIFACT_REGISTRY }}/api:${{ github.sha }} \
             --region=${{ env.GCP_REGION }} \
@@ -150,7 +151,7 @@ jobs:
             --add-cloudsql-instances=chamuco-app-mn:us-central1:chamuco-postgres \
             --vpc-connector=chamuco-vpc-connector \
             --vpc-egress=private-ranges-only \
-            --set-env-vars=^|^NODE_ENV=production|CORS_ORIGIN=https://chamucotravel.com,https://www.chamucotravel.com \
+            --env-vars-file=/tmp/env-vars.yaml \
             --set-secrets=FIREBASE_SERVICE_ACCOUNT_JSON=FIREBASE_SERVICE_ACCOUNT_JSON:latest \
             --memory=512Mi \
             --cpu=1 \
