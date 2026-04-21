@@ -212,7 +212,8 @@
       "basicInfo": "Basic Info",
       "personalDetails": "Personal Details",
       "preferences": "Preferences",
-      "loyaltyPrograms": "Loyalty Programs"
+      "loyaltyPrograms": "Loyalty Programs",
+      "health": "Health"
     },
     "basicInfo": {
       "heading": "Basic Information",
@@ -317,6 +318,100 @@
       "updateSuccess": "Program updated",
       "deleteSuccess": "Program deleted",
       "saveError": "Failed to save"
+    },
+    "health": {
+      "heading": "Health Profile",
+      "privacyNote": "This information is private and only shared with trip organizers when you grant permission.",
+      "dietaryPreference": {
+        "label": "Dietary Preference",
+        "OMNIVORE": "Omnivore",
+        "VEGETARIAN": "Vegetarian",
+        "VEGAN": "Vegan",
+        "PESCATARIAN": "Pescatarian",
+        "GLUTEN_FREE": "Gluten Free",
+        "OTHER": "Other"
+      },
+      "dietaryNotes": {
+        "label": "Dietary Notes",
+        "placeholder": "Describe your dietary needs..."
+      },
+      "generalMedicalNotes": {
+        "label": "General Medical Notes",
+        "placeholder": "Any relevant medical information...",
+        "hint": "Private — only visible to trip organizers when explicitly shared."
+      },
+      "foodAllergies": {
+        "label": "Food Allergies",
+        "GLUTEN": "Gluten",
+        "CRUSTACEANS": "Crustaceans",
+        "EGGS": "Eggs",
+        "FISH": "Fish",
+        "PEANUTS": "Peanuts",
+        "SOYBEANS": "Soybeans",
+        "MILK": "Milk",
+        "TREE_NUTS": "Tree Nuts",
+        "CELERY": "Celery",
+        "MUSTARD": "Mustard",
+        "SESAME": "Sesame",
+        "SULPHITES": "Sulphites",
+        "LUPIN": "Lupin",
+        "MOLLUSCS": "Molluscs",
+        "OTHER": "Other"
+      },
+      "phobias": {
+        "label": "Phobias",
+        "HEIGHTS": "Heights",
+        "ENCLOSED_SPACES": "Enclosed Spaces",
+        "FLYING": "Flying",
+        "DEEP_WATER": "Deep Water",
+        "OPEN_WATER": "Open Water",
+        "ANIMALS": "Animals",
+        "INSECTS": "Insects",
+        "SNAKES": "Snakes",
+        "SPIDERS": "Spiders",
+        "DARKNESS": "Darkness",
+        "CROWDS": "Crowds",
+        "MOTION_SICKNESS": "Motion Sickness",
+        "OTHER": "Other"
+      },
+      "physicalLimitations": {
+        "label": "Physical Limitations",
+        "WHEELCHAIR_USER": "Wheelchair User",
+        "REDUCED_MOBILITY": "Reduced Mobility",
+        "CANNOT_USE_STAIRS": "Cannot Use Stairs",
+        "HEARING_IMPAIRMENT": "Hearing Impairment",
+        "VISUAL_IMPAIRMENT": "Visual Impairment",
+        "REQUIRES_OXYGEN": "Requires Oxygen",
+        "REQUIRES_CPAP": "Requires CPAP",
+        "CHRONIC_PAIN": "Chronic Pain",
+        "JOINT_CONDITION": "Joint Condition",
+        "CARDIAC_CONDITION": "Cardiac Condition",
+        "RESPIRATORY_CONDITION": "Respiratory Condition",
+        "PREGNANCY": "Pregnancy",
+        "OTHER": "Other"
+      },
+      "medicalConditions": {
+        "label": "Medical Conditions",
+        "DIABETES": "Diabetes",
+        "EPILEPSY": "Epilepsy",
+        "SEVERE_ALLERGY_EPIPEN": "Severe Allergy (EpiPen)",
+        "ASTHMA": "Asthma",
+        "HEART_CONDITION": "Heart Condition",
+        "HYPERTENSION": "Hypertension",
+        "BLOOD_CLOTTING_DISORDER": "Blood Clotting Disorder",
+        "IMMUNODEFICIENCY": "Immunodeficiency",
+        "MENTAL_HEALTH_CONDITION": "Mental Health Condition",
+        "OTHER": "Other"
+      },
+      "arrayField": {
+        "descriptionPlaceholder": "Optional details...",
+        "otherDescriptionPlaceholder": "Please describe...",
+        "otherDescriptionRequired": "Description is required for \"Other\""
+      },
+      "save": "Save Health Profile",
+      "saving": "Saving...",
+      "saveSuccess": "Health profile saved",
+      "saveError": "Failed to save health profile"
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",
