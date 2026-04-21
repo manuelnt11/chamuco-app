@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { BasicInfoSection } from '@/components/profile/BasicInfoSection';
+import { PersonalDetailsSection } from '@/components/profile/PersonalDetailsSection';
 import { PreferencesSection } from '@/components/profile/PreferencesSection';
 import { LoyaltyProgramsSection } from '@/components/profile/LoyaltyProgramsSection';
 import type { BasicInfoUser, BasicInfoProfile } from '@/components/profile/BasicInfoSection';
+import type { PersonalDetailsProfile } from '@/components/profile/PersonalDetailsSection';
 import type { PreferencesData } from '@/components/profile/PreferencesSection';
 import type { LoyaltyProgramDto } from '@/components/profile/LoyaltyProgramsSection';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,11 +20,24 @@ import { toast } from '@/components/ui/toast';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
 
-type Tab = 'basic' | 'preferences' | 'loyalty';
+type Tab = 'basic' | 'personal' | 'preferences' | 'loyalty';
+
+const DEFAULT_PERSONAL_DETAILS: PersonalDetailsProfile = {
+  firstName: '',
+  lastName: '',
+  dateOfBirth: { day: 1, month: 1, year: 2000, yearVisible: false },
+  phoneCountryCode: '+57',
+  phoneLocalNumber: '',
+  birthCountry: null,
+  birthCity: null,
+  homeCountry: 'CO',
+  homeCity: null,
+};
 
 interface ProfileData {
   user: BasicInfoUser;
   userProfile: BasicInfoProfile;
+  personalDetails: PersonalDetailsProfile;
   preferences: PreferencesData;
   loyaltyPrograms: LoyaltyProgramDto[];
 }
@@ -71,6 +86,10 @@ export default function ProfilePage() {
           profileRes.status === 'fulfilled'
             ? (profileRes.value.data as BasicInfoProfile)
             : { bio: null, homeCountry: null },
+        personalDetails:
+          profileRes.status === 'fulfilled'
+            ? (profileRes.value.data as PersonalDetailsProfile)
+            : DEFAULT_PERSONAL_DETAILS,
         preferences:
           prefRes.status === 'fulfilled'
             ? (prefRes.value.data as PreferencesData)
@@ -127,6 +146,7 @@ export default function ProfilePage() {
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'basic', label: t('tabs.basicInfo') },
+    { key: 'personal', label: t('tabs.personalDetails') },
     { key: 'preferences', label: t('tabs.preferences') },
     { key: 'loyalty', label: t('tabs.loyaltyPrograms') },
   ];
@@ -198,6 +218,14 @@ export default function ProfilePage() {
         hidden={activeTab !== 'basic'}
       >
         <BasicInfoSection user={data.user} userProfile={data.userProfile} onRefresh={loadData} />
+      </div>
+      <div
+        id="panel-personal"
+        role="tabpanel"
+        aria-labelledby="tab-personal"
+        hidden={activeTab !== 'personal'}
+      >
+        <PersonalDetailsSection profile={data.personalDetails} onRefresh={loadData} />
       </div>
       <div
         id="panel-preferences"

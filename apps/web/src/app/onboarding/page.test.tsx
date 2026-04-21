@@ -465,6 +465,7 @@ describe('OnboardingPage', () => {
     async function renderFormWithAvailableUsername(
       authOverrides: Partial<AuthContextValue> = {},
       username = 'newuser',
+      step2: { firstName?: string; lastName?: string } = {},
     ) {
       vi.mocked(useAuth).mockReturnValue(makeAuth(authOverrides));
       mockGetByUrl(); // /username-available → { available: true }
@@ -496,8 +497,8 @@ describe('OnboardingPage', () => {
       await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
 
       // Fill required step 2 fields
-      await user.type(screen.getByTestId('firstname-input'), 'JOHN');
-      await user.type(screen.getByTestId('lastname-input'), 'DOE');
+      await user.type(screen.getByTestId('firstname-input'), step2.firstName ?? 'JOHN');
+      await user.type(screen.getByTestId('lastname-input'), step2.lastName ?? 'DOE');
       await user.type(screen.getByTestId('dob-day-input'), '15');
       await user.type(screen.getByTestId('dob-month-input'), '6');
       await user.type(screen.getByTestId('dob-year-input'), '1990');
@@ -559,6 +560,96 @@ describe('OnboardingPage', () => {
       expect(screen.queryByTestId('firstname-input')).not.toBeInTheDocument();
     });
 
+    it('shows firstName, lastName, and DOB errors simultaneously when all step 2 fields are empty', async () => {
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
+      );
+      mockGetByUrl();
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime.bind(vi),
+        delay: null,
+      });
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+      await user.type(screen.getByTestId('username-input'), 'newuser');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+      // Click Next without filling any fields — all three groups should be invalid at once
+      await user.click(screen.getByTestId('next-btn'));
+      expect(screen.getByTestId('firstname-input')).toHaveAttribute('aria-invalid', 'true');
+      expect(screen.getByTestId('lastname-input')).toHaveAttribute('aria-invalid', 'true');
+      expect(screen.getByTestId('dob-day-input')).toHaveAttribute('aria-invalid', 'true');
+      expect(screen.queryByTestId('terms-checkbox')).not.toBeInTheDocument();
+    });
+
+    it('blocks navigation and shows invalidName error when firstName has numbers', async () => {
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
+      );
+      mockGetByUrl();
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime.bind(vi),
+        delay: null,
+      });
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+      await user.type(screen.getByTestId('username-input'), 'newuser');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+      await user.type(screen.getByTestId('firstname-input'), 'JOHN123');
+      await user.type(screen.getByTestId('lastname-input'), 'DOE');
+      await user.type(screen.getByTestId('dob-day-input'), '15');
+      await user.type(screen.getByTestId('dob-month-input'), '6');
+      await user.type(screen.getByTestId('dob-year-input'), '1990');
+      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+      await user.click(screen.getByTestId('next-btn'));
+      expect(screen.getByText('onboarding.validation.invalidName')).toBeInTheDocument();
+      expect(screen.queryByTestId('terms-checkbox')).not.toBeInTheDocument();
+    });
+
+    it('blocks navigation and shows invalidName error when lastName has special characters', async () => {
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
+      );
+      mockGetByUrl();
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime.bind(vi),
+        delay: null,
+      });
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+      await user.type(screen.getByTestId('username-input'), 'newuser');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+      await user.type(screen.getByTestId('firstname-input'), 'JOHN');
+      await user.type(screen.getByTestId('lastname-input'), 'DOE@#$');
+      await user.type(screen.getByTestId('dob-day-input'), '15');
+      await user.type(screen.getByTestId('dob-month-input'), '6');
+      await user.type(screen.getByTestId('dob-year-input'), '1990');
+      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+      await user.click(screen.getByTestId('next-btn'));
+      expect(screen.getByText('onboarding.validation.invalidName')).toBeInTheDocument();
+      expect(screen.queryByTestId('terms-checkbox')).not.toBeInTheDocument();
+    });
+
     it('submit button is disabled while isSubmitting', async () => {
       mocks.mockApiPost.mockReturnValue(new Promise(() => undefined)); // never resolves
       const user = await renderFormWithAvailableUsername({
@@ -592,6 +683,22 @@ describe('OnboardingPage', () => {
           phoneCountryCode: '+57',
           phoneLocalNumber: '3001234567',
         }),
+      );
+    });
+
+    it('normalizes whitespace in firstName and lastName before sending to API', async () => {
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      const user = await renderFormWithAvailableUsername(
+        { currentUser: makeUser({ displayName: 'Test User' }) },
+        'newuser',
+        { firstName: ' JUAN  CARLOS ', lastName: ' GARCIA  LOPEZ ' },
+      );
+      await user.click(screen.getByTestId('submit-btn'));
+      await waitFor(() =>
+        expect(mocks.mockApiPost).toHaveBeenCalledWith(
+          '/v1/auth/register',
+          expect.objectContaining({ firstName: 'JUAN CARLOS', lastName: 'GARCIA LOPEZ' }),
+        ),
       );
     });
 

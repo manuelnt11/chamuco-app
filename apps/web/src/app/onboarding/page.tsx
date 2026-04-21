@@ -63,10 +63,17 @@ type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 // Step validation helpers
 // ---------------------------------------------------------------------------
 
-function validateStep1(usernameStatus: UsernameStatus, displayName: string): string | null {
-  if (usernameStatus !== 'available') return 'username';
-  if (!displayName.trim()) return 'displayName';
-  return null;
+function validateStep1(usernameStatus: UsernameStatus, displayName: string): string[] {
+  const errors: string[] = [];
+  if (usernameStatus !== 'available') errors.push('username');
+  if (!displayName.trim()) errors.push('displayName');
+  return errors;
+}
+
+const NAME_REGEX = /^[\p{L}\s]+$/u;
+
+function normalizeName(name: string): string {
+  return name.trim().replace(/\s+/g, ' ');
 }
 
 function validateStep2(
@@ -77,23 +84,30 @@ function validateStep2(
   dobYear: string,
   phoneCountry: string,
   phoneNumber: string,
-): string | null {
-  if (!firstName.trim() || firstName.trim().length < 2) return 'firstName';
-  if (!lastName.trim() || lastName.trim().length < 2) return 'lastName';
+): string[] {
+  const errors: string[] = [];
+  const fn = normalizeName(firstName);
+  const ln = normalizeName(lastName);
+  if (!fn || fn.length < 2) errors.push('firstName');
+  else if (fn.length > 100 || !NAME_REGEX.test(fn)) errors.push('firstNameInvalid');
+  if (!ln || ln.length < 2) errors.push('lastName');
+  else if (ln.length > 100 || !NAME_REGEX.test(ln)) errors.push('lastNameInvalid');
   const d = parseInt(dobDay, 10);
   const m = parseInt(dobMonth, 10);
   const y = parseInt(dobYear, 10);
-  if (!dobDay || !dobMonth || !dobYear || isNaN(d) || isNaN(m) || isNaN(y)) return 'dob';
-  if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900) return 'dob';
-  if (computeAge(d, m, y) < 16) return 'minAge';
-  if (!isValidPhoneNumber(phoneNumber, phoneCountry as CountryCode)) return 'phoneNumber';
-  return null;
+  if (!dobDay || !dobMonth || !dobYear || isNaN(d) || isNaN(m) || isNaN(y))
+    errors.push('dobRequired');
+  else if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900) errors.push('dobInvalid');
+  else if (computeAge(d, m, y) < 16) errors.push('minAge');
+  if (!isValidPhoneNumber(phoneNumber, phoneCountry as CountryCode)) errors.push('phoneNumber');
+  return errors;
 }
 
-function validateStep3(homeCountry: string, termsAccepted: boolean): string | null {
-  if (!homeCountry) return 'homeCountry';
-  if (!termsAccepted) return 'terms';
-  return null;
+function validateStep3(homeCountry: string, termsAccepted: boolean): string[] {
+  const errors: string[] = [];
+  if (!homeCountry) errors.push('homeCountry');
+  if (!termsAccepted) errors.push('terms');
+  return errors;
 }
 
 // ---------------------------------------------------------------------------
@@ -130,8 +144,8 @@ export default function OnboardingPage() {
   const [homeCity, setHomeCity] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Step-level error key
-  const [stepError, setStepError] = useState<string | null>(null);
+  // Step-level error keys
+  const [stepErrors, setStepErrors] = useState<string[]>([]);
 
   // Pre-fill from OAuth provider
   useEffect(() => {
@@ -201,23 +215,27 @@ export default function OnboardingPage() {
   function handleUsernameChange(value: string) {
     setUsernameUserEdited(true);
     applyUsername(value);
-    setStepError(null);
+    setStepErrors([]);
   }
 
   function handleDisplayNameChange(value: string) {
     setDisplayName(value);
-    setStepError(null);
+    setStepErrors([]);
     if (!usernameUserEdited) {
       applyUsername(toUsernameSlug(value));
     }
   }
 
   function handleNext() {
-    let error: string | null = null;
+    if (step === 2) {
+      setFirstName((v) => normalizeName(v));
+      setLastName((v) => normalizeName(v));
+    }
+    let errors: string[] = [];
     if (step === 1) {
-      error = validateStep1(usernameStatus, displayName);
+      errors = validateStep1(usernameStatus, displayName);
     } else if (step === 2) {
-      error = validateStep2(
+      errors = validateStep2(
         firstName,
         lastName,
         dobDay,
@@ -227,19 +245,19 @@ export default function OnboardingPage() {
         phoneNumber,
       );
     }
-    if (error) {
-      setStepError(error);
+    if (errors.length > 0) {
+      setStepErrors(errors);
       return;
     }
-    setStepError(null);
+    setStepErrors([]);
     setStep((s) => s + 1);
   }
 
   async function handleSubmit(e: SyntheticEvent) {
     e.preventDefault();
-    const error = validateStep3(homeCountry, termsAccepted);
-    if (error) {
-      setStepError(error);
+    const errors = validateStep3(homeCountry, termsAccepted);
+    if (errors.length > 0) {
+      setStepErrors(errors);
       return;
     }
     setIsSubmitting(true);
@@ -247,8 +265,8 @@ export default function OnboardingPage() {
       await apiClient.post('/v1/auth/register', {
         username,
         displayName: displayName.trim(),
-        firstName,
-        lastName,
+        firstName: normalizeName(firstName),
+        lastName: normalizeName(lastName),
         dateOfBirth: {
           day: parseInt(dobDay, 10),
           month: parseInt(dobMonth, 10),
@@ -266,7 +284,7 @@ export default function OnboardingPage() {
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
         setStep(1);
-        setStepError(null);
+        setStepErrors([]);
         setUsernameStatus('taken');
         toast.error(t('onboarding.error.usernameTaken'));
       } else {
@@ -320,7 +338,7 @@ export default function OnboardingPage() {
             username={username}
             displayName={displayName}
             usernameStatus={usernameStatus}
-            stepError={stepError}
+            stepErrors={stepErrors}
             onUsernameChange={handleUsernameChange}
             onDisplayNameChange={handleDisplayNameChange}
             t={t}
@@ -336,34 +354,34 @@ export default function OnboardingPage() {
             dobYear={dobYear}
             phoneCountry={phoneCountry}
             phoneNumber={phoneNumber}
-            stepError={stepError}
+            stepErrors={stepErrors}
             onFirstNameChange={(v) => {
               setFirstName(v.toUpperCase());
-              setStepError(null);
+              setStepErrors([]);
             }}
             onLastNameChange={(v) => {
               setLastName(v.toUpperCase());
-              setStepError(null);
+              setStepErrors([]);
             }}
             onDobDayChange={(v) => {
               setDobDay(v);
-              setStepError(null);
+              setStepErrors([]);
             }}
             onDobMonthChange={(v) => {
               setDobMonth(v);
-              setStepError(null);
+              setStepErrors([]);
             }}
             onDobYearChange={(v) => {
               setDobYear(v);
-              setStepError(null);
+              setStepErrors([]);
             }}
             onPhoneCountryChange={(v) => {
               setPhoneCountry(v);
-              setStepError(null);
+              setStepErrors([]);
             }}
             onPhoneNumberChange={(v) => {
               setPhoneNumber(v);
-              setStepError(null);
+              setStepErrors([]);
             }}
             t={t}
           />
@@ -374,15 +392,15 @@ export default function OnboardingPage() {
             homeCountry={homeCountry}
             homeCity={homeCity}
             termsAccepted={termsAccepted}
-            stepError={stepError}
+            stepErrors={stepErrors}
             onHomeCountryChange={(v) => {
               setHomeCountry(v);
-              setStepError(null);
+              setStepErrors([]);
             }}
             onHomeCityChange={(v) => setHomeCity(v.toUpperCase())}
             onTermsChange={(v) => {
               setTermsAccepted(v);
-              setStepError(null);
+              setStepErrors([]);
             }}
             t={t}
           />
@@ -421,7 +439,7 @@ export default function OnboardingPage() {
               size="lg"
               onClick={() => {
                 setStep((s) => s - 1);
-                setStepError(null);
+                setStepErrors([]);
               }}
               disabled={isSubmitting}
               className="h-11 text-muted-foreground hover:text-foreground"
@@ -455,7 +473,7 @@ interface Step1Props {
   username: string;
   displayName: string;
   usernameStatus: UsernameStatus;
-  stepError: string | null;
+  stepErrors: string[];
   onUsernameChange: (v: string) => void;
   onDisplayNameChange: (v: string) => void;
   t: TFunction;
@@ -465,7 +483,7 @@ function Step1({
   username,
   displayName,
   usernameStatus,
-  stepError,
+  stepErrors,
   onUsernameChange,
   onDisplayNameChange,
   t,
@@ -481,10 +499,10 @@ function Step1({
           value={displayName}
           onChange={(e) => onDisplayNameChange(e.target.value)}
           placeholder={t('onboarding.displayName.placeholder')}
-          aria-invalid={stepError === 'displayName'}
+          aria-invalid={stepErrors.includes('displayName')}
           data-testid="displayname-input"
         />
-        {stepError === 'displayName' && (
+        {stepErrors.includes('displayName') && (
           <p className="text-xs text-destructive">{t('onboarding.validation.required')}</p>
         )}
       </div>
@@ -527,7 +545,7 @@ interface Step2Props {
   dobYear: string;
   phoneCountry: string;
   phoneNumber: string;
-  stepError: string | null;
+  stepErrors: string[];
   onFirstNameChange: (v: string) => void;
   onLastNameChange: (v: string) => void;
   onDobDayChange: (v: string) => void;
@@ -546,7 +564,7 @@ function Step2({
   dobYear,
   phoneCountry,
   phoneNumber,
-  stepError,
+  stepErrors,
   onFirstNameChange,
   onLastNameChange,
   onDobDayChange,
@@ -569,12 +587,14 @@ function Step2({
           placeholder={t('onboarding.firstName.placeholder')}
           value={firstName}
           onChange={(e) => onFirstNameChange(e.target.value)}
-          aria-invalid={stepError === 'firstName'}
+          aria-invalid={stepErrors.includes('firstName') || stepErrors.includes('firstNameInvalid')}
           data-testid="firstname-input"
           className="uppercase placeholder:normal-case"
         />
-        {stepError === 'firstName' ? (
+        {stepErrors.includes('firstName') ? (
           <p className="text-xs text-destructive">{t('onboarding.validation.required')}</p>
+        ) : stepErrors.includes('firstNameInvalid') ? (
+          <p className="text-xs text-destructive">{t('onboarding.validation.invalidName')}</p>
         ) : (
           <p className="text-xs text-muted-foreground">{t('onboarding.firstName.hint')}</p>
         )}
@@ -590,12 +610,14 @@ function Step2({
           placeholder={t('onboarding.lastName.placeholder')}
           value={lastName}
           onChange={(e) => onLastNameChange(e.target.value)}
-          aria-invalid={stepError === 'lastName'}
+          aria-invalid={stepErrors.includes('lastName') || stepErrors.includes('lastNameInvalid')}
           data-testid="lastname-input"
           className="uppercase placeholder:normal-case"
         />
-        {stepError === 'lastName' ? (
+        {stepErrors.includes('lastName') ? (
           <p className="text-xs text-destructive">{t('onboarding.validation.required')}</p>
+        ) : stepErrors.includes('lastNameInvalid') ? (
+          <p className="text-xs text-destructive">{t('onboarding.validation.invalidName')}</p>
         ) : (
           <p className="text-xs text-muted-foreground">{t('onboarding.lastName.hint')}</p>
         )}
@@ -612,7 +634,11 @@ function Step2({
             placeholder={t('onboarding.dateOfBirth.day')}
             value={dobDay}
             onChange={(e) => onDobDayChange(e.target.value)}
-            aria-invalid={stepError === 'dob' || stepError === 'minAge'}
+            aria-invalid={
+              stepErrors.includes('dobRequired') ||
+              stepErrors.includes('dobInvalid') ||
+              stepErrors.includes('minAge')
+            }
             data-testid="dob-day-input"
           />
           <Input
@@ -623,7 +649,11 @@ function Step2({
             placeholder={t('onboarding.dateOfBirth.month')}
             value={dobMonth}
             onChange={(e) => onDobMonthChange(e.target.value)}
-            aria-invalid={stepError === 'dob' || stepError === 'minAge'}
+            aria-invalid={
+              stepErrors.includes('dobRequired') ||
+              stepErrors.includes('dobInvalid') ||
+              stepErrors.includes('minAge')
+            }
             data-testid="dob-month-input"
           />
           <Input
@@ -633,14 +663,21 @@ function Step2({
             placeholder={t('onboarding.dateOfBirth.year')}
             value={dobYear}
             onChange={(e) => onDobYearChange(e.target.value)}
-            aria-invalid={stepError === 'dob' || stepError === 'minAge'}
+            aria-invalid={
+              stepErrors.includes('dobRequired') ||
+              stepErrors.includes('dobInvalid') ||
+              stepErrors.includes('minAge')
+            }
             data-testid="dob-year-input"
           />
         </div>
-        {stepError === 'dob' && (
+        {stepErrors.includes('dobRequired') && (
           <p className="text-xs text-destructive">{t('onboarding.validation.required')}</p>
         )}
-        {stepError === 'minAge' && (
+        {stepErrors.includes('dobInvalid') && (
+          <p className="text-xs text-destructive">{t('onboarding.validation.invalidDob')}</p>
+        )}
+        {stepErrors.includes('minAge') && (
           <p className="text-xs text-destructive">{t('onboarding.validation.minAge')}</p>
         )}
       </div>
@@ -655,7 +692,7 @@ function Step2({
             placeholder={t('onboarding.phone.countryPlaceholder')}
             searchPlaceholder={t('onboarding.phone.search')}
             noResultsText={t('onboarding.phone.noResults')}
-            aria-invalid={stepError === 'phoneCode'}
+            aria-invalid={stepErrors.includes('phoneCode')}
             aria-labelledby="phone-country-label"
             data-testid="phone-code-input"
           />
@@ -664,14 +701,14 @@ function Step2({
             value={phoneNumber}
             onChange={(e) => onPhoneNumberChange(e.target.value)}
             placeholder={t('onboarding.phone.number')}
-            aria-invalid={stepError === 'phoneNumber'}
+            aria-invalid={stepErrors.includes('phoneNumber')}
             data-testid="phone-number-input"
           />
         </div>
-        {stepError === 'phoneCode' && (
+        {stepErrors.includes('phoneCode') && (
           <p className="text-xs text-destructive">{t('onboarding.validation.invalidPhoneCode')}</p>
         )}
-        {stepError === 'phoneNumber' && (
+        {stepErrors.includes('phoneNumber') && (
           <p className="text-xs text-destructive">{t('onboarding.validation.invalidPhone')}</p>
         )}
       </div>
@@ -687,7 +724,7 @@ interface Step3Props {
   homeCountry: string;
   homeCity: string;
   termsAccepted: boolean;
-  stepError: string | null;
+  stepErrors: string[];
   onHomeCountryChange: (v: string) => void;
   onHomeCityChange: (v: string) => void;
   onTermsChange: (v: boolean) => void;
@@ -698,7 +735,7 @@ function Step3({
   homeCountry,
   homeCity,
   termsAccepted,
-  stepError,
+  stepErrors,
   onHomeCountryChange,
   onHomeCityChange,
   onTermsChange,
@@ -715,12 +752,12 @@ function Step3({
           placeholder={t('onboarding.homeCountry.placeholder')}
           searchPlaceholder={t('onboarding.homeCountry.search')}
           noResultsText={t('onboarding.homeCountry.noResults')}
-          aria-invalid={stepError === 'homeCountry'}
+          aria-invalid={stepErrors.includes('homeCountry')}
           aria-labelledby="home-country-label"
           data-testid="home-country-input"
           className="w-full"
         />
-        {stepError === 'homeCountry' && (
+        {stepErrors.includes('homeCountry') && (
           <p className="text-xs text-destructive">{t('onboarding.validation.required')}</p>
         )}
       </div>
@@ -770,7 +807,7 @@ function Step3({
           />
         </span>
       </label>
-      {stepError === 'terms' && (
+      {stepErrors.includes('terms') && (
         <p className="text-xs text-destructive">{t('onboarding.terms.required')}</p>
       )}
     </div>

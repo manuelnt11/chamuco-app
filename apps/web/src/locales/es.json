@@ -165,7 +165,9 @@
         "minAge": "Debes tener al menos 16 años para registrarte",
         "invalidCountryCode": "Ingresa un código de país de 2 letras mayúsculas (ej. CO)",
         "invalidPhone": "Ingresa un número de teléfono válido (4–14 dígitos)",
-        "invalidPhoneCode": "Ingresa un código de país válido (ej. +57)"
+        "invalidPhoneCode": "Ingresa un código de país válido (ej. +57)",
+        "invalidName": "Solo letras y espacios (2–100 caracteres), tal como aparece en tu pasaporte",
+        "invalidDob": "Ingresa una fecha de nacimiento válida"
       }
     }
   },
@@ -208,6 +210,7 @@
     "statistics": "Estadísticas",
     "tabs": {
       "basicInfo": "Información Básica",
+      "personalDetails": "Datos Personales",
       "preferences": "Preferencias",
       "loyaltyPrograms": "Programas de Fidelidad"
     },
@@ -250,6 +253,53 @@
       },
       "saveError": "Error al guardar las preferencias"
     },
+    "personalDetails": {
+      "heading": "Datos Personales",
+      "firstName": "Nombre(s)",
+      "firstNamePlaceholder": "JUAN CARLOS",
+      "firstNameHint": "Como aparece en tu pasaporte o documento de identidad",
+      "lastName": "Apellido(s)",
+      "lastNamePlaceholder": "GARCÍA LÓPEZ",
+      "lastNameHint": "Como aparece en tu pasaporte o documento de identidad",
+      "dateOfBirth": "Fecha de Nacimiento",
+      "day": "Día",
+      "month": "Mes",
+      "year": "Año",
+      "yearVisible": "Mostrar año de nacimiento en el perfil público",
+      "phone": "Número de Teléfono",
+      "phoneCountry": "Código de País",
+      "phoneCountryPlaceholder": "País",
+      "phoneCountrySearch": "Buscar países…",
+      "phoneCountryNoResults": "No se encontraron países.",
+      "phoneNumber": "Número Local",
+      "phoneNumberPlaceholder": "ej. 3001234567",
+      "birthLocation": "Lugar de Nacimiento",
+      "birthLocationOptional": "Lugar de Nacimiento (opcional)",
+      "birthCountry": "País de Nacimiento",
+      "birthCountryPlaceholder": "Seleccionar país",
+      "birthCountrySearch": "Buscar países…",
+      "birthCountryNoResults": "No se encontraron países.",
+      "birthCity": "Ciudad de Nacimiento",
+      "birthCityPlaceholder": "ej. Bogotá",
+      "homeLocation": "Lugar de Residencia",
+      "homeCountry": "País de Residencia",
+      "homeCountryPlaceholder": "Seleccionar país",
+      "homeCountrySearch": "Buscar países…",
+      "homeCountryNoResults": "No se encontraron países.",
+      "homeCity": "Ciudad de Residencia",
+      "homeCityPlaceholder": "ej. Medellín",
+      "save": "Guardar cambios",
+      "saving": "Guardando...",
+      "saveSuccess": "Datos personales actualizados",
+      "saveError": "Error al guardar los datos personales",
+      "errors": {
+        "firstNameRequired": "El nombre debe tener entre 2 y 100 letras",
+        "lastNameRequired": "El apellido debe tener entre 2 y 100 letras",
+        "invalidDob": "Ingresa una fecha de nacimiento válida (edad mínima: 15)",
+        "invalidPhone": "Ingresa un número de teléfono válido",
+        "homeCountryRequired": "El país de residencia es obligatorio"
+      }
+    },
     "loyaltyPrograms": {
       "heading": "Programas de Fidelidad",
       "empty": "No hay programas de fidelidad agregados",
@@ -287,7 +337,9 @@
     "notFound": "Página no encontrada",
     "unauthorized": "No estás autorizado para acceder a este recurso",
     "networkError": "Error de red. Por favor verifica tu conexión.",
-    "sessionExpired": "Tu sesión ha expirado. Por favor inicia sesión nuevamente."
+    "sessionExpired": "Tu sesión ha expirado. Por favor inicia sesión nuevamente.",
+    "loadError": "Error al cargar los datos. Por favor intenta de nuevo.",
+    "retry": "Reintentar"
   },
   "legal": {
     "privacy": {
