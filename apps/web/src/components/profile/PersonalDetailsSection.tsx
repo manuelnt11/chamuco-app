@@ -41,6 +41,9 @@ function isValidCalendarDay(day: number, month: number, year: number): boolean {
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
+const NAME_REGEX = /^[\p{L}\s]+$/u;
+const CURRENT_YEAR = new Date().getFullYear();
+
 export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSectionProps) {
   const { t } = useTranslation('profile');
 
@@ -66,9 +69,6 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
   const [homeCountryError, setHomeCountryError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const nameRegex = /^[\p{L}\s]+$/u;
-  const currentYear = new Date().getFullYear();
-
   const isDirty =
     firstName !== profile.firstName ||
     lastName !== profile.lastName ||
@@ -92,7 +92,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
       !firstName.trim() ||
       firstName.trim().length < 2 ||
       firstName.trim().length > 100 ||
-      !nameRegex.test(firstName.trim())
+      !NAME_REGEX.test(firstName.trim())
     ) {
       setFirstNameError(t('personalDetails.errors.firstNameRequired'));
       hasError = true;
@@ -104,7 +104,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
       !lastName.trim() ||
       lastName.trim().length < 2 ||
       lastName.trim().length > 100 ||
-      !nameRegex.test(lastName.trim())
+      !NAME_REGEX.test(lastName.trim())
     ) {
       setLastNameError(t('personalDetails.errors.lastNameRequired'));
       hasError = true;
@@ -124,7 +124,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
       month >= 1 &&
       month <= 12 &&
       year >= 1900 &&
-      year <= currentYear - 15 &&
+      year <= CURRENT_YEAR - 15 &&
       isValidCalendarDay(day, month, year);
 
     if (!dobValid) {
@@ -247,7 +247,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
               id="dobYear"
               type="number"
               min={1900}
-              max={currentYear - 15}
+              max={CURRENT_YEAR - 15}
               value={dobYear}
               onChange={(e) => setDobYear(e.target.value)}
               aria-invalid={dobError !== null}

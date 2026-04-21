@@ -76,6 +76,11 @@ function normalizeName(name: string): string {
   return name.trim().replace(/\s+/g, ' ');
 }
 
+function isValidCalendarDay(day: number, month: number, year: number): boolean {
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
 function validateStep2(
   firstName: string,
   lastName: string,
@@ -97,7 +102,8 @@ function validateStep2(
   const y = parseInt(dobYear, 10);
   if (!dobDay || !dobMonth || !dobYear || isNaN(d) || isNaN(m) || isNaN(y))
     errors.push('dobRequired');
-  else if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900) errors.push('dobInvalid');
+  else if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || !isValidCalendarDay(d, m, y))
+    errors.push('dobInvalid');
   else if (computeAge(d, m, y) < 16) errors.push('minAge');
   if (!isValidPhoneNumber(phoneNumber, phoneCountry as CountryCode)) errors.push('phoneNumber');
   return errors;

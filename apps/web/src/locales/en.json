@@ -293,8 +293,8 @@
       "saveSuccess": "Personal details updated",
       "saveError": "Failed to save personal details",
       "errors": {
-        "firstNameRequired": "First name must be 2–100 letters",
-        "lastNameRequired": "Last name must be 2–100 letters",
+        "firstNameRequired": "First name: letters and spaces only, 2–100 characters",
+        "lastNameRequired": "Last name: letters and spaces only, 2–100 characters",
         "invalidDob": "Enter a valid date of birth (min age: 15)",
         "invalidPhone": "Enter a valid phone number",
         "homeCountryRequired": "Home country is required"

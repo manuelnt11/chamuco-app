@@ -293,8 +293,8 @@
       "saveSuccess": "Datos personales actualizados",
       "saveError": "Error al guardar los datos personales",
       "errors": {
-        "firstNameRequired": "El nombre debe tener entre 2 y 100 letras",
-        "lastNameRequired": "El apellido debe tener entre 2 y 100 letras",
+        "firstNameRequired": "El nombre puede contener letras y espacios (2–100 caracteres)",
+        "lastNameRequired": "El apellido puede contener letras y espacios (2–100 caracteres)",
         "invalidDob": "Ingresa una fecha de nacimiento válida (edad mínima: 15)",
         "invalidPhone": "Ingresa un número de teléfono válido",
         "homeCountryRequired": "El país de residencia es obligatorio"
