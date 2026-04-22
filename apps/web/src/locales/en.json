@@ -234,7 +234,15 @@
       "saving": "Saving...",
       "saveSuccess": "Profile updated",
       "saveError": "Failed to save profile",
-      "validDisplayName": "Display name must be between 1 and 100 characters"
+      "validDisplayName": "Display name must be between 1 and 100 characters",
+      "profileVisibility": "Profile Visibility",
+      "profileVisibilityHint": "Controls who can see your travel stats, achievements, and discovery map.",
+      "profileVisibilityOptions": {
+        "PRIVATE": "Private",
+        "CONNECTIONS_ONLY": "Connections",
+        "MEMBERS_ONLY": "Members",
+        "PUBLIC": "Public"
+      }
     },
     "preferences": {
       "heading": "Preferences",
@@ -498,6 +506,34 @@
         "passportIncomplete": "Provide all three passport fields or leave them all empty.",
         "passportFormat": "Passport number may only contain uppercase letters, numbers, and hyphens.",
         "expiryBeforeIssue": "Expiry date must be after issue date."
+      }
+    },
+    "publicProfile": {
+      "notFound": "Profile not found",
+      "notFoundDescription": "No user with the username @{{username}} exists.",
+      "loadError": "Failed to load profile",
+      "retry": "Try again",
+      "privateProfile": "This profile is private",
+      "privateProfileDescription": "{{displayName}} has set their profile to private.",
+      "stats": {
+        "heading": "Travel Stats",
+        "tripsCompleted": "Trips",
+        "countriesVisited": "Countries",
+        "kmTraveled": "Km traveled",
+        "citiesVisited": "Cities",
+        "tripsAsOrganizer": "As organizer"
+      },
+      "achievements": {
+        "heading": "Achievements",
+        "empty": "No achievements yet"
+      },
+      "recognitions": {
+        "heading": "Recognitions",
+        "empty": "No recognitions yet"
+      },
+      "discoveryMap": {
+        "heading": "Discovery Map",
+        "placeholder": "Full map coming soon"
       }
     },
     "errors": {

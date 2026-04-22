@@ -108,7 +108,8 @@ export class UsersController {
   @ApiBody({ type: UpdateUserDto })
   @ApiOperation({
     summary: 'Update the current authenticated user',
-    description: 'Updates any subset of editable user fields: displayName, avatarUrl, timezone.',
+    description:
+      'Updates any subset of editable user fields: displayName, avatarUrl, timezone, profileVisibility.',
   })
   @ApiResponse({ status: 200, type: UserResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })

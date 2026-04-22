@@ -296,6 +296,17 @@ describe('UsersController', () => {
       expect(result).toEqual(updated);
     });
 
+    it('delegates profileVisibility update to service', async () => {
+      const dto: UpdateUserDto = { profileVisibility: ProfileVisibility.PUBLIC };
+      const updated = { ...mockUser, profileVisibility: ProfileVisibility.PUBLIC };
+      mockUpdateMe.mockResolvedValue(updated);
+
+      const result = await controller.updateMe(mockAuthUser, dto);
+
+      expect(mockUpdateMe).toHaveBeenCalledWith(mockAuthUser, dto);
+      expect(result.profileVisibility).toBe(ProfileVisibility.PUBLIC);
+    });
+
     it('propagates NotFoundException from the service', async () => {
       mockUpdateMe.mockRejectedValue(new NotFoundException());
 

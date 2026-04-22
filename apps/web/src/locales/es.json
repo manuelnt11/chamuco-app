@@ -234,7 +234,15 @@
       "saving": "Guardando...",
       "saveSuccess": "Perfil actualizado",
       "saveError": "Error al guardar el perfil",
-      "validDisplayName": "El nombre para mostrar debe tener entre 1 y 100 caracteres"
+      "validDisplayName": "El nombre para mostrar debe tener entre 1 y 100 caracteres",
+      "profileVisibility": "Visibilidad del perfil",
+      "profileVisibilityHint": "Controla quién puede ver tus estadísticas de viaje, logros y mapa de descubrimiento.",
+      "profileVisibilityOptions": {
+        "PRIVATE": "Privado",
+        "CONNECTIONS_ONLY": "Conexiones",
+        "MEMBERS_ONLY": "Miembros",
+        "PUBLIC": "Público"
+      }
     },
     "preferences": {
       "heading": "Preferencias",
@@ -498,6 +506,34 @@
         "passportIncomplete": "Completa los tres campos del pasaporte o déjalos todos vacíos.",
         "passportFormat": "El número de pasaporte solo puede contener letras mayúsculas, números y guiones.",
         "expiryBeforeIssue": "La fecha de vencimiento debe ser posterior a la fecha de expedición."
+      }
+    },
+    "publicProfile": {
+      "notFound": "Perfil no encontrado",
+      "notFoundDescription": "No existe ningún usuario con el nombre de usuario @{{username}}.",
+      "loadError": "Error al cargar el perfil",
+      "retry": "Intentar de nuevo",
+      "privateProfile": "Este perfil es privado",
+      "privateProfileDescription": "{{displayName}} ha configurado su perfil como privado.",
+      "stats": {
+        "heading": "Estadísticas de viaje",
+        "tripsCompleted": "Viajes",
+        "countriesVisited": "Países",
+        "kmTraveled": "Km recorridos",
+        "citiesVisited": "Ciudades",
+        "tripsAsOrganizer": "Como organizador"
+      },
+      "achievements": {
+        "heading": "Logros",
+        "empty": "Aún no hay logros"
+      },
+      "recognitions": {
+        "heading": "Reconocimientos",
+        "empty": "Aún no hay reconocimientos"
+      },
+      "discoveryMap": {
+        "heading": "Mapa de descubrimiento",
+        "placeholder": "Mapa completo próximamente"
       }
     },
     "errors": {

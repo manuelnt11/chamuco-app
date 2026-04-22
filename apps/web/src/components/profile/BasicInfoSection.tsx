@@ -2,23 +2,27 @@
 
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ProfileVisibility } from '@chamuco/shared-types';
 
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { TimezoneCombobox } from '@/components/ui/timezone-combobox';
 import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
 import { COUNTRY_TIMEZONE } from '@/lib/timezones';
+import { getInitials } from '@/lib/name-utils';
 
 export interface BasicInfoUser {
   username: string;
   displayName: string;
   avatarUrl: string | null;
   timezone: string;
+  profileVisibility: ProfileVisibility;
 }
 
 export interface BasicInfoProfile {
@@ -32,15 +36,6 @@ interface BasicInfoSectionProps {
   onRefresh: () => void;
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
-
 export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSectionProps) {
   const { t } = useTranslation('profile');
 
@@ -48,6 +43,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
   const [bio, setBio] = useState(userProfile.bio ?? '');
   const [isSaving, setIsSaving] = useState(false);
   const [displayNameError, setDisplayNameError] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState(user.profileVisibility);
 
   const suggestedTimezone =
     user.timezone === 'UTC' && userProfile.homeCountry
@@ -58,7 +54,8 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
   const isDirty =
     displayName.trim() !== user.displayName ||
     (bio.trim() || null) !== userProfile.bio ||
-    timezone !== user.timezone;
+    timezone !== user.timezone ||
+    visibility !== user.profileVisibility;
 
   async function handleSave(e: FormEvent) {
     e.preventDefault();
@@ -74,6 +71,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
         apiClient.patch('/v1/users/me', {
           displayName: trimmedName,
           timezone,
+          profileVisibility: visibility,
         }),
         apiClient.patch('/v1/users/me/profile', {
           bio: bio.trim() || null,
@@ -151,6 +149,23 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
           aria-labelledby="timezone-label"
           className="w-full"
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="profileVisibility">{t('basicInfo.profileVisibility')}</Label>
+        <Select
+          id="profileVisibility"
+          value={visibility}
+          onChange={(e) => setVisibility(e.target.value as ProfileVisibility)}
+          disabled={isSaving}
+        >
+          {Object.values(ProfileVisibility).map((v) => (
+            <option key={v} value={v}>
+              {t(`basicInfo.profileVisibilityOptions.${v}`)}
+            </option>
+          ))}
+        </Select>
+        <p className="text-xs text-muted-foreground">{t('basicInfo.profileVisibilityHint')}</p>
       </div>
 
       <Button type="submit" disabled={isSaving} className="gap-2">

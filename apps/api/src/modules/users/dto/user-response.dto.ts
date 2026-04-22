@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
+import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 
 export class UserResponseDto {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
@@ -22,6 +22,9 @@ export class UserResponseDto {
 
   @ApiProperty({ example: 'America/Bogota' })
   timezone!: string;
+
+  @ApiProperty({ enum: ProfileVisibility, example: ProfileVisibility.PRIVATE })
+  profileVisibility!: ProfileVisibility;
 
   @ApiProperty({ enum: PlatformRole, example: PlatformRole.USER })
   platformRole!: PlatformRole;
