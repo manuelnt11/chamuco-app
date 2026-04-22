@@ -731,6 +731,74 @@ describe('OnboardingPage', () => {
       expect(screen.getByText('onboarding.username.taken')).toBeInTheDocument();
     });
 
+    it('sends yearVisible: true when the checkbox is checked before submit', async () => {
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
+      );
+      mockGetByUrl();
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime.bind(vi),
+        delay: null,
+      });
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+
+      await user.clear(screen.getByTestId('username-input'));
+      await user.type(screen.getByTestId('username-input'), 'newuser');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+
+      await user.type(screen.getByTestId('firstname-input'), 'JOHN');
+      await user.type(screen.getByTestId('lastname-input'), 'DOE');
+      await user.type(screen.getByTestId('dob-day-input'), '15');
+      await user.type(screen.getByTestId('dob-month-input'), '6');
+      await user.type(screen.getByTestId('dob-year-input'), '1990');
+      await user.click(screen.getByTestId('year-visible-checkbox'));
+      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument());
+
+      await user.type(screen.getByTestId('home-country-input'), 'CO');
+      await user.click(screen.getByTestId('terms-checkbox'));
+      await user.click(screen.getByTestId('submit-btn'));
+
+      await waitFor(() =>
+        expect(mocks.mockApiPost).toHaveBeenCalledWith(
+          '/v1/auth/register',
+          expect.objectContaining({
+            dateOfBirth: expect.objectContaining({ yearVisible: true }),
+          }),
+        ),
+      );
+    });
+
+    it('sends yearVisible: false when the checkbox is unchecked (default)', async () => {
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      const user = await renderFormWithAvailableUsername({
+        currentUser: makeUser({ displayName: 'Test User' }),
+      });
+
+      await user.click(screen.getByTestId('submit-btn'));
+
+      await waitFor(() =>
+        expect(mocks.mockApiPost).toHaveBeenCalledWith(
+          '/v1/auth/register',
+          expect.objectContaining({
+            dateOfBirth: expect.objectContaining({ yearVisible: false }),
+          }),
+        ),
+      );
+    });
+
     it('shows generic error toast on unexpected submit error', async () => {
       mocks.mockApiPost.mockRejectedValue(
         Object.assign(new Error('Server error'), {
