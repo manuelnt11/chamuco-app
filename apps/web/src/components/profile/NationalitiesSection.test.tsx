@@ -447,7 +447,6 @@ describe('NationalitiesSection', () => {
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/nationalities/nat-1', {
-          countryCode: 'CO',
           nationalIdNumber: '0000000000',
           passportNumber: 'AB123456',
           passportIssueDate: '2020-01-15',

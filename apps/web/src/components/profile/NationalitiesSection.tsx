@@ -87,6 +87,7 @@ interface NationalityFormProps {
   form: FormState;
   errors: FormErrors;
   isSaving: boolean;
+  readOnlyCountry?: boolean;
   onChange: (patch: Partial<FormState>) => void;
   onSubmit: (e: FormEvent) => void;
   onCancel: () => void;
@@ -98,6 +99,7 @@ function NationalityForm({
   form,
   errors,
   isSaving,
+  readOnlyCountry = false,
   onChange,
   onSubmit,
   onCancel,
@@ -113,18 +115,27 @@ function NationalityForm({
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-border p-4">
       <div className="space-y-1.5">
         <Label id={`${idPrefix}-country-label`}>{t('nationalities.countryCode')}</Label>
-        <CountryCombobox
-          value={form.countryCode}
-          onChange={(iso2) => onChange({ countryCode: iso2 })}
-          displayMode="name"
-          placeholder={t('nationalities.countryPlaceholder')}
-          searchPlaceholder={t('nationalities.countrySearch')}
-          noResultsText={t('nationalities.countryNoResults')}
-          aria-labelledby={`${idPrefix}-country-label`}
-          aria-invalid={errors.countryCode !== null}
-          data-testid={`${idPrefix}-country`}
-        />
-        {errors.countryCode && <p className="text-sm text-destructive">{errors.countryCode}</p>}
+        {readOnlyCountry ? (
+          <p className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm">
+            <span aria-hidden="true">{getEmojiFlag(form.countryCode as TCountryCode)}</span>
+            {getCountryName(form.countryCode)}
+          </p>
+        ) : (
+          <>
+            <CountryCombobox
+              value={form.countryCode}
+              onChange={(iso2) => onChange({ countryCode: iso2 })}
+              displayMode="name"
+              placeholder={t('nationalities.countryPlaceholder')}
+              searchPlaceholder={t('nationalities.countrySearch')}
+              noResultsText={t('nationalities.countryNoResults')}
+              aria-labelledby={`${idPrefix}-country-label`}
+              aria-invalid={errors.countryCode !== null}
+              data-testid={`${idPrefix}-country`}
+            />
+            {errors.countryCode && <p className="text-sm text-destructive">{errors.countryCode}</p>}
+          </>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -156,6 +167,7 @@ function NationalityForm({
             value={form.passportNumber}
             onChange={(e) => onChange({ passportNumber: e.target.value.toUpperCase() })}
             autoCapitalize="characters"
+            placeholder={t('nationalities.passportPlaceholder')}
             autoComplete="off"
             disabled={isSaving}
             aria-invalid={
@@ -320,7 +332,6 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
       form.passportNumber.trim() && form.passportIssueDate && form.passportExpiryDate,
     );
     return {
-      countryCode: form.countryCode,
       nationalIdNumber: form.nationalIdNumber.trim() || null,
       passportNumber: hasPassport ? form.passportNumber.trim() : null,
       passportIssueDate: hasPassport ? form.passportIssueDate : null,
@@ -362,7 +373,10 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     if (!validate(addForm, setAddErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.post('/v1/users/me/nationalities', formToPayload(addForm));
+      await apiClient.post('/v1/users/me/nationalities', {
+        countryCode: addForm.countryCode,
+        ...formToPayload(addForm),
+      });
       toast.success(t('nationalities.addSuccess'));
       setIsAdding(false);
       setAddForm(makeEmptyForm());
@@ -442,6 +456,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
                 form={editForm}
                 errors={editErrors}
                 isSaving={isSaving}
+                readOnlyCountry
                 onChange={(patch) => setEditForm((f) => ({ ...f, ...patch }))}
                 onSubmit={handleUpdate}
                 onCancel={cancelEdit}

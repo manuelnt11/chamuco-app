@@ -477,6 +477,7 @@
       "nationalIdPlaceholder": "ej. 1234567890",
       "passportSection": "Pasaporte (opcional)",
       "passportNumber": "Número de pasaporte",
+      "passportPlaceholder": "ej. AB1234567",
       "passportIssueDate": "Fecha de expedición",
       "passportExpiryDate": "Fecha de vencimiento",
       "passportStatus": {
