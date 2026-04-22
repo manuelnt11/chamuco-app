@@ -4,6 +4,13 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
 import { getCountryDataList } from 'countries-list';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobox';
+import { toast } from '@/components/ui/toast';
+import { apiClient } from '@/services/api-client';
 import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
 
 const RELATIONSHIP_KEYS = [
@@ -24,13 +31,6 @@ const RELATIONSHIP_KEYS = [
   'colleague',
   'other',
 ] as const;
-
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobox';
-import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
 
 export interface EmergencyContactDto {
   id: string;
@@ -111,7 +111,7 @@ function ContactForm({
           value={form.fullName}
           onChange={(e) => onChange({ fullName: e.target.value.toUpperCase() })}
           autoCapitalize="characters"
-          autoComplete="name"
+          autoComplete="off"
           aria-invalid={errors.fullName !== null}
           disabled={isSaving}
           className="uppercase placeholder:normal-case"

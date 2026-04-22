@@ -1,6 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useRef,
+  type KeyboardEvent,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -67,9 +74,15 @@ export default function ProfilePage() {
   const [data, setData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadError, setHasLoadError] = useState(false);
-  const [showScrollHint, setShowScrollHint] = useState(true);
+  const [showScrollHint, setShowScrollHint] = useState(false);
   const loadedOnce = useRef(false);
   const tablistRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = tablistRef.current;
+    if (!el) return;
+    setShowScrollHint(el.scrollWidth > el.clientWidth);
+  }, []);
 
   function handleTablistScroll() {
     const el = tablistRef.current;
