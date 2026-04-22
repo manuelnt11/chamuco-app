@@ -126,10 +126,15 @@ describe('NationalitiesSection', () => {
       expect(screen.getByText('AB123456')).toBeInTheDocument();
     });
 
-    it('does not render passport number when null', () => {
+    it('renders passport expiry date alongside passport number', () => {
       setup();
-      const items = screen.queryAllByText(/^[A-Z]{2}\d{6}$/);
-      expect(items).toHaveLength(1);
+      expect(screen.getByText('· 2030-01-15')).toBeInTheDocument();
+    });
+
+    it('does not render passport number for nationality with null passportNumber', () => {
+      const data: NationalityDto[] = [{ ...sampleNationalities[1]! }]; // US, passportNumber: null
+      setup(data);
+      expect(screen.queryByText('AB123456')).not.toBeInTheDocument();
     });
 
     it('renders primary badge on primary nationality', () => {

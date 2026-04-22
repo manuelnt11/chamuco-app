@@ -62,9 +62,10 @@ function makeEmptyForm(isPrimary = false): FormState {
   };
 }
 
+const countryList = getCountryDataList();
+
 function getCountryName(iso2: string): string {
-  const match = getCountryDataList().find((c) => c.iso2 === iso2);
-  return match?.name ?? iso2;
+  return countryList.find((c) => c.iso2 === iso2)?.name ?? iso2;
 }
 
 function passportStatusBadgeClass(status: PassportStatus): string {
@@ -315,8 +316,9 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
   }
 
   function formToPayload(form: FormState) {
-    const hasPassport =
-      form.passportNumber.trim() && form.passportIssueDate && form.passportExpiryDate;
+    const hasPassport = Boolean(
+      form.passportNumber.trim() && form.passportIssueDate && form.passportExpiryDate,
+    );
     return {
       countryCode: form.countryCode,
       nationalIdNumber: form.nationalIdNumber.trim() || null,
@@ -481,6 +483,9 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
                   <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
                     <GlobeIcon size={20} aria-hidden="true" />
                     {nat.passportNumber}
+                    {nat.passportExpiryDate && (
+                      <span className="text-muted-foreground/60">· {nat.passportExpiryDate}</span>
+                    )}
                   </p>
                 )}
               </div>
