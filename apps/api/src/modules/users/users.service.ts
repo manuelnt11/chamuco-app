@@ -59,6 +59,7 @@ export class UsersService {
     if (dto.displayName !== undefined) patch.displayName = dto.displayName.trim();
     if (dto.avatarUrl !== undefined) patch.avatarUrl = dto.avatarUrl?.trim() || null;
     if (dto.timezone !== undefined) patch.timezone = dto.timezone;
+    if (dto.profileVisibility !== undefined) patch.profileVisibility = dto.profileVisibility;
 
     if (Object.keys(patch).length === 0) {
       return this.mapUserResponse(existingUser);

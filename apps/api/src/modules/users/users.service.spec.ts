@@ -224,6 +224,26 @@ describe('UsersService', () => {
       expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ avatarUrl: null }));
     });
 
+    it('returns profileVisibility in the response when dto has no fields', async () => {
+      const result = await service.updateMe(mockUser, {});
+
+      expect(result.profileVisibility).toBe(ProfileVisibility.PRIVATE);
+    });
+
+    it('updates profileVisibility and returns it in the response', async () => {
+      const updated = { ...mockUser, profileVisibility: ProfileVisibility.PUBLIC };
+      mockReturning.mockResolvedValue([updated]);
+
+      const result = await service.updateMe(mockUser, {
+        profileVisibility: ProfileVisibility.PUBLIC,
+      });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ profileVisibility: ProfileVisibility.PUBLIC }),
+      );
+      expect(result.profileVisibility).toBe(ProfileVisibility.PUBLIC);
+    });
+
     it('throws NotFoundException when user is deleted between check and update', async () => {
       mockReturning.mockResolvedValue([]);
 

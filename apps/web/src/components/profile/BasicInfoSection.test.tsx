@@ -65,6 +65,7 @@ const baseUser: BasicInfoUser = {
   displayName: 'Jane Doe',
   avatarUrl: null,
   timezone: 'America/Bogota',
+  profileVisibility: 'PRIVATE',
 };
 
 const baseProfile: BasicInfoProfile = { bio: 'Hello world', homeCountry: 'CO' };
@@ -228,6 +229,21 @@ describe('BasicInfoSection', () => {
       );
     });
 
+    it('includes profileVisibility in the PATCH /v1/users/me payload', async () => {
+      const { user } = setup({ profileVisibility: 'PRIVATE' });
+      await user.selectOptions(
+        screen.getByLabelText('basicInfo.profileVisibility'),
+        'basicInfo.profileVisibilityOptions.PUBLIC',
+      );
+      await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me',
+          expect.objectContaining({ profileVisibility: 'PUBLIC' }),
+        ),
+      );
+    });
+
     it('sends the auto-suggested timezone when saving with UTC default', async () => {
       const { user } = setup({ timezone: 'UTC' }, { homeCountry: 'CO' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
@@ -312,6 +328,20 @@ describe('BasicInfoSection', () => {
       await user.clear(displayNameInput);
       await user.type(displayNameInput, 'Jane Doe');
       expect(screen.queryByTestId('unsaved-indicator')).not.toBeInTheDocument();
+    });
+
+    it('hides indicator when profileVisibility matches initial value', () => {
+      setup({ profileVisibility: 'PRIVATE' });
+      expect(screen.queryByTestId('unsaved-indicator')).not.toBeInTheDocument();
+    });
+
+    it('shows indicator after changing profileVisibility', async () => {
+      const { user } = setup({ profileVisibility: 'PRIVATE' });
+      await user.selectOptions(
+        screen.getByLabelText('basicInfo.profileVisibility'),
+        'basicInfo.profileVisibilityOptions.PUBLIC',
+      );
+      expect(screen.getByTestId('unsaved-indicator')).toBeInTheDocument();
     });
 
     it('hides indicator while saving', async () => {

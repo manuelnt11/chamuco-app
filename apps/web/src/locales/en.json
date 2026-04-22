@@ -234,7 +234,15 @@
       "saving": "Saving...",
       "saveSuccess": "Profile updated",
       "saveError": "Failed to save profile",
-      "validDisplayName": "Display name must be between 1 and 100 characters"
+      "validDisplayName": "Display name must be between 1 and 100 characters",
+      "profileVisibility": "Profile Visibility",
+      "profileVisibilityHint": "Controls who can see your travel stats, achievements, and discovery map.",
+      "profileVisibilityOptions": {
+        "PRIVATE": "Private",
+        "CONNECTIONS_ONLY": "Connections",
+        "MEMBERS_ONLY": "Members",
+        "PUBLIC": "Public"
+      }
     },
     "preferences": {
       "heading": "Preferences",

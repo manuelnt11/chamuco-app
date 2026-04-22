@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsTimeZone, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsTimeZone, MaxLength } from 'class-validator';
+import { ProfileVisibility } from '@chamuco/shared-types';
 
 export class UpdateUserDto {
   @ApiProperty({
@@ -29,4 +30,13 @@ export class UpdateUserDto {
   @IsOptional()
   @IsTimeZone()
   timezone?: string;
+
+  @ApiProperty({
+    enum: ProfileVisibility,
+    example: ProfileVisibility.PRIVATE,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(ProfileVisibility)
+  profileVisibility?: ProfileVisibility;
 }

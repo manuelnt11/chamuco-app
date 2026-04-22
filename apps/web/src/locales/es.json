@@ -234,7 +234,15 @@
       "saving": "Guardando...",
       "saveSuccess": "Perfil actualizado",
       "saveError": "Error al guardar el perfil",
-      "validDisplayName": "El nombre para mostrar debe tener entre 1 y 100 caracteres"
+      "validDisplayName": "El nombre para mostrar debe tener entre 1 y 100 caracteres",
+      "profileVisibility": "Visibilidad del perfil",
+      "profileVisibilityHint": "Controla quién puede ver tus estadísticas de viaje, logros y mapa de descubrimiento.",
+      "profileVisibilityOptions": {
+        "PRIVATE": "Privado",
+        "CONNECTIONS_ONLY": "Conexiones",
+        "MEMBERS_ONLY": "Miembros",
+        "PUBLIC": "Público"
+      }
     },
     "preferences": {
       "heading": "Preferencias",
