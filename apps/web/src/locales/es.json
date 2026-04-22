@@ -500,6 +500,33 @@
         "expiryBeforeIssue": "La fecha de vencimiento debe ser posterior a la fecha de expedición."
       }
     },
+    "publicProfile": {
+      "notFound": "Perfil no encontrado",
+      "notFoundDescription": "No existe ningún usuario con el nombre de usuario @{{username}}.",
+      "loadError": "Error al cargar el perfil",
+      "retry": "Intentar de nuevo",
+      "privateProfile": "Este perfil es privado",
+      "privateProfileDescription": "{{displayName}} ha configurado su perfil como privado.",
+      "stats": {
+        "heading": "Estadísticas de viaje",
+        "tripsCompleted": "Viajes",
+        "countriesVisited": "Países",
+        "kmTraveled": "Km recorridos",
+        "tripsAsOrganizer": "Como organizador"
+      },
+      "achievements": {
+        "heading": "Logros",
+        "empty": "Aún no hay logros"
+      },
+      "recognitions": {
+        "heading": "Reconocimientos",
+        "empty": "Aún no hay reconocimientos"
+      },
+      "discoveryMap": {
+        "heading": "Mapa de descubrimiento",
+        "placeholder": "Mapa completo próximamente"
+      }
+    },
     "errors": {
       "generic": "Algo salió mal. Por favor intenta de nuevo.",
       "loadError": "Error al cargar los datos del perfil. Por favor intenta de nuevo.",
