@@ -1,6 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useRef,
+  type KeyboardEvent,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -11,18 +18,20 @@ import { PersonalDetailsSection } from '@/components/profile/PersonalDetailsSect
 import { PreferencesSection } from '@/components/profile/PreferencesSection';
 import { LoyaltyProgramsSection } from '@/components/profile/LoyaltyProgramsSection';
 import { HealthSection } from '@/components/profile/HealthSection';
+import { EmergencyContactsSection } from '@/components/profile/EmergencyContactsSection';
 import type { BasicInfoUser, BasicInfoProfile } from '@/components/profile/BasicInfoSection';
 import type { PersonalDetailsProfile } from '@/components/profile/PersonalDetailsSection';
 import type { PreferencesData } from '@/components/profile/PreferencesSection';
 import type { LoyaltyProgramDto } from '@/components/profile/LoyaltyProgramsSection';
 import type { HealthData } from '@/components/profile/HealthSection';
+import type { EmergencyContactDto } from '@/components/profile/EmergencyContactsSection';
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/services/api-client';
 import { toast } from '@/components/ui/toast';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
 
-type Tab = 'basic' | 'personal' | 'preferences' | 'loyalty' | 'health';
+type Tab = 'basic' | 'personal' | 'preferences' | 'loyalty' | 'health' | 'emergency';
 
 const DEFAULT_PERSONAL_DETAILS: PersonalDetailsProfile = {
   firstName: '',
@@ -53,6 +62,7 @@ interface ProfileData {
   preferences: PreferencesData;
   loyaltyPrograms: LoyaltyProgramDto[];
   health: HealthData;
+  emergencyContacts: EmergencyContactDto[];
 }
 
 export default function ProfilePage() {
@@ -64,7 +74,21 @@ export default function ProfilePage() {
   const [data, setData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadError, setHasLoadError] = useState(false);
+  const [showScrollHint, setShowScrollHint] = useState(false);
   const loadedOnce = useRef(false);
+  const tablistRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = tablistRef.current;
+    if (!el) return;
+    setShowScrollHint(el.scrollWidth > el.clientWidth);
+  }, []);
+
+  function handleTablistScroll() {
+    const el = tablistRef.current;
+    if (!el) return;
+    setShowScrollHint(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  }
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -78,13 +102,15 @@ export default function ProfilePage() {
     if (!loadedOnce.current) setIsLoading(true);
     setHasLoadError(false);
     try {
-      const [userRes, profileRes, prefRes, loyaltyRes, healthRes] = await Promise.allSettled([
-        apiClient.get('/v1/users/me'),
-        apiClient.get('/v1/users/me/profile'),
-        apiClient.get('/v1/users/me/preferences'),
-        apiClient.get('/v1/users/me/loyalty-programs'),
-        apiClient.get('/v1/users/me/health'),
-      ]);
+      const [userRes, profileRes, prefRes, loyaltyRes, healthRes, emergencyRes] =
+        await Promise.allSettled([
+          apiClient.get('/v1/users/me'),
+          apiClient.get('/v1/users/me/profile'),
+          apiClient.get('/v1/users/me/preferences'),
+          apiClient.get('/v1/users/me/loyalty-programs'),
+          apiClient.get('/v1/users/me/health'),
+          apiClient.get('/v1/users/me/emergency-contacts'),
+        ]);
 
       if (userRes.status === 'rejected') throw userRes.reason;
 
@@ -114,6 +140,10 @@ export default function ProfilePage() {
           healthRes.status === 'fulfilled'
             ? (healthRes.value.data as HealthData)
             : DEFAULT_HEALTH_DATA,
+        emergencyContacts:
+          emergencyRes.status === 'fulfilled'
+            ? (emergencyRes.value.data as EmergencyContactDto[])
+            : [],
       }));
     } catch {
       if (!loadedOnce.current) {
@@ -168,6 +198,7 @@ export default function ProfilePage() {
     { key: 'preferences', label: t('tabs.preferences') },
     { key: 'loyalty', label: t('tabs.loyaltyPrograms') },
     { key: 'health', label: t('tabs.health') },
+    { key: 'emergency', label: t('tabs.emergencyContacts') },
   ];
 
   const tabKeys = tabs.map((tab) => tab.key);
@@ -200,34 +231,41 @@ export default function ProfilePage() {
     <div className="p-6 md:p-8">
       <h1 className="mb-6 text-2xl font-bold md:text-3xl">{t('title')}</h1>
 
-      <div
-        role="tablist"
-        aria-label={t('title')}
-        className="mb-8 flex gap-1 border-b border-border"
-      >
-        {tabs.map(({ key, label }) => (
-          <button
-            key={key}
-            id={`tab-${key}`}
-            role="tab"
-            type="button"
-            onClick={() => setActiveTab(key)}
-            onKeyDown={(e) => handleTabKeyDown(e, key)}
-            tabIndex={activeTab === key ? 0 : -1}
-            aria-selected={activeTab === key}
-            aria-controls={`panel-${key}`}
-            className={cn(
-              'px-4 py-2 text-sm font-medium transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-t',
-              '-mb-px border-b-2',
-              activeTab === key
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="relative mb-8">
+        <div
+          ref={tablistRef}
+          role="tablist"
+          aria-label={t('title')}
+          onScroll={handleTablistScroll}
+          className="flex gap-1 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {tabs.map(({ key, label }) => (
+            <button
+              key={key}
+              id={`tab-${key}`}
+              role="tab"
+              type="button"
+              onClick={() => setActiveTab(key)}
+              onKeyDown={(e) => handleTabKeyDown(e, key)}
+              tabIndex={activeTab === key ? 0 : -1}
+              aria-selected={activeTab === key}
+              aria-controls={`panel-${key}`}
+              className={cn(
+                'shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-t',
+                '-mb-px border-b-2',
+                activeTab === key
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {showScrollHint && (
+          <div className="pointer-events-none absolute right-0 top-0 h-[calc(100%-1px)] w-12 bg-linear-to-r from-transparent to-background" />
+        )}
       </div>
 
       <div
@@ -269,6 +307,14 @@ export default function ProfilePage() {
         hidden={activeTab !== 'health'}
       >
         <HealthSection health={data.health} onRefresh={loadData} />
+      </div>
+      <div
+        id="panel-emergency"
+        role="tabpanel"
+        aria-labelledby="tab-emergency"
+        hidden={activeTab !== 'emergency'}
+      >
+        <EmergencyContactsSection contacts={data.emergencyContacts} onRefresh={loadData} />
       </div>
     </div>
   );
