@@ -214,7 +214,8 @@
       "preferences": "Preferencias",
       "loyaltyPrograms": "Programas de Fidelidad",
       "health": "Salud",
-      "emergencyContacts": "Contactos de Emergencia"
+      "emergencyContacts": "Contactos de Emergencia",
+      "nationalities": "Nacionalidades y Documentos"
     },
     "basicInfo": {
       "heading": "Información Básica",
@@ -456,6 +457,46 @@
         "invalidPhone": "Número de teléfono inválido.",
         "relationshipRequired": "La relación es requerida.",
         "relationshipInvalid": "La relación solo puede contener letras y espacios."
+      }
+    },
+    "nationalities": {
+      "heading": "Nacionalidades y Documentos de Viaje",
+      "empty": "Aún no has añadido nacionalidades.",
+      "add": "Añadir nacionalidad",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Confirmar?",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "primaryBadge": "Principal",
+      "countryCode": "País",
+      "countryPlaceholder": "Seleccionar país",
+      "countrySearch": "Buscar países…",
+      "countryNoResults": "No se encontraron países.",
+      "nationalIdNumber": "Documento de identidad",
+      "nationalIdPlaceholder": "ej. 1234567890",
+      "passportSection": "Pasaporte (opcional)",
+      "passportNumber": "Número de pasaporte",
+      "passportIssueDate": "Fecha de expedición",
+      "passportExpiryDate": "Fecha de vencimiento",
+      "passportStatus": {
+        "OMITTED": "Sin pasaporte",
+        "ACTIVE": "Activo",
+        "EXPIRING_SOON": "Próximo a vencer",
+        "EXPIRED": "Vencido"
+      },
+      "addSuccess": "Nacionalidad añadida.",
+      "updateSuccess": "Nacionalidad actualizada.",
+      "deleteSuccess": "Nacionalidad eliminada.",
+      "saveError": "No se pudo guardar. Intenta de nuevo.",
+      "deleteError": "No se pudo eliminar. Intenta de nuevo.",
+      "deletePrimaryError": "No se puede eliminar la nacionalidad principal mientras existan otras.",
+      "errors": {
+        "countryRequired": "Selecciona un país.",
+        "nationalIdFormat": "El número de identificación solo puede contener letras mayúsculas, números y guiones.",
+        "passportIncomplete": "Completa los tres campos del pasaporte o déjalos todos vacíos.",
+        "passportFormat": "El número de pasaporte solo puede contener letras mayúsculas, números y guiones.",
+        "expiryBeforeIssue": "La fecha de vencimiento debe ser posterior a la fecha de expedición."
       }
     },
     "errors": {

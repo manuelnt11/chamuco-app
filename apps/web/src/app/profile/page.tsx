@@ -19,19 +19,28 @@ import { PreferencesSection } from '@/components/profile/PreferencesSection';
 import { LoyaltyProgramsSection } from '@/components/profile/LoyaltyProgramsSection';
 import { HealthSection } from '@/components/profile/HealthSection';
 import { EmergencyContactsSection } from '@/components/profile/EmergencyContactsSection';
+import { NationalitiesSection } from '@/components/profile/NationalitiesSection';
 import type { BasicInfoUser, BasicInfoProfile } from '@/components/profile/BasicInfoSection';
 import type { PersonalDetailsProfile } from '@/components/profile/PersonalDetailsSection';
 import type { PreferencesData } from '@/components/profile/PreferencesSection';
 import type { LoyaltyProgramDto } from '@/components/profile/LoyaltyProgramsSection';
 import type { HealthData } from '@/components/profile/HealthSection';
 import type { EmergencyContactDto } from '@/components/profile/EmergencyContactsSection';
+import type { NationalityDto } from '@/components/profile/NationalitiesSection';
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/services/api-client';
 import { toast } from '@/components/ui/toast';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
 
-type Tab = 'basic' | 'personal' | 'preferences' | 'loyalty' | 'health' | 'emergency';
+type Tab =
+  | 'basic'
+  | 'personal'
+  | 'nationalities'
+  | 'preferences'
+  | 'loyalty'
+  | 'health'
+  | 'emergency';
 
 const DEFAULT_PERSONAL_DETAILS: PersonalDetailsProfile = {
   firstName: '',
@@ -63,6 +72,7 @@ interface ProfileData {
   loyaltyPrograms: LoyaltyProgramDto[];
   health: HealthData;
   emergencyContacts: EmergencyContactDto[];
+  nationalities: NationalityDto[];
 }
 
 export default function ProfilePage() {
@@ -102,7 +112,7 @@ export default function ProfilePage() {
     if (!loadedOnce.current) setIsLoading(true);
     setHasLoadError(false);
     try {
-      const [userRes, profileRes, prefRes, loyaltyRes, healthRes, emergencyRes] =
+      const [userRes, profileRes, prefRes, loyaltyRes, healthRes, emergencyRes, nationalitiesRes] =
         await Promise.allSettled([
           apiClient.get('/v1/users/me'),
           apiClient.get('/v1/users/me/profile'),
@@ -110,6 +120,7 @@ export default function ProfilePage() {
           apiClient.get('/v1/users/me/loyalty-programs'),
           apiClient.get('/v1/users/me/health'),
           apiClient.get('/v1/users/me/emergency-contacts'),
+          apiClient.get('/v1/users/me/nationalities'),
         ]);
 
       if (userRes.status === 'rejected') throw userRes.reason;
@@ -143,6 +154,10 @@ export default function ProfilePage() {
         emergencyContacts:
           emergencyRes.status === 'fulfilled'
             ? (emergencyRes.value.data as EmergencyContactDto[])
+            : [],
+        nationalities:
+          nationalitiesRes.status === 'fulfilled'
+            ? (nationalitiesRes.value.data as NationalityDto[])
             : [],
       }));
     } catch {
@@ -195,6 +210,7 @@ export default function ProfilePage() {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'basic', label: t('tabs.basicInfo') },
     { key: 'personal', label: t('tabs.personalDetails') },
+    { key: 'nationalities', label: t('tabs.nationalities') },
     { key: 'preferences', label: t('tabs.preferences') },
     { key: 'loyalty', label: t('tabs.loyaltyPrograms') },
     { key: 'health', label: t('tabs.health') },
@@ -283,6 +299,14 @@ export default function ProfilePage() {
         hidden={activeTab !== 'personal'}
       >
         <PersonalDetailsSection profile={data.personalDetails} onRefresh={loadData} />
+      </div>
+      <div
+        id="panel-nationalities"
+        role="tabpanel"
+        aria-labelledby="tab-nationalities"
+        hidden={activeTab !== 'nationalities'}
+      >
+        <NationalitiesSection data={data.nationalities} onRefresh={loadData} />
       </div>
       <div
         id="panel-preferences"
