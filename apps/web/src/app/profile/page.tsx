@@ -67,7 +67,15 @@ export default function ProfilePage() {
   const [data, setData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadError, setHasLoadError] = useState(false);
+  const [showScrollHint, setShowScrollHint] = useState(true);
   const loadedOnce = useRef(false);
+  const tablistRef = useRef<HTMLDivElement>(null);
+
+  function handleTablistScroll() {
+    const el = tablistRef.current;
+    if (!el) return;
+    setShowScrollHint(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  }
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -210,34 +218,41 @@ export default function ProfilePage() {
     <div className="p-6 md:p-8">
       <h1 className="mb-6 text-2xl font-bold md:text-3xl">{t('title')}</h1>
 
-      <div
-        role="tablist"
-        aria-label={t('title')}
-        className="mb-8 flex gap-1 border-b border-border"
-      >
-        {tabs.map(({ key, label }) => (
-          <button
-            key={key}
-            id={`tab-${key}`}
-            role="tab"
-            type="button"
-            onClick={() => setActiveTab(key)}
-            onKeyDown={(e) => handleTabKeyDown(e, key)}
-            tabIndex={activeTab === key ? 0 : -1}
-            aria-selected={activeTab === key}
-            aria-controls={`panel-${key}`}
-            className={cn(
-              'px-4 py-2 text-sm font-medium transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-t',
-              '-mb-px border-b-2',
-              activeTab === key
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="relative mb-8">
+        <div
+          ref={tablistRef}
+          role="tablist"
+          aria-label={t('title')}
+          onScroll={handleTablistScroll}
+          className="flex gap-1 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {tabs.map(({ key, label }) => (
+            <button
+              key={key}
+              id={`tab-${key}`}
+              role="tab"
+              type="button"
+              onClick={() => setActiveTab(key)}
+              onKeyDown={(e) => handleTabKeyDown(e, key)}
+              tabIndex={activeTab === key ? 0 : -1}
+              aria-selected={activeTab === key}
+              aria-controls={`panel-${key}`}
+              className={cn(
+                'shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-t',
+                '-mb-px border-b-2',
+                activeTab === key
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {showScrollHint && (
+          <div className="pointer-events-none absolute right-0 top-0 h-[calc(100%-1px)] w-12 bg-linear-to-r from-transparent to-background" />
+        )}
       </div>
 
       <div
