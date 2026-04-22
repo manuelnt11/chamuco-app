@@ -77,24 +77,32 @@ export class CreateNationalityDto {
 
   @ApiProperty({
     example: '12345678',
-    description: 'National ID / Cédula / DNI. Omit or set null to leave empty.',
+    description:
+      'National ID / Cédula / DNI. Omit or set null to leave empty. Only uppercase letters, numbers, and hyphens allowed.',
     nullable: true,
     required: false,
   })
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: 'nationalIdNumber must not be an empty string' })
+  @Matches(/^[A-Z0-9-]+$/, {
+    message: 'nationalIdNumber must contain only uppercase letters, numbers, and hyphens',
+  })
   nationalIdNumber?: string | null;
 
   @ApiProperty({
     example: 'AB123456',
-    description: 'Passport document number. Required when any passport field is provided.',
+    description:
+      'Passport document number. Required when any passport field is provided. Only uppercase letters, numbers, and hyphens allowed.',
     required: false,
   })
   @ValidateIf(anyPassportFieldPresent)
   @IsDefined({ message: 'passportNumber is required when any passport field is provided' })
   @IsString()
   @IsNotEmpty({ message: 'passportNumber must not be an empty string' })
+  @Matches(/^[A-Z0-9-]+$/, {
+    message: 'passportNumber must contain only uppercase letters, numbers, and hyphens',
+  })
   passportNumber?: string;
 
   @ApiProperty({
@@ -131,24 +139,32 @@ export class UpdateNationalityDto {
 
   @ApiProperty({
     example: '12345678',
-    description: 'National ID / Cédula / DNI. Omit to leave unchanged.',
+    description:
+      'National ID / Cédula / DNI. Omit to leave unchanged. Only uppercase letters, numbers, and hyphens allowed.',
     nullable: true,
     required: false,
   })
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: 'nationalIdNumber must not be an empty string' })
+  @Matches(/^[A-Z0-9-]+$/, {
+    message: 'nationalIdNumber must contain only uppercase letters, numbers, and hyphens',
+  })
   nationalIdNumber?: string | null;
 
   @ApiProperty({
     example: 'AB123456',
-    description: 'Passport document number. Required when any passport field is provided.',
+    description:
+      'Passport document number. Required when any passport field is provided. Only uppercase letters, numbers, and hyphens allowed.',
     required: false,
   })
   @ValidateIf(anyPassportFieldPresent)
   @IsDefined({ message: 'passportNumber is required when any passport field is provided' })
   @IsString()
   @IsNotEmpty({ message: 'passportNumber must not be an empty string' })
+  @Matches(/^[A-Z0-9-]+$/, {
+    message: 'passportNumber must contain only uppercase letters, numbers, and hyphens',
+  })
   passportNumber?: string;
 
   @ApiProperty({

@@ -19,7 +19,7 @@ function DialogBackdrop({
     <DialogPrimitive.Backdrop
       className={cn(
         'fixed inset-0 z-50 bg-black/50 backdrop-blur-sm',
-        'data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 transition-opacity duration-200',
+        'data-starting-style:opacity-0 data-ending-style:opacity-0 transition-opacity duration-200',
         className,
       )}
       {...props}
@@ -39,8 +39,8 @@ function DialogPopup({
         className={cn(
           'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2',
           'rounded-xl bg-card p-6 shadow-xl ring-1 ring-foreground/10',
-          'data-[starting-style]:opacity-0 data-[starting-style]:scale-95',
-          'data-[ending-style]:opacity-0 data-[ending-style]:scale-95',
+          'data-starting-style:opacity-0 data-starting-style:scale-95',
+          'data-ending-style:opacity-0 data-ending-style:scale-95',
           'transition-all duration-200',
           className,
         )}

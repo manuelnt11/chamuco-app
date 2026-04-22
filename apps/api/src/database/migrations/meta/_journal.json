@@ -57,6 +57,13 @@
       "when": 1776653280008,
       "tag": "0007_fast_carlie_cooper",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776869616730,
+      "tag": "0008_numerous_spot",
+      "breakpoints": true
     }
   ]
 }

@@ -42,6 +42,24 @@ describe('CreateNationalityDto', () => {
     expect(errors.some((e) => e.property === 'nationalIdNumber')).toBe(true);
   });
 
+  it('rejects nationalIdNumber with lowercase letters', async () => {
+    const dto = plainToInstance(CreateNationalityDto, { ...validBase, nationalIdNumber: 'abc123' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'nationalIdNumber')).toBe(true);
+  });
+
+  it('rejects nationalIdNumber with spaces', async () => {
+    const dto = plainToInstance(CreateNationalityDto, { ...validBase, nationalIdNumber: 'AB 123' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'nationalIdNumber')).toBe(true);
+  });
+
+  it('accepts nationalIdNumber with hyphens', async () => {
+    const dto = plainToInstance(CreateNationalityDto, { ...validBase, nationalIdNumber: 'AB-123' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'nationalIdNumber')).toBe(false);
+  });
+
   it('rejects countryCode with more than 2 letters', async () => {
     const dto = plainToInstance(CreateNationalityDto, { ...validBase, countryCode: 'COL' });
     const errors = await validate(dto);
@@ -144,6 +162,36 @@ describe('CreateNationalityDto', () => {
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'passportNumber')).toBe(true);
     });
+
+    it('rejects passportNumber with lowercase letters', async () => {
+      const dto = plainToInstance(CreateNationalityDto, {
+        ...validBase,
+        ...validPassport,
+        passportNumber: 'ab123456',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportNumber')).toBe(true);
+    });
+
+    it('rejects passportNumber with spaces', async () => {
+      const dto = plainToInstance(CreateNationalityDto, {
+        ...validBase,
+        ...validPassport,
+        passportNumber: 'AB 123456',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportNumber')).toBe(true);
+    });
+
+    it('accepts passportNumber with hyphens', async () => {
+      const dto = plainToInstance(CreateNationalityDto, {
+        ...validBase,
+        ...validPassport,
+        passportNumber: 'AB-123456',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportNumber')).toBe(false);
+    });
   });
 });
 
@@ -184,6 +232,24 @@ describe('UpdateNationalityDto', () => {
     expect(errors.some((e) => e.property === 'nationalIdNumber')).toBe(true);
   });
 
+  it('rejects nationalIdNumber with lowercase letters', async () => {
+    const dto = plainToInstance(UpdateNationalityDto, { nationalIdNumber: 'abc123' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'nationalIdNumber')).toBe(true);
+  });
+
+  it('rejects nationalIdNumber with spaces', async () => {
+    const dto = plainToInstance(UpdateNationalityDto, { nationalIdNumber: 'AB 123' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'nationalIdNumber')).toBe(true);
+  });
+
+  it('accepts nationalIdNumber with hyphens', async () => {
+    const dto = plainToInstance(UpdateNationalityDto, { nationalIdNumber: 'AB-123' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'nationalIdNumber')).toBe(false);
+  });
+
   describe('passport data consistency', () => {
     it('requires all three passport fields when only one is provided', async () => {
       const dto = plainToInstance(UpdateNationalityDto, { passportNumber: 'AB123456' });
@@ -202,6 +268,33 @@ describe('UpdateNationalityDto', () => {
       const dto = plainToInstance(UpdateNationalityDto, { isPrimary: false });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
+    });
+
+    it('rejects passportNumber with lowercase letters', async () => {
+      const dto = plainToInstance(UpdateNationalityDto, {
+        ...validPassport,
+        passportNumber: 'ab123456',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportNumber')).toBe(true);
+    });
+
+    it('rejects passportNumber with spaces', async () => {
+      const dto = plainToInstance(UpdateNationalityDto, {
+        ...validPassport,
+        passportNumber: 'AB 123456',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportNumber')).toBe(true);
+    });
+
+    it('accepts passportNumber with hyphens', async () => {
+      const dto = plainToInstance(UpdateNationalityDto, {
+        ...validPassport,
+        passportNumber: 'AB-123456',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportNumber')).toBe(false);
     });
   });
 });

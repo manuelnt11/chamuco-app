@@ -214,7 +214,8 @@
       "preferences": "Preferences",
       "loyaltyPrograms": "Loyalty Programs",
       "health": "Health",
-      "emergencyContacts": "Emergency Contacts"
+      "emergencyContacts": "Emergency Contacts",
+      "nationalities": "Nationalities & Documents"
     },
     "basicInfo": {
       "heading": "Basic Information",
@@ -456,6 +457,47 @@
         "invalidPhone": "Invalid phone number.",
         "relationshipRequired": "Relationship is required.",
         "relationshipInvalid": "Relationship may only contain letters and spaces."
+      }
+    },
+    "nationalities": {
+      "heading": "Nationalities & Travel Documents",
+      "empty": "No nationalities added yet.",
+      "add": "Add nationality",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Confirm?",
+      "save": "Save",
+      "cancel": "Cancel",
+      "primaryBadge": "Primary",
+      "countryCode": "Country",
+      "countryPlaceholder": "Select country",
+      "countrySearch": "Search countries…",
+      "countryNoResults": "No countries found.",
+      "nationalIdNumber": "National ID",
+      "nationalIdPlaceholder": "e.g. 1234567890",
+      "passportSection": "Passport (optional)",
+      "passportNumber": "Passport number",
+      "passportPlaceholder": "e.g. AB1234567",
+      "passportIssueDate": "Issue date",
+      "passportExpiryDate": "Expiry date",
+      "passportStatus": {
+        "OMITTED": "No passport",
+        "ACTIVE": "Active",
+        "EXPIRING_SOON": "Expiring soon",
+        "EXPIRED": "Expired"
+      },
+      "addSuccess": "Nationality added.",
+      "updateSuccess": "Nationality updated.",
+      "deleteSuccess": "Nationality removed.",
+      "saveError": "Could not save. Please try again.",
+      "deleteError": "Could not delete. Please try again.",
+      "deletePrimaryError": "Cannot delete the primary nationality while others exist.",
+      "errors": {
+        "countryRequired": "Select a country.",
+        "nationalIdFormat": "National ID may only contain uppercase letters, numbers, and hyphens.",
+        "passportIncomplete": "Provide all three passport fields or leave them all empty.",
+        "passportFormat": "Passport number may only contain uppercase letters, numbers, and hyphens.",
+        "expiryBeforeIssue": "Expiry date must be after issue date."
       }
     },
     "errors": {

@@ -58,5 +58,13 @@ export const userNationalities = pgTable(
         AND ${table.passportIssueDate} IS NOT NULL
         AND ${table.passportExpiryDate} IS NOT NULL)`,
     ),
+    check(
+      'national_id_number_format',
+      sql`${table.nationalIdNumber} IS NULL OR ${table.nationalIdNumber} ~ '^[A-Z0-9-]+$'`,
+    ),
+    check(
+      'passport_number_format',
+      sql`${table.passportNumber} IS NULL OR ${table.passportNumber} ~ '^[A-Z0-9-]+$'`,
+    ),
   ],
 );
