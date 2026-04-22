@@ -57,6 +57,8 @@ vi.mock('@/components/ui/timezone-combobox', () => ({
   ),
 }));
 
+import { ProfileVisibility } from '@chamuco/shared-types';
+
 import { BasicInfoSection } from './BasicInfoSection';
 import type { BasicInfoUser, BasicInfoProfile } from './BasicInfoSection';
 
@@ -65,7 +67,7 @@ const baseUser: BasicInfoUser = {
   displayName: 'Jane Doe',
   avatarUrl: null,
   timezone: 'America/Bogota',
-  profileVisibility: 'PRIVATE',
+  profileVisibility: ProfileVisibility.PRIVATE,
 };
 
 const baseProfile: BasicInfoProfile = { bio: 'Hello world', homeCountry: 'CO' };
@@ -230,7 +232,7 @@ describe('BasicInfoSection', () => {
     });
 
     it('includes profileVisibility in the PATCH /v1/users/me payload', async () => {
-      const { user } = setup({ profileVisibility: 'PRIVATE' });
+      const { user } = setup({ profileVisibility: ProfileVisibility.PRIVATE });
       await user.selectOptions(
         screen.getByLabelText('basicInfo.profileVisibility'),
         'basicInfo.profileVisibilityOptions.PUBLIC',
@@ -331,12 +333,12 @@ describe('BasicInfoSection', () => {
     });
 
     it('hides indicator when profileVisibility matches initial value', () => {
-      setup({ profileVisibility: 'PRIVATE' });
+      setup({ profileVisibility: ProfileVisibility.PRIVATE });
       expect(screen.queryByTestId('unsaved-indicator')).not.toBeInTheDocument();
     });
 
     it('shows indicator after changing profileVisibility', async () => {
-      const { user } = setup({ profileVisibility: 'PRIVATE' });
+      const { user } = setup({ profileVisibility: ProfileVisibility.PRIVATE });
       await user.selectOptions(
         screen.getByLabelText('basicInfo.profileVisibility'),
         'basicInfo.profileVisibilityOptions.PUBLIC',

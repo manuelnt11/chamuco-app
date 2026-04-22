@@ -39,12 +39,13 @@ export function PublicProfileStats({ keyStats }: PublicProfileStatsProps) {
       >
         {t('publicProfile.stats.heading')}
       </h2>
-      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-5">
         <StatItem value={keyStats.tripsCompleted} label={t('publicProfile.stats.tripsCompleted')} />
         <StatItem
           value={keyStats.countriesVisited}
           label={t('publicProfile.stats.countriesVisited')}
         />
+        <StatItem value={keyStats.citiesVisited} label={t('publicProfile.stats.citiesVisited')} />
         <StatItem value={keyStats.kmTraveled} label={t('publicProfile.stats.kmTraveled')} />
         <StatItem
           value={keyStats.tripsAsOrganizer}

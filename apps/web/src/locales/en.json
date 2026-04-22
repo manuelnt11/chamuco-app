@@ -520,6 +520,7 @@
         "tripsCompleted": "Trips",
         "countriesVisited": "Countries",
         "kmTraveled": "Km traveled",
+        "citiesVisited": "Cities",
         "tripsAsOrganizer": "As organizer"
       },
       "achievements": {

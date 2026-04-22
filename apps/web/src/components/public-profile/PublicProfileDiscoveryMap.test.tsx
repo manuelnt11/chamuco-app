@@ -29,6 +29,6 @@ describe('PublicProfileDiscoveryMap', () => {
 
   it('renders no country badges when countries is empty', () => {
     render(<PublicProfileDiscoveryMap countries={[]} />);
-    expect(screen.queryByRole('generic', { name: /^[A-Z]{2}$/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('MX')).not.toBeInTheDocument();
   });
 });

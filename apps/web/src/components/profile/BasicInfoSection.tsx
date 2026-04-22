@@ -15,13 +15,14 @@ import { TimezoneCombobox } from '@/components/ui/timezone-combobox';
 import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
 import { COUNTRY_TIMEZONE } from '@/lib/timezones';
+import { getInitials } from '@/lib/name-utils';
 
 export interface BasicInfoUser {
   username: string;
   displayName: string;
   avatarUrl: string | null;
   timezone: string;
-  profileVisibility: string;
+  profileVisibility: ProfileVisibility;
 }
 
 export interface BasicInfoProfile {
@@ -33,15 +34,6 @@ interface BasicInfoSectionProps {
   user: BasicInfoUser;
   userProfile: BasicInfoProfile;
   onRefresh: () => void;
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSectionProps) {
@@ -164,7 +156,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
         <Select
           id="profileVisibility"
           value={visibility}
-          onChange={(e) => setVisibility(e.target.value)}
+          onChange={(e) => setVisibility(e.target.value as ProfileVisibility)}
           disabled={isSaving}
         >
           {Object.values(ProfileVisibility).map((v) => (

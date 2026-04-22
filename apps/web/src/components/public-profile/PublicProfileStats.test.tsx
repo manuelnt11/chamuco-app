@@ -33,6 +33,11 @@ describe('PublicProfileStats', () => {
     expect(screen.getByText('8')).toBeInTheDocument();
   });
 
+  it('renders citiesVisited value', () => {
+    render(<PublicProfileStats keyStats={baseStats} />);
+    expect(screen.getByText('25')).toBeInTheDocument();
+  });
+
   it('renders kmTraveled with locale formatting', () => {
     render(<PublicProfileStats keyStats={baseStats} />);
     expect(screen.getByText('45,000')).toBeInTheDocument();
@@ -43,10 +48,11 @@ describe('PublicProfileStats', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
-  it('renders all four stat labels', () => {
+  it('renders all five stat labels', () => {
     render(<PublicProfileStats keyStats={baseStats} />);
     expect(screen.getByText('publicProfile.stats.tripsCompleted')).toBeInTheDocument();
     expect(screen.getByText('publicProfile.stats.countriesVisited')).toBeInTheDocument();
+    expect(screen.getByText('publicProfile.stats.citiesVisited')).toBeInTheDocument();
     expect(screen.getByText('publicProfile.stats.kmTraveled')).toBeInTheDocument();
     expect(screen.getByText('publicProfile.stats.tripsAsOrganizer')).toBeInTheDocument();
   });

@@ -4,14 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
-
-function humanizeRecognitionId(id: string): string {
-  return id
-    .toLowerCase()
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { humanizeId } from '@/lib/name-utils';
 
 export interface PublicProfileRecognitionsProps {
   recognitions: string[];
@@ -34,7 +27,7 @@ export function PublicProfileRecognitions({ recognitions }: PublicProfileRecogni
         <div className="flex flex-wrap gap-2">
           {recognitions.map((id, index) => (
             <Badge key={`${id}-${index}`} variant="outline">
-              {humanizeRecognitionId(id)}
+              {humanizeId(id)}
             </Badge>
           ))}
         </div>

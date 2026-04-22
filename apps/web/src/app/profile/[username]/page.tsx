@@ -16,13 +16,14 @@ import {
 } from '@/components/public-profile';
 import type { KeyStats } from '@/components/public-profile';
 import { apiClient } from '@/services/api-client';
+import { ProfileVisibility } from '@chamuco/shared-types';
 
 interface PublicProfileData {
   username: string;
   displayName: string;
   avatarUrl: string | null;
   bio: string | null;
-  profileVisibility: string;
+  profileVisibility: ProfileVisibility;
   travelerScore: number | null;
   achievements: string[] | null;
   recognitions: string[] | null;
