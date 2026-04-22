@@ -279,7 +279,7 @@ describe('HealthSection', () => {
       );
       await user.click(screen.getByRole('button', { name: 'health.dietaryPreference.VEGAN' }));
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
-      await waitFor(() => expect(mocks.mockPatch).toHaveBeenCalled());
+      await waitFor(() => expect(mocks.mockToastSuccess).toHaveBeenCalled());
 
       rerender(
         <HealthSection
