@@ -428,6 +428,14 @@ describe('NationalitiesSection', () => {
       expect(screen.getByLabelText('nationalities.nationalIdNumber')).toBeInTheDocument();
     });
 
+    it('shows country as read-only text, not a combobox, in edit mode', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      await user.click(editButtons[0]!);
+      expect(screen.queryByTestId('edit-nat-1-country')).not.toBeInTheDocument();
+      expect(screen.getByText('Colombia')).toBeInTheDocument();
+    });
+
     it('pre-fills edit form with existing values', async () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
