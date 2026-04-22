@@ -55,6 +55,8 @@ vi.mock('@/components/public-profile', () => ({
   ),
 }));
 
+import { ProfileVisibility } from '@chamuco/shared-types';
+
 import PublicProfilePage from './page';
 
 // --- fixtures ---
@@ -64,7 +66,7 @@ const publicProfileData = {
   displayName: 'John Smith',
   avatarUrl: null,
   bio: 'Avid traveler.',
-  profileVisibility: 'PUBLIC',
+  profileVisibility: ProfileVisibility.PUBLIC,
   travelerScore: null,
   achievements: ['FIRST_TRIP'],
   recognitions: [],
@@ -83,7 +85,7 @@ const privateProfileData = {
   displayName: 'John Smith',
   avatarUrl: null,
   bio: null,
-  profileVisibility: 'PRIVATE',
+  profileVisibility: ProfileVisibility.PRIVATE,
   travelerScore: null,
   achievements: null,
   recognitions: null,

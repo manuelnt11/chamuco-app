@@ -105,6 +105,7 @@ export default function PublicProfilePage() {
   }
 
   const isGamificationVisible =
+    profileData.travelerScore !== null ||
     profileData.achievements !== null ||
     profileData.recognitions !== null ||
     profileData.keyStats !== null ||
@@ -122,6 +123,8 @@ export default function PublicProfilePage() {
       {!isGamificationVisible && (
         <p className="text-sm text-muted-foreground">{t('publicProfile.privateProfile')}</p>
       )}
+
+      {/* TODO: render travelerScore + global ranking when TravelerScoreCard component is built */}
 
       {profileData.keyStats !== null && <PublicProfileStats keyStats={profileData.keyStats} />}
 
