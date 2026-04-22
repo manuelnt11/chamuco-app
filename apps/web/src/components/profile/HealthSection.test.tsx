@@ -260,6 +260,35 @@ describe('HealthSection', () => {
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() => expect(mocks.mockPatch).toHaveBeenCalled());
     });
+
+    it('blocks save and shows error when OTHER phobia has no description', async () => {
+      const { user } = setup();
+      await user.click(screen.getByTestId('phobias-pill-OTHER'));
+      await user.click(screen.getByRole('button', { name: /health\.save/ }));
+      await waitFor(() => {
+        expect(screen.getByText('health.arrayField.otherDescriptionRequired')).toBeInTheDocument();
+      });
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('form is pristine after successful save and refresh with updated health prop', async () => {
+      const onRefresh = vi.fn();
+      const user = userEvent.setup();
+      const { rerender } = render(
+        <HealthSection health={{ ...baseHealth }} onRefresh={onRefresh} />,
+      );
+      await user.click(screen.getByRole('button', { name: 'health.dietaryPreference.VEGAN' }));
+      await user.click(screen.getByRole('button', { name: /health\.save/ }));
+      await waitFor(() => expect(mocks.mockPatch).toHaveBeenCalled());
+
+      rerender(
+        <HealthSection
+          health={{ ...baseHealth, dietaryPreference: DietaryPreference.VEGAN }}
+          onRefresh={onRefresh}
+        />,
+      );
+      expect(screen.queryByTestId('unsaved-indicator')).not.toBeInTheDocument();
+    });
   });
 
   describe('saving', () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, useMemo, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -111,6 +111,7 @@ function HealthArrayField({
       {isOtherSelected && (
         <div className="space-y-1">
           <Input
+            aria-label={otherDescriptionPlaceholder}
             value={otherItem?.description ?? ''}
             onChange={(e) => setOtherDescription(e.target.value)}
             placeholder={otherDescriptionPlaceholder}
@@ -167,22 +168,49 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
   const [arrayErrors, setArrayErrors] = useState<Record<string, string | null>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  const initialFoodAllergies = normalizeItems(health.foodAllergies);
-  const initialPhobias = normalizeItems(health.phobias);
-  const initialPhysicalLimitations = normalizeItems(health.physicalLimitations);
-  const initialMedicalConditions = normalizeItems(health.medicalConditions);
+  const initialFoodAllergies = useMemo(
+    () => normalizeItems(health.foodAllergies),
+    [health.foodAllergies],
+  );
+  const initialPhobias = useMemo(() => normalizeItems(health.phobias), [health.phobias]);
+  const initialPhysicalLimitations = useMemo(
+    () => normalizeItems(health.physicalLimitations),
+    [health.physicalLimitations],
+  );
+  const initialMedicalConditions = useMemo(
+    () => normalizeItems(health.medicalConditions),
+    [health.medicalConditions],
+  );
 
-  const isDirty =
-    dietaryPreference !== health.dietaryPreference ||
-    (dietaryNotes || null) !== health.dietaryNotes ||
-    (generalMedicalNotes || null) !== health.generalMedicalNotes ||
-    JSON.stringify(sortedItems(foodAllergies)) !==
-      JSON.stringify(sortedItems(initialFoodAllergies)) ||
-    JSON.stringify(sortedItems(phobias)) !== JSON.stringify(sortedItems(initialPhobias)) ||
-    JSON.stringify(sortedItems(physicalLimitations)) !==
-      JSON.stringify(sortedItems(initialPhysicalLimitations)) ||
-    JSON.stringify(sortedItems(medicalConditions)) !==
-      JSON.stringify(sortedItems(initialMedicalConditions));
+  const isDirty = useMemo(
+    () =>
+      dietaryPreference !== health.dietaryPreference ||
+      (dietaryNotes || null) !== health.dietaryNotes ||
+      (generalMedicalNotes || null) !== health.generalMedicalNotes ||
+      JSON.stringify(sortedItems(foodAllergies)) !==
+        JSON.stringify(sortedItems(initialFoodAllergies)) ||
+      JSON.stringify(sortedItems(phobias)) !== JSON.stringify(sortedItems(initialPhobias)) ||
+      JSON.stringify(sortedItems(physicalLimitations)) !==
+        JSON.stringify(sortedItems(initialPhysicalLimitations)) ||
+      JSON.stringify(sortedItems(medicalConditions)) !==
+        JSON.stringify(sortedItems(initialMedicalConditions)),
+    [
+      dietaryPreference,
+      dietaryNotes,
+      generalMedicalNotes,
+      foodAllergies,
+      phobias,
+      physicalLimitations,
+      medicalConditions,
+      health.dietaryPreference,
+      health.dietaryNotes,
+      health.generalMedicalNotes,
+      initialFoodAllergies,
+      initialPhobias,
+      initialPhysicalLimitations,
+      initialMedicalConditions,
+    ],
+  );
 
   function validateArrays(): boolean {
     const errors: Record<string, string | null> = {};
@@ -240,6 +268,7 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
         })),
       });
       toast.success(t('health.saveSuccess'));
+      setArrayErrors({});
       onRefresh();
     } catch {
       toast.error(t('health.saveError'));
@@ -350,7 +379,6 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
           {t('health.generalMedicalNotes.label')}
         </legend>
         <Textarea
-          id="generalMedicalNotes"
           aria-label={t('health.generalMedicalNotes.label')}
           value={generalMedicalNotes}
           onChange={(e) => setGeneralMedicalNotes(e.target.value)}

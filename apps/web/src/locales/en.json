@@ -404,7 +404,6 @@
         "OTHER": "Other"
       },
       "arrayField": {
-        "descriptionPlaceholder": "Optional details...",
         "otherDescriptionPlaceholder": "Please describe...",
         "otherDescriptionRequired": "Description is required for \"Other\""
       },
