@@ -688,20 +688,21 @@ function Step2({
         {stepErrors.includes('minAge') && (
           <p className="text-xs text-destructive">{t('onboarding.validation.minAge')}</p>
         )}
-        <label htmlFor="year-visible-checkbox" className="flex cursor-pointer items-center gap-2">
-          <input
-            id="year-visible-checkbox"
-            type="checkbox"
-            checked={yearVisible}
-            onChange={(e) => onYearVisibleChange(e.target.checked)}
-            className="h-4 w-4 shrink-0 accent-primary"
-            data-testid="year-visible-checkbox"
-          />
-          <span className="text-sm text-muted-foreground">
-            {t('onboarding.dateOfBirth.yearVisibleLabel')}
-          </span>
-        </label>
       </div>
+
+      <label htmlFor="year-visible-checkbox" className="flex cursor-pointer items-center gap-2">
+        <input
+          id="year-visible-checkbox"
+          type="checkbox"
+          checked={yearVisible}
+          onChange={(e) => onYearVisibleChange(e.target.checked)}
+          className="h-4 w-4 shrink-0 accent-primary"
+          data-testid="year-visible-checkbox"
+        />
+        <span className="text-sm text-muted-foreground">
+          {t('onboarding.dateOfBirth.yearVisibleLabel')}
+        </span>
+      </label>
 
       <div className="flex flex-col gap-1.5">
         <Label id="phone-country-label">{t('onboarding.phone.label')}</Label>
