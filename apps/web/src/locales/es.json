@@ -212,7 +212,8 @@
       "basicInfo": "Información Básica",
       "personalDetails": "Datos Personales",
       "preferences": "Preferencias",
-      "loyaltyPrograms": "Programas de Fidelidad"
+      "loyaltyPrograms": "Programas de Fidelidad",
+      "health": "Salud"
     },
     "basicInfo": {
       "heading": "Información Básica",
@@ -317,6 +318,99 @@
       "updateSuccess": "Programa actualizado",
       "deleteSuccess": "Programa eliminado",
       "saveError": "Error al guardar"
+    },
+    "health": {
+      "heading": "Perfil de Salud",
+      "privacyNote": "Esta información es privada y solo se comparte con organizadores de viajes cuando tú lo permites.",
+      "dietaryPreference": {
+        "label": "Preferencia Alimentaria",
+        "OMNIVORE": "Omnívoro",
+        "VEGETARIAN": "Vegetariano",
+        "VEGAN": "Vegano",
+        "PESCATARIAN": "Pescatariano",
+        "GLUTEN_FREE": "Sin Gluten",
+        "OTHER": "Otro"
+      },
+      "dietaryNotes": {
+        "label": "Notas Alimentarias",
+        "placeholder": "Describe tus necesidades alimentarias..."
+      },
+      "generalMedicalNotes": {
+        "label": "Notas Médicas Generales",
+        "placeholder": "Cualquier información médica relevante...",
+        "hint": "Privado — solo visible para organizadores de viajes cuando se comparte explícitamente."
+      },
+      "foodAllergies": {
+        "label": "Alergias Alimentarias",
+        "GLUTEN": "Gluten",
+        "CRUSTACEANS": "Crustáceos",
+        "EGGS": "Huevos",
+        "FISH": "Pescado",
+        "PEANUTS": "Maní",
+        "SOYBEANS": "Soja",
+        "MILK": "Leche",
+        "TREE_NUTS": "Frutos Secos",
+        "CELERY": "Apio",
+        "MUSTARD": "Mostaza",
+        "SESAME": "Sésamo",
+        "SULPHITES": "Sulfitos",
+        "LUPIN": "Lupino",
+        "MOLLUSCS": "Moluscos",
+        "OTHER": "Otro"
+      },
+      "phobias": {
+        "label": "Fobias",
+        "HEIGHTS": "Alturas",
+        "ENCLOSED_SPACES": "Espacios Cerrados",
+        "FLYING": "Volar",
+        "DEEP_WATER": "Aguas Profundas",
+        "OPEN_WATER": "Aguas Abiertas",
+        "ANIMALS": "Animales",
+        "INSECTS": "Insectos",
+        "SNAKES": "Serpientes",
+        "SPIDERS": "Arañas",
+        "DARKNESS": "Oscuridad",
+        "CROWDS": "Multitudes",
+        "MOTION_SICKNESS": "Mareo por Movimiento",
+        "OTHER": "Otro"
+      },
+      "physicalLimitations": {
+        "label": "Limitaciones Físicas",
+        "WHEELCHAIR_USER": "Usuario de Silla de Ruedas",
+        "REDUCED_MOBILITY": "Movilidad Reducida",
+        "CANNOT_USE_STAIRS": "No Puede Usar Escaleras",
+        "HEARING_IMPAIRMENT": "Discapacidad Auditiva",
+        "VISUAL_IMPAIRMENT": "Discapacidad Visual",
+        "REQUIRES_OXYGEN": "Requiere Oxígeno",
+        "REQUIRES_CPAP": "Requiere CPAP",
+        "CHRONIC_PAIN": "Dolor Crónico",
+        "JOINT_CONDITION": "Condición Articular",
+        "CARDIAC_CONDITION": "Condición Cardíaca",
+        "RESPIRATORY_CONDITION": "Condición Respiratoria",
+        "PREGNANCY": "Embarazo",
+        "OTHER": "Otro"
+      },
+      "medicalConditions": {
+        "label": "Condiciones Médicas",
+        "DIABETES": "Diabetes",
+        "EPILEPSY": "Epilepsia",
+        "SEVERE_ALLERGY_EPIPEN": "Alergia Grave (EpiPen)",
+        "ASTHMA": "Asma",
+        "HEART_CONDITION": "Condición Cardíaca",
+        "HYPERTENSION": "Hipertensión",
+        "BLOOD_CLOTTING_DISORDER": "Trastorno de Coagulación",
+        "IMMUNODEFICIENCY": "Inmunodeficiencia",
+        "MENTAL_HEALTH_CONDITION": "Condición de Salud Mental",
+        "OTHER": "Otro"
+      },
+      "arrayField": {
+        "otherDescriptionPlaceholder": "Por favor describe...",
+        "otherDescriptionRequired": "La descripción es requerida para \"Otro\""
+      },
+      "save": "Guardar Perfil de Salud",
+      "saving": "Guardando...",
+      "saveSuccess": "Perfil de salud guardado",
+      "saveError": "Error al guardar el perfil de salud"
     },
     "errors": {
       "generic": "Algo salió mal. Por favor intenta de nuevo.",
