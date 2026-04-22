@@ -213,7 +213,8 @@
       "personalDetails": "Personal Details",
       "preferences": "Preferences",
       "loyaltyPrograms": "Loyalty Programs",
-      "health": "Health"
+      "health": "Health",
+      "emergencyContacts": "Emergency Contacts"
     },
     "basicInfo": {
       "heading": "Basic Information",
@@ -411,6 +412,51 @@
       "saving": "Saving...",
       "saveSuccess": "Health profile saved",
       "saveError": "Failed to save health profile"
+    },
+    "emergencyContacts": {
+      "heading": "Emergency Contacts",
+      "empty": "No emergency contacts added yet.",
+      "add": "Add contact",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Confirm?",
+      "save": "Save",
+      "cancel": "Cancel",
+      "fullName": "Full name",
+      "phoneNumber": "Phone number",
+      "relationship": "Relationship",
+      "isPrimary": "Primary contact",
+      "primaryBadge": "Primary",
+      "addSuccess": "Contact added.",
+      "updateSuccess": "Contact updated.",
+      "deleteSuccess": "Contact deleted.",
+      "saveError": "Could not save contact. Try again.",
+      "relationshipOptions": {
+        "mother": "MOTHER",
+        "father": "FATHER",
+        "sister": "SISTER",
+        "brother": "BROTHER",
+        "spouse": "SPOUSE",
+        "partner": "PARTNER",
+        "daughter": "DAUGHTER",
+        "son": "SON",
+        "grandmother": "GRANDMOTHER",
+        "grandfather": "GRANDFATHER",
+        "aunt": "AUNT",
+        "uncle": "UNCLE",
+        "cousin": "COUSIN",
+        "friend": "FRIEND",
+        "colleague": "COLLEAGUE",
+        "other": "OTHER"
+      },
+      "errors": {
+        "fullNameRequired": "Full name is required.",
+        "fullNameInvalid": "Full name may only contain letters and spaces.",
+        "phoneRequired": "Phone number is required.",
+        "invalidPhone": "Invalid phone number.",
+        "relationshipRequired": "Relationship is required.",
+        "relationshipInvalid": "Relationship may only contain letters and spaces."
+      }
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",

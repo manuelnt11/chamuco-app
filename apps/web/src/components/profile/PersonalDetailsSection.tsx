@@ -13,6 +13,7 @@ import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobo
 import { CityCombobox } from '@/components/ui/city-combobox';
 import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
+import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
 
 export interface PersonalDetailsProfile {
   firstName: string;
@@ -41,14 +42,13 @@ function isValidCalendarDay(day: number, month: number, year: number): boolean {
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
-const NAME_REGEX = /^[\p{L}\s]+$/u;
 const CURRENT_YEAR = new Date().getFullYear();
 
 export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSectionProps) {
   const { t } = useTranslation('profile');
 
-  const [firstName, setFirstName] = useState(profile.firstName);
-  const [lastName, setLastName] = useState(profile.lastName);
+  const [firstName, setFirstName] = useState(profile.firstName.toUpperCase());
+  const [lastName, setLastName] = useState(profile.lastName.toUpperCase());
   const [dobDay, setDobDay] = useState(String(profile.dateOfBirth.day));
   const [dobMonth, setDobMonth] = useState(String(profile.dateOfBirth.month));
   const [dobYear, setDobYear] = useState(String(profile.dateOfBirth.year));
@@ -70,8 +70,8 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
   const [isSaving, setIsSaving] = useState(false);
 
   const isDirty =
-    firstName !== profile.firstName ||
-    lastName !== profile.lastName ||
+    firstName !== profile.firstName.toUpperCase() ||
+    lastName !== profile.lastName.toUpperCase() ||
     Number(dobDay) !== profile.dateOfBirth.day ||
     Number(dobMonth) !== profile.dateOfBirth.month ||
     Number(dobYear) !== profile.dateOfBirth.year ||
@@ -86,13 +86,18 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
   async function handleSave(e: FormEvent) {
     e.preventDefault();
 
+    const normalizedFirst = normalizeName(firstName);
+    const normalizedLast = normalizeName(lastName);
+    setFirstName(normalizedFirst);
+    setLastName(normalizedLast);
+
     let hasError = false;
 
     if (
-      !firstName.trim() ||
-      firstName.trim().length < 2 ||
-      firstName.trim().length > 100 ||
-      !NAME_REGEX.test(firstName.trim())
+      !normalizedFirst ||
+      normalizedFirst.length < 2 ||
+      normalizedFirst.length > 100 ||
+      !NAME_REGEX.test(normalizedFirst)
     ) {
       setFirstNameError(t('personalDetails.errors.firstNameRequired'));
       hasError = true;
@@ -101,10 +106,10 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
     }
 
     if (
-      !lastName.trim() ||
-      lastName.trim().length < 2 ||
-      lastName.trim().length > 100 ||
-      !NAME_REGEX.test(lastName.trim())
+      !normalizedLast ||
+      normalizedLast.length < 2 ||
+      normalizedLast.length > 100 ||
+      !NAME_REGEX.test(normalizedLast)
     ) {
       setLastNameError(t('personalDetails.errors.lastNameRequired'));
       hasError = true;
@@ -153,8 +158,8 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
     setIsSaving(true);
     try {
       await apiClient.patch('/v1/users/me/profile', {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
+        firstName: normalizedFirst,
+        lastName: normalizedLast,
         dateOfBirth: { day, month, year, yearVisible },
         phoneCountryCode: getCallingCode(phoneCountryIso),
         phoneLocalNumber,
@@ -182,10 +187,13 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
           <Input
             id="firstName"
             value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            onChange={(e) => setFirstName(e.target.value.toUpperCase())}
+            autoCapitalize="characters"
+            autoComplete="given-name"
             placeholder={t('personalDetails.firstNamePlaceholder')}
             aria-invalid={firstNameError !== null}
             disabled={isSaving}
+            className="uppercase placeholder:normal-case"
           />
           {firstNameError && <p className="text-sm text-destructive">{firstNameError}</p>}
           <p className="text-xs text-muted-foreground">{t('personalDetails.firstNameHint')}</p>
@@ -196,10 +204,13 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
           <Input
             id="lastName"
             value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            onChange={(e) => setLastName(e.target.value.toUpperCase())}
+            autoCapitalize="characters"
+            autoComplete="family-name"
             placeholder={t('personalDetails.lastNamePlaceholder')}
             aria-invalid={lastNameError !== null}
             disabled={isSaving}
+            className="uppercase placeholder:normal-case"
           />
           {lastNameError && <p className="text-sm text-destructive">{lastNameError}</p>}
           <p className="text-xs text-muted-foreground">{t('personalDetails.lastNameHint')}</p>

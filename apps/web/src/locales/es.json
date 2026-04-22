@@ -213,7 +213,8 @@
       "personalDetails": "Datos Personales",
       "preferences": "Preferencias",
       "loyaltyPrograms": "Programas de Fidelidad",
-      "health": "Salud"
+      "health": "Salud",
+      "emergencyContacts": "Contactos de Emergencia"
     },
     "basicInfo": {
       "heading": "Información Básica",
@@ -411,6 +412,51 @@
       "saving": "Guardando...",
       "saveSuccess": "Perfil de salud guardado",
       "saveError": "Error al guardar el perfil de salud"
+    },
+    "emergencyContacts": {
+      "heading": "Contactos de Emergencia",
+      "empty": "Aún no has añadido contactos de emergencia.",
+      "add": "Añadir contacto",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Confirmar?",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "fullName": "Nombre completo",
+      "phoneNumber": "Número de teléfono",
+      "relationship": "Relación",
+      "isPrimary": "Contacto principal",
+      "primaryBadge": "Principal",
+      "addSuccess": "Contacto añadido.",
+      "updateSuccess": "Contacto actualizado.",
+      "deleteSuccess": "Contacto eliminado.",
+      "saveError": "No se pudo guardar el contacto. Intenta de nuevo.",
+      "relationshipOptions": {
+        "mother": "MADRE",
+        "father": "PADRE",
+        "sister": "HERMANA",
+        "brother": "HERMANO",
+        "spouse": "CÓNYUGE",
+        "partner": "PAREJA",
+        "daughter": "HIJA",
+        "son": "HIJO",
+        "grandmother": "ABUELA",
+        "grandfather": "ABUELO",
+        "aunt": "TÍA",
+        "uncle": "TÍO",
+        "cousin": "PRIMA / PRIMO",
+        "friend": "AMIGA / AMIGO",
+        "colleague": "COLEGA",
+        "other": "OTRO"
+      },
+      "errors": {
+        "fullNameRequired": "El nombre completo es requerido.",
+        "fullNameInvalid": "El nombre solo puede contener letras y espacios.",
+        "phoneRequired": "El número de teléfono es requerido.",
+        "invalidPhone": "Número de teléfono inválido.",
+        "relationshipRequired": "La relación es requerida.",
+        "relationshipInvalid": "La relación solo puede contener letras y espacios."
+      }
     },
     "errors": {
       "generic": "Algo salió mal. Por favor intenta de nuevo.",

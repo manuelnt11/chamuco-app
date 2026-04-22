@@ -21,6 +21,7 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobox';
 import { CityCombobox } from '@/components/ui/city-combobox';
+import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
 // TODO: re-enable once ProfileCompletionBanner is fully designed
 // import { PROFILE_INCOMPLETE_KEY } from '@/components/ProfileCompletionBanner';
 
@@ -68,12 +69,6 @@ function validateStep1(usernameStatus: UsernameStatus, displayName: string): str
   if (usernameStatus !== 'available') errors.push('username');
   if (!displayName.trim()) errors.push('displayName');
   return errors;
-}
-
-const NAME_REGEX = /^[\p{L}\s]+$/u;
-
-function normalizeName(name: string): string {
-  return name.trim().replace(/\s+/g, ' ');
 }
 
 function isValidCalendarDay(day: number, month: number, year: number): boolean {

@@ -123,12 +123,12 @@ describe('PersonalDetailsSection', () => {
 
     it('renders firstName field with initial value', () => {
       setup();
-      expect(screen.getByLabelText('personalDetails.firstName')).toHaveValue('Juan');
+      expect(screen.getByLabelText('personalDetails.firstName')).toHaveValue('JUAN');
     });
 
     it('renders lastName field with initial value', () => {
       setup();
-      expect(screen.getByLabelText('personalDetails.lastName')).toHaveValue('García');
+      expect(screen.getByLabelText('personalDetails.lastName')).toHaveValue('GARCÍA');
     });
 
     it('renders DOB day field with initial value', () => {
@@ -227,7 +227,7 @@ describe('PersonalDetailsSection', () => {
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith(
           '/v1/users/me/profile',
-          expect.objectContaining({ firstName: 'Juan Carlos' }),
+          expect.objectContaining({ firstName: 'JUAN CARLOS' }),
         ),
       );
     });
@@ -238,8 +238,8 @@ describe('PersonalDetailsSection', () => {
       await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/profile', {
-          firstName: 'Juan Carlos',
-          lastName: 'García',
+          firstName: 'JUAN CARLOS',
+          lastName: 'GARCÍA',
           dateOfBirth: { day: 15, month: 6, year: 1990, yearVisible: false },
           phoneCountryCode: '+57',
           phoneLocalNumber: '3001234567',
