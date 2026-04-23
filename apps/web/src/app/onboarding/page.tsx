@@ -67,7 +67,8 @@ function deriveCurrency(countryCode: string): 'COP' | 'USD' {
 }
 
 function resolveTheme(raw: string | undefined): string {
-  return (['light', 'dark', 'system'].includes(raw ?? '') ? raw! : 'system').toUpperCase();
+  if (raw === 'light' || raw === 'dark' || raw === 'system') return raw.toUpperCase();
+  return 'SYSTEM';
 }
 
 function resolveLanguage(raw: string): string {
