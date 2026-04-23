@@ -181,6 +181,40 @@ describe('FirebaseAuthGuard', () => {
     });
   });
 
+  describe('@FirebaseOnly() routes', () => {
+    it('should verify token, set req.firebaseUser, skip DB lookup, and return true', async () => {
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValueOnce(false) // IS_PUBLIC_KEY
+        .mockReturnValueOnce(true); // IS_FIREBASE_ONLY_KEY
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+
+      const ctx = buildContext('Bearer valid-token');
+      const request = ctx.switchToHttp().getRequest();
+
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(mockVerifyIdToken).toHaveBeenCalledWith('valid-token');
+      expect(mockFindByFirebaseUid).not.toHaveBeenCalled();
+      expect(request.firebaseUser).toEqual(mockDecodedToken);
+      expect(request.user).toBeUndefined();
+    });
+
+    it('should throw UnauthorizedException when token is invalid on @FirebaseOnly() route', async () => {
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValueOnce(false) // IS_PUBLIC_KEY
+        .mockReturnValueOnce(true); // IS_FIREBASE_ONLY_KEY
+      mockVerifyIdToken.mockRejectedValue(new Error('Token expired'));
+
+      const ctx = buildContext('Bearer expired-token');
+
+      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+      expect(mockFindByFirebaseUid).not.toHaveBeenCalled();
+    });
+  });
+
   describe('protected routes — user not found in DB', () => {
     it('should throw NotFoundException when Firebase token is valid but user has not registered with Chamuco', async () => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);

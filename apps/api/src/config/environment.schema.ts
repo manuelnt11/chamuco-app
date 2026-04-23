@@ -52,6 +52,9 @@ class EnvironmentVariables {
   @IsJSON()
   FIREBASE_SERVICE_ACCOUNT_JSON!: string;
 
+  @IsString()
+  GEONAMES_USERNAME!: string;
+
   @IsOptional()
   @IsString()
   @Matches(/^https:\/\/[^\s,]+(,https:\/\/[^\s,]+)*$/, {

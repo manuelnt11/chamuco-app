@@ -9,6 +9,9 @@ export default [
     files: ['**/*.ts'],
     languageOptions: {
       globals: {
+        // Node 18+ globals
+        URL: 'readonly',
+        fetch: 'readonly',
         // Jest globals
         describe: 'readonly',
         it: 'readonly',

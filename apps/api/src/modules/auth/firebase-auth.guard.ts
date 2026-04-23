@@ -10,6 +10,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { eq } from 'drizzle-orm';
 import type { Request } from 'express';
+import { IS_FIREBASE_ONLY_KEY } from '@/common/decorators/firebase-only.decorator';
 import { IS_PUBLIC_KEY } from '@/common/decorators/public.decorator';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
@@ -37,6 +38,11 @@ export class FirebaseAuthGuard implements CanActivate {
       return true;
     }
 
+    const isFirebaseOnly = this.reflector.getAllAndOverride<boolean>(IS_FIREBASE_ONLY_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
     const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractToken(request);
 
@@ -47,13 +53,20 @@ export class FirebaseAuthGuard implements CanActivate {
     try {
       const decodedToken = await this.firebaseAdminService.auth().verifyIdToken(token);
 
+      request.firebaseUser = decodedToken;
+
+      // @FirebaseOnly() endpoints only verify the Firebase token — no DB user lookup.
+      // Used for endpoints accessible during onboarding before Chamuco registration.
+      if (isFirebaseOnly) {
+        return true;
+      }
+
       // findByFirebaseUid throws NotFoundException when the user has not completed
       // Chamuco registration. 404 is semantically correct: authenticated identity
       // exists, Chamuco user does not. The frontend relies on this to route new
       // users to /onboarding.
       const user = await this.usersService.findByFirebaseUid(decodedToken.uid);
 
-      request.firebaseUser = decodedToken;
       request.user = user;
 
       this.updateLastActive(user.id).catch((err: unknown) => {

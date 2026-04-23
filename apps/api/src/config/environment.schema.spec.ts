@@ -4,6 +4,7 @@ import { validate } from '@/config/environment.schema';
 const baseEnv = {
   NODE_ENV: 'development',
   FIREBASE_SERVICE_ACCOUNT_JSON: '{}',
+  GEONAMES_USERNAME: 'testuser',
 };
 
 describe('environment.schema — validate()', () => {

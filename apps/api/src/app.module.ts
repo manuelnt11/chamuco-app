@@ -7,6 +7,7 @@ import { SupportAdminAuditInterceptor } from '@/common/interceptors';
 import { DatabaseModule } from '@/database/database.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { HealthModule } from '@/modules/health/health.module';
+import { LocationsModule } from '@/modules/locations/locations.module';
 import { JobsModule } from '@/modules/jobs/jobs.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
@@ -22,6 +23,7 @@ import * as path from 'path';
     AuthModule,
     UsersModule,
     HealthModule,
+    LocationsModule,
     JobsModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
