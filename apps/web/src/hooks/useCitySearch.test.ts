@@ -96,7 +96,7 @@ describe('useCitySearch', () => {
   it('aborts in-flight request when query changes before response arrives', async () => {
     let aborted = false;
     mockGet.mockImplementation((_url: string, config: AxiosRequestConfig | undefined) => {
-      config?.signal?.addEventListener?.('abort', () => {
+      (config?.signal as AbortSignal | undefined)?.addEventListener('abort', () => {
         aborted = true;
       });
       return new Promise(() => {}); // never resolves
@@ -118,7 +118,7 @@ describe('useCitySearch', () => {
   it('aborts in-flight request when country changes before response arrives', async () => {
     let aborted = false;
     mockGet.mockImplementation((_url: string, config: AxiosRequestConfig | undefined) => {
-      config?.signal?.addEventListener?.('abort', () => {
+      (config?.signal as AbortSignal | undefined)?.addEventListener('abort', () => {
         aborted = true;
       });
       return new Promise(() => {}); // never resolves

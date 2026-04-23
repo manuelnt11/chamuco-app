@@ -38,17 +38,17 @@ export class FirebaseAuthGuard implements CanActivate {
       return true;
     }
 
-    const isFirebaseOnly = this.reflector.getAllAndOverride<boolean>(IS_FIREBASE_ONLY_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-
     const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractToken(request);
 
     if (!token) {
       throw new UnauthorizedException('Missing authorization token');
     }
+
+    const isFirebaseOnly = this.reflector.getAllAndOverride<boolean>(IS_FIREBASE_ONLY_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     try {
       const decodedToken = await this.firebaseAdminService.auth().verifyIdToken(token);
