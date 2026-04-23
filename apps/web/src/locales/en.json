@@ -827,8 +827,7 @@
         },
         "howToRequest": {
           "title": "2. How to Request Deletion",
-          "p1": "To request deletion of your account and all associated data, send an email to the address below with the subject line \"Account Deletion Request\" and include the email address or username associated with your account. We will process your request within 5 business days.",
-          "email": "admin@chamucotravel.com"
+          "p1": "To request deletion of your account and all associated data, send an email to the address below with the subject line \"Account Deletion Request\" and include the email address or username associated with your account. We will process your request within 5 business days."
         },
         "retention": {
           "title": "3. Recovery Window & Data Retention",
@@ -838,7 +837,6 @@
         "contact": {
           "title": "4. Contact",
           "p1": "For questions about data deletion or your privacy rights under Colombian Law 1581 of 2012, contact us at:",
-          "email": "admin@chamucotravel.com",
           "p2": "We will respond within the legally established timeframe (15 business days for queries)."
         }
       }

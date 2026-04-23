@@ -827,8 +827,7 @@
         },
         "howToRequest": {
           "title": "2. Cómo Solicitar la Eliminación",
-          "p1": "Para solicitar la eliminación de su cuenta y todos los datos asociados, envíe un correo electrónico a la dirección indicada a continuación con el asunto \"Solicitud de Eliminación de Cuenta\" e incluya el correo electrónico o nombre de usuario asociado a su cuenta. Procesaremos su solicitud dentro de los 5 días hábiles siguientes.",
-          "email": "admin@chamucotravel.com"
+          "p1": "Para solicitar la eliminación de su cuenta y todos los datos asociados, envíe un correo electrónico a la dirección indicada a continuación con el asunto \"Solicitud de Eliminación de Cuenta\" e incluya el correo electrónico o nombre de usuario asociado a su cuenta. Procesaremos su solicitud dentro de los 5 días hábiles siguientes."
         },
         "retention": {
           "title": "3. Período de Recuperación y Retención de Datos",
@@ -838,7 +837,6 @@
         "contact": {
           "title": "4. Contacto",
           "p1": "Para preguntas sobre la eliminación de datos o sus derechos de privacidad bajo la Ley 1581 de 2012, contáctenos en:",
-          "email": "admin@chamucotravel.com",
           "p2": "Responderemos dentro del plazo legalmente establecido (15 días hábiles para consultas)."
         }
       }

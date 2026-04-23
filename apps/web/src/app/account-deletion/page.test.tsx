@@ -109,11 +109,9 @@ describe('AccountDeletionPage', () => {
   });
 
   describe('contact links', () => {
-    it('renders mailto links with the correct contact email', () => {
-      const links = screen
-        .getAllByRole('link')
-        .filter((link) => link.getAttribute('href')?.startsWith('mailto:'));
-      expect(links.length).toBeGreaterThan(0);
+    it('renders exactly 2 mailto links with the correct contact email', () => {
+      const links = screen.getAllByRole('link', { name: CONTACT_EMAIL });
+      expect(links).toHaveLength(2);
       links.forEach((link) => {
         expect(link).toHaveAttribute('href', `mailto:${CONTACT_EMAIL}`);
       });

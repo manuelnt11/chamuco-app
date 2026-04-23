@@ -74,7 +74,7 @@ export default function AccountDeletionPage() {
             href={`mailto:${CONTACT_EMAIL}`}
             className="block font-medium text-primary hover:underline"
           >
-            {t('accountDeletion.sections.howToRequest.email')}
+            {CONTACT_EMAIL}
           </a>
         </section>
 
@@ -102,7 +102,7 @@ export default function AccountDeletionPage() {
             href={`mailto:${CONTACT_EMAIL}`}
             className="mb-3 block font-medium text-primary hover:underline"
           >
-            {t('accountDeletion.sections.contact.email')}
+            {CONTACT_EMAIL}
           </a>
           <p className="leading-relaxed text-foreground/90">
             {t('accountDeletion.sections.contact.p2')}
