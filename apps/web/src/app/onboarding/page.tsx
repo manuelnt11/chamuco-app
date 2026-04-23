@@ -7,6 +7,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
 import type { TFunction } from 'i18next';
+import { useTheme } from 'next-themes';
+import { getCountryData, type TCountryCode } from 'countries-list';
 
 import { useAuth } from '@/hooks/useAuth';
 import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
@@ -52,6 +54,25 @@ function computeAge(day: number, month: number, year: number): number {
   const m = today.getMonth() + 1 - month;
   if (m < 0 || (m === 0 && today.getDate() < day)) age--;
   return age;
+}
+
+function deriveCurrency(countryCode: string): 'COP' | 'USD' {
+  try {
+    const primary = getCountryData(countryCode as TCountryCode).currency[0]?.toUpperCase();
+    if (primary === 'COP' || primary === 'USD') return primary;
+  } catch {
+    // unknown country code — use default
+  }
+  return 'COP';
+}
+
+function resolveTheme(raw: string | undefined): string {
+  return (['light', 'dark', 'system'].includes(raw ?? '') ? raw! : 'system').toUpperCase();
+}
+
+function resolveLanguage(raw: string): string {
+  const code = raw.slice(0, 2).toLowerCase();
+  return (['en', 'es'].includes(code) ? code : 'es').toUpperCase();
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +137,8 @@ function validateStep3(homeCountry: string, termsAccepted: boolean): string[] {
 // ---------------------------------------------------------------------------
 
 export default function OnboardingPage() {
-  const { t } = useTranslation('auth');
+  const { t, i18n } = useTranslation('auth');
+  const { theme } = useTheme();
   const router = useRouter();
   const { currentUser, isLoading, signOut } = useAuth();
 
@@ -281,6 +303,13 @@ export default function OnboardingPage() {
         phoneLocalNumber: phoneNumber,
       });
       document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
+      void apiClient
+        .patch('/v1/users/me/preferences', {
+          theme: resolveTheme(theme),
+          language: resolveLanguage(i18n.language),
+          currency: deriveCurrency(homeCountry),
+        })
+        .catch(() => {});
       // localStorage.setItem(PROFILE_INCOMPLETE_KEY, 'true'); // TODO: re-enable with banner
       router.replace('/');
     } catch (err) {
