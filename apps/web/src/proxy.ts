@@ -34,7 +34,11 @@ export function proxy(request: NextRequest): NextResponse {
   }
 
   // Public legal pages — always accessible regardless of auth state
-  if (pathname === '/privacy-policy' || pathname === '/terms-of-service') {
+  if (
+    pathname === '/privacy-policy' ||
+    pathname === '/terms-of-service' ||
+    pathname === '/account-deletion'
+  ) {
     return NextResponse.next();
   }
 

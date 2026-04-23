@@ -8,7 +8,13 @@ import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
 // import { ProfileCompletionBanner } from '@/components/ProfileCompletionBanner';
 
 // Pages that render without nav chrome (auth flows + public legal pages)
-const NO_CHROME_PATHS = ['/sign-in', '/onboarding', '/privacy-policy', '/terms-of-service'];
+const NO_CHROME_PATHS = [
+  '/sign-in',
+  '/onboarding',
+  '/privacy-policy',
+  '/terms-of-service',
+  '/account-deletion',
+];
 
 interface AppShellProps {
   children: ReactNode;

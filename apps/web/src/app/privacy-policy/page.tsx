@@ -278,12 +278,20 @@ export default function PrivacyPolicyPage() {
           >
             {t('common:actions.backToSignIn')}
           </Link>
-          <Link
-            href="/terms-of-service"
-            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-          >
-            {t('terms.title')}
-          </Link>
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href="/terms-of-service"
+              className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+            >
+              {t('terms.title')}
+            </Link>
+            <Link
+              href="/account-deletion"
+              className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+            >
+              {t('accountDeletion.title')}
+            </Link>
+          </div>
         </div>
       </main>
     </div>
