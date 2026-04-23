@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   mockRouterReplace: vi.fn(),
   mockApiGet: vi.fn(),
   mockApiPost: vi.fn(),
+  mockApiPatch: vi.fn(),
   mockToastError: vi.fn(),
   mockToastInfo: vi.fn(),
   mockSignOut: vi.fn(),
@@ -28,7 +29,12 @@ vi.mock('@/services/api-client', () => ({
   apiClient: {
     get: mocks.mockApiGet,
     post: mocks.mockApiPost,
+    patch: mocks.mockApiPatch,
   },
+}));
+
+vi.mock('next-themes', () => ({
+  useTheme: () => ({ theme: 'system', setTheme: vi.fn() }),
 }));
 
 vi.mock('@/components/ui/toast', () => ({
@@ -197,6 +203,7 @@ async function renderFormAtStep3() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.mockApiPatch.mockResolvedValue({ status: 200 });
 });
 
 describe('OnboardingPage', () => {
@@ -797,6 +804,39 @@ describe('OnboardingPage', () => {
           }),
         ),
       );
+    });
+
+    it('calls PATCH /v1/users/me/preferences after successful registration', async () => {
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      const user = await renderFormWithAvailableUsername({
+        currentUser: makeUser({ displayName: 'Test User' }),
+      });
+
+      await user.click(screen.getByTestId('submit-btn'));
+
+      await waitFor(() =>
+        expect(mocks.mockApiPatch).toHaveBeenCalledWith(
+          '/v1/users/me/preferences',
+          expect.objectContaining({
+            theme: 'SYSTEM', // useTheme mock returns 'system'
+            language: 'EN', // i18n mock returns 'en'
+            currency: 'COP', // homeCountry is 'CO' → COP
+          }),
+        ),
+      );
+    });
+
+    it('does not block registration if preferences PATCH fails', async () => {
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      mocks.mockApiPatch.mockRejectedValue(new Error('Network error'));
+      const user = await renderFormWithAvailableUsername({
+        currentUser: makeUser({ displayName: 'Test User' }),
+      });
+
+      await user.click(screen.getByTestId('submit-btn'));
+
+      await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
+      expect(mocks.mockToastError).not.toHaveBeenCalled();
     });
 
     it('shows generic error toast on unexpected submit error', async () => {
