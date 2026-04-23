@@ -112,22 +112,37 @@ describe('Auth endpoints (integration)', () => {
 
   describe('GET /v1/users/username-available', () => {
     it('returns available:true for a username that does not exist', async () => {
+      mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
+
       const res = await request(app.getHttpServer())
         .get('/v1/users/username-available?username=nonexistent_user_e2e')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
         .expect(200);
 
       expect(res.body).toMatchObject({ available: true });
     });
 
+    it('returns 401 when no token is provided', async () => {
+      await request(app.getHttpServer())
+        .get('/v1/users/username-available?username=validuser')
+        .expect(401);
+    });
+
     it('returns 400 for an invalid username format', async () => {
+      mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
+
       await request(app.getHttpServer())
         .get('/v1/users/username-available?username=INVALID+USER!')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
         .expect(400);
     });
 
     it('returns 400 for a username that is too short', async () => {
+      mockVerifyIdToken.mockResolvedValue(VALID_DECODED_TOKEN);
+
       await request(app.getHttpServer())
         .get('/v1/users/username-available?username=ab')
+        .set('Authorization', VALID_GOOGLE_TOKEN)
         .expect(400);
     });
   });
