@@ -137,6 +137,7 @@ export default function OnboardingPage() {
   const [dobDay, setDobDay] = useState('');
   const [dobMonth, setDobMonth] = useState('');
   const [dobYear, setDobYear] = useState('');
+  const [yearVisible, setYearVisible] = useState(false);
   const [phoneCountry, setPhoneCountry] = useState('CO');
   const [phoneNumber, setPhoneNumber] = useState('');
 
@@ -272,7 +273,7 @@ export default function OnboardingPage() {
           day: parseInt(dobDay, 10),
           month: parseInt(dobMonth, 10),
           year: parseInt(dobYear, 10),
-          yearVisible: false,
+          yearVisible,
         },
         homeCountry,
         homeCity: homeCity.trim() || undefined,
@@ -353,6 +354,7 @@ export default function OnboardingPage() {
             dobDay={dobDay}
             dobMonth={dobMonth}
             dobYear={dobYear}
+            yearVisible={yearVisible}
             phoneCountry={phoneCountry}
             phoneNumber={phoneNumber}
             stepErrors={stepErrors}
@@ -376,6 +378,7 @@ export default function OnboardingPage() {
               setDobYear(v);
               setStepErrors([]);
             }}
+            onYearVisibleChange={setYearVisible}
             onPhoneCountryChange={(v) => {
               setPhoneCountry(v);
               setStepErrors([]);
@@ -544,6 +547,7 @@ interface Step2Props {
   dobDay: string;
   dobMonth: string;
   dobYear: string;
+  yearVisible: boolean;
   phoneCountry: string;
   phoneNumber: string;
   stepErrors: string[];
@@ -552,6 +556,7 @@ interface Step2Props {
   onDobDayChange: (v: string) => void;
   onDobMonthChange: (v: string) => void;
   onDobYearChange: (v: string) => void;
+  onYearVisibleChange: (v: boolean) => void;
   onPhoneCountryChange: (v: string) => void;
   onPhoneNumberChange: (v: string) => void;
   t: TFunction;
@@ -563,6 +568,7 @@ function Step2({
   dobDay,
   dobMonth,
   dobYear,
+  yearVisible,
   phoneCountry,
   phoneNumber,
   stepErrors,
@@ -571,6 +577,7 @@ function Step2({
   onDobDayChange,
   onDobMonthChange,
   onDobYearChange,
+  onYearVisibleChange,
   onPhoneCountryChange,
   onPhoneNumberChange,
   t,
@@ -682,6 +689,20 @@ function Step2({
           <p className="text-xs text-destructive">{t('onboarding.validation.minAge')}</p>
         )}
       </div>
+
+      <label htmlFor="year-visible-checkbox" className="flex cursor-pointer items-center gap-2">
+        <input
+          id="year-visible-checkbox"
+          type="checkbox"
+          checked={yearVisible}
+          onChange={(e) => onYearVisibleChange(e.target.checked)}
+          className="h-4 w-4 shrink-0 accent-primary"
+          data-testid="year-visible-checkbox"
+        />
+        <span className="text-sm text-muted-foreground">
+          {t('onboarding.dateOfBirth.yearVisibleLabel')}
+        </span>
+      </label>
 
       <div className="flex flex-col gap-1.5">
         <Label id="phone-country-label">{t('onboarding.phone.label')}</Label>

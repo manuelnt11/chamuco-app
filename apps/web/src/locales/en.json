@@ -131,7 +131,8 @@
         "label": "Date of birth",
         "day": "Day",
         "month": "Month",
-        "year": "Year"
+        "year": "Year",
+        "yearVisibleLabel": "Show birth year on my public profile"
       },
       "phone": {
         "label": "Phone number",

@@ -131,7 +131,8 @@
         "label": "Fecha de nacimiento",
         "day": "Día",
         "month": "Mes",
-        "year": "Año"
+        "year": "Año",
+        "yearVisibleLabel": "Mostrar año de nacimiento en mi perfil público"
       },
       "phone": {
         "label": "Número de teléfono",
