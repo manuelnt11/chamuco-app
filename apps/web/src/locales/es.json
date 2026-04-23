@@ -809,6 +809,37 @@
           "p2": "Nuestro objetivo es responder a todas las consultas dentro de los 5 días hábiles siguientes."
         }
       }
+    },
+    "accountDeletion": {
+      "title": "Instrucciones para Eliminación de Cuenta",
+      "subtitle": "Última actualización: 23 de abril de 2026",
+      "intro": "Esta página explica cómo puede solicitar la eliminación de su cuenta de Chamuco Travel y todos los datos personales asociados, de conformidad con la Ley 1581 de 2012 (Habeas Data) y las Políticas de la Plataforma de Meta.",
+      "sections": {
+        "whatGetsDeleted": {
+          "title": "1. Qué Datos se Eliminan",
+          "intro": "Cuando su cuenta es eliminada de forma permanente, los siguientes datos son removidos de nuestros sistemas:",
+          "account": "Credenciales de cuenta y datos de autenticación (registro de Firebase Authentication)",
+          "profile": "Su perfil personal, nombre de pantalla, nombre de usuario, fecha de nacimiento y foto de perfil",
+          "documents": "Nacionalidades y documentos de viaje (números de pasaporte, cédulas de identidad)",
+          "preferences": "Preferencias de la aplicación, incluidos idioma, moneda y configuración de tema",
+          "tripHistory": "Registros de participación en viajes, notas de viajes, elementos de presupuesto y registros de gastos",
+          "gamification": "Puntuación de Viajero, logros, Puntos Chamuco y datos del Mapa de Descubrimiento"
+        },
+        "howToRequest": {
+          "title": "2. Cómo Solicitar la Eliminación",
+          "p1": "Para solicitar la eliminación de su cuenta y todos los datos asociados, envíe un correo electrónico a la dirección indicada a continuación con el asunto \"Solicitud de Eliminación de Cuenta\" e incluya el correo electrónico o nombre de usuario asociado a su cuenta. Procesaremos su solicitud dentro de los 5 días hábiles siguientes."
+        },
+        "retention": {
+          "title": "3. Período de Recuperación y Retención de Datos",
+          "p1": "Cuando usted inicia la eliminación de su cuenta, comienza un período de recuperación de 30 días. Durante este período puede reactivar su cuenta y todos los datos se preservan. Transcurridos 30 días, todos los datos personales son eliminados de forma permanente e irreversible de nuestros sistemas.",
+          "p2": "Los registros de auditoría inmutables generados por acciones de administradores de soporte de la plataforma pueden conservarse por el período exigido por la ley aplicable tras la eliminación de la cuenta, exclusivamente para garantizar la rendición de cuentas de las operaciones administrativas. No se conserva ningún otro dato personal."
+        },
+        "contact": {
+          "title": "4. Contacto",
+          "p1": "Para preguntas sobre la eliminación de datos o sus derechos de privacidad bajo la Ley 1581 de 2012, contáctenos en:",
+          "p2": "Responderemos dentro del plazo legalmente establecido (15 días hábiles para consultas)."
+        }
+      }
     }
   }
 }
