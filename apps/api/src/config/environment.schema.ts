@@ -2,6 +2,7 @@ import { plainToClass } from 'class-transformer';
 import {
   IsEnum,
   IsJSON,
+  IsNotEmpty,
   IsNumber,
   IsBoolean,
   IsOptional,
@@ -51,6 +52,10 @@ class EnvironmentVariables {
   @IsString()
   @IsJSON()
   FIREBASE_SERVICE_ACCOUNT_JSON!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  GEONAMES_USERNAME!: string;
 
   @IsOptional()
   @IsString()

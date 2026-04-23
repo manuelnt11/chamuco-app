@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { FirebaseOnly } from '@/common/decorators/firebase-only.decorator';
 import { Public } from '@/common/decorators/public.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { UsersService } from './users.service';
@@ -431,17 +432,20 @@ export class UsersController {
   }
 
   @Get('username-available')
-  @Public()
+  @FirebaseOnly()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Check if a username is available',
     description:
       'Returns whether the given username is available for registration. ' +
-      'No authentication required. Rate-limited to 30 requests per minute per IP.',
+      'Requires a valid Firebase ID token. Available during onboarding before Chamuco registration is complete. ' +
+      'Rate-limited to 30 requests per minute.',
   })
   @ApiQuery({ name: 'username', description: 'Username to check (3–30 chars, a-z 0-9 _ -)' })
   @ApiResponse({ status: 200, type: UsernameAvailabilityDto })
   @ApiResponse({ status: 400, description: 'Invalid username format' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase token' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
   checkUsernameAvailability(@Query('username') username: string): Promise<UsernameAvailabilityDto> {
     const normalized = (username ?? '').toLowerCase();

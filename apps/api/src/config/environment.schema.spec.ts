@@ -4,9 +4,23 @@ import { validate } from '@/config/environment.schema';
 const baseEnv = {
   NODE_ENV: 'development',
   FIREBASE_SERVICE_ACCOUNT_JSON: '{}',
+  GEONAMES_USERNAME: 'testuser',
 };
 
 describe('environment.schema — validate()', () => {
+  describe('GEONAMES_USERNAME', () => {
+    it('rejects an empty string', () => {
+      expect(() => validate({ ...baseEnv, GEONAMES_USERNAME: '' })).toThrow(
+        'Environment validation failed',
+      );
+    });
+
+    it('rejects when absent', () => {
+      const { GEONAMES_USERNAME: _, ...withoutGeonames } = baseEnv;
+      expect(() => validate(withoutGeonames)).toThrow('Environment validation failed');
+    });
+  });
+
   describe('CORS_ORIGIN', () => {
     it('accepts a valid https URL', () => {
       expect(() =>

@@ -1,5 +1,6 @@
 {
   "displayName": "api:e2e",
+  "setupFiles": ["<rootDir>/test/setup-env.ts"],
   "testEnvironment": "node",
   "rootDir": "..",
   "testMatch": ["<rootDir>/test/**/*.e2e-spec.ts"],

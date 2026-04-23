@@ -1,13 +1,6 @@
+import axios from 'axios';
 import { useEffect, useState } from 'react';
-
-interface GeonamesCity {
-  name: string;
-  adminName1: string;
-}
-
-interface GeonamesResponse {
-  geonames?: GeonamesCity[];
-}
+import { apiClient } from '@/services/api-client';
 
 export interface CityResult {
   name: string;
@@ -28,17 +21,19 @@ export function useCitySearch(country: string, query: string) {
 
     const timer = setTimeout(() => {
       setIsLoading(true);
-      const params = new URLSearchParams({ country, q: query });
-      fetch(`/api/cities?${params.toString()}`, { signal: controller.signal })
-        .then((res) => (res.ok ? res.json() : { geonames: [] }))
-        .then((data: GeonamesResponse) => {
-          setResults(
-            (data.geonames ?? []).map((g) => ({ name: g.name, region: g.adminName1 ?? '' })),
-          );
+
+      apiClient
+        .get<CityResult[]>('/v1/locations/cities', {
+          params: { namePrefix: query, country },
+          signal: controller.signal,
+        })
+        .then((res) => {
+          setResults(res.data);
         })
         .catch((err: unknown) => {
-          if (err instanceof DOMException && err.name === 'AbortError') return;
-          setResults([]);
+          if (!axios.isCancel(err)) {
+            setResults([]);
+          }
         })
         .finally(() => setIsLoading(false));
     }, 300);
