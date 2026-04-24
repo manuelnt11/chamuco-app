@@ -128,6 +128,15 @@ describe('FeedbackService', () => {
       expect(body.body).toContain('Bold feedback comment here.');
     });
 
+    it('throws ServiceUnavailableException when GITHUB_TOKEN is not set', async () => {
+      delete process.env.GITHUB_TOKEN;
+
+      await expect(
+        service.createFeedback('user-uuid', 'My feedback comment here.'),
+      ).rejects.toThrow(ServiceUnavailableException);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     it('throws ServiceUnavailableException when GitHub API returns non-ok', async () => {
       mockFetch.mockResolvedValue({
         ok: false,
@@ -154,6 +163,7 @@ describe('FeedbackService', () => {
         userAgent: 'Mozilla/5.0',
         viewportSize: '1920x1080',
         language: 'es-CO',
+        theme: 'dark',
       });
 
       const callArg = mockFetch.mock.calls[0][1] as { body: string };
@@ -163,6 +173,22 @@ describe('FeedbackService', () => {
       expect(body.body).toContain('Mozilla/5.0');
       expect(body.body).toContain('1920x1080');
       expect(body.body).toContain('es-CO');
+      expect(body.body).toContain('dark');
+    });
+
+    it('escapes pipe characters in context values to prevent Markdown table breakage', async () => {
+      await service.createFeedback('user-uuid', 'My feedback comment here.', {
+        userAgent: 'Mozilla/5.0 | Custom | Agent',
+        currentPage: '/trips/pipe|test',
+        language: 'es|CO',
+        viewportSize: '1920x1080',
+      });
+
+      const callArg = mockFetch.mock.calls[0][1] as { body: string };
+      const body = JSON.parse(callArg.body) as { body: string };
+      expect(body.body).toContain('Mozilla/5.0 \\| Custom \\| Agent');
+      expect(body.body).toContain('/trips/pipe\\|test');
+      expect(body.body).toContain('es\\|CO');
     });
 
     it('omits context section when no context provided', async () => {

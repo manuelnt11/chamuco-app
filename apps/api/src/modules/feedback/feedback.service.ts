@@ -18,6 +18,7 @@ export interface FeedbackContext {
   userAgent?: string;
   viewportSize?: string;
   language?: string;
+  theme?: string;
 }
 
 @Injectable()
@@ -74,13 +75,15 @@ export class FeedbackService {
     ];
 
     if (context && Object.values(context).some(Boolean)) {
+      const esc = (v: string) => v.replace(/\|/g, '\\|');
       lines.push('', '---', '', '## Context', '');
       lines.push('| Field | Value |');
       lines.push('|-------|-------|');
-      if (context.currentPage) lines.push(`| Page | \`${context.currentPage}\` |`);
-      if (context.language) lines.push(`| Language | ${context.language} |`);
-      if (context.viewportSize) lines.push(`| Viewport | ${context.viewportSize} |`);
-      if (context.userAgent) lines.push(`| User Agent | ${context.userAgent} |`);
+      if (context.currentPage) lines.push(`| Page | \`${esc(context.currentPage)}\` |`);
+      if (context.theme) lines.push(`| Theme | ${esc(context.theme)} |`);
+      if (context.language) lines.push(`| Language | ${esc(context.language)} |`);
+      if (context.viewportSize) lines.push(`| Viewport | ${esc(context.viewportSize)} |`);
+      if (context.userAgent) lines.push(`| User Agent | ${esc(context.userAgent)} |`);
     }
 
     lines.push(
@@ -100,6 +103,13 @@ export class FeedbackService {
     const token = process.env.GITHUB_TOKEN;
     const owner = process.env.GITHUB_REPO_OWNER;
     const repo = process.env.GITHUB_REPO_NAME;
+
+    if (!token || !owner || !repo) {
+      this.logger.error(
+        'GitHub feedback integration is not configured — missing GITHUB_TOKEN, GITHUB_REPO_OWNER, or GITHUB_REPO_NAME',
+      );
+      throw new ServiceUnavailableException('Feedback service is not configured.');
+    }
 
     const url = `https://api.github.com/repos/${owner}/${repo}/issues`;
 

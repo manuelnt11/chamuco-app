@@ -22,11 +22,11 @@ import { FeedbackButton } from '@/components/feedback/FeedbackButton';
 
 describe('FeedbackButton', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     mocks.mockFeedbackModal.mockImplementation(
       ({ open }: { open: boolean; onClose: () => void }) =>
         open ? <div data-testid="feedback-modal" /> : null,
     );
-    vi.clearAllMocks();
   });
 
   it('renders the floating button', () => {

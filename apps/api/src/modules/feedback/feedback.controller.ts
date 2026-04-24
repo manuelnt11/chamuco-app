@@ -41,6 +41,7 @@ export class FeedbackController {
       userAgent: dto.userAgent,
       viewportSize: dto.viewportSize,
       language: dto.language,
+      theme: dto.theme,
     });
   }
 }

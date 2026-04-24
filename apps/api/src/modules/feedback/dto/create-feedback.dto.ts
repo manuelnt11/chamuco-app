@@ -47,4 +47,10 @@ export class CreateFeedbackDto {
   @IsString()
   @MaxLength(20)
   language?: string;
+
+  @ApiPropertyOptional({ example: 'dark', description: 'Active UI theme at submission time.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  theme?: string;
 }

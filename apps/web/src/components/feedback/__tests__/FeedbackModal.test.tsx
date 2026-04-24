@@ -140,6 +140,7 @@ describe('FeedbackModal', () => {
             userAgent: expect.any(String),
             viewportSize: expect.any(String),
             language: expect.any(String),
+            theme: expect.stringMatching(/^(dark|light)$/),
           }),
         ),
       );

@@ -53,8 +53,9 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
         comment: trimmed,
         currentPage: window.location.pathname,
         userAgent: navigator.userAgent,
-        viewportSize: `${window.innerWidth.toString()}x${window.innerHeight.toString()}`,
+        viewportSize: `${window.innerWidth}x${window.innerHeight}`,
         language: navigator.language,
+        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
       });
       toast.success(t('success'));
       setComment('');

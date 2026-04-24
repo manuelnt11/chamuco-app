@@ -142,7 +142,13 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
-          printf 'NODE_ENV: production\nCORS_ORIGIN: "https://chamucotravel.com,https://www.chamucotravel.com"\nGITHUB_REPO_OWNER: manuelnt11\nGITHUB_REPO_NAME: chamuco-app\nGITHUB_PROJECT_NUMBER: "4"\n' > /tmp/env-vars.yaml
+          cat > /tmp/env-vars.yaml <<'EOF'
+          NODE_ENV: production
+          CORS_ORIGIN: "https://chamucotravel.com,https://www.chamucotravel.com"
+          GITHUB_REPO_OWNER: manuelnt11
+          GITHUB_REPO_NAME: chamuco-app
+          GITHUB_PROJECT_NUMBER: "4"
+          EOF
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.ARTIFACT_REGISTRY }}/api:${{ github.sha }} \
             --region=${{ env.GCP_REGION }} \
