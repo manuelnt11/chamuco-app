@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@/config/config.module';
 import { SupportAdminAuditInterceptor } from '@/common/interceptors';
+import { UserThrottlerGuard } from '@/common/guards';
 import { DatabaseModule } from '@/database/database.module';
 import { AuthModule } from '@/modules/auth/auth.module';
+import { FeedbackModule } from '@/modules/feedback/feedback.module';
 import { HealthModule } from '@/modules/health/health.module';
 import { LocationsModule } from '@/modules/locations/locations.module';
 import { JobsModule } from '@/modules/jobs/jobs.module';
@@ -23,6 +25,7 @@ import * as path from 'path';
     AuthModule,
     UsersModule,
     HealthModule,
+    FeedbackModule,
     LocationsModule,
     JobsModule,
     I18nModule.forRoot({
@@ -36,7 +39,7 @@ import * as path from 'path';
   ],
   controllers: [],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: UserThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: SupportAdminAuditInterceptor },
   ],
 })

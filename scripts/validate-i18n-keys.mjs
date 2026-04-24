@@ -18,7 +18,7 @@ const WEB_DIR = 'apps/web';
 const SRC_DIR = join(WEB_DIR, 'src');
 const LOCALES_DIR = join(WEB_DIR, 'src', 'locales');
 
-const KNOWN_NAMESPACES = ['auth', 'trips', 'groups', 'profile', 'errors', 'common', 'explore'];
+const KNOWN_NAMESPACES = ['auth', 'trips', 'groups', 'profile', 'errors', 'common', 'explore', 'feedback'];
 const EXPLICIT_NS_PATTERN = new RegExp(`^(${KNOWN_NAMESPACES.join('|')})\\\.`);
 
 console.log(`${BLUE}🔍 Validating i18n keys...${NC}\n`);
@@ -61,7 +61,9 @@ for (const file of sourceFiles) {
     if (key.includes(':')) {
       // Explicit namespace prefix — normalise colon to dot: common:actions.save → common.actions.save
       usedKeys.add(key.replace(':', '.'));
-    } else if (EXPLICIT_NS_PATTERN.test(key)) {
+    } else if (namespace === 'common' && EXPLICIT_NS_PATTERN.test(key)) {
+      // Key starts with a known namespace prefix (e.g. errors.foo in a common-namespace file)
+      // Only applies when no specific namespace is active — otherwise qualify with the active namespace.
       usedKeys.add(key);
     } else if (key.includes('.')) {
       usedKeys.add(`${namespace}.${key}`);
