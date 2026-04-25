@@ -142,7 +142,13 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
-          printf 'NODE_ENV: production\nCORS_ORIGIN: "https://chamucotravel.com,https://www.chamucotravel.com"\n' > /tmp/env-vars.yaml
+          cat > /tmp/env-vars.yaml <<'EOF'
+          NODE_ENV: production
+          CORS_ORIGIN: "https://chamucotravel.com,https://www.chamucotravel.com"
+          GITHUB_REPO_OWNER: manuelnt11
+          GITHUB_REPO_NAME: chamuco-app
+          GITHUB_PROJECT_NUMBER: "4"
+          EOF
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.ARTIFACT_REGISTRY }}/api:${{ github.sha }} \
             --region=${{ env.GCP_REGION }} \
@@ -152,7 +158,7 @@ jobs:
             --vpc-connector=chamuco-vpc-connector \
             --vpc-egress=private-ranges-only \
             --env-vars-file=/tmp/env-vars.yaml \
-            --set-secrets=FIREBASE_SERVICE_ACCOUNT_JSON=FIREBASE_SERVICE_ACCOUNT_JSON:latest,GEONAMES_USERNAME=GEONAMES_USERNAME:latest \
+            --set-secrets=FIREBASE_SERVICE_ACCOUNT_JSON=FIREBASE_SERVICE_ACCOUNT_JSON:latest,GEONAMES_USERNAME=GEONAMES_USERNAME:latest,GITHUB_TOKEN=GITHUB_TOKEN:latest \
             --memory=512Mi \
             --cpu=1 \
             --min-instances=0 \

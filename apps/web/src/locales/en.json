@@ -841,5 +841,28 @@
         }
       }
     }
+  },
+  "feedback": {
+    "button": {
+      "label": "Send feedback"
+    },
+    "modal": {
+      "title": "Send feedback",
+      "description": "Help us improve Chamuco Travel. Your feedback is anonymous.",
+      "placeholder": "Describe an issue, suggest a feature, or share your thoughts...",
+      "charCount": "{{count}}/2000",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "cancel": "Cancel",
+      "close": "Close",
+      "successTitle": "Thanks for helping out!",
+      "successDescription": "Your report helps us improve Chamuco Travel."
+    },
+    "success": "Feedback submitted. Thank you!",
+    "errors": {
+      "submitFailed": "Failed to submit feedback. Please try again.",
+      "rateLimitExceeded": "Daily feedback limit reached (3 per day). Try again tomorrow.",
+      "tooShort": "Please provide at least 10 characters."
+    }
   }
 }

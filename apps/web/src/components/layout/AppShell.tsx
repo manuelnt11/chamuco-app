@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Header } from '@/components/header';
 import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
+import { FeedbackButton } from '@/components/feedback/FeedbackButton';
 // TODO: re-enable once notifications/banners are fully designed
 // import { ProfileCompletionBanner } from '@/components/ProfileCompletionBanner';
 
@@ -36,6 +37,7 @@ export function AppShell({ children }: AppShellProps) {
       <main className="relative pt-header pb-header md:pb-0 md:pl-sidebar min-h-screen">
         {children}
       </main>
+      <FeedbackButton />
     </>
   );
 }

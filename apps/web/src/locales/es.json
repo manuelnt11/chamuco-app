@@ -841,5 +841,28 @@
         }
       }
     }
+  },
+  "feedback": {
+    "button": {
+      "label": "Enviar comentarios"
+    },
+    "modal": {
+      "title": "Enviar comentarios",
+      "description": "Ayúdanos a mejorar Chamuco Travel. Tus comentarios son anónimos.",
+      "placeholder": "Describe un problema, sugiere una función o comparte tus ideas...",
+      "charCount": "{{count}}/2000",
+      "submit": "Enviar",
+      "submitting": "Enviando...",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "successTitle": "¡Gracias por colaborar!",
+      "successDescription": "Tu reporte nos ayuda a mejorar Chamuco Travel."
+    },
+    "success": "Comentarios enviados. ¡Gracias!",
+    "errors": {
+      "submitFailed": "No se pudieron enviar los comentarios. Inténtalo de nuevo.",
+      "rateLimitExceeded": "Límite diario de comentarios alcanzado (3 por día). Inténtalo mañana.",
+      "tooShort": "Por favor proporciona al menos 10 caracteres."
+    }
   }
 }
