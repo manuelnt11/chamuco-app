@@ -58,6 +58,7 @@ describe('FeedbackController', () => {
         userAgent: 'Mozilla/5.0',
         viewportSize: '1920x1080',
         language: 'es-CO',
+        theme: 'dark',
       };
 
       const result = await controller.create(mockAuthUser, dto);
@@ -67,6 +68,7 @@ describe('FeedbackController', () => {
         userAgent: dto.userAgent,
         viewportSize: dto.viewportSize,
         language: dto.language,
+        theme: dto.theme,
       });
       expect(result).toEqual(mockResponse);
     });
@@ -81,6 +83,7 @@ describe('FeedbackController', () => {
         userAgent: undefined,
         viewportSize: undefined,
         language: undefined,
+        theme: undefined,
       });
     });
 

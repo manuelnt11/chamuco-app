@@ -75,7 +75,7 @@ export class FeedbackService {
     ];
 
     if (context && Object.values(context).some(Boolean)) {
-      const esc = (v: string) => v.replace(/\|/g, '\\|');
+      const esc = (v: string) => v.replace(/\|/g, '\\|').replace(/`/g, '\\`');
       lines.push('', '---', '', '## Context', '');
       lines.push('| Field | Value |');
       lines.push('|-------|-------|');
@@ -127,7 +127,7 @@ export class FeedbackService {
 
       if (!res.ok) {
         const text = await res.text();
-        this.logger.error(`GitHub API responded ${res.status.toString()}: ${text}`);
+        this.logger.error(`GitHub API responded ${res.status}: ${text}`);
         throw new ServiceUnavailableException('Failed to submit feedback. Please try again.');
       }
 
@@ -206,7 +206,7 @@ export class FeedbackService {
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`GitHub GraphQL responded ${res.status.toString()}: ${text}`);
+      throw new Error(`GitHub GraphQL responded ${res.status}: ${text}`);
     }
 
     const result = (await res.json()) as GraphQLResponse<{

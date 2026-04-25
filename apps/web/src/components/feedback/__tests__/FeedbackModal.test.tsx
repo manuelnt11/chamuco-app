@@ -80,6 +80,16 @@ describe('FeedbackModal', () => {
     });
   });
 
+  describe('dismissal', () => {
+    it('cancel button calls onClose and resets comment', async () => {
+      const user = userEvent.setup();
+      render(<FeedbackModal open onClose={onClose} />);
+      await user.type(screen.getByPlaceholderText('modal.placeholder'), 'Some text I typed here.');
+      await user.click(screen.getByRole('button', { name: 'modal.cancel' }));
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
   describe('form validation', () => {
     it('submit button is disabled when comment is empty', () => {
       render(<FeedbackModal open onClose={onClose} />);

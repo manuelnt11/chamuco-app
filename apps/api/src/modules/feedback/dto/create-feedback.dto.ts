@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateFeedbackDto {
   @ApiProperty({
@@ -48,9 +48,12 @@ export class CreateFeedbackDto {
   @MaxLength(20)
   language?: string;
 
-  @ApiPropertyOptional({ example: 'dark', description: 'Active UI theme at submission time.' })
+  @ApiPropertyOptional({
+    example: 'dark',
+    enum: ['dark', 'light'],
+    description: 'Active UI theme at submission time.',
+  })
   @IsOptional()
-  @IsString()
-  @MaxLength(20)
+  @IsIn(['dark', 'light'])
   theme?: string;
 }

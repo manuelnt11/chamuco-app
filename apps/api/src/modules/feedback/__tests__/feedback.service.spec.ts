@@ -191,6 +191,17 @@ describe('FeedbackService', () => {
       expect(body.body).toContain('es\\|CO');
     });
 
+    it('escapes backticks in currentPage to prevent broken Markdown code spans', async () => {
+      await service.createFeedback('user-uuid', 'My feedback comment here.', {
+        currentPage: '/trips/`test`',
+        viewportSize: '1920x1080',
+      });
+
+      const callArg = mockFetch.mock.calls[0][1] as { body: string };
+      const body = JSON.parse(callArg.body) as { body: string };
+      expect(body.body).toContain('/trips/\\`test\\`');
+    });
+
     it('omits context section when no context provided', async () => {
       await service.createFeedback('user-uuid', 'My feedback comment here.');
 
