@@ -183,6 +183,7 @@ export class FeedbackService {
     if (!projectNodeId) return;
 
     const token = process.env.GITHUB_TOKEN;
+    if (!token) return;
     const mutation = `
       mutation($projectId: ID!, $contentId: ID!) {
         addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {

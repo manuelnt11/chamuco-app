@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AxiosError } from 'axios';
 
 const mocks = vi.hoisted(() => ({
@@ -156,7 +156,7 @@ describe('FeedbackModal', () => {
       );
     });
 
-    it('shows success toast and calls onClose after successful submission', async () => {
+    it('shows success state after submission', async () => {
       const user = userEvent.setup();
       mocks.mockPost.mockResolvedValue({ data: { issueUrl: 'https://github.com/issues/1' } });
       render(<FeedbackModal open onClose={onClose} />);
@@ -166,9 +166,56 @@ describe('FeedbackModal', () => {
       );
       await user.click(screen.getByRole('button', { name: 'modal.submit' }));
       await waitFor(() => {
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('success');
-        expect(onClose).toHaveBeenCalled();
+        expect(screen.getByText('modal.successTitle')).toBeInTheDocument();
+        expect(screen.getByText('modal.successDescription')).toBeInTheDocument();
       });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('close button in success state calls onClose immediately', async () => {
+      const user = userEvent.setup();
+      mocks.mockPost.mockResolvedValue({ data: { issueUrl: 'https://github.com/issues/1' } });
+      render(<FeedbackModal open onClose={onClose} />);
+      await user.type(
+        screen.getByPlaceholderText('modal.placeholder'),
+        'This is a valid feedback comment.',
+      );
+      await user.click(screen.getByRole('button', { name: 'modal.submit' }));
+      await waitFor(() => screen.getByText('modal.successTitle'));
+      await user.click(screen.getByRole('button', { name: 'modal.close' }));
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('auto-closes after 5 seconds', async () => {
+      // Capture the 5-second callback without fake timers to avoid RTL/fake-timer conflicts
+      const realSetTimeout = globalThis.setTimeout;
+      let autoCloseCallback: (() => void) | undefined;
+      const setTimeoutSpy = vi
+        .spyOn(globalThis, 'setTimeout')
+        .mockImplementation((fn, delay, ...args) => {
+          if (delay === 5000 && typeof fn === 'function') {
+            autoCloseCallback = fn as () => void;
+            return 0 as unknown as ReturnType<typeof setTimeout>;
+          }
+          return (realSetTimeout as typeof globalThis.setTimeout)(fn, delay, ...args);
+        });
+
+      const user = userEvent.setup();
+      mocks.mockPost.mockResolvedValue({ data: { issueUrl: 'https://github.com/issues/1' } });
+      render(<FeedbackModal open onClose={onClose} />);
+      await user.type(
+        screen.getByPlaceholderText('modal.placeholder'),
+        'This is a valid feedback comment.',
+      );
+      await user.click(screen.getByRole('button', { name: 'modal.submit' }));
+      await waitFor(() => screen.getByText('modal.successTitle'));
+
+      expect(autoCloseCallback).toBeDefined();
+      expect(onClose).not.toHaveBeenCalled();
+      autoCloseCallback!();
+      expect(onClose).toHaveBeenCalled();
+
+      setTimeoutSpy.mockRestore();
     });
 
     it('shows rateLimitExceeded error on 429', async () => {
@@ -199,5 +246,9 @@ describe('FeedbackModal', () => {
       await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('errors.submitFailed'));
       expect(onClose).not.toHaveBeenCalled();
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 });

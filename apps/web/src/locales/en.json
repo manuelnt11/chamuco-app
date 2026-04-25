@@ -853,7 +853,10 @@
       "charCount": "{{count}}/2000",
       "submit": "Submit",
       "submitting": "Submitting...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "close": "Close",
+      "successTitle": "Thanks for helping out!",
+      "successDescription": "Your report helps us improve Chamuco Travel."
     },
     "success": "Feedback submitted. Thank you!",
     "errors": {

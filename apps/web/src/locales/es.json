@@ -853,7 +853,10 @@
       "charCount": "{{count}}/2000",
       "submit": "Enviar",
       "submitting": "Enviando...",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "successTitle": "¡Gracias por colaborar!",
+      "successDescription": "Tu reporte nos ayuda a mejorar Chamuco Travel."
     },
     "success": "Comentarios enviados. ¡Gracias!",
     "errors": {
