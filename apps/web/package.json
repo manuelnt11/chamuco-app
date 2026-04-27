@@ -28,7 +28,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "countries-list": "^3.3.0",
-    "firebase": "^12.11.0",
+    "firebase": "^12.12.1",
     "i18next": "^26.0.6",
     "i18next-http-backend": "^3.0.5",
     "i18next-resources-to-backend": "^1.2.1",
