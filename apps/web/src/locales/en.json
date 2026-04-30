@@ -168,7 +168,8 @@
         "invalidPhone": "Enter a valid phone number (4–14 digits)",
         "invalidPhoneCode": "Enter a valid country code (e.g. +57)",
         "invalidName": "Letters and spaces only (2–100 characters), as on your passport",
-        "invalidDob": "Enter a valid date of birth"
+        "invalidDob": "Enter a valid date of birth",
+        "usernameUnavailable": "Choose an available username before continuing"
       }
     }
   },
@@ -499,7 +500,6 @@
       "deleteError": "Could not delete. Please try again.",
       "deletePrimaryError": "Cannot delete the primary nationality while others exist.",
       "errors": {
-        "countryRequired": "Select a country.",
         "nationalIdFormat": "National ID may only contain uppercase letters, numbers, and hyphens.",
         "passportIncomplete": "Provide all three passport fields or leave them all empty.",
         "passportFormat": "Passport number may only contain uppercase letters, numbers, and hyphens.",

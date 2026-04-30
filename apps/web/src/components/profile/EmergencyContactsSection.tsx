@@ -116,6 +116,7 @@ function ContactForm({
           onChange={(e) => onChange({ fullName: e.target.value.toUpperCase() })}
           autoCapitalize="characters"
           autoComplete="off"
+          maxLength={100}
           aria-invalid={errors.fullName !== null}
           disabled={isSaving}
           className="uppercase placeholder:normal-case"
@@ -164,6 +165,7 @@ function ContactForm({
           value={form.relationship}
           onChange={(e) => onChange({ relationship: e.target.value.toUpperCase() })}
           autoCapitalize="characters"
+          maxLength={50}
           aria-invalid={errors.relationship !== null}
           disabled={isSaving}
           className="uppercase placeholder:normal-case"

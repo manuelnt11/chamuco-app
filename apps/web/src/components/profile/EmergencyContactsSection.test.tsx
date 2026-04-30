@@ -317,17 +317,6 @@ describe('EmergencyContactsSection', () => {
       expect(mocks.mockPost).not.toHaveBeenCalled();
     });
 
-    it('shows fullNameInvalid error when fullName exceeds 100 characters', async () => {
-      const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'A'.repeat(101));
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
-      expect(screen.getByText('emergencyContacts.errors.fullNameInvalid')).toBeInTheDocument();
-      expect(mocks.mockPost).not.toHaveBeenCalled();
-    });
-
     it('shows relationshipRequired error when relationship is one character', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
@@ -336,17 +325,6 @@ describe('EmergencyContactsSection', () => {
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'A');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.relationshipRequired')).toBeInTheDocument();
-      expect(mocks.mockPost).not.toHaveBeenCalled();
-    });
-
-    it('shows relationshipInvalid error when relationship exceeds 50 characters', async () => {
-      const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'A'.repeat(51));
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
-      expect(screen.getByText('emergencyContacts.errors.relationshipInvalid')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
     });
 
@@ -514,6 +492,46 @@ describe('EmergencyContactsSection', () => {
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('emergencyContacts.saveError'),
+      );
+    });
+  });
+
+  describe('input constraints', () => {
+    it('sets maxLength 100 on fullName input in add form', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      expect(screen.getByLabelText('emergencyContacts.fullName')).toHaveAttribute(
+        'maxLength',
+        '100',
+      );
+    });
+
+    it('sets maxLength 50 on relationship input in add form', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      expect(screen.getByLabelText('emergencyContacts.relationship')).toHaveAttribute(
+        'maxLength',
+        '50',
+      );
+    });
+
+    it('sets maxLength 100 on fullName input in edit form', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      await user.click(editButtons[0]!);
+      expect(screen.getByLabelText('emergencyContacts.fullName')).toHaveAttribute(
+        'maxLength',
+        '100',
+      );
+    });
+
+    it('sets maxLength 50 on relationship input in edit form', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      await user.click(editButtons[0]!);
+      expect(screen.getByLabelText('emergencyContacts.relationship')).toHaveAttribute(
+        'maxLength',
+        '50',
       );
     });
   });

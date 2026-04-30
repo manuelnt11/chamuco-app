@@ -93,7 +93,8 @@ function validateStep1(
   t: TFunction,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
-  if (usernameStatus !== 'available') errors.username = 'invalid';
+  if (usernameStatus !== 'available')
+    errors.username = t('onboarding.validation.usernameUnavailable');
   if (!displayName.trim()) errors.displayName = t('onboarding.validation.required');
   return errors;
 }

@@ -37,7 +37,6 @@ interface FormState {
 }
 
 interface FormErrors {
-  countryCode: string | null;
   nationalId: string | null;
   passport: string | null;
   passportNumber: string | null;
@@ -45,7 +44,6 @@ interface FormErrors {
 }
 
 const EMPTY_ERRORS: FormErrors = {
-  countryCode: null,
   nationalId: null,
   passport: null,
   passportNumber: null,
@@ -134,10 +132,8 @@ function NationalityForm({
               searchPlaceholder={t('nationalities.countrySearch')}
               noResultsText={t('nationalities.countryNoResults')}
               aria-labelledby={`${idPrefix}-country-label`}
-              aria-invalid={errors.countryCode !== null}
               data-testid={`${idPrefix}-country`}
             />
-            <FieldMessage error={errors.countryCode} />
           </>
         )}
       </div>
@@ -281,18 +277,12 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
 
   function validate(form: FormState, setErrors: (e: FormErrors) => void): boolean {
     const errors: FormErrors = {
-      countryCode: null,
       nationalId: null,
       passport: null,
       passportNumber: null,
       passportDates: null,
     };
     let hasError = false;
-
-    if (!form.countryCode) {
-      errors.countryCode = t('nationalities.errors.countryRequired');
-      hasError = true;
-    }
 
     const trimmedNationalId = form.nationalIdNumber.trim();
     if (trimmedNationalId !== '' && !ID_FORMAT_REGEX.test(trimmedNationalId)) {

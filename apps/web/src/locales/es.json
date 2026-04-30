@@ -168,7 +168,8 @@
         "invalidPhone": "Ingresa un número de teléfono válido (4–14 dígitos)",
         "invalidPhoneCode": "Ingresa un código de país válido (ej. +57)",
         "invalidName": "Solo letras y espacios (2–100 caracteres), tal como aparece en tu pasaporte",
-        "invalidDob": "Ingresa una fecha de nacimiento válida"
+        "invalidDob": "Ingresa una fecha de nacimiento válida",
+        "usernameUnavailable": "Elige un nombre de usuario disponible antes de continuar"
       }
     }
   },
@@ -499,7 +500,6 @@
       "deleteError": "No se pudo eliminar. Intenta de nuevo.",
       "deletePrimaryError": "No se puede eliminar la nacionalidad principal mientras existan otras.",
       "errors": {
-        "countryRequired": "Selecciona un país.",
         "nationalIdFormat": "El número de identificación solo puede contener letras mayúsculas, números y guiones.",
         "passportIncomplete": "Completa los tres campos del pasaporte o déjalos todos vacíos.",
         "passportFormat": "El número de pasaporte solo puede contener letras mayúsculas, números y guiones.",
