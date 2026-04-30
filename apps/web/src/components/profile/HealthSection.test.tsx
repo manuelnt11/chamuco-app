@@ -379,7 +379,7 @@ describe('HealthSection', () => {
       const { user } = setup();
       await user.click(screen.getByRole('button', { name: 'health.dietaryPreference.VEGAN' }));
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
-      expect(screen.getByRole('button', { name: /health\.saving/ })).toBeDisabled();
+      expect(screen.getByRole('button', { name: /health\.save/ })).toBeDisabled();
     });
 
     it('sends null for dietaryNotes when dietaryPreference is not OTHER', async () => {

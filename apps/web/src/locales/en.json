@@ -232,7 +232,6 @@
       "timezoneSearchPlaceholder": "Search timezones...",
       "timezoneNoResults": "No timezone found.",
       "save": "Save changes",
-      "saving": "Saving...",
       "saveSuccess": "Profile updated",
       "saveError": "Failed to save profile",
       "validDisplayName": "Display name must be between 1 and 100 characters",
@@ -301,7 +300,6 @@
       "homeCity": "Home City",
       "homeCityPlaceholder": "e.g. Medellín",
       "save": "Save changes",
-      "saving": "Saving...",
       "saveSuccess": "Personal details updated",
       "saveError": "Failed to save personal details",
       "errors": {
@@ -418,8 +416,7 @@
         "otherDescriptionPlaceholder": "Please describe...",
         "otherDescriptionRequired": "Description is required for \"Other\""
       },
-      "save": "Save Health Profile",
-      "saving": "Saving...",
+      "save": "Save changes",
       "saveSuccess": "Health profile saved",
       "saveError": "Failed to save health profile"
     },

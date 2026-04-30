@@ -44,13 +44,13 @@ export class EmergencyContactDto {
   @ApiProperty({
     example: 'mother',
     description: 'Relationship to the user',
-    minLength: 1,
-    maxLength: 100,
+    minLength: 2,
+    maxLength: 50,
   })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  @MinLength(1)
-  @MaxLength(100)
+  @MinLength(2)
+  @MaxLength(50)
   relationship!: string;
 
   @ApiProperty({ example: true, description: 'Exactly one contact must be primary' })

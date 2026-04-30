@@ -5,13 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
 import { getCountryDataList } from 'countries-list';
 
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import { SaveButton } from '@/components/ui/save-button';
 import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobox';
 import { CityCombobox } from '@/components/ui/city-combobox';
 import { toast } from '@/components/ui/toast';
+import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
 import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
 
@@ -195,8 +195,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
             disabled={isSaving}
             className="uppercase placeholder:normal-case"
           />
-          {firstNameError && <p className="text-sm text-destructive">{firstNameError}</p>}
-          <p className="text-xs text-muted-foreground">{t('personalDetails.firstNameHint')}</p>
+          <FieldMessage error={firstNameError} hint={t('personalDetails.firstNameHint')} />
         </div>
 
         <div className="space-y-1.5">
@@ -212,8 +211,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
             disabled={isSaving}
             className="uppercase placeholder:normal-case"
           />
-          {lastNameError && <p className="text-sm text-destructive">{lastNameError}</p>}
-          <p className="text-xs text-muted-foreground">{t('personalDetails.lastNameHint')}</p>
+          <FieldMessage error={lastNameError} hint={t('personalDetails.lastNameHint')} />
         </div>
       </div>
 
@@ -266,7 +264,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
             />
           </div>
         </div>
-        {dobError && <p className="text-sm text-destructive">{dobError}</p>}
+        <FieldMessage error={dobError} />
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -313,7 +311,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
             />
           </div>
         </div>
-        {phoneError && <p className="text-sm text-destructive">{phoneError}</p>}
+        <FieldMessage error={phoneError} />
       </div>
 
       <div className="space-y-1.5">
@@ -387,16 +385,10 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
             />
           </div>
         </div>
-        {homeCountryError && <p className="text-sm text-destructive">{homeCountryError}</p>}
+        <FieldMessage error={homeCountryError} />
       </div>
 
-      <Button type="submit" disabled={isSaving || !isDirty} className="gap-2">
-        {isSaving && <Spinner size="sm" />}
-        {!isSaving && isDirty && (
-          <span data-testid="unsaved-indicator" className="size-2 rounded-full bg-amber-500" />
-        )}
-        {isSaving ? t('personalDetails.saving') : t('personalDetails.save')}
-      </Button>
+      <SaveButton isSaving={isSaving} isDirty={isDirty} label={t('personalDetails.save')} />
     </form>
   );
 }

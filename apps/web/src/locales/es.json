@@ -232,7 +232,6 @@
       "timezoneSearchPlaceholder": "Buscar zonas horarias...",
       "timezoneNoResults": "No se encontró zona horaria.",
       "save": "Guardar cambios",
-      "saving": "Guardando...",
       "saveSuccess": "Perfil actualizado",
       "saveError": "Error al guardar el perfil",
       "validDisplayName": "El nombre para mostrar debe tener entre 1 y 100 caracteres",
@@ -301,7 +300,6 @@
       "homeCity": "Ciudad de Residencia",
       "homeCityPlaceholder": "ej. Medellín",
       "save": "Guardar cambios",
-      "saving": "Guardando...",
       "saveSuccess": "Datos personales actualizados",
       "saveError": "Error al guardar los datos personales",
       "errors": {
@@ -418,8 +416,7 @@
         "otherDescriptionPlaceholder": "Por favor describe...",
         "otherDescriptionRequired": "La descripción es requerida para \"Otro\""
       },
-      "save": "Guardar Perfil de Salud",
-      "saving": "Guardando...",
+      "save": "Guardar cambios",
       "saveSuccess": "Perfil de salud guardado",
       "saveError": "Error al guardar el perfil de salud"
     },

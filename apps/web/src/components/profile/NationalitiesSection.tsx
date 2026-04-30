@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CountryCombobox } from '@/components/ui/country-combobox';
+import { SaveButton } from '@/components/ui/save-button';
 import { toast } from '@/components/ui/toast';
+import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
 import { cn } from '@/lib/utils';
 
@@ -87,6 +89,7 @@ interface NationalityFormProps {
   form: FormState;
   errors: FormErrors;
   isSaving: boolean;
+  isDirty: boolean;
   readOnlyCountry?: boolean;
   onChange: (patch: Partial<FormState>) => void;
   onSubmit: (e: FormEvent) => void;
@@ -99,6 +102,7 @@ function NationalityForm({
   form,
   errors,
   isSaving,
+  isDirty,
   readOnlyCountry = false,
   onChange,
   onSubmit,
@@ -133,7 +137,7 @@ function NationalityForm({
               aria-invalid={errors.countryCode !== null}
               data-testid={`${idPrefix}-country`}
             />
-            {errors.countryCode && <p className="text-sm text-destructive">{errors.countryCode}</p>}
+            <FieldMessage error={errors.countryCode} />
           </>
         )}
       </div>
@@ -152,7 +156,7 @@ function NationalityForm({
           disabled={isSaving}
           aria-invalid={errors.nationalId !== null}
         />
-        {errors.nationalId && <p className="text-sm text-destructive">{errors.nationalId}</p>}
+        <FieldMessage error={errors.nationalId} />
       </div>
 
       <fieldset className="space-y-3 rounded-md border border-border p-3">
@@ -217,11 +221,7 @@ function NationalityForm({
           </div>
         </div>
 
-        {(errors.passport ?? errors.passportNumber ?? errors.passportDates) && (
-          <p className="text-sm text-destructive">
-            {errors.passport ?? errors.passportNumber ?? errors.passportDates}
-          </p>
-        )}
+        <FieldMessage error={errors.passport ?? errors.passportNumber ?? errors.passportDates} />
       </fieldset>
 
       <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -236,9 +236,7 @@ function NationalityForm({
       </label>
 
       <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={isSaving}>
-          {saveLabel}
-        </Button>
+        <SaveButton size="sm" isSaving={isSaving} isDirty={isDirty} label={saveLabel} />
         <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={isSaving}>
           {t('nationalities.cancel')}
         </Button>
@@ -259,10 +257,20 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
   const [isAdding, setIsAdding] = useState(false);
   const [addForm, setAddForm] = useState<FormState>(makeEmptyForm(data.length === 0));
   const [editForm, setEditForm] = useState<FormState>(makeEmptyForm());
+  const [initialEditForm, setInitialEditForm] = useState<FormState>(makeEmptyForm());
   const [addErrors, setAddErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [editErrors, setEditErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const isEditDirty =
+    editingId !== null &&
+    (editForm.nationalIdNumber !== initialEditForm.nationalIdNumber ||
+      editForm.passportNumber !== initialEditForm.passportNumber ||
+      editForm.passportIssueDate !== initialEditForm.passportIssueDate ||
+      editForm.passportExpiryDate !== initialEditForm.passportExpiryDate ||
+      editForm.isPrimary !== initialEditForm.isPrimary);
+  const isAddDirty = addForm.countryCode !== '';
 
   useEffect(() => {
     if (!confirmDeleteId) return;
@@ -342,7 +350,9 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
 
   function startEdit(nat: NationalityDto) {
     setEditingId(nat.id);
-    setEditForm(dtoToForm(nat));
+    const form = dtoToForm(nat);
+    setEditForm(form);
+    setInitialEditForm(form);
     setEditErrors(EMPTY_ERRORS);
     setIsAdding(false);
     setConfirmDeleteId(null);
@@ -456,6 +466,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
                 form={editForm}
                 errors={editErrors}
                 isSaving={isSaving}
+                isDirty={isEditDirty}
                 readOnlyCountry
                 onChange={(patch) => setEditForm((f) => ({ ...f, ...patch }))}
                 onSubmit={handleUpdate}
@@ -540,6 +551,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
           form={addForm}
           errors={addErrors}
           isSaving={isSaving}
+          isDirty={isAddDirty}
           onChange={(patch) => setAddForm((f) => ({ ...f, ...patch }))}
           onSubmit={handleAdd}
           onCancel={cancelAdd}

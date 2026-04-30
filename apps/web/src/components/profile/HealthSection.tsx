@@ -3,12 +3,12 @@
 import { useState, useMemo, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SaveButton } from '@/components/ui/save-button';
 import { Textarea } from '@/components/ui/textarea';
-import { Spinner } from '@/components/ui/spinner';
 import { toast } from '@/components/ui/toast';
+import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
 import {
   DietaryPreference,
@@ -120,7 +120,7 @@ function HealthArrayField({
             aria-invalid={otherError !== null}
             data-testid={`${fieldId}-description-OTHER`}
           />
-          {otherError && <p className="text-sm text-destructive">{otherError}</p>}
+          <FieldMessage error={otherError} />
         </div>
       )}
     </fieldset>
@@ -386,16 +386,10 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
           maxLength={1000}
           disabled={isSaving}
         />
-        <p className="text-xs text-muted-foreground">{t('health.generalMedicalNotes.hint')}</p>
+        <FieldMessage hint={t('health.generalMedicalNotes.hint')} />
       </fieldset>
 
-      <Button type="submit" disabled={isSaving || !isDirty} className="gap-2">
-        {isSaving && <Spinner size="sm" />}
-        {!isSaving && isDirty && (
-          <span data-testid="unsaved-indicator" className="size-2 rounded-full bg-amber-500" />
-        )}
-        {isSaving ? t('health.saving') : t('health.save')}
-      </Button>
+      <SaveButton isSaving={isSaving} isDirty={isDirty} label={t('health.save')} />
     </form>
   );
 }
