@@ -14,8 +14,8 @@ allowBuilds:
 
 catalog:
   '@types/node': ^25.6.0
-  '@typescript-eslint/eslint-plugin': ^8.57.2
-  '@typescript-eslint/parser': ^8.57.2
+  '@typescript-eslint/eslint-plugin': ^8.59.1
+  '@typescript-eslint/parser': ^8.59.1
   eslint: ^10.2.1
   eslint-config-prettier: ^10.0.1
   eslint-plugin-i18next: ^6.1.4

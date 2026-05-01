@@ -75,7 +75,7 @@ export class FeedbackService {
     ];
 
     if (context && Object.values(context).some(Boolean)) {
-      const esc = (v: string) => v.replace(/\|/g, '\\|').replace(/`/g, '\\`');
+      const esc = (v: string): string => v.replace(/\|/g, '\\|').replace(/`/g, '\\`');
       lines.push('', '---', '', '## Context', '');
       lines.push('| Field | Value |');
       lines.push('|-------|-------|');
