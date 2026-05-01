@@ -152,6 +152,7 @@ jobs:
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.ARTIFACT_REGISTRY }}/api:${{ github.sha }} \
             --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
             --platform=managed \
             --service-account=chamuco-api-sa@chamuco-app-mn.iam.gserviceaccount.com \
             --add-cloudsql-instances=chamuco-app-mn:us-central1:chamuco-postgres \
@@ -172,6 +173,7 @@ jobs:
           # Get service URL
           SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
             --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
             --format='value(status.url)')
 
           echo "Service URL: $SERVICE_URL"
