@@ -1,7 +1,7 @@
 # Feature: Users & Personal Profile
 
 **Status:** Design Phase
-**Last Updated:** 2026-03-23
+**Last Updated:** 2026-05-01 (ETAs added)
 
 ---
 
@@ -183,6 +183,284 @@ The NestJS job iterates the returned rows and queues an FCM notification for eac
 
 ---
 
+## Visas (`user_visas`)
+
+A user may register the visas they currently hold. Each visa belongs to a specific nationality record — a visa is tied to a citizenship, not to a specific passport document (renewing a passport does not invalidate visas issued under it).
+
+### Schema
+
+| Field            | Type                       | Description                                                                                                                 |
+| ---------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `id`             | UUID                       |                                                                                                                             |
+| `nationality_id` | UUID                       | FK → `user_nationalities.id` ON DELETE CASCADE                                                                              |
+| `coverage_type`  | Enum `VisaCoverageType`    | `COUNTRY` or `ZONE`. Determines which of the two coverage fields is populated.                                              |
+| `country_code`   | char(2) (nullable)         | ISO 3166-1 alpha-2. Present only when `coverage_type = COUNTRY`.                                                            |
+| `visa_zone`      | Enum `VisaZone` (nullable) | Present only when `coverage_type = ZONE`.                                                                                   |
+| `visa_type`      | Enum `VisaType`            | Classification of the visa.                                                                                                 |
+| `entries`        | Enum `VisaEntries`         | How many entries the visa permits.                                                                                          |
+| `expiry_date`    | Date                       | Expiry date of the visa. Required — even visas tied to a specific passport use the passport expiry date as the visa expiry. |
+| `visa_status`    | Enum `VisaStatus`          | Pre-computed status. Updated by the daily job.                                                                              |
+| `notes`          | Text (nullable)            | Free text (e.g., visa number, consulate, restrictions).                                                                     |
+| `created_at`     | Timestamp                  |                                                                                                                             |
+| `updated_at`     | Timestamp                  |                                                                                                                             |
+
+### Coverage consistency constraint
+
+Exactly one of `country_code` / `visa_zone` must be non-null, determined by `coverage_type`:
+
+```sql
+CONSTRAINT visa_coverage_consistency CHECK (
+  (coverage_type = 'COUNTRY' AND country_code IS NOT NULL AND visa_zone IS NULL)
+  OR
+  (coverage_type = 'ZONE'    AND visa_zone IS NOT NULL    AND country_code IS NULL)
+)
+```
+
+### VisaZone enum
+
+Multi-country zones where a single visa grants access to all member states.
+
+| Value      | Coverage                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| `SCHENGEN` | 27 EU member states + Norway, Iceland, Liechtenstein, Switzerland                            |
+| `GCC`      | Saudi Arabia, UAE, Kuwait, Qatar, Bahrain, Oman                                              |
+| `CARICOM`  | 15 Caribbean Community member states                                                         |
+| `EAC`      | East African Community (Kenya, Uganda, Tanzania, Rwanda, Burundi, South Sudan, DRC, Somalia) |
+| `CAN`      | Comunidad Andina (Colombia, Ecuador, Peru, Bolivia)                                          |
+| `MERCOSUR` | Brazil, Argentina, Uruguay, Paraguay (+ associate members)                                   |
+| `ECOWAS`   | 15 West African community member states                                                      |
+
+### VisaType enum
+
+| Value           | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| `TOURIST`       | Tourism / visitor visa                                  |
+| `BUSINESS`      | Business travel visa                                    |
+| `TRANSIT`       | Airport or transit visa — no entry into the country     |
+| `WORK`          | Work or residence visa                                  |
+| `STUDENT`       | Student visa                                            |
+| `DIGITAL_NOMAD` | Remote work visa                                        |
+| `OTHER`         | Not covered by the above types. Use `notes` for detail. |
+
+### VisaEntries enum
+
+| Value      | Description                                              |
+| ---------- | -------------------------------------------------------- |
+| `SINGLE`   | One entry only. The visa is consumed after a single use. |
+| `DOUBLE`   | Two entries permitted.                                   |
+| `MULTIPLE` | Unlimited entries within the validity period.            |
+
+### VisaStatus enum and lifecycle
+
+Pre-computed status cache, same pattern as `PassportStatus`. The EXPIRING_SOON window is **30 days** (shorter than passports because visa validity periods are typically much shorter).
+
+| Value           | Meaning                                        |
+| --------------- | ---------------------------------------------- |
+| `ACTIVE`        | Visa is valid and not expiring within 30 days. |
+| `EXPIRING_SOON` | Visa expires within the next 30 days.          |
+| `EXPIRED`       | Visa expiry date is in the past.               |
+
+| Transition                  | Trigger                                                     |
+| --------------------------- | ----------------------------------------------------------- |
+| → `ACTIVE`                  | Visa saved for the first time. App sets status immediately. |
+| `ACTIVE` → `EXPIRING_SOON`  | Daily job                                                   |
+| `EXPIRING_SOON` → `EXPIRED` | Daily job                                                   |
+| Any → `ACTIVE`              | User updates expiry date to a future date beyond 30 days    |
+
+Status transitions to `EXPIRING_SOON` or `EXPIRED` trigger a push notification to the user.
+
+### Daily job
+
+The visa expiry check runs as part of the same scheduled job pipeline as passport expiry (`POST /api/v1/jobs/passport-expiry` or a dedicated `POST /api/v1/jobs/visa-expiry`):
+
+```sql
+UPDATE user_visas
+SET visa_status = CASE
+  WHEN expiry_date < CURRENT_DATE                       THEN 'EXPIRED'
+  WHEN expiry_date < CURRENT_DATE + INTERVAL '30 days' THEN 'EXPIRING_SOON'
+  ELSE                                                       'ACTIVE'
+END
+WHERE visa_status <> CASE
+  WHEN expiry_date < CURRENT_DATE                       THEN 'EXPIRED'
+  WHEN expiry_date < CURRENT_DATE + INTERVAL '30 days' THEN 'EXPIRING_SOON'
+  ELSE                                                       'ACTIVE'
+END
+RETURNING nationality_id, visa_status;
+```
+
+---
+
+## Visa Entry Logs (`user_visa_entry_logs`) — Post-MVP
+
+> **Not included in MVP.** The schema is designed now so it can be added without changes to `user_visas`.
+
+Tracks individual uses of a visa — both trips completed through Chamuco and independent trips registered manually. This data powers the "entries used" indicator on the visa card and feeds the trip planning check ("this participant's single-entry visa has already been used").
+
+| Field        | Type               | Description                                                            |
+| ------------ | ------------------ | ---------------------------------------------------------------------- |
+| `id`         | UUID               |                                                                        |
+| `visa_id`    | UUID               | FK → `user_visas.id` ON DELETE CASCADE                                 |
+| `entry_date` | Date               | Date of entry.                                                         |
+| `exit_date`  | Date (nullable)    | Date of exit. Null if still in the destination.                        |
+| `source`     | Enum `EntrySource` | `CHAMUCO_TRIP` or `MANUAL`.                                            |
+| `trip_id`    | UUID (nullable)    | FK → `trips.id`. Populated automatically when `source = CHAMUCO_TRIP`. |
+| `notes`      | Text (nullable)    |                                                                        |
+| `created_at` | Timestamp          |                                                                        |
+
+**Entries used** is computed as `COUNT(*)` on this table per visa — never stored as a column.
+
+**Auto-population from trips:** when a trip transitions to `COMPLETED`, the post-trip flow creates a `CHAMUCO_TRIP` entry log for each confirmed participant whose visa covers any destination in `trip_destinations` or the return location.
+
+**Query for trip planning:** "does participant X have a remaining entry for destination Y?"
+
+```sql
+SELECT
+  v.*,
+  COUNT(el.id) AS entries_used
+FROM user_visas v
+LEFT JOIN user_visa_entry_logs el ON el.visa_id = v.id
+WHERE v.nationality_id IN (
+  SELECT id FROM user_nationalities WHERE user_id = $userId
+)
+AND v.visa_status != 'EXPIRED'
+AND (v.country_code = $destinationCode OR v.visa_zone IN ($zonesForDestination))
+GROUP BY v.id
+HAVING v.entries = 'MULTIPLE'
+    OR COUNT(el.id) < CASE v.entries WHEN 'SINGLE' THEN 1 WHEN 'DOUBLE' THEN 2 END
+```
+
+---
+
+## Electronic Travel Authorizations (`user_etas`)
+
+An ETA (Electronic Travel Authorization) is a digital pre-travel permission. Unlike a visa, an ETA is tied to a **specific passport**, not just a citizenship: if the user renews their passport, all ETAs issued for the previous passport become invalid. ETAs are always country-specific — there are no zone-based ETAs.
+
+Examples: US ESTA, Canada eTA, UK ETA, Australia ETA, New Zealand NZeTA.
+
+### Schema
+
+| Field                  | Type               | Description                                                                         |
+| ---------------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| `id`                   | UUID               |                                                                                     |
+| `user_nationality_id`  | UUID               | FK → `user_nationalities.id` ON DELETE CASCADE. Provides citizenship context.       |
+| `passport_number`      | Text               | The specific passport this ETA was issued for. Snapshot — not a live FK.            |
+| `destination_country`  | char(2)            | ISO 3166-1 alpha-2. ETAs are always country-specific.                               |
+| `authorization_number` | Text               | Official reference number issued by the destination country.                        |
+| `eta_type`             | Enum `EtaType`     | `TOURIST` or `TRANSIT`.                                                             |
+| `entries`              | Enum `VisaEntries` | `SINGLE`, `DOUBLE`, or `MULTIPLE`. Reuses the same enum as visas.                   |
+| `expiry_date`          | Date               | Expiry date as stated on the ETA.                                                   |
+| `eta_status`           | Enum `EtaStatus`   | Pre-computed status. Updated by the daily job and synchronously on passport update. |
+| `notes`                | Text (nullable)    | Free text (e.g., approved stay duration per visit, restrictions).                   |
+| `created_at`           | Timestamp          |                                                                                     |
+| `updated_at`           | Timestamp          |                                                                                     |
+
+### EtaType enum
+
+ETAs cover only entry and transit purposes. Work, student, and digital nomad stays are always handled through formal visas.
+
+| Value     | Description                                                             |
+| --------- | ----------------------------------------------------------------------- |
+| `TOURIST` | Tourism / visitor ETA — allows entry into the country.                  |
+| `TRANSIT` | Transit ETA — permits transit through the destination without entering. |
+
+### EtaStatus enum and lifecycle
+
+Same pattern as `VisaStatus`. The EXPIRING_SOON window is **30 days**.
+
+An ETA can expire in two independent ways: by date (standard) or by passport invalidation (the passport it was issued for has been renewed or has expired). Both are treated as terminal — the ETA cannot be reactivated.
+
+| Value           | Meaning                                                                                        |
+| --------------- | ---------------------------------------------------------------------------------------------- |
+| `ACTIVE`        | ETA is valid, not expiring within 30 days, and the associated passport is current.             |
+| `EXPIRING_SOON` | ETA expires within the next 30 days, and the passport is still current.                        |
+| `EXPIRED`       | ETA has passed its expiry date, or the passport it was issued for has expired or been renewed. |
+
+| Transition                  | Trigger                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| → `ACTIVE`                  | ETA saved for the first time. App sets status immediately.                   |
+| `ACTIVE` → `EXPIRING_SOON`  | Daily job (30-day window)                                                    |
+| `EXPIRING_SOON` → `EXPIRED` | Daily job                                                                    |
+| Any non-EXPIRED → `EXPIRED` | Daily job detects passport renewal or expiry (see below)                     |
+| Any → `ACTIVE`              | User updates expiry date to a valid future date and current passport matches |
+
+Status transitions to `EXPIRING_SOON` or `EXPIRED` trigger a push notification to the user.
+
+### Synchronous invalidation on passport update
+
+When a user updates their passport in `user_nationalities` (new `passport_number`, `passport_issue_date`, or `passport_expiry_date`), the NestJS handler must **immediately and synchronously** mark all ETAs registered under the old `passport_number` as `EXPIRED`:
+
+```ts
+// In NationalitiesService.updatePassport()
+if (oldPassportNumber !== newPassportNumber) {
+  await db
+    .update(userEtas)
+    .set({ etaStatus: EtaStatus.EXPIRED, updatedAt: new Date() })
+    .where(
+      and(
+        eq(userEtas.userNationalityId, nationalityId),
+        eq(userEtas.passportNumber, oldPassportNumber),
+        ne(userEtas.etaStatus, EtaStatus.EXPIRED),
+      ),
+    );
+}
+```
+
+This ensures the user immediately sees their ETAs as invalid rather than waiting for the overnight job.
+
+### Daily job
+
+The ETA expiry check extends the same scheduled job pipeline (`POST /api/v1/jobs/eta-expiry`):
+
+```sql
+-- Mark EXPIRED by date or by passport invalidation
+UPDATE user_etas eta
+SET eta_status = 'EXPIRED', updated_at = NOW()
+WHERE eta.eta_status <> 'EXPIRED'
+  AND (
+    -- Expired by date
+    eta.expiry_date < CURRENT_DATE
+    -- Expired because passport was renewed or expired
+    OR NOT EXISTS (
+      SELECT 1 FROM user_nationalities un
+      WHERE un.id = eta.user_nationality_id
+        AND un.passport_number = eta.passport_number
+        AND un.passport_expiry_date > CURRENT_DATE
+    )
+  );
+
+-- Mark EXPIRING_SOON (only if passport is still current)
+UPDATE user_etas eta
+SET eta_status = 'EXPIRING_SOON', updated_at = NOW()
+WHERE eta.eta_status = 'ACTIVE'
+  AND eta.expiry_date > CURRENT_DATE
+  AND eta.expiry_date <= CURRENT_DATE + INTERVAL '30 days'
+  AND EXISTS (
+    SELECT 1 FROM user_nationalities un
+    WHERE un.id = eta.user_nationality_id
+      AND un.passport_number = eta.passport_number
+      AND un.passport_expiry_date > CURRENT_DATE
+  );
+```
+
+### ETA Entry Logs — Post-MVP
+
+> **Not included in MVP.**
+
+ETAs that restrict the maximum continuous stay per visit (e.g., ESTA allows up to 90 days per entry, Canada eTA up to 6 months) can be tracked with an `user_eta_entry_logs` table following the same pattern as `user_visa_entry_logs`. This data also powers trip planning warnings (e.g., "this participant's ESTA has already been used on a single-entry authorization"). Schema design is deferred until `user_visa_entry_logs` is implemented.
+
+---
+
+## Visa Requirement Lookup — Future Reference
+
+Post-MVP, Chamuco can warn participants that they may need a visa for a trip destination based on their nationality. This is independent of `user_visas` (which stores visas the user already has) and would use a reference dataset:
+
+- **Passport Index** (`ilyankou/passport-index-dataset` on GitHub) — open-source dataset mapping nationality × destination → visa requirement. Updated regularly.
+- **Sherpa API** — commercial API for real-time entry requirements including COVID restrictions, health declarations, etc.
+
+The warning flow: trip organizer sees on the participant panel that participant X (Colombian) is joining a trip to the US, and Chamuco flags "may require a visa" if no active US visa or matching zone visa is registered on their profile.
+
+---
+
 ## Emergency Contacts
 
 A user must have **at least one emergency contact**. Multiple contacts are supported.
@@ -341,6 +619,8 @@ Conditions relevant to emergency response or trip planning. Stored in `user_prof
 | `display_name`, `avatar_url`, `bio`                                                                     | Any user in the same trip or group                                            |
 | `first_name`, `last_name`, `phone_number`, `date_of_birth` (day + month), `birth_country`, `birth_city` | Confirmed trip organizers and co-organizers with `VIEW_TRAVEL_PROFILES`       |
 | Nationality records (`user_nationalities`) — country, document numbers, passport status                 | Confirmed trip organizers and co-organizers with `VIEW_TRAVEL_PROFILES`       |
+| Visa records (`user_visas`) — coverage, type, entries, expiry, status                                   | User only — visa data is never exposed to organizers or other participants    |
+| ETA records (`user_etas`) — destination, type, entries, expiry, status                                  | User only — ETA data is never exposed to organizers or other participants     |
 | Emergency contacts                                                                                      | Confirmed trip organizers and co-organizers with `VIEW_TRAVEL_PROFILES`       |
 | Loyalty programs                                                                                        | User only (reference data, not exposed to organizers)                         |
 | Dietary preference, food allergies                                                                      | Confirmed trip organizers and co-organizers                                   |
@@ -415,7 +695,7 @@ Recognitions received by the user are stored in the `recognitions` table, keyed 
 
 ## Discovery Map
 
-A personal geographic visualization derived from `itinerary_items` of type `PLACE` in completed trips where the user was a confirmed participant. Computed on demand from existing trip data — no separate table needed. Visibility follows the main `ProfileVisibility` setting. See [`features/gamification.md`](./gamification.md).
+A personal geographic visualization of visited places. In MVP, derived from `trip_destinations` (country + city) of completed trips where the user was a confirmed participant. Post-MVP, enriched from `PLACE` itinerary items. Computed on demand from existing trip data — no separate table needed. Visibility follows the main `ProfileVisibility` setting. See [`features/gamification.md`](./gamification.md).
 
 ---
 
