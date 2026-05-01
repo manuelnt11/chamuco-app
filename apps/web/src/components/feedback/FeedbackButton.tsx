@@ -15,7 +15,7 @@ export function FeedbackButton() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed bottom-6 right-6 z-50 size-12 rounded-full shadow-lg"
+        className="fixed bottom-20 right-6 z-50 size-12 rounded-full shadow-lg md:bottom-6"
         onClick={() => setOpen(true)}
         aria-label={t('button.label')}
       >

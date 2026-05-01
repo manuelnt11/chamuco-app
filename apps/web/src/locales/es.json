@@ -168,7 +168,8 @@
         "invalidPhone": "Ingresa un número de teléfono válido (4–14 dígitos)",
         "invalidPhoneCode": "Ingresa un código de país válido (ej. +57)",
         "invalidName": "Solo letras y espacios (2–100 caracteres), tal como aparece en tu pasaporte",
-        "invalidDob": "Ingresa una fecha de nacimiento válida"
+        "invalidDob": "Ingresa una fecha de nacimiento válida",
+        "usernameUnavailable": "Elige un nombre de usuario disponible antes de continuar"
       }
     }
   },
@@ -232,7 +233,6 @@
       "timezoneSearchPlaceholder": "Buscar zonas horarias...",
       "timezoneNoResults": "No se encontró zona horaria.",
       "save": "Guardar cambios",
-      "saving": "Guardando...",
       "saveSuccess": "Perfil actualizado",
       "saveError": "Error al guardar el perfil",
       "validDisplayName": "El nombre para mostrar debe tener entre 1 y 100 caracteres",
@@ -301,7 +301,6 @@
       "homeCity": "Ciudad de Residencia",
       "homeCityPlaceholder": "ej. Medellín",
       "save": "Guardar cambios",
-      "saving": "Guardando...",
       "saveSuccess": "Datos personales actualizados",
       "saveError": "Error al guardar los datos personales",
       "errors": {
@@ -418,8 +417,7 @@
         "otherDescriptionPlaceholder": "Por favor describe...",
         "otherDescriptionRequired": "La descripción es requerida para \"Otro\""
       },
-      "save": "Guardar Perfil de Salud",
-      "saving": "Guardando...",
+      "save": "Guardar cambios",
       "saveSuccess": "Perfil de salud guardado",
       "saveError": "Error al guardar el perfil de salud"
     },
@@ -502,7 +500,6 @@
       "deleteError": "No se pudo eliminar. Intenta de nuevo.",
       "deletePrimaryError": "No se puede eliminar la nacionalidad principal mientras existan otras.",
       "errors": {
-        "countryRequired": "Selecciona un país.",
         "nationalIdFormat": "El número de identificación solo puede contener letras mayúsculas, números y guiones.",
         "passportIncomplete": "Completa los tres campos del pasaporte o déjalos todos vacíos.",
         "passportFormat": "El número de pasaporte solo puede contener letras mayúsculas, números y guiones.",

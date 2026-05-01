@@ -205,6 +205,7 @@ describe('LoyaltyProgramsSection', () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
       await user.click(editButtons[0]!);
+      await user.type(screen.getByLabelText('loyaltyPrograms.programName'), ' ');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
       await waitFor(() =>
         expect(mocks.mockToastSuccess).toHaveBeenCalledWith('loyaltyPrograms.updateSuccess'),
@@ -217,6 +218,33 @@ describe('LoyaltyProgramsSection', () => {
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.cancel' }));
       expect(screen.queryByDisplayValue('LifeMiles')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('input constraints', () => {
+    it('sets maxLength 100 on programName input in add form', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
+        'maxLength',
+        '100',
+      );
+    });
+
+    it('sets maxLength 100 on memberId input in add form', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      expect(screen.getByLabelText('loyaltyPrograms.memberId')).toHaveAttribute('maxLength', '100');
+    });
+
+    it('sets maxLength 100 on programName input in edit form', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      await user.click(editButtons[0]!);
+      expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
+        'maxLength',
+        '100',
+      );
     });
   });
 

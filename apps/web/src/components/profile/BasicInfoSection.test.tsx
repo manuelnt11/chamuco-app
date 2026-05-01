@@ -188,7 +188,8 @@ describe('BasicInfoSection', () => {
 
   describe('saving', () => {
     it('calls PATCH /users/me and /users/me/profile on submit', async () => {
-      const { user } = setup();
+      // timezone: 'UTC' + homeCountry: 'CO' auto-suggests 'America/Bogota' → form is dirty
+      const { user } = setup({ timezone: 'UTC' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() => {
         expect(mocks.mockPatch).toHaveBeenCalledWith(
@@ -203,13 +204,13 @@ describe('BasicInfoSection', () => {
     });
 
     it('calls onRefresh after successful save', async () => {
-      const { user, onRefresh } = setup();
+      const { user, onRefresh } = setup({ timezone: 'UTC' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
 
     it('shows success toast on save', async () => {
-      const { user } = setup();
+      const { user } = setup({ timezone: 'UTC' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() =>
         expect(mocks.mockToastSuccess).toHaveBeenCalledWith('basicInfo.saveSuccess'),
@@ -218,13 +219,13 @@ describe('BasicInfoSection', () => {
 
     it('shows error toast when save fails', async () => {
       mocks.mockPatch.mockRejectedValue(new Error('network error'));
-      const { user } = setup();
+      const { user } = setup({ timezone: 'UTC' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('basicInfo.saveError'));
     });
 
     it('sends null bio when bio is empty', async () => {
-      const { user } = setup(undefined, { bio: null });
+      const { user } = setup({ timezone: 'UTC' }, { bio: null });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/profile', { bio: null }),
@@ -285,7 +286,7 @@ describe('BasicInfoSection', () => {
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       expect(screen.getByText('basicInfo.validDisplayName')).toBeInTheDocument();
 
-      await user.type(displayNameInput, 'Jane Doe');
+      await user.type(displayNameInput, 'Jane Doe Updated');
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() => expect(mocks.mockToastSuccess).toHaveBeenCalled());
       expect(screen.queryByText('basicInfo.validDisplayName')).not.toBeInTheDocument();

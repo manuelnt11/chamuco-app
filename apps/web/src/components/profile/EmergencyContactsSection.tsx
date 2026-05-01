@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobox';
+import { SaveButton } from '@/components/ui/save-button';
 import { toast } from '@/components/ui/toast';
+import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
 import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
 
@@ -80,6 +82,7 @@ interface ContactFormProps {
   form: FormState;
   errors: FormErrors;
   isSaving: boolean;
+  isDirty: boolean;
   onChange: (patch: Partial<FormState>) => void;
   onSubmit: (e: FormEvent) => void;
   onCancel: () => void;
@@ -91,6 +94,7 @@ function ContactForm({
   form,
   errors,
   isSaving,
+  isDirty,
   onChange,
   onSubmit,
   onCancel,
@@ -112,11 +116,12 @@ function ContactForm({
           onChange={(e) => onChange({ fullName: e.target.value.toUpperCase() })}
           autoCapitalize="characters"
           autoComplete="off"
+          maxLength={100}
           aria-invalid={errors.fullName !== null}
           disabled={isSaving}
           className="uppercase placeholder:normal-case"
         />
-        {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
+        <FieldMessage error={errors.fullName} />
       </div>
 
       <div className="space-y-1.5">
@@ -149,7 +154,7 @@ function ContactForm({
             />
           </div>
         </div>
-        {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+        <FieldMessage error={errors.phone} />
       </div>
 
       <div className="space-y-1.5">
@@ -160,6 +165,8 @@ function ContactForm({
           value={form.relationship}
           onChange={(e) => onChange({ relationship: e.target.value.toUpperCase() })}
           autoCapitalize="characters"
+          minLength={2}
+          maxLength={50}
           aria-invalid={errors.relationship !== null}
           disabled={isSaving}
           className="uppercase placeholder:normal-case"
@@ -169,7 +176,7 @@ function ContactForm({
             <option key={key} value={t(`emergencyContacts.relationshipOptions.${key}`)} />
           ))}
         </datalist>
-        {errors.relationship && <p className="text-sm text-destructive">{errors.relationship}</p>}
+        <FieldMessage error={errors.relationship} />
       </div>
 
       <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -184,9 +191,7 @@ function ContactForm({
       </label>
 
       <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={isSaving}>
-          {saveLabel}
-        </Button>
+        <SaveButton size="sm" isSaving={isSaving} isDirty={isDirty} label={saveLabel} />
         <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={isSaving}>
           {t('emergencyContacts.cancel')}
         </Button>
@@ -207,10 +212,23 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
   const [isAdding, setIsAdding] = useState(false);
   const [addForm, setAddForm] = useState<FormState>(makeEmptyForm(contacts.length === 0));
   const [editForm, setEditForm] = useState<FormState>(makeEmptyForm());
+  const [initialEditForm, setInitialEditForm] = useState<FormState>(makeEmptyForm());
   const [addErrors, setAddErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [editErrors, setEditErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const isEditDirty =
+    editingId !== null &&
+    (editForm.fullName !== initialEditForm.fullName ||
+      editForm.phoneCountryIso !== initialEditForm.phoneCountryIso ||
+      editForm.phoneLocalNumber !== initialEditForm.phoneLocalNumber ||
+      editForm.relationship !== initialEditForm.relationship ||
+      editForm.isPrimary !== initialEditForm.isPrimary);
+  const isAddDirty =
+    addForm.fullName.trim() !== '' ||
+    addForm.phoneLocalNumber.trim() !== '' ||
+    addForm.relationship.trim() !== '';
 
   useEffect(() => {
     if (!confirmDeleteId) return;
@@ -227,7 +245,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
     if (!fn || fn.length < 2) {
       errors.fullName = t('emergencyContacts.errors.fullNameRequired');
       hasError = true;
-    } else if (fn.length > 150 || !NAME_REGEX.test(fn)) {
+    } else if (fn.length > 100 || !NAME_REGEX.test(fn)) {
       errors.fullName = t('emergencyContacts.errors.fullNameInvalid');
       hasError = true;
     }
@@ -256,14 +274,16 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
   function startEdit(contact: EmergencyContactDto) {
     setEditingId(contact.id);
     const iso = getIsoFromCallingCode(contact.phoneCountryCode);
-    setEditForm({
+    const form: FormState = {
       fullName: contact.fullName.toUpperCase(),
       phoneCountryIso: iso,
       phoneCountryCode: contact.phoneCountryCode,
       phoneLocalNumber: contact.phoneLocalNumber,
       relationship: contact.relationship.toUpperCase(),
       isPrimary: contact.isPrimary,
-    });
+    };
+    setEditForm(form);
+    setInitialEditForm(form);
     setEditErrors(EMPTY_ERRORS);
     setIsAdding(false);
     setConfirmDeleteId(null);
@@ -386,6 +406,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
                 form={editForm}
                 errors={editErrors}
                 isSaving={isSaving}
+                isDirty={isEditDirty}
                 onChange={(patch) => setEditForm((f) => ({ ...f, ...patch }))}
                 onSubmit={handleUpdate}
                 onCancel={cancelEdit}
@@ -447,6 +468,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
           form={addForm}
           errors={addErrors}
           isSaving={isSaving}
+          isDirty={isAddDirty}
           onChange={(patch) => setAddForm((f) => ({ ...f, ...patch }))}
           onSubmit={handleAdd}
           onCancel={cancelAdd}

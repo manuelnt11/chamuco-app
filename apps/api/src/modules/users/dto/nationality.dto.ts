@@ -10,6 +10,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { PassportStatus } from '@chamuco/shared-types';
+import { IsDateAfter } from './date-after.validator';
 
 // Condition: any passport field present in the payload
 const anyPassportFieldPresent = (o: {
@@ -123,6 +124,9 @@ export class CreateNationalityDto {
   @ValidateIf(anyPassportFieldPresent)
   @IsDefined({ message: 'passportExpiryDate is required when any passport field is provided' })
   @IsDateString({}, { message: 'passportExpiryDate must be a valid ISO 8601 date (YYYY-MM-DD)' })
+  @IsDateAfter('passportIssueDate', {
+    message: 'passportExpiryDate must be after passportIssueDate',
+  })
   passportExpiryDate?: string;
 }
 
@@ -185,5 +189,8 @@ export class UpdateNationalityDto {
   @ValidateIf(anyPassportFieldPresent)
   @IsDefined({ message: 'passportExpiryDate is required when any passport field is provided' })
   @IsDateString({}, { message: 'passportExpiryDate must be a valid ISO 8601 date (YYYY-MM-DD)' })
+  @IsDateAfter('passportIssueDate', {
+    message: 'passportExpiryDate must be after passportIssueDate',
+  })
   passportExpiryDate?: string;
 }

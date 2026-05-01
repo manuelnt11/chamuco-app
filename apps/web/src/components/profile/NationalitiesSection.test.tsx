@@ -335,12 +335,10 @@ describe('NationalitiesSection', () => {
       await waitFor(() => expect(mocks.mockPost).toHaveBeenCalledOnce());
     });
 
-    it('shows countryRequired error when no country selected', async () => {
+    it('disables save button when no country selected in add form', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
-      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
-      expect(screen.getByText('nationalities.errors.countryRequired')).toBeInTheDocument();
-      expect(mocks.mockPost).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: 'nationalities.save' })).toBeDisabled();
     });
 
     it('shows passportIncomplete error when only passport number provided', async () => {
@@ -468,6 +466,7 @@ describe('NationalitiesSection', () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
       await user.click(editButtons[0]!);
+      await user.click(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
         expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.updateSuccess'),
@@ -478,6 +477,7 @@ describe('NationalitiesSection', () => {
       const { user, onRefresh } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
       await user.click(editButtons[0]!);
+      await user.click(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
@@ -495,6 +495,7 @@ describe('NationalitiesSection', () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
       await user.click(editButtons[0]!);
+      await user.click(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.saveError'),

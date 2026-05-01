@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { ProfileVisibility } from '@chamuco/shared-types';
 
 import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SaveButton } from '@/components/ui/save-button';
 import { Select } from '@/components/ui/select';
-import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { TimezoneCombobox } from '@/components/ui/timezone-combobox';
 import { toast } from '@/components/ui/toast';
+import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
 import { COUNTRY_TIMEZONE } from '@/lib/timezones';
 import { getInitials } from '@/lib/name-utils';
@@ -112,13 +112,13 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
           aria-invalid={displayNameError !== null}
           disabled={isSaving}
         />
-        {displayNameError && <p className="text-sm text-destructive">{displayNameError}</p>}
+        <FieldMessage error={displayNameError} />
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="username">{t('basicInfo.username')}</Label>
         <Input id="username" value={`@${user.username}`} readOnly disabled />
-        <p className="text-xs text-muted-foreground">{t('basicInfo.usernameHint')}</p>
+        <FieldMessage hint={t('basicInfo.usernameHint')} />
       </div>
 
       <div className="space-y-1.5">
@@ -165,16 +165,10 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
             </option>
           ))}
         </Select>
-        <p className="text-xs text-muted-foreground">{t('basicInfo.profileVisibilityHint')}</p>
+        <FieldMessage hint={t('basicInfo.profileVisibilityHint')} />
       </div>
 
-      <Button type="submit" disabled={isSaving} className="gap-2">
-        {isSaving && <Spinner size="sm" />}
-        {!isSaving && isDirty && (
-          <span data-testid="unsaved-indicator" className="size-2 rounded-full bg-amber-500" />
-        )}
-        {isSaving ? t('basicInfo.saving') : t('basicInfo.save')}
-      </Button>
+      <SaveButton isSaving={isSaving} isDirty={isDirty} label={t('basicInfo.save')} />
     </form>
   );
 }

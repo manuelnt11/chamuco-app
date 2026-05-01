@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SaveButton } from '@/components/ui/save-button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
@@ -34,6 +35,7 @@ interface ProgramFormProps {
   idPrefix: string;
   form: FormState;
   isSaving: boolean;
+  isDirty: boolean;
   onChangeProgramName: (v: string) => void;
   onChangeMemberId: (v: string) => void;
   onChangeNotes: (v: string) => void;
@@ -46,6 +48,7 @@ function ProgramForm({
   idPrefix,
   form,
   isSaving,
+  isDirty,
   onChangeProgramName,
   onChangeMemberId,
   onChangeNotes,
@@ -63,6 +66,7 @@ function ProgramForm({
           value={form.programName}
           onChange={(e) => onChangeProgramName(e.target.value)}
           required
+          maxLength={100}
           disabled={isSaving}
         />
       </div>
@@ -73,6 +77,7 @@ function ProgramForm({
           value={form.memberId}
           onChange={(e) => onChangeMemberId(e.target.value)}
           required
+          maxLength={100}
           disabled={isSaving}
         />
       </div>
@@ -88,9 +93,7 @@ function ProgramForm({
         />
       </div>
       <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={isSaving}>
-          {saveLabel}
-        </Button>
+        <SaveButton size="sm" isSaving={isSaving} isDirty={isDirty} label={saveLabel} />
         <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={isSaving}>
           {t('loyaltyPrograms.cancel')}
         </Button>
@@ -106,8 +109,16 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
   const [isAdding, setIsAdding] = useState(false);
   const [addForm, setAddForm] = useState<FormState>(EMPTY_FORM);
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
+  const [initialEditForm, setInitialEditForm] = useState<FormState>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const isEditDirty =
+    editingId !== null &&
+    (editForm.programName !== initialEditForm.programName ||
+      editForm.memberId !== initialEditForm.memberId ||
+      editForm.notes !== initialEditForm.notes);
+  const isAddDirty = addForm.programName.trim() !== '' || addForm.memberId.trim() !== '';
 
   useEffect(() => {
     if (!confirmDeleteId) return;
@@ -118,11 +129,13 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
 
   function startEdit(program: LoyaltyProgramDto) {
     setEditingId(program.id);
-    setEditForm({
+    const form: FormState = {
       programName: program.programName,
       memberId: program.memberId,
       notes: program.notes ?? '',
-    });
+    };
+    setEditForm(form);
+    setInitialEditForm(form);
     setIsAdding(false);
     setConfirmDeleteId(null);
   }
@@ -220,6 +233,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
                 idPrefix={`edit-${program.id}`}
                 form={editForm}
                 isSaving={isSaving}
+                isDirty={isEditDirty}
                 onChangeProgramName={(v) => setEditForm((f) => ({ ...f, programName: v }))}
                 onChangeMemberId={(v) => setEditForm((f) => ({ ...f, memberId: v }))}
                 onChangeNotes={(v) => setEditForm((f) => ({ ...f, notes: v }))}
@@ -275,6 +289,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
           idPrefix="add"
           form={addForm}
           isSaving={isSaving}
+          isDirty={isAddDirty}
           onChangeProgramName={(v) => setAddForm((f) => ({ ...f, programName: v }))}
           onChangeMemberId={(v) => setAddForm((f) => ({ ...f, memberId: v }))}
           onChangeNotes={(v) => setAddForm((f) => ({ ...f, notes: v }))}
