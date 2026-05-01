@@ -165,6 +165,7 @@ function ContactForm({
           value={form.relationship}
           onChange={(e) => onChange({ relationship: e.target.value.toUpperCase() })}
           autoCapitalize="characters"
+          minLength={2}
           maxLength={50}
           aria-invalid={errors.relationship !== null}
           disabled={isSaving}

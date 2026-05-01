@@ -13,7 +13,10 @@ export class IsDateAfterConstraint implements ValidatorConstraintInterface {
     const [relatedPropertyName] = args.constraints as [string];
     const relatedValue = (args.object as Record<string, unknown>)[relatedPropertyName];
     if (typeof relatedValue !== 'string' || !relatedValue) return true;
-    return new Date(value) > new Date(relatedValue);
+    const d1 = new Date(value);
+    const d2 = new Date(relatedValue);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return true;
+    return d1 > d2;
   }
 
   defaultMessage(args: ValidationArguments): string {
