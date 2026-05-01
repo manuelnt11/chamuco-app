@@ -37,7 +37,7 @@
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "firebase-admin": "^13.7.0",
-    "nestjs-i18n": "^10.8.1",
+    "nestjs-i18n": "^10.7.0",
     "pg": "^8.20.0",
     "postgres": "^3.4.8",
     "reflect-metadata": "^0.2.2",
