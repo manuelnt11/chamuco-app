@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { DietaryPreference } from '@chamuco/shared-types';
+import { BloodType, DietaryPreference } from '@chamuco/shared-types';
 import {
   FoodAllergyItemDto,
   MedicalConditionItemDto,
@@ -8,6 +8,9 @@ import {
 } from './health-items.dto';
 
 export class UserHealthResponseDto {
+  @ApiProperty({ enum: BloodType, example: null, nullable: true })
+  bloodType!: BloodType | null;
+
   @ApiProperty({ enum: DietaryPreference, example: DietaryPreference.OMNIVORE })
   dietaryPreference!: DietaryPreference;
 

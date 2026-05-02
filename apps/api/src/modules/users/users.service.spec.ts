@@ -5,6 +5,7 @@ import {
   AppLanguage,
   AppTheme,
   AuthProvider,
+  BloodType,
   DietaryPreference,
   DocumentStatus,
   EtaType,
@@ -50,6 +51,7 @@ const mockHealthProfile = {
   phoneCountryCode: '+57',
   phoneLocalNumber: '3001234567',
   bio: null,
+  bloodType: null,
   dietaryPreference: DietaryPreference.OMNIVORE,
   dietaryNotes: null,
   generalMedicalNotes: null,
@@ -390,6 +392,7 @@ describe('UsersService', () => {
       const result = await service.getHealth('user-uuid');
 
       const expected: UserHealthResponseDto = {
+        bloodType: null,
         dietaryPreference: DietaryPreference.OMNIVORE,
         dietaryNotes: null,
         generalMedicalNotes: null,
@@ -485,6 +488,33 @@ describe('UsersService', () => {
       expect(result.medicalConditions).toEqual([
         { condition: MedicalConditionType.DIABETES, description: null },
       ]);
+    });
+
+    it('updates blood type and returns mapped response', async () => {
+      mockProfileFindFirst.mockResolvedValue(mockHealthProfile);
+      const updated = { ...mockHealthProfile, bloodType: BloodType.O_POSITIVE };
+      mockReturning.mockResolvedValue([updated]);
+
+      const result = await service.updateHealth('user-uuid', { bloodType: BloodType.O_POSITIVE });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ bloodType: BloodType.O_POSITIVE }),
+      );
+      expect(result.bloodType).toBe(BloodType.O_POSITIVE);
+    });
+
+    it('clears blood type when null is passed', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        bloodType: BloodType.A_NEGATIVE,
+      });
+      const updated = { ...mockHealthProfile, bloodType: null };
+      mockReturning.mockResolvedValue([updated]);
+
+      const result = await service.updateHealth('user-uuid', { bloodType: null });
+
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ bloodType: null }));
+      expect(result.bloodType).toBeNull();
     });
 
     it('throws NotFoundException when the profile does not exist', async () => {

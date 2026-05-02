@@ -332,6 +332,17 @@
     "health": {
       "heading": "Health Profile",
       "privacyNote": "This information is private and only shared with trip organizers when you grant permission.",
+      "bloodType": {
+        "label": "Blood Type",
+        "A_POSITIVE": "A+",
+        "A_NEGATIVE": "A−",
+        "B_POSITIVE": "B+",
+        "B_NEGATIVE": "B−",
+        "AB_POSITIVE": "AB+",
+        "AB_NEGATIVE": "AB−",
+        "O_POSITIVE": "O+",
+        "O_NEGATIVE": "O−"
+      },
       "dietaryPreference": {
         "label": "Dietary Preference",
         "OMNIVORE": "Omnivore",

@@ -192,6 +192,7 @@ export class UsersService {
     }
 
     const patch: Partial<typeof userProfiles.$inferInsert> = {};
+    if (dto.bloodType !== undefined) patch.bloodType = dto.bloodType ?? null;
     if (dto.dietaryPreference !== undefined) patch.dietaryPreference = dto.dietaryPreference;
     if (dto.dietaryNotes !== undefined) patch.dietaryNotes = dto.dietaryNotes?.trim() || null;
     if (dto.generalMedicalNotes !== undefined)
@@ -650,6 +651,7 @@ export class UsersService {
 
   private mapHealthResponse(profile: typeof userProfiles.$inferSelect): UserHealthResponseDto {
     return {
+      bloodType: profile.bloodType ?? null,
       dietaryPreference: profile.dietaryPreference,
       dietaryNotes: profile.dietaryNotes ?? null,
       generalMedicalNotes: profile.generalMedicalNotes ?? null,

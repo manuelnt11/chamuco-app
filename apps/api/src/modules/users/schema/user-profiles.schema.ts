@@ -1,4 +1,5 @@
 import {
+  BloodType,
   DietaryPreference,
   FoodAllergen,
   MedicalConditionType,
@@ -81,6 +82,17 @@ export const medicalConditionTypeEnum = pgEnum('medical_condition_type', [
   MedicalConditionType.OTHER,
 ]);
 
+export const bloodTypeEnum = pgEnum('blood_type', [
+  BloodType.A_POSITIVE,
+  BloodType.A_NEGATIVE,
+  BloodType.B_POSITIVE,
+  BloodType.B_NEGATIVE,
+  BloodType.AB_POSITIVE,
+  BloodType.AB_NEGATIVE,
+  BloodType.O_POSITIVE,
+  BloodType.O_NEGATIVE,
+]);
+
 export const userProfiles = pgTable('user_profiles', {
   userId: uuid('user_id')
     .primaryKey()
@@ -96,6 +108,7 @@ export const userProfiles = pgTable('user_profiles', {
   phoneCountryCode: text('phone_country_code').notNull(),
   phoneLocalNumber: text('phone_local_number').notNull(),
   bio: varchar('bio', { length: 200 }),
+  bloodType: bloodTypeEnum('blood_type'),
   dietaryPreference: dietaryPreferenceEnum('dietary_preference')
     .notNull()
     .default(DietaryPreference.OMNIVORE),

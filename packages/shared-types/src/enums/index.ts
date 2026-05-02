@@ -1,4 +1,5 @@
 export * from './auth-provider.enum';
+export * from './blood-type.enum';
 export * from './app-currency.enum';
 export * from './app-language.enum';
 export * from './app-theme.enum';

@@ -55,6 +55,7 @@ const DEFAULT_PERSONAL_DETAILS: PersonalDetailsProfile = {
 };
 
 const DEFAULT_HEALTH_DATA: HealthData = {
+  bloodType: null,
   dietaryPreference: null,
   dietaryNotes: null,
   generalMedicalNotes: null,

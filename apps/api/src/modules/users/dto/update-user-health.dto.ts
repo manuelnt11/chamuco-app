@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { DietaryPreference } from '@chamuco/shared-types';
+import { BloodType, DietaryPreference } from '@chamuco/shared-types';
 import { Type } from 'class-transformer';
 import { IsArray, IsEnum, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import {
@@ -10,6 +10,11 @@ import {
 } from './health-items.dto';
 
 export class UpdateUserHealthDto {
+  @ApiProperty({ enum: BloodType, example: BloodType.O_POSITIVE, nullable: true, required: false })
+  @IsOptional()
+  @IsEnum(BloodType)
+  bloodType?: BloodType | null;
+
   @ApiProperty({ enum: DietaryPreference, example: DietaryPreference.VEGETARIAN, required: false })
   @IsOptional()
   @IsEnum(DietaryPreference)

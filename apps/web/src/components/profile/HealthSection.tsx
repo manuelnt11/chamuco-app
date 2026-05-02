@@ -11,6 +11,7 @@ import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
 import {
+  BloodType,
   DietaryPreference,
   FoodAllergen,
   PhobiaType,
@@ -25,6 +26,7 @@ export interface HealthArrayItem {
 }
 
 export interface HealthData {
+  bloodType: BloodType | null;
   dietaryPreference: DietaryPreference | null;
   dietaryNotes: string | null;
   generalMedicalNotes: string | null;
@@ -149,6 +151,7 @@ function sortedItems(items: HealthArrayItem[]): HealthArrayItem[] {
 export function HealthSection({ health, onRefresh }: HealthSectionProps) {
   const { t } = useTranslation('profile');
 
+  const [bloodType, setBloodType] = useState<BloodType | null>(health.bloodType);
   const [dietaryPreference, setDietaryPreference] = useState<DietaryPreference | null>(
     health.dietaryPreference,
   );
@@ -184,6 +187,7 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
 
   const isDirty = useMemo(
     () =>
+      bloodType !== health.bloodType ||
       dietaryPreference !== health.dietaryPreference ||
       (dietaryNotes || null) !== health.dietaryNotes ||
       (generalMedicalNotes || null) !== health.generalMedicalNotes ||
@@ -195,6 +199,7 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
       JSON.stringify(sortedItems(medicalConditions)) !==
         JSON.stringify(sortedItems(initialMedicalConditions)),
     [
+      bloodType,
       dietaryPreference,
       dietaryNotes,
       generalMedicalNotes,
@@ -202,6 +207,7 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
       phobias,
       physicalLimitations,
       medicalConditions,
+      health.bloodType,
       health.dietaryPreference,
       health.dietaryNotes,
       health.generalMedicalNotes,
@@ -246,6 +252,7 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
     setIsSaving(true);
     try {
       await apiClient.patch('/v1/users/me/health', {
+        bloodType,
         dietaryPreference,
         dietaryNotes:
           dietaryPreference === DietaryPreference.OTHER ? dietaryNotes.trim() || null : null,
@@ -282,6 +289,37 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
       <h2 className="text-xl font-semibold">{t('health.heading')}</h2>
 
       <p className="text-sm text-muted-foreground">{t('health.privacyNote')}</p>
+
+      <fieldset className="rounded-lg border border-border p-4 space-y-3">
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {t('health.bloodType.label')}
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {Object.values(BloodType).map((value) => {
+            const isActive = value === bloodType;
+            return (
+              <button
+                key={value}
+                type="button"
+                disabled={isSaving}
+                onClick={() => setBloodType(isActive ? null : value)}
+                className={cn(
+                  'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'disabled:pointer-events-none disabled:opacity-50',
+                  isActive
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-background hover:bg-muted',
+                )}
+                aria-pressed={isActive}
+                data-testid={`bloodType-pill-${value}`}
+              >
+                {t(`health.bloodType.${value}`)}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <fieldset className="rounded-lg border border-border p-4 space-y-3">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">

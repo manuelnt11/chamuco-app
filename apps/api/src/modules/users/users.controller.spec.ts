@@ -66,6 +66,7 @@ const mockPreferencesResponse: UserPreferencesResponseDto = {
 };
 
 const mockHealthResponse: UserHealthResponseDto = {
+  bloodType: null,
   dietaryPreference: DietaryPreference.OMNIVORE,
   dietaryNotes: null,
   generalMedicalNotes: null,
