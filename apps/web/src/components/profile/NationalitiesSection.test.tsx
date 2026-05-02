@@ -63,6 +63,18 @@ vi.mock('@/components/ui/country-combobox', () => ({
   ),
 }));
 
+vi.mock('./VisasSubsection', () => ({
+  VisasSubsection: ({ nationalityId }: { nationalityId: string }) => (
+    <div data-testid={`visas-${nationalityId}`}>Visas subsection</div>
+  ),
+}));
+
+vi.mock('./EtasSubsection', () => ({
+  EtasSubsection: ({ nationalityId }: { nationalityId: string }) => (
+    <div data-testid={`etas-${nationalityId}`}>ETAs subsection</div>
+  ),
+}));
+
 import { NationalitiesSection } from './NationalitiesSection';
 import type { NationalityDto } from './NationalitiesSection';
 
@@ -563,6 +575,66 @@ describe('NationalitiesSection', () => {
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.deleteError'),
       );
+    });
+  });
+
+  describe('accordion expand/collapse', () => {
+    it('renders a toggle button for each nationality', () => {
+      setup();
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      expect(toggleButtons).toHaveLength(2);
+    });
+
+    it('documents panel is hidden by default', () => {
+      setup();
+      expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('etas-nat-1')).not.toBeInTheDocument();
+    });
+
+    it('expands documents panel when toggle clicked', async () => {
+      const { user } = setup();
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      await user.click(toggleButtons[0]!);
+      expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
+      expect(screen.getByTestId('etas-nat-1')).toBeInTheDocument();
+    });
+
+    it('collapses panel when toggle clicked again', async () => {
+      const { user } = setup();
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      await user.click(toggleButtons[0]!);
+      await user.click(toggleButtons[0]!);
+      expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
+    });
+
+    it('accordion: opening second collapses first', async () => {
+      const { user } = setup();
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      await user.click(toggleButtons[0]!);
+      expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
+      await user.click(toggleButtons[1]!);
+      expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
+      expect(screen.getByTestId('visas-nat-2')).toBeInTheDocument();
+    });
+
+    it('collapses expanded panel when entering edit mode', async () => {
+      const { user } = setup();
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      await user.click(toggleButtons[0]!);
+      expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
+      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      await user.click(editButtons[0]!);
+      expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
     });
   });
 });
