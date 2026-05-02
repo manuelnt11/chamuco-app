@@ -192,7 +192,7 @@ export class UsersService {
     }
 
     const patch: Partial<typeof userProfiles.$inferInsert> = {};
-    if (dto.bloodType !== undefined) patch.bloodType = dto.bloodType ?? null;
+    if (dto.bloodType !== undefined) patch.bloodType = dto.bloodType;
     if (dto.dietaryPreference !== undefined) patch.dietaryPreference = dto.dietaryPreference;
     if (dto.dietaryNotes !== undefined) patch.dietaryNotes = dto.dietaryNotes?.trim() || null;
     if (dto.generalMedicalNotes !== undefined)
