@@ -805,7 +805,6 @@ describe('UsersController', () => {
   describe('POST /v1/users/me/nationalities/:nationalityId/etas', () => {
     it('delegates to usersService.addEta with the user id, nationalityId, and dto', async () => {
       const dto: CreateEtaDto = {
-        passportNumber: 'AB123456',
         destinationCountry: 'CA',
         authorizationNumber: 'A1B2C3D4E5',
         etaType: EtaType.TOURIST,

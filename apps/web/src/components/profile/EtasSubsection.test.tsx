@@ -239,7 +239,6 @@ describe('EtasSubsection', () => {
         expect(mocks.mockPost).toHaveBeenCalledWith(
           `/v1/users/me/nationalities/${NATIONALITY_ID}/etas`,
           expect.objectContaining({
-            passportNumber: PASSPORT_NUMBER,
             destinationCountry: 'CA',
             authorizationNumber: 'A1B2C3D4E5',
             etaType: 'TOURIST',

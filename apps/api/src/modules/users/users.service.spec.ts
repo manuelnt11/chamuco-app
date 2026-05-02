@@ -93,7 +93,9 @@ describe('UsersService', () => {
   let mockEtasFindFirst: jest.Mock;
   let mockEtasFindMany: jest.Mock;
   let mockInsertReturning: jest.Mock;
+  let mockInsertValues: jest.Mock;
   let mockDeleteWhere: jest.Mock;
+  let mockTransaction: jest.Mock;
 
   beforeEach(async () => {
     mockFindFirst = jest.fn();
@@ -112,7 +114,7 @@ describe('UsersService', () => {
     const mockWhere = jest.fn().mockReturnValue({ returning: mockReturning });
     mockSet = jest.fn().mockReturnValue({ where: mockWhere });
     const mockUpdate = jest.fn().mockReturnValue({ set: mockSet });
-    const mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
+    mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
     const mockInsert = jest.fn().mockReturnValue({ values: mockInsertValues });
     const mockDelete = jest.fn().mockReturnValue({ where: mockDeleteWhere });
 
@@ -142,11 +144,11 @@ describe('UsersService', () => {
             update: mockUpdate,
             insert: mockInsert,
             delete: mockDelete,
-            transaction: jest
+            transaction: (mockTransaction = jest
               .fn()
               .mockImplementation(async (callback: (trx: unknown) => Promise<unknown>) =>
                 callback({ update: mockUpdate, insert: mockInsert, delete: mockDelete }),
-              ),
+              )),
           },
         },
       ],
@@ -1278,6 +1280,17 @@ describe('UsersService', () => {
       expect(mockSet).toHaveBeenNthCalledWith(1, { isPrimary: false });
     });
 
+    it('runs isPrimary demotion and target update inside a transaction', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockReturning.mockResolvedValue([{ ...mockNationality, isPrimary: true }]);
+
+      const dto: UpdateNationalityDto = { isPrimary: true };
+      await service.updateNationality('user-uuid', 'nat-uuid', dto);
+
+      // transaction must be used so a failure on the target update rolls back the demotion
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+    });
+
     it('does not demote when isPrimary is not in dto', async () => {
       mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
       mockReturning.mockResolvedValue([mockNationality]);
@@ -1926,7 +1939,6 @@ describe('UsersService', () => {
       mockInsertReturning.mockResolvedValue([mockEta]);
 
       const dto = {
-        passportNumber: 'AB123456',
         destinationCountry: 'US',
         authorizationNumber: 'A1B2C3D4E5',
         etaType: EtaType.TOURIST,
@@ -1940,12 +1952,31 @@ describe('UsersService', () => {
       expect(result.userNationalityId).toBe('nat-uuid');
     });
 
+    it('snapshots passport number from the nationality record, not from the dto', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue({
+        ...mockNationality,
+        passportNumber: 'ZZ999999',
+      });
+      mockInsertReturning.mockResolvedValue([mockEta]);
+
+      await service.addEta('user-uuid', 'nat-uuid', {
+        destinationCountry: 'US',
+        authorizationNumber: 'A1B2C3D4E5',
+        etaType: EtaType.TOURIST,
+        entries: VisaEntries.MULTIPLE,
+        expiryDate: '2027-12-31',
+      });
+
+      expect(mockInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ passportNumber: 'ZZ999999' }),
+      );
+    });
+
     it('throws NotFoundException when nationality not owned', async () => {
       mockNationalitiesFindFirst.mockResolvedValue(undefined);
 
       await expect(
         service.addEta('user-uuid', 'other-nat', {
-          passportNumber: 'AB123456',
           destinationCountry: 'US',
           authorizationNumber: 'A1B2C3D4E5',
           etaType: EtaType.TOURIST,
@@ -1966,7 +1997,6 @@ describe('UsersService', () => {
 
       await expect(
         service.addEta('user-uuid', 'nat-uuid', {
-          passportNumber: 'AB123456',
           destinationCountry: 'US',
           authorizationNumber: 'A1B2C3D4E5',
           etaType: EtaType.TOURIST,

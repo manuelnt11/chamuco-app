@@ -374,13 +374,6 @@ export class UsersService {
       );
     }
 
-    if (dto.isPrimary === true) {
-      await this.db
-        .update(userNationalities)
-        .set({ isPrimary: false })
-        .where(and(eq(userNationalities.userId, userId), ne(userNationalities.id, nationalityId)));
-    }
-
     const passportChanged =
       dto.passportNumber !== undefined ||
       dto.passportIssueDate !== undefined ||
@@ -399,33 +392,48 @@ export class UsersService {
       patch.passportExpiryDate = dto.passportExpiryDate ?? null;
     if (passportChanged) patch.passportStatus = computePassportStatus(dto.passportExpiryDate);
 
-    if (passportNumberChanged && existing.passportNumber) {
-      const rows = await this.db.transaction(async (trx) => {
-        await trx
-          .update(userEtas)
-          .set({ etaStatus: DocumentStatus.EXPIRED, updatedAt: new Date() })
-          .where(
-            and(
-              eq(userEtas.userNationalityId, nationalityId),
-              eq(userEtas.passportNumber, existing.passportNumber!),
-              ne(userEtas.etaStatus, DocumentStatus.EXPIRED),
-            ),
-          );
+    const shouldDemotePrimary = dto.isPrimary === true;
+    const shouldExpireEtas = passportNumberChanged && !!existing.passportNumber;
 
-        return trx
+    if (!shouldDemotePrimary && !shouldExpireEtas && Object.keys(patch).length === 0) {
+      return this.mapNationalityResponse(existing);
+    }
+
+    if (shouldDemotePrimary || shouldExpireEtas) {
+      const result = await this.db.transaction(async (trx) => {
+        if (shouldDemotePrimary) {
+          await trx
+            .update(userNationalities)
+            .set({ isPrimary: false })
+            .where(
+              and(eq(userNationalities.userId, userId), ne(userNationalities.id, nationalityId)),
+            );
+        }
+
+        if (shouldExpireEtas) {
+          await trx
+            .update(userEtas)
+            .set({ etaStatus: DocumentStatus.EXPIRED, updatedAt: new Date() })
+            .where(
+              and(
+                eq(userEtas.userNationalityId, nationalityId),
+                eq(userEtas.passportNumber, existing.passportNumber!),
+                ne(userEtas.etaStatus, DocumentStatus.EXPIRED),
+              ),
+            );
+        }
+
+        const [updated] = await trx
           .update(userNationalities)
           .set(patch)
           .where(and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)))
           .returning();
+
+        if (!updated) throw new NotFoundException('Nationality not found');
+        return updated;
       });
 
-      const updated = rows[0];
-      if (!updated) throw new NotFoundException('Nationality not found');
-      return this.mapNationalityResponse(updated);
-    }
-
-    if (Object.keys(patch).length === 0) {
-      return this.mapNationalityResponse(existing);
+      return this.mapNationalityResponse(result);
     }
 
     const [updated] = await this.db
@@ -707,6 +715,8 @@ export class UsersService {
     id: string,
     dto: UpdateVisaDto,
   ): Promise<VisaResponseDto> {
+    // No OMITTED re-check: a visa can exist on a nationality whose passport was later cleared.
+    // The visa record is valid and editable regardless of current passport status.
     await this.requireNationality(userId, nationalityId);
     const existing = await this.db.query.userVisas.findFirst({
       where: and(eq(userVisas.id, id), eq(userVisas.nationalityId, nationalityId)),
@@ -768,7 +778,7 @@ export class UsersService {
       .insert(userEtas)
       .values({
         userNationalityId: nationalityId,
-        passportNumber: dto.passportNumber,
+        passportNumber: nationality.passportNumber!,
         destinationCountry: dto.destinationCountry,
         authorizationNumber: dto.authorizationNumber,
         etaType: dto.etaType,

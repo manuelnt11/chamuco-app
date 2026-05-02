@@ -47,15 +47,6 @@ export class EtaResponseDto {
 
 export class CreateEtaDto {
   @ApiProperty({
-    example: 'AB123456',
-    description:
-      'Passport number this ETA was issued for. Snapshotted — changing the passport later will automatically expire this ETA.',
-  })
-  @IsString()
-  @IsNotEmpty({ message: 'passportNumber must not be an empty string' })
-  passportNumber!: string;
-
-  @ApiProperty({
     example: 'US',
     description: 'ISO 3166-1 alpha-2 destination country (two uppercase letters)',
   })

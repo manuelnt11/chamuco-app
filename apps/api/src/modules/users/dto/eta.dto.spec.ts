@@ -4,7 +4,6 @@ import { EtaType, VisaEntries } from '@chamuco/shared-types';
 import { CreateEtaDto, UpdateEtaDto } from './eta.dto';
 
 const validBase = {
-  passportNumber: 'AB123456',
   destinationCountry: 'US',
   authorizationNumber: 'A1B2C3D4E5',
   etaType: EtaType.TOURIST,
@@ -29,12 +28,6 @@ describe('CreateEtaDto', () => {
     const dto = plainToInstance(CreateEtaDto, { ...validBase, notes: null });
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
-  });
-
-  it('fails when passportNumber is empty', async () => {
-    const dto = plainToInstance(CreateEtaDto, { ...validBase, passportNumber: '' });
-    const errors = await validate(dto);
-    expect(errors.some((e) => e.property === 'passportNumber')).toBe(true);
   });
 
   it('fails when destinationCountry is not a 2-letter uppercase code', async () => {

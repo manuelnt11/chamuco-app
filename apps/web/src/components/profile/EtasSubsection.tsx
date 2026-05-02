@@ -35,7 +35,6 @@ export interface EtaDto {
 }
 
 interface FormState {
-  passportNumber: string;
   destinationCountry: string;
   authorizationNumber: string;
   etaType: EtaType | '';
@@ -62,7 +61,6 @@ const EMPTY_ERRORS: FormErrors = {
 
 function makeEmptyForm(): FormState {
   return {
-    passportNumber: '',
     destinationCountry: '',
     authorizationNumber: '',
     etaType: '',
@@ -86,6 +84,7 @@ function documentStatusBadgeClass(status: DocumentStatus): string {
 
 interface EtaFormProps {
   idPrefix: string;
+  passportNumber: string;
   form: FormState;
   errors: FormErrors;
   isSaving: boolean;
@@ -99,6 +98,7 @@ interface EtaFormProps {
 
 function EtaForm({
   idPrefix,
+  passportNumber,
   form,
   errors,
   isSaving,
@@ -117,7 +117,7 @@ function EtaForm({
       <div className="space-y-1.5">
         <Label>{t('nationalities.etas.passportNumber')}</Label>
         <p className="rounded-md border border-border bg-muted/50 px-3 py-2 text-sm font-mono">
-          {form.passportNumber}
+          {passportNumber}
         </p>
       </div>
 
@@ -367,7 +367,6 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
 
   function dtoToForm(eta: EtaDto): FormState {
     return {
-      passportNumber: eta.passportNumber,
       destinationCountry: eta.destinationCountry,
       authorizationNumber: eta.authorizationNumber,
       etaType: eta.etaType,
@@ -395,7 +394,7 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
 
   function startAdd() {
     setIsAdding(true);
-    setAddForm({ ...makeEmptyForm(), passportNumber: passportNumber ?? '' });
+    setAddForm(makeEmptyForm());
     setAddErrors(EMPTY_ERRORS);
     setEditingId(null);
     setConfirmDeleteId(null);
@@ -413,7 +412,6 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
     setIsSaving(true);
     try {
       await apiClient.post(`/v1/users/me/nationalities/${nationalityId}/etas`, {
-        passportNumber: addForm.passportNumber.trim(),
         destinationCountry: addForm.destinationCountry,
         authorizationNumber: addForm.authorizationNumber.trim(),
         etaType: addForm.etaType,
@@ -498,6 +496,7 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
             <li key={eta.id}>
               <EtaForm
                 idPrefix={`edit-eta-${eta.id}`}
+                passportNumber={eta.passportNumber}
                 form={editForm}
                 errors={editErrors}
                 isSaving={isSaving}
@@ -570,6 +569,7 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
       {isAdding && (
         <EtaForm
           idPrefix="add-eta"
+          passportNumber={passportNumber ?? ''}
           form={addForm}
           errors={addErrors}
           isSaving={isSaving}
