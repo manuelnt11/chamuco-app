@@ -6,10 +6,15 @@ import {
   AppTheme,
   AuthProvider,
   DietaryPreference,
+  DocumentStatus,
+  EtaType,
   FoodAllergen,
   PassportStatus,
   PlatformRole,
   ProfileVisibility,
+  VisaCoverageType,
+  VisaEntries,
+  VisaType,
 } from '@chamuco/shared-types';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -23,6 +28,8 @@ import type {
 import type { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
 import type { PublicProfileResponseDto } from './dto/public-profile-response.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import type { CreateVisaDto, UpdateVisaDto, VisaResponseDto } from './dto/visa.dto';
+import type { CreateEtaDto, EtaResponseDto, UpdateEtaDto } from './dto/eta.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
@@ -104,6 +111,14 @@ describe('UsersController', () => {
   let mockAddLoyaltyProgram: jest.Mock;
   let mockUpdateLoyaltyProgram: jest.Mock;
   let mockDeleteLoyaltyProgram: jest.Mock;
+  let mockGetVisas: jest.Mock;
+  let mockAddVisa: jest.Mock;
+  let mockUpdateVisa: jest.Mock;
+  let mockDeleteVisa: jest.Mock;
+  let mockGetEtas: jest.Mock;
+  let mockAddEta: jest.Mock;
+  let mockUpdateEta: jest.Mock;
+  let mockDeleteEta: jest.Mock;
   let mockGetPublicProfile: jest.Mock;
 
   const mockPublicProfileResponse: PublicProfileResponseDto = {
@@ -146,6 +161,36 @@ describe('UsersController', () => {
     passportStatus: PassportStatus.OMITTED,
   };
 
+  const mockVisaResponse: VisaResponseDto = {
+    id: 'visa-uuid',
+    nationalityId: 'nat-uuid',
+    coverageType: VisaCoverageType.COUNTRY,
+    countryCode: 'US',
+    visaZone: null,
+    visaType: VisaType.TOURIST,
+    entries: VisaEntries.MULTIPLE,
+    expiryDate: '2027-12-31',
+    visaStatus: DocumentStatus.ACTIVE,
+    notes: null,
+    createdAt: NOW.toISOString(),
+    updatedAt: NOW.toISOString(),
+  };
+
+  const mockEtaResponse: EtaResponseDto = {
+    id: 'eta-uuid',
+    userNationalityId: 'nat-uuid',
+    passportNumber: 'AB123456',
+    destinationCountry: 'CA',
+    authorizationNumber: 'A1B2C3D4E5',
+    etaType: EtaType.TOURIST,
+    entries: VisaEntries.MULTIPLE,
+    expiryDate: '2027-12-31',
+    etaStatus: DocumentStatus.ACTIVE,
+    notes: null,
+    createdAt: NOW.toISOString(),
+    updatedAt: NOW.toISOString(),
+  };
+
   beforeEach(async () => {
     mockFindByFirebaseUid = jest.fn().mockResolvedValue(mockUser);
     mockCheckUsernameAvailability = jest
@@ -170,6 +215,14 @@ describe('UsersController', () => {
     mockAddLoyaltyProgram = jest.fn().mockResolvedValue(mockLoyaltyProgramResponse);
     mockUpdateLoyaltyProgram = jest.fn().mockResolvedValue(mockLoyaltyProgramResponse);
     mockDeleteLoyaltyProgram = jest.fn().mockResolvedValue(undefined);
+    mockGetVisas = jest.fn().mockResolvedValue([mockVisaResponse]);
+    mockAddVisa = jest.fn().mockResolvedValue(mockVisaResponse);
+    mockUpdateVisa = jest.fn().mockResolvedValue(mockVisaResponse);
+    mockDeleteVisa = jest.fn().mockResolvedValue(undefined);
+    mockGetEtas = jest.fn().mockResolvedValue([mockEtaResponse]);
+    mockAddEta = jest.fn().mockResolvedValue(mockEtaResponse);
+    mockUpdateEta = jest.fn().mockResolvedValue(mockEtaResponse);
+    mockDeleteEta = jest.fn().mockResolvedValue(undefined);
     mockGetPublicProfile = jest.fn().mockResolvedValue(mockPublicProfileResponse);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -199,6 +252,14 @@ describe('UsersController', () => {
             addLoyaltyProgram: mockAddLoyaltyProgram,
             updateLoyaltyProgram: mockUpdateLoyaltyProgram,
             deleteLoyaltyProgram: mockDeleteLoyaltyProgram,
+            getVisas: mockGetVisas,
+            addVisa: mockAddVisa,
+            updateVisa: mockUpdateVisa,
+            deleteVisa: mockDeleteVisa,
+            getEtas: mockGetEtas,
+            addEta: mockAddEta,
+            updateEta: mockUpdateEta,
+            deleteEta: mockDeleteEta,
             getPublicProfile: mockGetPublicProfile,
           },
         },
@@ -642,6 +703,162 @@ describe('UsersController', () => {
       mockDeleteLoyaltyProgram.mockRejectedValue(new NotFoundException());
 
       await expect(controller.deleteLoyaltyProgram(mockAuthUser, 'prog-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('GET /v1/users/me/nationalities/:nationalityId/visas', () => {
+    it('delegates to usersService.getVisas with the user id and nationalityId', async () => {
+      const result = await controller.getVisas(mockAuthUser, 'nat-uuid');
+
+      expect(mockGetVisas).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid');
+      expect(result).toEqual([mockVisaResponse]);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockGetVisas.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.getVisas(mockAuthUser, 'bad-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('POST /v1/users/me/nationalities/:nationalityId/visas', () => {
+    it('delegates to usersService.addVisa with the user id, nationalityId, and dto', async () => {
+      const dto: CreateVisaDto = {
+        coverageType: VisaCoverageType.COUNTRY,
+        countryCode: 'US',
+        visaType: VisaType.TOURIST,
+        entries: VisaEntries.MULTIPLE,
+        expiryDate: '2027-12-31',
+      };
+
+      const result = await controller.addVisa(mockAuthUser, 'nat-uuid', dto);
+
+      expect(mockAddVisa).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid', dto);
+      expect(result).toEqual(mockVisaResponse);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockAddVisa.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.addVisa(mockAuthUser, 'bad-uuid', {} as CreateVisaDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('PATCH /v1/users/me/nationalities/:nationalityId/visas/:id', () => {
+    it('delegates to usersService.updateVisa with the user id, nationalityId, visa id, and dto', async () => {
+      const dto: UpdateVisaDto = { expiryDate: '2028-06-30' };
+      const updated: VisaResponseDto = { ...mockVisaResponse, expiryDate: '2028-06-30' };
+      mockUpdateVisa.mockResolvedValue(updated);
+
+      const result = await controller.updateVisa(mockAuthUser, 'nat-uuid', 'visa-uuid', dto);
+
+      expect(mockUpdateVisa).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid', 'visa-uuid', dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdateVisa.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.updateVisa(mockAuthUser, 'nat-uuid', 'bad-uuid', {})).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('DELETE /v1/users/me/nationalities/:nationalityId/visas/:id', () => {
+    it('delegates to usersService.deleteVisa with the user id, nationalityId, and visa id', async () => {
+      await controller.deleteVisa(mockAuthUser, 'nat-uuid', 'visa-uuid');
+
+      expect(mockDeleteVisa).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid', 'visa-uuid');
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockDeleteVisa.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.deleteVisa(mockAuthUser, 'nat-uuid', 'bad-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('GET /v1/users/me/nationalities/:nationalityId/etas', () => {
+    it('delegates to usersService.getEtas with the user id and nationalityId', async () => {
+      const result = await controller.getEtas(mockAuthUser, 'nat-uuid');
+
+      expect(mockGetEtas).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid');
+      expect(result).toEqual([mockEtaResponse]);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockGetEtas.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.getEtas(mockAuthUser, 'bad-uuid')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('POST /v1/users/me/nationalities/:nationalityId/etas', () => {
+    it('delegates to usersService.addEta with the user id, nationalityId, and dto', async () => {
+      const dto: CreateEtaDto = {
+        destinationCountry: 'CA',
+        authorizationNumber: 'A1B2C3D4E5',
+        etaType: EtaType.TOURIST,
+        entries: VisaEntries.MULTIPLE,
+        expiryDate: '2027-12-31',
+      };
+
+      const result = await controller.addEta(mockAuthUser, 'nat-uuid', dto);
+
+      expect(mockAddEta).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid', dto);
+      expect(result).toEqual(mockEtaResponse);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockAddEta.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.addEta(mockAuthUser, 'bad-uuid', {} as CreateEtaDto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('PATCH /v1/users/me/nationalities/:nationalityId/etas/:id', () => {
+    it('delegates to usersService.updateEta with the user id, nationalityId, eta id, and dto', async () => {
+      const dto: UpdateEtaDto = { expiryDate: '2028-06-30' };
+      const updated: EtaResponseDto = { ...mockEtaResponse, expiryDate: '2028-06-30' };
+      mockUpdateEta.mockResolvedValue(updated);
+
+      const result = await controller.updateEta(mockAuthUser, 'nat-uuid', 'eta-uuid', dto);
+
+      expect(mockUpdateEta).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid', 'eta-uuid', dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockUpdateEta.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.updateEta(mockAuthUser, 'nat-uuid', 'bad-uuid', {})).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('DELETE /v1/users/me/nationalities/:nationalityId/etas/:id', () => {
+    it('delegates to usersService.deleteEta with the user id, nationalityId, and eta id', async () => {
+      await controller.deleteEta(mockAuthUser, 'nat-uuid', 'eta-uuid');
+
+      expect(mockDeleteEta).toHaveBeenCalledWith(mockAuthUser.id, 'nat-uuid', 'eta-uuid');
+    });
+
+    it('propagates NotFoundException from the service', async () => {
+      mockDeleteEta.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.deleteEta(mockAuthUser, 'nat-uuid', 'bad-uuid')).rejects.toThrow(
         NotFoundException,
       );
     });

@@ -64,6 +64,20 @@
       "when": 1776869616730,
       "tag": "0008_numerous_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777667716363,
+      "tag": "0009_melodic_pyro",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1777736774044,
+      "tag": "0010_wide_mephisto",
+      "breakpoints": true
     }
   ]
 }

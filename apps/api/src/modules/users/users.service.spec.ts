@@ -6,6 +6,8 @@ import {
   AppTheme,
   AuthProvider,
   DietaryPreference,
+  DocumentStatus,
+  EtaType,
   FoodAllergen,
   MedicalConditionType,
   PassportStatus,
@@ -13,6 +15,9 @@ import {
   PhysicalLimitationType,
   PlatformRole,
   ProfileVisibility,
+  VisaCoverageType,
+  VisaEntries,
+  VisaType,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { UsersService } from './users.service';
@@ -83,8 +88,14 @@ describe('UsersService', () => {
   let mockSet: jest.Mock;
   let mockNationalitiesFindFirst: jest.Mock;
   let mockNationalitiesFindMany: jest.Mock;
+  let mockVisasFindFirst: jest.Mock;
+  let mockVisasFindMany: jest.Mock;
+  let mockEtasFindFirst: jest.Mock;
+  let mockEtasFindMany: jest.Mock;
   let mockInsertReturning: jest.Mock;
+  let mockInsertValues: jest.Mock;
   let mockDeleteWhere: jest.Mock;
+  let mockTransaction: jest.Mock;
 
   beforeEach(async () => {
     mockFindFirst = jest.fn();
@@ -93,13 +104,17 @@ describe('UsersService', () => {
     mockReturning = jest.fn();
     mockNationalitiesFindFirst = jest.fn();
     mockNationalitiesFindMany = jest.fn();
+    mockVisasFindFirst = jest.fn();
+    mockVisasFindMany = jest.fn();
+    mockEtasFindFirst = jest.fn();
+    mockEtasFindMany = jest.fn();
     mockInsertReturning = jest.fn();
     mockDeleteWhere = jest.fn();
 
     const mockWhere = jest.fn().mockReturnValue({ returning: mockReturning });
     mockSet = jest.fn().mockReturnValue({ where: mockWhere });
     const mockUpdate = jest.fn().mockReturnValue({ set: mockSet });
-    const mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
+    mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
     const mockInsert = jest.fn().mockReturnValue({ values: mockInsertValues });
     const mockDelete = jest.fn().mockReturnValue({ where: mockDeleteWhere });
 
@@ -117,10 +132,23 @@ describe('UsersService', () => {
                 findFirst: mockNationalitiesFindFirst,
                 findMany: mockNationalitiesFindMany,
               },
+              userVisas: {
+                findFirst: mockVisasFindFirst,
+                findMany: mockVisasFindMany,
+              },
+              userEtas: {
+                findFirst: mockEtasFindFirst,
+                findMany: mockEtasFindMany,
+              },
             },
             update: mockUpdate,
             insert: mockInsert,
             delete: mockDelete,
+            transaction: (mockTransaction = jest
+              .fn()
+              .mockImplementation(async (callback: (trx: unknown) => Promise<unknown>) =>
+                callback({ update: mockUpdate, insert: mockInsert, delete: mockDelete }),
+              )),
           },
         },
       ],
@@ -1252,6 +1280,17 @@ describe('UsersService', () => {
       expect(mockSet).toHaveBeenNthCalledWith(1, { isPrimary: false });
     });
 
+    it('runs isPrimary demotion and target update inside a transaction', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockReturning.mockResolvedValue([{ ...mockNationality, isPrimary: true }]);
+
+      const dto: UpdateNationalityDto = { isPrimary: true };
+      await service.updateNationality('user-uuid', 'nat-uuid', dto);
+
+      // transaction must be used so a failure on the target update rolls back the demotion
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+    });
+
     it('does not demote when isPrimary is not in dto', async () => {
       mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
       mockReturning.mockResolvedValue([mockNationality]);
@@ -1679,6 +1718,376 @@ describe('UsersService', () => {
       mockFindFirst.mockResolvedValue(undefined);
 
       await expect(service.getPublicProfile('unknown')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Visas
+  // ---------------------------------------------------------------------------
+
+  const mockNationality = {
+    id: 'nat-uuid',
+    userId: 'user-uuid',
+    countryCode: 'CO',
+    isPrimary: true,
+    nationalIdNumber: null,
+    passportNumber: 'AB123456',
+    passportIssueDate: '2020-01-01',
+    passportExpiryDate: '2030-01-01',
+    passportStatus: PassportStatus.ACTIVE,
+    updatedAt: new Date(),
+  };
+
+  const mockVisa = {
+    id: 'visa-uuid',
+    nationalityId: 'nat-uuid',
+    coverageType: VisaCoverageType.COUNTRY,
+    countryCode: 'US',
+    visaZone: null,
+    visaType: VisaType.TOURIST,
+    entries: VisaEntries.MULTIPLE,
+    expiryDate: '2027-12-31',
+    visaStatus: DocumentStatus.ACTIVE,
+    notes: null,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  };
+
+  describe('getVisas', () => {
+    it('returns mapped visas for a valid nationality', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockVisasFindMany.mockResolvedValue([mockVisa]);
+
+      const result = await service.getVisas('user-uuid', 'nat-uuid');
+
+      expect(result).toHaveLength(1);
+      expect(result[0]!.id).toBe('visa-uuid');
+      expect(result[0]!.visaStatus).toBe(DocumentStatus.ACTIVE);
+    });
+
+    it('throws NotFoundException when nationality not found or not owned', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getVisas('user-uuid', 'other-nat')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('addVisa', () => {
+    it('inserts a visa and returns the mapped response', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockInsertReturning.mockResolvedValue([mockVisa]);
+
+      const dto = {
+        coverageType: VisaCoverageType.COUNTRY,
+        countryCode: 'US',
+        visaType: VisaType.TOURIST,
+        entries: VisaEntries.MULTIPLE,
+        expiryDate: '2027-12-31',
+      };
+
+      const result = await service.addVisa('user-uuid', 'nat-uuid', dto);
+
+      expect(result.id).toBe('visa-uuid');
+      expect(result.nationalityId).toBe('nat-uuid');
+    });
+
+    it('throws NotFoundException when nationality not owned', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+
+      await expect(
+        service.addVisa('user-uuid', 'other-nat', {
+          coverageType: VisaCoverageType.COUNTRY,
+          countryCode: 'US',
+          visaType: VisaType.TOURIST,
+          entries: VisaEntries.MULTIPLE,
+          expiryDate: '2027-12-31',
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws BadRequestException when passport status is OMITTED', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue({
+        ...mockNationality,
+        passportStatus: PassportStatus.OMITTED,
+        passportNumber: null,
+        passportIssueDate: null,
+        passportExpiryDate: null,
+      });
+
+      await expect(
+        service.addVisa('user-uuid', 'nat-uuid', {
+          coverageType: VisaCoverageType.COUNTRY,
+          countryCode: 'US',
+          visaType: VisaType.TOURIST,
+          entries: VisaEntries.MULTIPLE,
+          expiryDate: '2027-12-31',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException when both countryCode and visaZone are provided', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+
+      await expect(
+        service.addVisa('user-uuid', 'nat-uuid', {
+          coverageType: VisaCoverageType.COUNTRY,
+          countryCode: 'US',
+          visaZone: 'SCHENGEN' as import('@chamuco/shared-types').VisaZone,
+          visaType: VisaType.TOURIST,
+          entries: VisaEntries.MULTIPLE,
+          expiryDate: '2027-12-31',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('updateVisa', () => {
+    it('updates visa fields and returns the response', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockVisasFindFirst.mockResolvedValue(mockVisa);
+      const updated = { ...mockVisa, visaType: VisaType.BUSINESS };
+      mockReturning.mockResolvedValue([updated]);
+
+      const result = await service.updateVisa('user-uuid', 'nat-uuid', 'visa-uuid', {
+        visaType: VisaType.BUSINESS,
+      });
+
+      expect(result.visaType).toBe(VisaType.BUSINESS);
+    });
+
+    it('returns unchanged visa when patch is empty', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockVisasFindFirst.mockResolvedValue(mockVisa);
+
+      const result = await service.updateVisa('user-uuid', 'nat-uuid', 'visa-uuid', {});
+
+      expect(result.id).toBe('visa-uuid');
+    });
+
+    it('throws NotFoundException when visa not found', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockVisasFindFirst.mockResolvedValue(undefined);
+
+      await expect(
+        service.updateVisa('user-uuid', 'nat-uuid', 'bad-id', { visaType: VisaType.BUSINESS }),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('deleteVisa', () => {
+    it('deletes the visa when found', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockVisasFindFirst.mockResolvedValue(mockVisa);
+      mockDeleteWhere.mockResolvedValue(undefined);
+
+      await expect(
+        service.deleteVisa('user-uuid', 'nat-uuid', 'visa-uuid'),
+      ).resolves.toBeUndefined();
+    });
+
+    it('throws NotFoundException when visa not found', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockVisasFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.deleteVisa('user-uuid', 'nat-uuid', 'bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // ETAs
+  // ---------------------------------------------------------------------------
+
+  const mockEta = {
+    id: 'eta-uuid',
+    userNationalityId: 'nat-uuid',
+    passportNumber: 'AB123456',
+    destinationCountry: 'US',
+    authorizationNumber: 'A1B2C3D4E5',
+    etaType: EtaType.TOURIST,
+    entries: VisaEntries.MULTIPLE,
+    expiryDate: '2027-12-31',
+    etaStatus: DocumentStatus.ACTIVE,
+    notes: null,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  };
+
+  describe('getEtas', () => {
+    it('returns mapped ETAs for a valid nationality', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockEtasFindMany.mockResolvedValue([mockEta]);
+
+      const result = await service.getEtas('user-uuid', 'nat-uuid');
+
+      expect(result).toHaveLength(1);
+      expect(result[0]!.id).toBe('eta-uuid');
+      expect(result[0]!.etaStatus).toBe(DocumentStatus.ACTIVE);
+    });
+
+    it('throws NotFoundException when nationality not found or not owned', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getEtas('user-uuid', 'other-nat')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('addEta', () => {
+    it('inserts an ETA and returns the mapped response', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockInsertReturning.mockResolvedValue([mockEta]);
+
+      const dto = {
+        destinationCountry: 'US',
+        authorizationNumber: 'A1B2C3D4E5',
+        etaType: EtaType.TOURIST,
+        entries: VisaEntries.MULTIPLE,
+        expiryDate: '2027-12-31',
+      };
+
+      const result = await service.addEta('user-uuid', 'nat-uuid', dto);
+
+      expect(result.id).toBe('eta-uuid');
+      expect(result.userNationalityId).toBe('nat-uuid');
+    });
+
+    it('snapshots passport number from the nationality record, not from the dto', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue({
+        ...mockNationality,
+        passportNumber: 'ZZ999999',
+      });
+      mockInsertReturning.mockResolvedValue([mockEta]);
+
+      await service.addEta('user-uuid', 'nat-uuid', {
+        destinationCountry: 'US',
+        authorizationNumber: 'A1B2C3D4E5',
+        etaType: EtaType.TOURIST,
+        entries: VisaEntries.MULTIPLE,
+        expiryDate: '2027-12-31',
+      });
+
+      expect(mockInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ passportNumber: 'ZZ999999' }),
+      );
+    });
+
+    it('throws NotFoundException when nationality not owned', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(undefined);
+
+      await expect(
+        service.addEta('user-uuid', 'other-nat', {
+          destinationCountry: 'US',
+          authorizationNumber: 'A1B2C3D4E5',
+          etaType: EtaType.TOURIST,
+          entries: VisaEntries.MULTIPLE,
+          expiryDate: '2027-12-31',
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws BadRequestException when passport status is OMITTED', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue({
+        ...mockNationality,
+        passportStatus: PassportStatus.OMITTED,
+        passportNumber: null,
+        passportIssueDate: null,
+        passportExpiryDate: null,
+      });
+
+      await expect(
+        service.addEta('user-uuid', 'nat-uuid', {
+          destinationCountry: 'US',
+          authorizationNumber: 'A1B2C3D4E5',
+          etaType: EtaType.TOURIST,
+          entries: VisaEntries.MULTIPLE,
+          expiryDate: '2027-12-31',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('updateEta', () => {
+    it('updates ETA fields and returns the response', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockEtasFindFirst.mockResolvedValue(mockEta);
+      const updated = { ...mockEta, etaType: EtaType.TRANSIT };
+      mockReturning.mockResolvedValue([updated]);
+
+      const result = await service.updateEta('user-uuid', 'nat-uuid', 'eta-uuid', {
+        etaType: EtaType.TRANSIT,
+      });
+
+      expect(result.etaType).toBe(EtaType.TRANSIT);
+    });
+
+    it('returns unchanged ETA when patch is empty', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockEtasFindFirst.mockResolvedValue(mockEta);
+
+      const result = await service.updateEta('user-uuid', 'nat-uuid', 'eta-uuid', {});
+
+      expect(result.id).toBe('eta-uuid');
+    });
+
+    it('throws NotFoundException when ETA not found', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockEtasFindFirst.mockResolvedValue(undefined);
+
+      await expect(
+        service.updateEta('user-uuid', 'nat-uuid', 'bad-id', { etaType: EtaType.TRANSIT }),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('deleteEta', () => {
+    it('deletes the ETA when found', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockEtasFindFirst.mockResolvedValue(mockEta);
+      mockDeleteWhere.mockResolvedValue(undefined);
+
+      await expect(service.deleteEta('user-uuid', 'nat-uuid', 'eta-uuid')).resolves.toBeUndefined();
+    });
+
+    it('throws NotFoundException when ETA not found', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockEtasFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.deleteEta('user-uuid', 'nat-uuid', 'bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('updateNationality — ETA invalidation on passport change', () => {
+    it('expires ETAs synchronously when passportNumber changes', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockReturning.mockResolvedValue([mockNationality]);
+
+      await service.updateNationality('user-uuid', 'nat-uuid', {
+        passportNumber: 'ZZ999999',
+        passportIssueDate: '2024-01-01',
+        passportExpiryDate: '2034-01-01',
+      });
+
+      // mockSet is called twice: once for ETAs expiry, once for the nationality update
+      expect(mockSet).toHaveBeenCalledTimes(2);
+      const [firstCall] = mockSet.mock.calls;
+      expect(firstCall![0]).toMatchObject({ etaStatus: DocumentStatus.EXPIRED });
+    });
+
+    it('does not expire ETAs when passportNumber is unchanged', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+      mockReturning.mockResolvedValue([mockNationality]);
+
+      await service.updateNationality('user-uuid', 'nat-uuid', {
+        passportNumber: 'AB123456', // same as existing
+        passportIssueDate: '2020-01-01',
+        passportExpiryDate: '2030-06-01',
+      });
+
+      // only one update call: the nationality update itself
+      expect(mockSet).toHaveBeenCalledTimes(1);
     });
   });
 });

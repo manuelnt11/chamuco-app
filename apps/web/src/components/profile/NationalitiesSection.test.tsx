@@ -63,6 +63,18 @@ vi.mock('@/components/ui/country-combobox', () => ({
   ),
 }));
 
+vi.mock('./VisasSubsection', () => ({
+  VisasSubsection: ({ nationalityId }: { nationalityId: string }) => (
+    <div data-testid={`visas-${nationalityId}`}>Visas subsection</div>
+  ),
+}));
+
+vi.mock('./EtasSubsection', () => ({
+  EtasSubsection: ({ nationalityId }: { nationalityId: string; passportNumber: string | null }) => (
+    <div data-testid={`etas-${nationalityId}`}>ETAs subsection</div>
+  ),
+}));
+
 import { NationalitiesSection } from './NationalitiesSection';
 import type { NationalityDto } from './NationalitiesSection';
 
@@ -335,6 +347,26 @@ describe('NationalitiesSection', () => {
       await waitFor(() => expect(mocks.mockPost).toHaveBeenCalledOnce());
     });
 
+    it('shows nationalIdFormat error when national ID starts with a hyphen', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.selectOptions(screen.getByTestId('add-country'), 'CO');
+      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), '-AB123');
+      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
+      expect(screen.getByText('nationalities.errors.nationalIdFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('shows nationalIdFormat error when national ID ends with a hyphen', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.selectOptions(screen.getByTestId('add-country'), 'CO');
+      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'AB123-');
+      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
+      expect(screen.getByText('nationalities.errors.nationalIdFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
     it('disables save button when no country selected in add form', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
@@ -386,6 +418,30 @@ describe('NationalitiesSection', () => {
       await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB 123456');
+      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
+      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
+      expect(screen.getByText('nationalities.errors.passportFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('shows passportFormat error when passport number starts with a hyphen', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.selectOptions(screen.getByTestId('add-country'), 'CO');
+      await user.type(screen.getByLabelText('nationalities.passportNumber'), '-AB123456');
+      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
+      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
+      expect(screen.getByText('nationalities.errors.passportFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('shows passportFormat error when passport number ends with a hyphen', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.selectOptions(screen.getByTestId('add-country'), 'CO');
+      await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456-');
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
       await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -563,6 +619,80 @@ describe('NationalitiesSection', () => {
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.deleteError'),
       );
+    });
+  });
+
+  describe('accordion expand/collapse', () => {
+    it('renders a toggle button only for nationalities with non-OMITTED passport', () => {
+      setup();
+      // nat-1 is ACTIVE, nat-2 is OMITTED — only nat-1 gets a toggle
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      expect(toggleButtons).toHaveLength(1);
+    });
+
+    it('hides toggle for nationality with OMITTED passport status', () => {
+      setup();
+      // nat-2 (US) has OMITTED passport — its toggle must not be rendered
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      expect(toggleButtons).toHaveLength(1);
+      expect(screen.queryByTestId('visas-nat-2')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('etas-nat-2')).not.toBeInTheDocument();
+    });
+
+    it('documents panel is hidden by default', () => {
+      setup();
+      expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('etas-nat-1')).not.toBeInTheDocument();
+    });
+
+    it('expands documents panel when toggle clicked', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'nationalities.documentsToggle' }));
+      expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
+      expect(screen.getByTestId('etas-nat-1')).toBeInTheDocument();
+    });
+
+    it('collapses panel when toggle clicked again', async () => {
+      const { user } = setup();
+      const toggle = screen.getByRole('button', { name: 'nationalities.documentsToggle' });
+      await user.click(toggle);
+      await user.click(toggle);
+      expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
+    });
+
+    it('accordion: opening second collapses first (both with passports)', async () => {
+      const twoWithPassports: NationalityDto[] = [
+        sampleNationalities[0]!,
+        {
+          ...sampleNationalities[1]!,
+          passportNumber: 'XY987654',
+          passportIssueDate: '2021-01-01',
+          passportExpiryDate: '2031-01-01',
+          passportStatus: PassportStatus.ACTIVE,
+        },
+      ];
+      const { user } = setup(twoWithPassports);
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      await user.click(toggleButtons[0]!);
+      expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
+      await user.click(toggleButtons[1]!);
+      expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
+      expect(screen.getByTestId('visas-nat-2')).toBeInTheDocument();
+    });
+
+    it('collapses expanded panel when entering edit mode', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'nationalities.documentsToggle' }));
+      expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
+      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      await user.click(editButtons[0]!);
+      expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
     });
   });
 });

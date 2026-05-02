@@ -10,6 +10,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { PassportStatus } from '@chamuco/shared-types';
+import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 import { IsDateAfter } from './date-after.validator';
 
 // Condition: any passport field present in the payload
@@ -17,10 +18,7 @@ const anyPassportFieldPresent = (o: {
   passportNumber?: unknown;
   passportIssueDate?: unknown;
   passportExpiryDate?: unknown;
-}): boolean =>
-  o.passportNumber !== undefined ||
-  o.passportIssueDate !== undefined ||
-  o.passportExpiryDate !== undefined;
+}): boolean => !!o.passportNumber || !!o.passportIssueDate || !!o.passportExpiryDate;
 
 export class NationalityResponseDto {
   @ApiProperty({
@@ -86,8 +84,9 @@ export class CreateNationalityDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: 'nationalIdNumber must not be an empty string' })
-  @Matches(/^[A-Z0-9-]+$/, {
-    message: 'nationalIdNumber must contain only uppercase letters, numbers, and hyphens',
+  @Matches(DOCUMENT_ID_FORMAT_REGEX, {
+    message:
+      'nationalIdNumber must contain only uppercase letters, numbers, and hyphens, and must not start or end with a hyphen',
   })
   nationalIdNumber?: string | null;
 
@@ -101,8 +100,9 @@ export class CreateNationalityDto {
   @IsDefined({ message: 'passportNumber is required when any passport field is provided' })
   @IsString()
   @IsNotEmpty({ message: 'passportNumber must not be an empty string' })
-  @Matches(/^[A-Z0-9-]+$/, {
-    message: 'passportNumber must contain only uppercase letters, numbers, and hyphens',
+  @Matches(DOCUMENT_ID_FORMAT_REGEX, {
+    message:
+      'passportNumber must contain only uppercase letters, numbers, and hyphens, and must not start or end with a hyphen',
   })
   passportNumber?: string;
 
@@ -151,8 +151,9 @@ export class UpdateNationalityDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: 'nationalIdNumber must not be an empty string' })
-  @Matches(/^[A-Z0-9-]+$/, {
-    message: 'nationalIdNumber must contain only uppercase letters, numbers, and hyphens',
+  @Matches(DOCUMENT_ID_FORMAT_REGEX, {
+    message:
+      'nationalIdNumber must contain only uppercase letters, numbers, and hyphens, and must not start or end with a hyphen',
   })
   nationalIdNumber?: string | null;
 
@@ -166,8 +167,9 @@ export class UpdateNationalityDto {
   @IsDefined({ message: 'passportNumber is required when any passport field is provided' })
   @IsString()
   @IsNotEmpty({ message: 'passportNumber must not be an empty string' })
-  @Matches(/^[A-Z0-9-]+$/, {
-    message: 'passportNumber must contain only uppercase letters, numbers, and hyphens',
+  @Matches(DOCUMENT_ID_FORMAT_REGEX, {
+    message:
+      'passportNumber must contain only uppercase letters, numbers, and hyphens, and must not start or end with a hyphen',
   })
   passportNumber?: string;
 

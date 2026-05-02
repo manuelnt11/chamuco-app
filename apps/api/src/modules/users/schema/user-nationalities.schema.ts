@@ -60,11 +60,11 @@ export const userNationalities = pgTable(
     ),
     check(
       'national_id_number_format',
-      sql`${table.nationalIdNumber} IS NULL OR ${table.nationalIdNumber} ~ '^[A-Z0-9-]+$'`,
+      sql`${table.nationalIdNumber} IS NULL OR ${table.nationalIdNumber} ~ '^[A-Z0-9]([A-Z0-9-]*[A-Z0-9])?$'`,
     ),
     check(
       'passport_number_format',
-      sql`${table.passportNumber} IS NULL OR ${table.passportNumber} ~ '^[A-Z0-9-]+$'`,
+      sql`${table.passportNumber} IS NULL OR ${table.passportNumber} ~ '^[A-Z0-9]([A-Z0-9-]*[A-Z0-9])?$'`,
     ),
   ],
 );

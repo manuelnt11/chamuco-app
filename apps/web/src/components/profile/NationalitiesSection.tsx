@@ -3,8 +3,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCountryDataList, getEmojiFlag, type TCountryCode } from 'countries-list';
-import { GlobeIcon, IdentificationCardIcon } from '@phosphor-icons/react';
+import { CaretDownIcon, GlobeIcon, IdentificationCardIcon } from '@phosphor-icons/react';
 import { PassportStatus } from '@chamuco/shared-types';
+import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,8 @@ import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
 import { cn } from '@/lib/utils';
+import { VisasSubsection } from './VisasSubsection';
+import { EtasSubsection } from './EtasSubsection';
 
 export interface NationalityDto {
   id: string;
@@ -49,7 +52,6 @@ const EMPTY_ERRORS: FormErrors = {
   passportNumber: null,
   passportDates: null,
 };
-const ID_FORMAT_REGEX = /^[A-Z0-9-]+$/;
 
 function makeEmptyForm(isPrimary = false): FormState {
   return {
@@ -250,6 +252,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
   const { t } = useTranslation('profile');
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedNatId, setExpandedNatId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [addForm, setAddForm] = useState<FormState>(makeEmptyForm(data.length === 0));
   const [editForm, setEditForm] = useState<FormState>(makeEmptyForm());
@@ -285,7 +288,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     let hasError = false;
 
     const trimmedNationalId = form.nationalIdNumber.trim();
-    if (trimmedNationalId !== '' && !ID_FORMAT_REGEX.test(trimmedNationalId)) {
+    if (trimmedNationalId !== '' && !DOCUMENT_ID_FORMAT_REGEX.test(trimmedNationalId)) {
       errors.nationalId = t('nationalities.errors.nationalIdFormat');
       hasError = true;
     }
@@ -301,7 +304,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
       errors.passport = t('nationalities.errors.passportIncomplete');
       hasError = true;
     } else if (passportFieldCount === 3) {
-      if (!ID_FORMAT_REGEX.test(form.passportNumber.trim())) {
+      if (!DOCUMENT_ID_FORMAT_REGEX.test(form.passportNumber.trim())) {
         errors.passportNumber = t('nationalities.errors.passportFormat');
         hasError = true;
       } else if (form.passportExpiryDate <= form.passportIssueDate) {
@@ -346,6 +349,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     setEditErrors(EMPTY_ERRORS);
     setIsAdding(false);
     setConfirmDeleteId(null);
+    setExpandedNatId(null);
   }
 
   function cancelEdit() {
@@ -465,71 +469,97 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
               />
             </li>
           ) : (
-            <li
-              key={nat.id}
-              className="flex items-start justify-between rounded-lg border border-border p-4"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-lg leading-none" aria-hidden="true">
-                    {getEmojiFlag(nat.countryCode as TCountryCode)}
-                  </span>
-                  <p className="font-medium">{getCountryName(nat.countryCode)}</p>
-                  {nat.isPrimary && (
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                      {t('nationalities.primaryBadge')}
+            <li key={nat.id} className="space-y-3 rounded-lg border border-border p-4">
+              <div className="flex items-start justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-lg leading-none" aria-hidden="true">
+                      {getEmojiFlag(nat.countryCode as TCountryCode)}
                     </span>
+                    <p className="font-medium">{getCountryName(nat.countryCode)}</p>
+                    {nat.isPrimary && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        {t('nationalities.primaryBadge')}
+                      </span>
+                    )}
+                    <span
+                      className={cn(
+                        'rounded-full px-2 py-0.5 text-xs font-medium',
+                        passportStatusBadgeClass(nat.passportStatus),
+                      )}
+                    >
+                      {t(`nationalities.passportStatus.${nat.passportStatus}`)}
+                    </span>
+                  </div>
+                  {nat.nationalIdNumber && (
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <IdentificationCardIcon size={20} aria-hidden="true" />
+                      {nat.nationalIdNumber}
+                    </p>
                   )}
-                  <span
-                    className={cn(
-                      'rounded-full px-2 py-0.5 text-xs font-medium',
-                      passportStatusBadgeClass(nat.passportStatus),
-                    )}
-                  >
-                    {t(`nationalities.passportStatus.${nat.passportStatus}`)}
-                  </span>
+                  {nat.passportNumber && (
+                    <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <GlobeIcon size={20} aria-hidden="true" />
+                      {nat.passportNumber}
+                      {nat.passportExpiryDate && (
+                        <span className="text-muted-foreground/60">· {nat.passportExpiryDate}</span>
+                      )}
+                    </p>
+                  )}
                 </div>
-                {nat.nationalIdNumber && (
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <IdentificationCardIcon size={20} aria-hidden="true" />
-                    {nat.nationalIdNumber}
-                  </p>
-                )}
-                {nat.passportNumber && (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <GlobeIcon size={20} aria-hidden="true" />
-                    {nat.passportNumber}
-                    {nat.passportExpiryDate && (
-                      <span className="text-muted-foreground/60">· {nat.passportExpiryDate}</span>
-                    )}
-                  </p>
-                )}
+                <div className="ml-4 flex shrink-0 gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => startEdit(nat)}
+                    disabled={isSaving}
+                  >
+                    {t('nationalities.edit')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={confirmDeleteId === nat.id ? 'destructive' : 'outline'}
+                    onMouseDown={(e) => {
+                      if (confirmDeleteId === nat.id) e.stopPropagation();
+                    }}
+                    onClick={() => handleDelete(nat.id)}
+                    disabled={isSaving}
+                  >
+                    {confirmDeleteId === nat.id
+                      ? t('nationalities.deleteConfirm')
+                      : t('nationalities.delete')}
+                  </Button>
+                </div>
               </div>
-              <div className="ml-4 flex shrink-0 gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => startEdit(nat)}
-                  disabled={isSaving}
-                >
-                  {t('nationalities.edit')}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={confirmDeleteId === nat.id ? 'destructive' : 'outline'}
-                  onMouseDown={(e) => {
-                    if (confirmDeleteId === nat.id) e.stopPropagation();
-                  }}
-                  onClick={() => handleDelete(nat.id)}
-                  disabled={isSaving}
-                >
-                  {confirmDeleteId === nat.id
-                    ? t('nationalities.deleteConfirm')
-                    : t('nationalities.delete')}
-                </Button>
-              </div>
+
+              {nat.passportStatus !== PassportStatus.OMITTED && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedNatId(expandedNatId === nat.id ? null : nat.id)}
+                    className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <CaretDownIcon
+                      size={14}
+                      className={cn(
+                        'transition-transform',
+                        expandedNatId === nat.id && 'rotate-180',
+                      )}
+                      aria-hidden="true"
+                    />
+                    {t('nationalities.documentsToggle')}
+                  </button>
+
+                  {expandedNatId === nat.id && (
+                    <div className="space-y-6 border-t border-border pt-3">
+                      <VisasSubsection nationalityId={nat.id} />
+                      <EtasSubsection nationalityId={nat.id} passportNumber={nat.passportNumber} />
+                    </div>
+                  )}
+                </>
+              )}
             </li>
           ),
         )}

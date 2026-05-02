@@ -133,6 +133,17 @@ describe('CreateNationalityDto', () => {
       expect(errors.some((e) => e.property === 'passportExpiryDate')).toBe(true);
     });
 
+    it('accepts all passport fields as null (omitted passport)', async () => {
+      const dto = plainToInstance(CreateNationalityDto, {
+        ...validBase,
+        passportNumber: null,
+        passportIssueDate: null,
+        passportExpiryDate: null,
+      });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
     it('rejects passportIssueDate in non-ISO format', async () => {
       const dto = plainToInstance(CreateNationalityDto, {
         ...validBase,
