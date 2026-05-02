@@ -1806,6 +1806,21 @@ describe('UsersService', () => {
         }),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('throws BadRequestException when both countryCode and visaZone are provided', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue(mockNationality);
+
+      await expect(
+        service.addVisa('user-uuid', 'nat-uuid', {
+          coverageType: VisaCoverageType.COUNTRY,
+          countryCode: 'US',
+          visaZone: 'SCHENGEN' as import('@chamuco/shared-types').VisaZone,
+          visaType: VisaType.TOURIST,
+          entries: VisaEntries.MULTIPLE,
+          expiryDate: '2027-12-31',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('updateVisa', () => {

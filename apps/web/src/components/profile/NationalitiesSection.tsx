@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { getCountryDataList, getEmojiFlag, type TCountryCode } from 'countries-list';
 import { CaretDownIcon, GlobeIcon, IdentificationCardIcon } from '@phosphor-icons/react';
 import { PassportStatus } from '@chamuco/shared-types';
+import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,7 +52,6 @@ const EMPTY_ERRORS: FormErrors = {
   passportNumber: null,
   passportDates: null,
 };
-const ID_FORMAT_REGEX = /^[A-Z0-9-]+$/;
 
 function makeEmptyForm(isPrimary = false): FormState {
   return {
@@ -288,7 +288,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     let hasError = false;
 
     const trimmedNationalId = form.nationalIdNumber.trim();
-    if (trimmedNationalId !== '' && !ID_FORMAT_REGEX.test(trimmedNationalId)) {
+    if (trimmedNationalId !== '' && !DOCUMENT_ID_FORMAT_REGEX.test(trimmedNationalId)) {
       errors.nationalId = t('nationalities.errors.nationalIdFormat');
       hasError = true;
     }
@@ -304,7 +304,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
       errors.passport = t('nationalities.errors.passportIncomplete');
       hasError = true;
     } else if (passportFieldCount === 3) {
-      if (!ID_FORMAT_REGEX.test(form.passportNumber.trim())) {
+      if (!DOCUMENT_ID_FORMAT_REGEX.test(form.passportNumber.trim())) {
         errors.passportNumber = t('nationalities.errors.passportFormat');
         hasError = true;
       } else if (form.passportExpiryDate <= form.passportIssueDate) {

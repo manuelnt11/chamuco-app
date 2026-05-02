@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getEmojiFlag, type TCountryCode } from 'countries-list';
 import { DocumentStatus, EtaType, VisaEntries } from '@chamuco/shared-types';
+import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +18,6 @@ import { FieldMessage } from '@/components/ui/field-message';
 import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
 import { cn } from '@/lib/utils';
-
-const AUTH_FORMAT_REGEX = /^[A-Z0-9-]+$/;
 
 export interface EtaDto {
   id: string;
@@ -305,7 +304,8 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
 
   function validateAuthNumber(trimmed: string): string | null {
     if (!trimmed) return t('nationalities.etas.errors.authNumberRequired');
-    if (!AUTH_FORMAT_REGEX.test(trimmed)) return t('nationalities.etas.errors.authNumberFormat');
+    if (!DOCUMENT_ID_FORMAT_REGEX.test(trimmed))
+      return t('nationalities.etas.errors.authNumberFormat');
     return null;
   }
 

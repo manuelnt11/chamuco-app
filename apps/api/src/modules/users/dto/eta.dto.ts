@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
 import { DocumentStatus, EtaType, VisaEntries } from '@chamuco/shared-types';
+import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 
 export class EtaResponseDto {
   @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
@@ -66,6 +67,10 @@ export class CreateEtaDto {
   @ApiProperty({ example: 'A1B2C3D4E5', description: 'Official authorization reference number' })
   @IsString()
   @IsNotEmpty({ message: 'authorizationNumber must not be an empty string' })
+  @Matches(DOCUMENT_ID_FORMAT_REGEX, {
+    message:
+      'authorizationNumber must contain only uppercase letters, numbers, and hyphens, and must not start or end with a hyphen',
+  })
   authorizationNumber!: string;
 
   @ApiProperty({ enum: EtaType, example: EtaType.TOURIST })
@@ -97,6 +102,10 @@ export class UpdateEtaDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: 'authorizationNumber must not be an empty string' })
+  @Matches(DOCUMENT_ID_FORMAT_REGEX, {
+    message:
+      'authorizationNumber must contain only uppercase letters, numbers, and hyphens, and must not start or end with a hyphen',
+  })
   authorizationNumber?: string;
 
   @ApiProperty({ enum: EtaType, example: EtaType.TRANSIT, required: false })

@@ -347,6 +347,26 @@ describe('NationalitiesSection', () => {
       await waitFor(() => expect(mocks.mockPost).toHaveBeenCalledOnce());
     });
 
+    it('shows nationalIdFormat error when national ID starts with a hyphen', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.selectOptions(screen.getByTestId('add-country'), 'CO');
+      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), '-AB123');
+      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
+      expect(screen.getByText('nationalities.errors.nationalIdFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('shows nationalIdFormat error when national ID ends with a hyphen', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.selectOptions(screen.getByTestId('add-country'), 'CO');
+      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'AB123-');
+      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
+      expect(screen.getByText('nationalities.errors.nationalIdFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
     it('disables save button when no country selected in add form', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
@@ -398,6 +418,30 @@ describe('NationalitiesSection', () => {
       await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB 123456');
+      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
+      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
+      expect(screen.getByText('nationalities.errors.passportFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('shows passportFormat error when passport number starts with a hyphen', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.selectOptions(screen.getByTestId('add-country'), 'CO');
+      await user.type(screen.getByLabelText('nationalities.passportNumber'), '-AB123456');
+      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
+      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
+      expect(screen.getByText('nationalities.errors.passportFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('shows passportFormat error when passport number ends with a hyphen', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.selectOptions(screen.getByTestId('add-country'), 'CO');
+      await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456-');
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
       await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));

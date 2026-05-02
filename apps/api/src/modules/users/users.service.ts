@@ -664,6 +664,11 @@ export class UsersService {
     if (nationality.passportStatus === PassportStatus.OMITTED) {
       throw new BadRequestException('Cannot add visas to a nationality without passport data');
     }
+    if (!!dto.countryCode && !!dto.visaZone) {
+      throw new BadRequestException(
+        'countryCode and visaZone are mutually exclusive — provide only the one matching coverageType',
+      );
+    }
 
     const [inserted] = await this.db
       .insert(userVisas)
