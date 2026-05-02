@@ -142,6 +142,11 @@ describe('UsersService', () => {
             update: mockUpdate,
             insert: mockInsert,
             delete: mockDelete,
+            transaction: jest
+              .fn()
+              .mockImplementation(async (callback: (trx: unknown) => Promise<unknown>) =>
+                callback({ update: mockUpdate, insert: mockInsert, delete: mockDelete }),
+              ),
           },
         },
       ],

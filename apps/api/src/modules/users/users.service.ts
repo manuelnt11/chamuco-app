@@ -400,16 +400,28 @@ export class UsersService {
     if (passportChanged) patch.passportStatus = computePassportStatus(dto.passportExpiryDate);
 
     if (passportNumberChanged && existing.passportNumber) {
-      await this.db
-        .update(userEtas)
-        .set({ etaStatus: DocumentStatus.EXPIRED, updatedAt: new Date() })
-        .where(
-          and(
-            eq(userEtas.userNationalityId, nationalityId),
-            eq(userEtas.passportNumber, existing.passportNumber),
-            ne(userEtas.etaStatus, DocumentStatus.EXPIRED),
-          ),
-        );
+      const rows = await this.db.transaction(async (trx) => {
+        await trx
+          .update(userEtas)
+          .set({ etaStatus: DocumentStatus.EXPIRED, updatedAt: new Date() })
+          .where(
+            and(
+              eq(userEtas.userNationalityId, nationalityId),
+              eq(userEtas.passportNumber, existing.passportNumber!),
+              ne(userEtas.etaStatus, DocumentStatus.EXPIRED),
+            ),
+          );
+
+        return trx
+          .update(userNationalities)
+          .set(patch)
+          .where(and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)))
+          .returning();
+      });
+
+      const updated = rows[0];
+      if (!updated) throw new NotFoundException('Nationality not found');
+      return this.mapNationalityResponse(updated);
     }
 
     if (Object.keys(patch).length === 0) {
@@ -841,7 +853,7 @@ export class UsersService {
       visaType: r.visaType,
       entries: r.entries,
       expiryDate: r.expiryDate,
-      visaStatus: r.visaStatus as DocumentStatus,
+      visaStatus: DocumentStatus[r.visaStatus],
       notes: r.notes ?? null,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
@@ -858,7 +870,7 @@ export class UsersService {
       etaType: r.etaType,
       entries: r.entries,
       expiryDate: r.expiryDate,
-      etaStatus: r.etaStatus as DocumentStatus,
+      etaStatus: DocumentStatus[r.etaStatus],
       notes: r.notes ?? null,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),

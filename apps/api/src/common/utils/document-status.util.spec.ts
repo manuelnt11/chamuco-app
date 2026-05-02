@@ -17,8 +17,12 @@ describe('computeDocumentStatus', () => {
     expect(computeDocumentStatus(dateOffset(15))).toBe(DocumentStatus.EXPIRING_SOON);
   });
 
-  it('returns EXPIRING_SOON on the boundary (exactly 30 days from now)', () => {
+  it('returns EXPIRING_SOON when expiry is 29 days from now (last day inside the window)', () => {
     expect(computeDocumentStatus(dateOffset(29))).toBe(DocumentStatus.EXPIRING_SOON);
+  });
+
+  it('returns ACTIVE on the boundary (exactly 30 days from now — not less than threshold)', () => {
+    expect(computeDocumentStatus(dateOffset(30))).toBe(DocumentStatus.ACTIVE);
   });
 
   it('returns ACTIVE when expiry is beyond 30 days', () => {
