@@ -660,7 +660,10 @@ export class UsersService {
     nationalityId: string,
     dto: CreateVisaDto,
   ): Promise<VisaResponseDto> {
-    await this.requireNationality(userId, nationalityId);
+    const nationality = await this.requireNationality(userId, nationalityId);
+    if (nationality.passportStatus === PassportStatus.OMITTED) {
+      throw new BadRequestException('Cannot add visas to a nationality without passport data');
+    }
 
     const [inserted] = await this.db
       .insert(userVisas)
@@ -739,7 +742,10 @@ export class UsersService {
   }
 
   async addEta(userId: string, nationalityId: string, dto: CreateEtaDto): Promise<EtaResponseDto> {
-    await this.requireNationality(userId, nationalityId);
+    const nationality = await this.requireNationality(userId, nationalityId);
+    if (nationality.passportStatus === PassportStatus.OMITTED) {
+      throw new BadRequestException('Cannot add ETAs to a nationality without passport data');
+    }
 
     const [inserted] = await this.db
       .insert(userEtas)
@@ -809,11 +815,15 @@ export class UsersService {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  private async requireNationality(userId: string, nationalityId: string): Promise<void> {
+  private async requireNationality(
+    userId: string,
+    nationalityId: string,
+  ): Promise<typeof userNationalities.$inferSelect> {
     const nationality = await this.db.query.userNationalities.findFirst({
       where: and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)),
     });
     if (!nationality) throw new NotFoundException('Nationality not found');
+    return nationality;
   }
 
   private mapVisaResponse(r: typeof userVisas.$inferSelect): VisaResponseDto {

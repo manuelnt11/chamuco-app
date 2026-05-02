@@ -1786,6 +1786,26 @@ describe('UsersService', () => {
         }),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('throws BadRequestException when passport status is OMITTED', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue({
+        ...mockNationality,
+        passportStatus: PassportStatus.OMITTED,
+        passportNumber: null,
+        passportIssueDate: null,
+        passportExpiryDate: null,
+      });
+
+      await expect(
+        service.addVisa('user-uuid', 'nat-uuid', {
+          coverageType: VisaCoverageType.COUNTRY,
+          countryCode: 'US',
+          visaType: VisaType.TOURIST,
+          entries: VisaEntries.MULTIPLE,
+          expiryDate: '2027-12-31',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('updateVisa', () => {
@@ -1913,6 +1933,27 @@ describe('UsersService', () => {
           expiryDate: '2027-12-31',
         }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws BadRequestException when passport status is OMITTED', async () => {
+      mockNationalitiesFindFirst.mockResolvedValue({
+        ...mockNationality,
+        passportStatus: PassportStatus.OMITTED,
+        passportNumber: null,
+        passportIssueDate: null,
+        passportExpiryDate: null,
+      });
+
+      await expect(
+        service.addEta('user-uuid', 'nat-uuid', {
+          passportNumber: 'AB123456',
+          destinationCountry: 'US',
+          authorizationNumber: 'A1B2C3D4E5',
+          etaType: EtaType.TOURIST,
+          entries: VisaEntries.MULTIPLE,
+          expiryDate: '2027-12-31',
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

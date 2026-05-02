@@ -17,10 +17,7 @@ const anyPassportFieldPresent = (o: {
   passportNumber?: unknown;
   passportIssueDate?: unknown;
   passportExpiryDate?: unknown;
-}): boolean =>
-  o.passportNumber !== undefined ||
-  o.passportIssueDate !== undefined ||
-  o.passportExpiryDate !== undefined;
+}): boolean => !!o.passportNumber || !!o.passportIssueDate || !!o.passportExpiryDate;
 
 export class NationalityResponseDto {
   @ApiProperty({

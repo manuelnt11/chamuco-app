@@ -534,24 +534,31 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setExpandedNatId(expandedNatId === nat.id ? null : nat.id)}
-                className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <CaretDownIcon
-                  size={14}
-                  className={cn('transition-transform', expandedNatId === nat.id && 'rotate-180')}
-                  aria-hidden="true"
-                />
-                {t('nationalities.documentsToggle')}
-              </button>
+              {nat.passportStatus !== PassportStatus.OMITTED && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedNatId(expandedNatId === nat.id ? null : nat.id)}
+                    className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <CaretDownIcon
+                      size={14}
+                      className={cn(
+                        'transition-transform',
+                        expandedNatId === nat.id && 'rotate-180',
+                      )}
+                      aria-hidden="true"
+                    />
+                    {t('nationalities.documentsToggle')}
+                  </button>
 
-              {expandedNatId === nat.id && (
-                <div className="space-y-6 border-t border-border pt-3">
-                  <VisasSubsection nationalityId={nat.id} />
-                  <EtasSubsection nationalityId={nat.id} passportNumber={nat.passportNumber} />
-                </div>
+                  {expandedNatId === nat.id && (
+                    <div className="space-y-6 border-t border-border pt-3">
+                      <VisasSubsection nationalityId={nat.id} />
+                      <EtasSubsection nationalityId={nat.id} passportNumber={nat.passportNumber} />
+                    </div>
+                  )}
+                </>
               )}
             </li>
           ),

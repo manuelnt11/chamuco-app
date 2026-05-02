@@ -579,12 +579,24 @@ describe('NationalitiesSection', () => {
   });
 
   describe('accordion expand/collapse', () => {
-    it('renders a toggle button for each nationality', () => {
+    it('renders a toggle button only for nationalities with non-OMITTED passport', () => {
       setup();
+      // nat-1 is ACTIVE, nat-2 is OMITTED — only nat-1 gets a toggle
       const toggleButtons = screen.getAllByRole('button', {
         name: 'nationalities.documentsToggle',
       });
-      expect(toggleButtons).toHaveLength(2);
+      expect(toggleButtons).toHaveLength(1);
+    });
+
+    it('hides toggle for nationality with OMITTED passport status', () => {
+      setup();
+      // nat-2 (US) has OMITTED passport — its toggle must not be rendered
+      const toggleButtons = screen.getAllByRole('button', {
+        name: 'nationalities.documentsToggle',
+      });
+      expect(toggleButtons).toHaveLength(1);
+      expect(screen.queryByTestId('visas-nat-2')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('etas-nat-2')).not.toBeInTheDocument();
     });
 
     it('documents panel is hidden by default', () => {
@@ -595,26 +607,31 @@ describe('NationalitiesSection', () => {
 
     it('expands documents panel when toggle clicked', async () => {
       const { user } = setup();
-      const toggleButtons = screen.getAllByRole('button', {
-        name: 'nationalities.documentsToggle',
-      });
-      await user.click(toggleButtons[0]!);
+      await user.click(screen.getByRole('button', { name: 'nationalities.documentsToggle' }));
       expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
       expect(screen.getByTestId('etas-nat-1')).toBeInTheDocument();
     });
 
     it('collapses panel when toggle clicked again', async () => {
       const { user } = setup();
-      const toggleButtons = screen.getAllByRole('button', {
-        name: 'nationalities.documentsToggle',
-      });
-      await user.click(toggleButtons[0]!);
-      await user.click(toggleButtons[0]!);
+      const toggle = screen.getByRole('button', { name: 'nationalities.documentsToggle' });
+      await user.click(toggle);
+      await user.click(toggle);
       expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
     });
 
-    it('accordion: opening second collapses first', async () => {
-      const { user } = setup();
+    it('accordion: opening second collapses first (both with passports)', async () => {
+      const twoWithPassports: NationalityDto[] = [
+        sampleNationalities[0]!,
+        {
+          ...sampleNationalities[1]!,
+          passportNumber: 'XY987654',
+          passportIssueDate: '2021-01-01',
+          passportExpiryDate: '2031-01-01',
+          passportStatus: PassportStatus.ACTIVE,
+        },
+      ];
+      const { user } = setup(twoWithPassports);
       const toggleButtons = screen.getAllByRole('button', {
         name: 'nationalities.documentsToggle',
       });
@@ -627,10 +644,7 @@ describe('NationalitiesSection', () => {
 
     it('collapses expanded panel when entering edit mode', async () => {
       const { user } = setup();
-      const toggleButtons = screen.getAllByRole('button', {
-        name: 'nationalities.documentsToggle',
-      });
-      await user.click(toggleButtons[0]!);
+      await user.click(screen.getByRole('button', { name: 'nationalities.documentsToggle' }));
       expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
       const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
       await user.click(editButtons[0]!);
