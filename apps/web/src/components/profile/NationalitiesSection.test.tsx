@@ -70,7 +70,7 @@ vi.mock('./VisasSubsection', () => ({
 }));
 
 vi.mock('./EtasSubsection', () => ({
-  EtasSubsection: ({ nationalityId }: { nationalityId: string }) => (
+  EtasSubsection: ({ nationalityId }: { nationalityId: string; passportNumber: string | null }) => (
     <div data-testid={`etas-${nationalityId}`}>ETAs subsection</div>
   ),
 }));

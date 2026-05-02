@@ -18,6 +18,8 @@ import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
 import { cn } from '@/lib/utils';
 
+const AUTH_FORMAT_REGEX = /^[A-Z0-9-]+$/;
+
 export interface EtaDto {
   id: string;
   userNationalityId: string;
@@ -44,7 +46,6 @@ interface FormState {
 }
 
 interface FormErrors {
-  passportNumber: string | null;
   destinationCountry: string | null;
   authorizationNumber: string | null;
   etaType: string | null;
@@ -53,7 +54,6 @@ interface FormErrors {
 }
 
 const EMPTY_ERRORS: FormErrors = {
-  passportNumber: null,
   destinationCountry: null,
   authorizationNumber: null,
   etaType: null,
@@ -114,28 +114,12 @@ function EtaForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-border p-4">
-      {/* Passport number */}
+      {/* Passport number — always read-only, pre-populated from nationality's active passport */}
       <div className="space-y-1.5">
-        <Label htmlFor={`${idPrefix}-passportNumber`}>
-          {t('nationalities.etas.passportNumber')}
-        </Label>
-        {isEdit ? (
-          <p className="rounded-md border border-border bg-muted/50 px-3 py-2 text-sm font-mono">
-            {form.passportNumber}
-          </p>
-        ) : (
-          <Input
-            id={`${idPrefix}-passportNumber`}
-            value={form.passportNumber}
-            onChange={(e) => onChange({ passportNumber: e.target.value.toUpperCase() })}
-            autoCapitalize="characters"
-            placeholder={t('nationalities.etas.passportPlaceholder')}
-            autoComplete="off"
-            disabled={isSaving}
-            aria-invalid={errors.passportNumber !== null}
-          />
-        )}
-        <FieldMessage error={errors.passportNumber} />
+        <Label>{t('nationalities.etas.passportNumber')}</Label>
+        <p className="rounded-md border border-border bg-muted/50 px-3 py-2 text-sm font-mono">
+          {form.passportNumber}
+        </p>
       </div>
 
       {/* Destination country */}
@@ -174,7 +158,8 @@ function EtaForm({
         <Input
           id={`${idPrefix}-authorizationNumber`}
           value={form.authorizationNumber}
-          onChange={(e) => onChange({ authorizationNumber: e.target.value })}
+          onChange={(e) => onChange({ authorizationNumber: e.target.value.toUpperCase() })}
+          autoCapitalize="characters"
           placeholder={t('nationalities.etas.authorizationPlaceholder')}
           autoComplete="off"
           disabled={isSaving}
@@ -262,9 +247,10 @@ function EtaForm({
 
 interface EtasSubsectionProps {
   nationalityId: string;
+  passportNumber: string | null;
 }
 
-export function EtasSubsection({ nationalityId }: EtasSubsectionProps) {
+export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsectionProps) {
   const { t } = useTranslation('profile');
 
   const [etas, setEtas] = useState<EtaDto[]>([]);
@@ -311,27 +297,29 @@ export function EtasSubsection({ nationalityId }: EtasSubsectionProps) {
       editForm.expiryDate !== initialEditForm.expiryDate ||
       editForm.notes !== initialEditForm.notes);
   const isAddDirty =
-    addForm.passportNumber !== '' ||
     addForm.destinationCountry !== '' ||
     addForm.authorizationNumber !== '' ||
     addForm.etaType !== '' ||
     addForm.entries !== '' ||
     addForm.expiryDate !== '';
 
+  function validateAuthNumber(trimmed: string): string | null {
+    if (!trimmed) return t('nationalities.etas.errors.authNumberRequired');
+    if (!AUTH_FORMAT_REGEX.test(trimmed)) return t('nationalities.etas.errors.authNumberFormat');
+    return null;
+  }
+
   function validate(form: FormState, setErrors: (e: FormErrors) => void): boolean {
     const errors: FormErrors = { ...EMPTY_ERRORS };
     let hasError = false;
 
-    if (!form.passportNumber.trim()) {
-      errors.passportNumber = t('nationalities.etas.errors.passportRequired');
-      hasError = true;
-    }
     if (!form.destinationCountry) {
       errors.destinationCountry = t('nationalities.etas.errors.countryRequired');
       hasError = true;
     }
-    if (!form.authorizationNumber.trim()) {
-      errors.authorizationNumber = t('nationalities.etas.errors.authNumberRequired');
+    const authError = validateAuthNumber(form.authorizationNumber.trim());
+    if (authError) {
+      errors.authorizationNumber = authError;
       hasError = true;
     }
     if (!form.etaType) {
@@ -355,8 +343,9 @@ export function EtasSubsection({ nationalityId }: EtasSubsectionProps) {
     const errors: FormErrors = { ...EMPTY_ERRORS };
     let hasError = false;
 
-    if (!form.authorizationNumber.trim()) {
-      errors.authorizationNumber = t('nationalities.etas.errors.authNumberRequired');
+    const authError = validateAuthNumber(form.authorizationNumber.trim());
+    if (authError) {
+      errors.authorizationNumber = authError;
       hasError = true;
     }
     if (!form.etaType) {
@@ -406,7 +395,7 @@ export function EtasSubsection({ nationalityId }: EtasSubsectionProps) {
 
   function startAdd() {
     setIsAdding(true);
-    setAddForm(makeEmptyForm());
+    setAddForm({ ...makeEmptyForm(), passportNumber: passportNumber ?? '' });
     setAddErrors(EMPTY_ERRORS);
     setEditingId(null);
     setConfirmDeleteId(null);
@@ -593,9 +582,22 @@ export function EtasSubsection({ nationalityId }: EtasSubsectionProps) {
       )}
 
       {!isAdding && (
-        <Button type="button" size="sm" variant="outline" onClick={startAdd} disabled={isSaving}>
-          {t('nationalities.etas.add')}
-        </Button>
+        <div className="space-y-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={startAdd}
+            disabled={isSaving || !passportNumber}
+          >
+            {t('nationalities.etas.add')}
+          </Button>
+          {!passportNumber && (
+            <p className="text-xs text-muted-foreground">
+              {t('nationalities.etas.noPassportHint')}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

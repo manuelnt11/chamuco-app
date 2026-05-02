@@ -38,8 +38,21 @@ vi.mock('countries-list', () => ({
 }));
 
 vi.mock('@/components/ui/country-combobox', () => ({
-  CountryCombobox: ({ value, onChange }: { value: string; onChange: (iso: string) => void }) => (
-    <select data-testid="country-combobox" value={value} onChange={(e) => onChange(e.target.value)}>
+  CountryCombobox: ({
+    value,
+    onChange,
+    'aria-labelledby': labelledBy,
+  }: {
+    value: string;
+    onChange: (iso: string) => void;
+    'aria-labelledby'?: string;
+  }) => (
+    <select
+      data-testid="country-combobox"
+      aria-labelledby={labelledBy}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
       <option value="">Select country</option>
       <option value="CA">Canada</option>
       <option value="AU">Australia</option>
@@ -51,12 +64,13 @@ import { EtasSubsection } from './EtasSubsection';
 import type { EtaDto } from './EtasSubsection';
 
 const NATIONALITY_ID = 'nat-1';
+const PASSPORT_NUMBER = 'AB123456';
 
 const sampleEtas: EtaDto[] = [
   {
     id: 'eta-1',
     userNationalityId: NATIONALITY_ID,
-    passportNumber: 'AB123456',
+    passportNumber: PASSPORT_NUMBER,
     destinationCountry: 'CA',
     authorizationNumber: 'A1B2C3D4E5',
     etaType: EtaType.TOURIST,
@@ -83,9 +97,9 @@ const sampleEtas: EtaDto[] = [
   },
 ];
 
-function setup() {
+function setup(passportNumber: string | null = PASSPORT_NUMBER) {
   const user = userEvent.setup();
-  render(<EtasSubsection nationalityId={NATIONALITY_ID} />);
+  render(<EtasSubsection nationalityId={NATIONALITY_ID} passportNumber={passportNumber} />);
   return { user };
 }
 
@@ -117,7 +131,7 @@ describe('EtasSubsection', () => {
 
     it('renders passport numbers', async () => {
       setup();
-      await waitFor(() => expect(screen.getByText('AB123456')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText(PASSPORT_NUMBER)).toBeInTheDocument());
       expect(screen.getByText('XY987654')).toBeInTheDocument();
     });
 
@@ -162,6 +176,27 @@ describe('EtasSubsection', () => {
     });
   });
 
+  describe('no passport', () => {
+    it('disables Add ETA button when passportNumber is null', async () => {
+      setup(null);
+      await waitFor(() => screen.getByRole('button', { name: 'nationalities.etas.add' }));
+      expect(screen.getByRole('button', { name: 'nationalities.etas.add' })).toBeDisabled();
+    });
+
+    it('shows hint message when passportNumber is null', async () => {
+      setup(null);
+      await waitFor(() =>
+        expect(screen.getByText('nationalities.etas.noPassportHint')).toBeInTheDocument(),
+      );
+    });
+
+    it('does not show hint when passportNumber is set', async () => {
+      setup();
+      await waitFor(() => screen.getByRole('button', { name: 'nationalities.etas.add' }));
+      expect(screen.queryByText('nationalities.etas.noPassportHint')).not.toBeInTheDocument();
+    });
+  });
+
   describe('adding an ETA', () => {
     async function openAddForm(user: ReturnType<typeof userEvent.setup>) {
       await waitFor(() => screen.getByRole('button', { name: 'nationalities.etas.add' }));
@@ -171,7 +206,13 @@ describe('EtasSubsection', () => {
     it('shows add form when Add button is clicked', async () => {
       const { user } = setup();
       await openAddForm(user);
-      expect(screen.getByLabelText('nationalities.etas.passportNumber')).toBeInTheDocument();
+      expect(screen.getByLabelText('nationalities.etas.destinationCountry')).toBeInTheDocument();
+    });
+
+    it('shows active passport read-only in add form', async () => {
+      const { user } = setup();
+      await openAddForm(user);
+      expect(screen.getAllByText(PASSPORT_NUMBER).length).toBeGreaterThanOrEqual(1);
     });
 
     it('hides Add button while form is open', async () => {
@@ -182,10 +223,9 @@ describe('EtasSubsection', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('calls POST with correct payload', async () => {
+    it('calls POST with passport from nationality', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
       await user.type(
         screen.getByLabelText('nationalities.etas.authorizationNumber'),
@@ -199,7 +239,7 @@ describe('EtasSubsection', () => {
         expect(mocks.mockPost).toHaveBeenCalledWith(
           `/v1/users/me/nationalities/${NATIONALITY_ID}/etas`,
           expect.objectContaining({
-            passportNumber: 'AB123456',
+            passportNumber: PASSPORT_NUMBER,
             destinationCountry: 'CA',
             authorizationNumber: 'A1B2C3D4E5',
             etaType: 'TOURIST',
@@ -211,10 +251,16 @@ describe('EtasSubsection', () => {
       );
     });
 
+    it('auto-uppercases authorization number input', async () => {
+      const { user } = setup();
+      await openAddForm(user);
+      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'a1b2c3');
+      expect(screen.getByLabelText('nationalities.etas.authorizationNumber')).toHaveValue('A1B2C3');
+    });
+
     it('includes notes in POST when provided', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
       await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
@@ -233,7 +279,6 @@ describe('EtasSubsection', () => {
     it('shows success toast after add', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
       await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
@@ -249,7 +294,6 @@ describe('EtasSubsection', () => {
       mocks.mockPost.mockRejectedValue(new Error('network'));
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
       await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
@@ -265,7 +309,9 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.cancel' }));
-      expect(screen.queryByLabelText('nationalities.etas.passportNumber')).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText('nationalities.etas.destinationCountry'),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -275,20 +321,13 @@ describe('EtasSubsection', () => {
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.add' }));
     }
 
-    it('shows passport required error', async () => {
-      const { user } = setup();
-      await openAddForm(user);
-      // Fill destination to enable save button (isAddDirty), but leave passportNumber empty
-      await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
-      expect(screen.getByText('nationalities.etas.errors.passportRequired')).toBeInTheDocument();
-      expect(mocks.mockPost).not.toHaveBeenCalled();
-    });
-
     it('shows country required error when no destination selected', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
+      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.countryRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -297,16 +336,43 @@ describe('EtasSubsection', () => {
     it('shows auth number required error', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.authNumberRequired')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('shows auth number format error when authorization contains spaces', async () => {
+      const { user } = setup();
+      await openAddForm(user);
+      await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
+      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1 B2');
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
+      expect(screen.getByText('nationalities.etas.errors.authNumberFormat')).toBeInTheDocument();
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('accepts authorization number with hyphens', async () => {
+      const { user } = setup();
+      await openAddForm(user);
+      await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
+      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1-B2C3');
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
+      await waitFor(() => expect(mocks.mockPost).toHaveBeenCalledOnce());
     });
 
     it('shows type required error', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
       await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
@@ -316,7 +382,6 @@ describe('EtasSubsection', () => {
     it('shows entries required error', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
       await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
@@ -327,7 +392,6 @@ describe('EtasSubsection', () => {
     it('shows expiry required error', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.passportNumber'), 'AB123456');
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
       await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
@@ -345,14 +409,15 @@ describe('EtasSubsection', () => {
       expect(screen.getByLabelText('nationalities.etas.authorizationNumber')).toBeInTheDocument();
     });
 
-    it('shows passportNumber as read-only on edit', async () => {
+    it('shows passportNumber as read-only in edit form', async () => {
       const { user } = setup();
       await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
       await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
-      const passportInput = screen.queryByRole('textbox', {
-        name: 'nationalities.etas.passportNumber',
-      });
-      expect(passportInput).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('textbox', { name: 'nationalities.etas.passportNumber' }),
+      ).not.toBeInTheDocument();
+      const passportTexts = screen.getAllByText(PASSPORT_NUMBER);
+      expect(passportTexts.length).toBeGreaterThanOrEqual(1);
     });
 
     it('pre-fills authorization number in edit form', async () => {
@@ -362,6 +427,28 @@ describe('EtasSubsection', () => {
       expect(screen.getByLabelText('nationalities.etas.authorizationNumber')).toHaveValue(
         'A1B2C3D4E5',
       );
+    });
+
+    it('auto-uppercases authorization number in edit form', async () => {
+      const { user } = setup();
+      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
+      await user.clear(authInput);
+      await user.type(authInput, 'new-auth');
+      expect(authInput).toHaveValue('NEW-AUTH');
+    });
+
+    it('shows auth format error on edit when authorization contains spaces', async () => {
+      const { user } = setup();
+      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
+      await user.clear(authInput);
+      await user.type(authInput, 'BAD AUTH');
+      await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
+      expect(screen.getByText('nationalities.etas.errors.authNumberFormat')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
     });
 
     it('calls PATCH with updated authorization number', async () => {

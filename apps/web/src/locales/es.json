@@ -589,15 +589,16 @@
         "expiryDate": "Fecha de vencimiento",
         "notes": "Notas",
         "notesPlaceholder": "Notas opcionales...",
+        "noPassportHint": "Agrega un pasaporte a esta nacionalidad para poder crear ETAs.",
         "addSuccess": "ETA añadida.",
         "updateSuccess": "ETA actualizada.",
         "deleteSuccess": "ETA eliminada.",
         "saveError": "No se pudo guardar la ETA. Intenta de nuevo.",
         "deleteError": "No se pudo eliminar la ETA. Intenta de nuevo.",
         "errors": {
-          "passportRequired": "El número de pasaporte es requerido.",
           "countryRequired": "Selecciona el país de destino.",
           "authNumberRequired": "El número de autorización es requerido.",
+          "authNumberFormat": "Solo puede contener letras, números y guiones.",
           "typeRequired": "Selecciona un tipo de ETA.",
           "entriesRequired": "Selecciona el número de entradas.",
           "expiryRequired": "La fecha de vencimiento es requerida."

@@ -550,7 +550,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
               {expandedNatId === nat.id && (
                 <div className="space-y-6 border-t border-border pt-3">
                   <VisasSubsection nationalityId={nat.id} />
-                  <EtasSubsection nationalityId={nat.id} />
+                  <EtasSubsection nationalityId={nat.id} passportNumber={nat.passportNumber} />
                 </div>
               )}
             </li>

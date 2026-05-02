@@ -589,15 +589,16 @@
         "expiryDate": "Expiry date",
         "notes": "Notes",
         "notesPlaceholder": "Optional notes...",
+        "noPassportHint": "Add a passport to this nationality to create ETAs.",
         "addSuccess": "ETA added.",
         "updateSuccess": "ETA updated.",
         "deleteSuccess": "ETA deleted.",
         "saveError": "Could not save ETA. Try again.",
         "deleteError": "Could not delete ETA. Try again.",
         "errors": {
-          "passportRequired": "Passport number is required.",
           "countryRequired": "Select the destination country.",
           "authNumberRequired": "Authorization number is required.",
+          "authNumberFormat": "Can only contain letters, numbers and hyphens.",
           "typeRequired": "Select an ETA type.",
           "entriesRequired": "Select entry count.",
           "expiryRequired": "Expiry date is required."
