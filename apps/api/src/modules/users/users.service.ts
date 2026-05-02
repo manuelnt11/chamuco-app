@@ -8,10 +8,13 @@ import {
 import { and, eq, ne } from 'drizzle-orm';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { userNationalities } from '@/modules/users/schema/user-nationalities.schema';
+import { userEtas } from '@/modules/users/schema/user-etas.schema';
+import { userVisas } from '@/modules/users/schema/user-visas.schema';
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
-import { PassportStatus, ProfileVisibility } from '@chamuco/shared-types';
+import { DocumentStatus, PassportStatus, ProfileVisibility } from '@chamuco/shared-types';
+import { computeDocumentStatus } from '@/common/utils/document-status.util';
 import { computePassportStatus } from '@/common/utils/passport-status.util';
 import type { AuthenticatedUser } from '@/types/express';
 import type { DateOfBirthDto } from './dto/date-of-birth.dto';
@@ -32,6 +35,8 @@ import type { UserPreferencesResponseDto } from './dto/user-preferences-response
 import type { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import type { UserResponseDto } from './dto/user-response.dto';
 import type { UsernameAvailabilityDto } from './dto/username-availability.dto';
+import type { CreateVisaDto, UpdateVisaDto, VisaResponseDto } from './dto/visa.dto';
+import type { CreateEtaDto, EtaResponseDto, UpdateEtaDto } from './dto/eta.dto';
 
 @Injectable()
 export class UsersService {
@@ -381,6 +386,9 @@ export class UsersService {
       dto.passportIssueDate !== undefined ||
       dto.passportExpiryDate !== undefined;
 
+    const passportNumberChanged =
+      dto.passportNumber !== undefined && dto.passportNumber !== existing.passportNumber;
+
     const patch: Partial<typeof userNationalities.$inferInsert> = {};
     if (dto.isPrimary !== undefined) patch.isPrimary = dto.isPrimary;
     if (dto.nationalIdNumber !== undefined) patch.nationalIdNumber = dto.nationalIdNumber;
@@ -390,6 +398,19 @@ export class UsersService {
     if (dto.passportExpiryDate !== undefined)
       patch.passportExpiryDate = dto.passportExpiryDate ?? null;
     if (passportChanged) patch.passportStatus = computePassportStatus(dto.passportExpiryDate);
+
+    if (passportNumberChanged && existing.passportNumber) {
+      await this.db
+        .update(userEtas)
+        .set({ etaStatus: DocumentStatus.EXPIRED, updatedAt: new Date() })
+        .where(
+          and(
+            eq(userEtas.userNationalityId, nationalityId),
+            eq(userEtas.passportNumber, existing.passportNumber),
+            ne(userEtas.etaStatus, DocumentStatus.EXPIRED),
+          ),
+        );
+    }
 
     if (Object.keys(patch).length === 0) {
       return this.mapNationalityResponse(existing);
@@ -618,6 +639,214 @@ export class UsersService {
         (profile.physicalLimitations as UserHealthResponseDto['physicalLimitations']) ?? [],
       medicalConditions:
         (profile.medicalConditions as UserHealthResponseDto['medicalConditions']) ?? [],
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Visas
+  // ---------------------------------------------------------------------------
+
+  async getVisas(userId: string, nationalityId: string): Promise<VisaResponseDto[]> {
+    await this.requireNationality(userId, nationalityId);
+    const records = await this.db.query.userVisas.findMany({
+      where: eq(userVisas.nationalityId, nationalityId),
+      orderBy: (t, { asc }) => [asc(t.createdAt)],
+    });
+    return records.map((r) => this.mapVisaResponse(r));
+  }
+
+  async addVisa(
+    userId: string,
+    nationalityId: string,
+    dto: CreateVisaDto,
+  ): Promise<VisaResponseDto> {
+    await this.requireNationality(userId, nationalityId);
+
+    const [inserted] = await this.db
+      .insert(userVisas)
+      .values({
+        nationalityId,
+        coverageType: dto.coverageType,
+        countryCode: dto.countryCode ?? null,
+        visaZone: dto.visaZone ?? null,
+        visaType: dto.visaType,
+        entries: dto.entries,
+        expiryDate: dto.expiryDate,
+        visaStatus: computeDocumentStatus(dto.expiryDate),
+        notes: dto.notes ?? null,
+      })
+      .returning();
+
+    if (!inserted) throw new NotFoundException('Visa not found after insert');
+    return this.mapVisaResponse(inserted);
+  }
+
+  async updateVisa(
+    userId: string,
+    nationalityId: string,
+    id: string,
+    dto: UpdateVisaDto,
+  ): Promise<VisaResponseDto> {
+    await this.requireNationality(userId, nationalityId);
+    const existing = await this.db.query.userVisas.findFirst({
+      where: and(eq(userVisas.id, id), eq(userVisas.nationalityId, nationalityId)),
+    });
+    if (!existing) throw new NotFoundException('Visa not found');
+
+    const patch: Partial<typeof userVisas.$inferInsert> = {};
+    if (dto.visaType !== undefined) patch.visaType = dto.visaType;
+    if (dto.entries !== undefined) patch.entries = dto.entries;
+    if (dto.expiryDate !== undefined) {
+      patch.expiryDate = dto.expiryDate;
+      patch.visaStatus = computeDocumentStatus(dto.expiryDate);
+    }
+    if (dto.notes !== undefined) patch.notes = dto.notes ?? null;
+
+    if (Object.keys(patch).length === 0) return this.mapVisaResponse(existing);
+
+    const [updated] = await this.db
+      .update(userVisas)
+      .set(patch)
+      .where(and(eq(userVisas.id, id), eq(userVisas.nationalityId, nationalityId)))
+      .returning();
+
+    if (!updated) throw new NotFoundException('Visa not found');
+    return this.mapVisaResponse(updated);
+  }
+
+  async deleteVisa(userId: string, nationalityId: string, id: string): Promise<void> {
+    await this.requireNationality(userId, nationalityId);
+    const existing = await this.db.query.userVisas.findFirst({
+      where: and(eq(userVisas.id, id), eq(userVisas.nationalityId, nationalityId)),
+    });
+    if (!existing) throw new NotFoundException('Visa not found');
+    await this.db
+      .delete(userVisas)
+      .where(and(eq(userVisas.id, id), eq(userVisas.nationalityId, nationalityId)));
+  }
+
+  // ---------------------------------------------------------------------------
+  // ETAs
+  // ---------------------------------------------------------------------------
+
+  async getEtas(userId: string, nationalityId: string): Promise<EtaResponseDto[]> {
+    await this.requireNationality(userId, nationalityId);
+    const records = await this.db.query.userEtas.findMany({
+      where: eq(userEtas.userNationalityId, nationalityId),
+      orderBy: (t, { asc }) => [asc(t.createdAt)],
+    });
+    return records.map((r) => this.mapEtaResponse(r));
+  }
+
+  async addEta(userId: string, nationalityId: string, dto: CreateEtaDto): Promise<EtaResponseDto> {
+    await this.requireNationality(userId, nationalityId);
+
+    const [inserted] = await this.db
+      .insert(userEtas)
+      .values({
+        userNationalityId: nationalityId,
+        passportNumber: dto.passportNumber,
+        destinationCountry: dto.destinationCountry,
+        authorizationNumber: dto.authorizationNumber,
+        etaType: dto.etaType,
+        entries: dto.entries,
+        expiryDate: dto.expiryDate,
+        etaStatus: computeDocumentStatus(dto.expiryDate),
+        notes: dto.notes ?? null,
+      })
+      .returning();
+
+    if (!inserted) throw new NotFoundException('ETA not found after insert');
+    return this.mapEtaResponse(inserted);
+  }
+
+  async updateEta(
+    userId: string,
+    nationalityId: string,
+    id: string,
+    dto: UpdateEtaDto,
+  ): Promise<EtaResponseDto> {
+    await this.requireNationality(userId, nationalityId);
+    const existing = await this.db.query.userEtas.findFirst({
+      where: and(eq(userEtas.id, id), eq(userEtas.userNationalityId, nationalityId)),
+    });
+    if (!existing) throw new NotFoundException('ETA not found');
+
+    const patch: Partial<typeof userEtas.$inferInsert> = {};
+    if (dto.authorizationNumber !== undefined) patch.authorizationNumber = dto.authorizationNumber;
+    if (dto.etaType !== undefined) patch.etaType = dto.etaType;
+    if (dto.entries !== undefined) patch.entries = dto.entries;
+    if (dto.expiryDate !== undefined) {
+      patch.expiryDate = dto.expiryDate;
+      patch.etaStatus = computeDocumentStatus(dto.expiryDate);
+    }
+    if (dto.notes !== undefined) patch.notes = dto.notes ?? null;
+
+    if (Object.keys(patch).length === 0) return this.mapEtaResponse(existing);
+
+    const [updated] = await this.db
+      .update(userEtas)
+      .set(patch)
+      .where(and(eq(userEtas.id, id), eq(userEtas.userNationalityId, nationalityId)))
+      .returning();
+
+    if (!updated) throw new NotFoundException('ETA not found');
+    return this.mapEtaResponse(updated);
+  }
+
+  async deleteEta(userId: string, nationalityId: string, id: string): Promise<void> {
+    await this.requireNationality(userId, nationalityId);
+    const existing = await this.db.query.userEtas.findFirst({
+      where: and(eq(userEtas.id, id), eq(userEtas.userNationalityId, nationalityId)),
+    });
+    if (!existing) throw new NotFoundException('ETA not found');
+    await this.db
+      .delete(userEtas)
+      .where(and(eq(userEtas.id, id), eq(userEtas.userNationalityId, nationalityId)));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  private async requireNationality(userId: string, nationalityId: string): Promise<void> {
+    const nationality = await this.db.query.userNationalities.findFirst({
+      where: and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)),
+    });
+    if (!nationality) throw new NotFoundException('Nationality not found');
+  }
+
+  private mapVisaResponse(r: typeof userVisas.$inferSelect): VisaResponseDto {
+    return {
+      id: r.id,
+      nationalityId: r.nationalityId,
+      coverageType: r.coverageType,
+      countryCode: r.countryCode ?? null,
+      visaZone: r.visaZone ?? null,
+      visaType: r.visaType,
+      entries: r.entries,
+      expiryDate: r.expiryDate,
+      visaStatus: r.visaStatus as DocumentStatus,
+      notes: r.notes ?? null,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
+    };
+  }
+
+  private mapEtaResponse(r: typeof userEtas.$inferSelect): EtaResponseDto {
+    return {
+      id: r.id,
+      userNationalityId: r.userNationalityId,
+      passportNumber: r.passportNumber,
+      destinationCountry: r.destinationCountry,
+      authorizationNumber: r.authorizationNumber,
+      etaType: r.etaType,
+      entries: r.entries,
+      expiryDate: r.expiryDate,
+      etaStatus: r.etaStatus as DocumentStatus,
+      notes: r.notes ?? null,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
     };
   }
 }

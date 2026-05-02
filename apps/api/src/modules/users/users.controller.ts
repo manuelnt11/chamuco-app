@@ -42,6 +42,8 @@ import { UserPreferencesResponseDto } from './dto/user-preferences-response.dto'
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsernameAvailabilityDto } from './dto/username-availability.dto';
+import { CreateVisaDto, UpdateVisaDto, VisaResponseDto } from './dto/visa.dto';
+import { CreateEtaDto, EtaResponseDto, UpdateEtaDto } from './dto/eta.dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -455,6 +457,142 @@ export class UsersController {
       );
     }
     return this.usersService.checkUsernameAvailability(normalized);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Visas
+  // ---------------------------------------------------------------------------
+
+  @Get('me/nationalities/:nationalityId/visas')
+  @ApiOperation({ summary: 'List visas for a nationality' })
+  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiResponse({ status: 200, type: VisaResponseDto, isArray: true })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  getVisas(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('nationalityId') nationalityId: string,
+  ): Promise<VisaResponseDto[]> {
+    return this.usersService.getVisas(user.id, nationalityId);
+  }
+
+  @Post('me/nationalities/:nationalityId/visas')
+  @ApiOperation({ summary: 'Add a visa to a nationality' })
+  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiBody({ type: CreateVisaDto })
+  @ApiResponse({ status: 201, type: VisaResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  addVisa(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('nationalityId') nationalityId: string,
+    @Body() dto: CreateVisaDto,
+  ): Promise<VisaResponseDto> {
+    return this.usersService.addVisa(user.id, nationalityId, dto);
+  }
+
+  @Patch('me/nationalities/:nationalityId/visas/:id')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Update a visa' })
+  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiParam({ name: 'id', description: 'UUID of the visa record' })
+  @ApiBody({ type: UpdateVisaDto })
+  @ApiResponse({ status: 200, type: VisaResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality or visa not found' })
+  updateVisa(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('nationalityId') nationalityId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateVisaDto,
+  ): Promise<VisaResponseDto> {
+    return this.usersService.updateVisa(user.id, nationalityId, id, dto);
+  }
+
+  @Delete('me/nationalities/:nationalityId/visas/:id')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Delete a visa' })
+  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiParam({ name: 'id', description: 'UUID of the visa record' })
+  @ApiResponse({ status: 204, description: 'Visa deleted' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality or visa not found' })
+  deleteVisa(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('nationalityId') nationalityId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
+    return this.usersService.deleteVisa(user.id, nationalityId, id);
+  }
+
+  // ---------------------------------------------------------------------------
+  // ETAs
+  // ---------------------------------------------------------------------------
+
+  @Get('me/nationalities/:nationalityId/etas')
+  @ApiOperation({ summary: 'List ETAs for a nationality' })
+  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiResponse({ status: 200, type: EtaResponseDto, isArray: true })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  getEtas(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('nationalityId') nationalityId: string,
+  ): Promise<EtaResponseDto[]> {
+    return this.usersService.getEtas(user.id, nationalityId);
+  }
+
+  @Post('me/nationalities/:nationalityId/etas')
+  @ApiOperation({ summary: 'Add an ETA to a nationality' })
+  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiBody({ type: CreateEtaDto })
+  @ApiResponse({ status: 201, type: EtaResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  addEta(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('nationalityId') nationalityId: string,
+    @Body() dto: CreateEtaDto,
+  ): Promise<EtaResponseDto> {
+    return this.usersService.addEta(user.id, nationalityId, dto);
+  }
+
+  @Patch('me/nationalities/:nationalityId/etas/:id')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Update an ETA' })
+  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiParam({ name: 'id', description: 'UUID of the ETA record' })
+  @ApiBody({ type: UpdateEtaDto })
+  @ApiResponse({ status: 200, type: EtaResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality or ETA not found' })
+  updateEta(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('nationalityId') nationalityId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateEtaDto,
+  ): Promise<EtaResponseDto> {
+    return this.usersService.updateEta(user.id, nationalityId, id, dto);
+  }
+
+  @Delete('me/nationalities/:nationalityId/etas/:id')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Delete an ETA' })
+  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiParam({ name: 'id', description: 'UUID of the ETA record' })
+  @ApiResponse({ status: 204, description: 'ETA deleted' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'Nationality or ETA not found' })
+  deleteEta(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('nationalityId') nationalityId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
+    return this.usersService.deleteEta(user.id, nationalityId, id);
   }
 
   @Get(':username/profile')
