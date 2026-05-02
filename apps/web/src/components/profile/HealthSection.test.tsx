@@ -47,9 +47,10 @@ vi.mock('@/components/ui/label', () => ({
 
 import { HealthSection } from './HealthSection';
 import type { HealthData } from './HealthSection';
-import { DietaryPreference } from '@chamuco/shared-types';
+import { BloodType, DietaryPreference } from '@chamuco/shared-types';
 
 const baseHealth: HealthData = {
+  bloodType: null,
   dietaryPreference: null,
   dietaryNotes: null,
   generalMedicalNotes: null,
@@ -81,6 +82,24 @@ describe('HealthSection', () => {
     it('renders privacy note', () => {
       setup();
       expect(screen.getByText('health.privacyNote')).toBeInTheDocument();
+    });
+
+    it('renders all blood type pills', () => {
+      setup();
+      expect(screen.getByTestId('bloodType-pill-A_POSITIVE')).toBeInTheDocument();
+      expect(screen.getByTestId('bloodType-pill-O_NEGATIVE')).toBeInTheDocument();
+    });
+
+    it('marks blood type pill as pressed when set', () => {
+      setup({ bloodType: BloodType.O_POSITIVE });
+      expect(screen.getByTestId('bloodType-pill-O_POSITIVE')).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.getByTestId('bloodType-pill-A_POSITIVE')).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
     });
 
     it('renders all dietary preference buttons', () => {
@@ -153,6 +172,12 @@ describe('HealthSection', () => {
     it('enables save button after selecting a dietary preference', async () => {
       const { user } = setup();
       await user.click(screen.getByRole('button', { name: 'health.dietaryPreference.VEGAN' }));
+      expect(screen.getByRole('button', { name: /health\.save|health\.saving/ })).toBeEnabled();
+    });
+
+    it('enables save after selecting a blood type', async () => {
+      const { user } = setup();
+      await user.click(screen.getByTestId('bloodType-pill-B_POSITIVE'));
       expect(screen.getByRole('button', { name: /health\.save|health\.saving/ })).toBeEnabled();
     });
 
@@ -310,6 +335,7 @@ describe('HealthSection', () => {
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/health', {
+          bloodType: null,
           dietaryPreference: DietaryPreference.VEGAN,
           dietaryNotes: null,
           generalMedicalNotes: null,
@@ -318,6 +344,30 @@ describe('HealthSection', () => {
           physicalLimitations: [],
           medicalConditions: [],
         }),
+      );
+    });
+
+    it('sends selected blood type in payload', async () => {
+      const { user } = setup();
+      await user.click(screen.getByTestId('bloodType-pill-O_POSITIVE'));
+      await user.click(screen.getByRole('button', { name: /health\.save/ }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me/health',
+          expect.objectContaining({ bloodType: BloodType.O_POSITIVE }),
+        ),
+      );
+    });
+
+    it('clears blood type when active pill is clicked again', async () => {
+      const { user } = setup({ bloodType: BloodType.A_NEGATIVE });
+      await user.click(screen.getByTestId('bloodType-pill-A_NEGATIVE'));
+      await user.click(screen.getByRole('button', { name: /health\.save/ }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me/health',
+          expect.objectContaining({ bloodType: null }),
+        ),
       );
     });
 

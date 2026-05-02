@@ -2,6 +2,7 @@ export * from './auth-provider.enum';
 export * from './app-currency.enum';
 export * from './app-language.enum';
 export * from './app-theme.enum';
+export * from './blood-type.enum';
 export * from './dietary-preference.enum';
 export * from './document-status.enum';
 export * from './eta-type.enum';

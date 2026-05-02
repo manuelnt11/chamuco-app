@@ -506,7 +506,24 @@ Stored as a JSONB array in `user_profiles.loyalty_programs`. Visible only to the
 
 Health and dietary data used by organizers to plan meals, activities, and manage emergency situations. Each category uses a **structured selection list** so organizers can filter and search effectively. Every category includes an `OTHER` option with a required `description` field for cases not covered by the standard list.
 
-All health data is stored directly on `user_profiles` (see table above). Scalar fields (`dietary_preference`, `dietary_notes`, `general_medical_notes`) are typed columns. The four multi-value categories (food allergies, phobias, physical limitations, medical conditions) are JSONB arrays — each element has the shape `{ <field>: <enum>, description: string | null }`, where `description` is required when the enum value is `OTHER`.
+All health data is stored directly on `user_profiles` (see table above). Scalar fields (`blood_type`, `dietary_preference`, `dietary_notes`, `general_medical_notes`) are typed columns. The four multi-value categories (food allergies, phobias, physical limitations, medical conditions) are JSONB arrays — each element has the shape `{ <field>: <enum>, description: string | null }`, where `description` is required when the enum value is `OTHER`.
+
+### Blood Type (enum: `BloodType`)
+
+Stored as `user_profiles.blood_type` (nullable). The user selects at most one value.
+
+| Value         | Display |
+| ------------- | ------- |
+| `A_POSITIVE`  | A+      |
+| `A_NEGATIVE`  | A−      |
+| `B_POSITIVE`  | B+      |
+| `B_NEGATIVE`  | B−      |
+| `AB_POSITIVE` | AB+     |
+| `AB_NEGATIVE` | AB−     |
+| `O_POSITIVE`  | O+      |
+| `O_NEGATIVE`  | O−      |
+
+---
 
 ### Dietary Preference (enum: `DietaryPreference`)
 

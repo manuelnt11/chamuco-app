@@ -1,0 +1,2 @@
+CREATE TYPE "public"."blood_type" AS ENUM('A_POSITIVE', 'A_NEGATIVE', 'B_POSITIVE', 'B_NEGATIVE', 'AB_POSITIVE', 'AB_NEGATIVE', 'O_POSITIVE', 'O_NEGATIVE');--> statement-breakpoint
+ALTER TABLE "user_profiles" ADD COLUMN "blood_type" "blood_type";

@@ -66,27 +66,28 @@ users
 
 ### PostgreSQL enum types
 
-| PG type                    | Values                                                                        | Used by                                      |
-| -------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------- |
-| `auth_provider`            | `GOOGLE`, `FACEBOOK`                                                          | `users.auth_provider`                        |
-| `platform_role`            | `USER`, `SUPPORT_ADMIN`                                                       | `users.platform_role`                        |
-| `profile_visibility`       | `PRIVATE`, `CONNECTIONS_ONLY`, `MEMBERS_ONLY`, `PUBLIC`                       | `users.profile_visibility`                   |
-| `app_currency`             | `COP`, `USD`                                                                  | `user_preferences.currency`                  |
-| `app_language`             | `ES`, `EN`                                                                    | `user_preferences.language`                  |
-| `app_theme`                | `LIGHT`, `DARK`, `SYSTEM`                                                     | `user_preferences.theme`                     |
-| `dietary_preference`       | `OMNIVORE`, `VEGETARIAN`, `VEGAN`, `PESCATARIAN`, `GLUTEN_FREE`, `OTHER`      | `user_profiles.dietary_preference`           |
-| `food_allergen`            | 15 values                                                                     | `user_profiles.food_allergies` (JSONB)       |
-| `phobia_type`              | 13 values                                                                     | `user_profiles.phobias` (JSONB)              |
-| `physical_limitation_type` | 13 values                                                                     | `user_profiles.physical_limitations` (JSONB) |
-| `medical_condition_type`   | 10 values                                                                     | `user_profiles.medical_conditions` (JSONB)   |
-| `passport_status`          | `OMITTED`, `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                               | `user_nationalities.passport_status`         |
-| `visa_coverage_type`       | `COUNTRY`, `ZONE`                                                             | `user_visas.coverage_type`                   |
-| `visa_zone`                | `SCHENGEN`, `GCC`, `CARICOM`, `EAC`, `CAN`, `MERCOSUR`, `ECOWAS`              | `user_visas.visa_zone`                       |
-| `visa_type`                | `TOURIST`, `BUSINESS`, `TRANSIT`, `WORK`, `STUDENT`, `DIGITAL_NOMAD`, `OTHER` | `user_visas.visa_type`                       |
-| `visa_entries`             | `SINGLE`, `DOUBLE`, `MULTIPLE`                                                | `user_visas.entries`, `user_etas.entries`    |
-| `visa_status`              | `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                                          | `user_visas.visa_status`                     |
-| `eta_type`                 | `TOURIST`, `TRANSIT`                                                          | `user_etas.eta_type`                         |
-| `eta_status`               | `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                                          | `user_etas.eta_status`                       |
+| PG type                    | Values                                                                                                           | Used by                                      |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `auth_provider`            | `GOOGLE`, `FACEBOOK`                                                                                             | `users.auth_provider`                        |
+| `platform_role`            | `USER`, `SUPPORT_ADMIN`                                                                                          | `users.platform_role`                        |
+| `profile_visibility`       | `PRIVATE`, `CONNECTIONS_ONLY`, `MEMBERS_ONLY`, `PUBLIC`                                                          | `users.profile_visibility`                   |
+| `app_currency`             | `COP`, `USD`                                                                                                     | `user_preferences.currency`                  |
+| `app_language`             | `ES`, `EN`                                                                                                       | `user_preferences.language`                  |
+| `app_theme`                | `LIGHT`, `DARK`, `SYSTEM`                                                                                        | `user_preferences.theme`                     |
+| `blood_type`               | `A_POSITIVE`, `A_NEGATIVE`, `B_POSITIVE`, `B_NEGATIVE`, `AB_POSITIVE`, `AB_NEGATIVE`, `O_POSITIVE`, `O_NEGATIVE` | `user_profiles.blood_type`                   |
+| `dietary_preference`       | `OMNIVORE`, `VEGETARIAN`, `VEGAN`, `PESCATARIAN`, `GLUTEN_FREE`, `OTHER`                                         | `user_profiles.dietary_preference`           |
+| `food_allergen`            | 15 values                                                                                                        | `user_profiles.food_allergies` (JSONB)       |
+| `phobia_type`              | 13 values                                                                                                        | `user_profiles.phobias` (JSONB)              |
+| `physical_limitation_type` | 13 values                                                                                                        | `user_profiles.physical_limitations` (JSONB) |
+| `medical_condition_type`   | 10 values                                                                                                        | `user_profiles.medical_conditions` (JSONB)   |
+| `passport_status`          | `OMITTED`, `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                                                                  | `user_nationalities.passport_status`         |
+| `visa_coverage_type`       | `COUNTRY`, `ZONE`                                                                                                | `user_visas.coverage_type`                   |
+| `visa_zone`                | `SCHENGEN`, `GCC`, `CARICOM`, `EAC`, `CAN`, `MERCOSUR`, `ECOWAS`                                                 | `user_visas.visa_zone`                       |
+| `visa_type`                | `TOURIST`, `BUSINESS`, `TRANSIT`, `WORK`, `STUDENT`, `DIGITAL_NOMAD`, `OTHER`                                    | `user_visas.visa_type`                       |
+| `visa_entries`             | `SINGLE`, `DOUBLE`, `MULTIPLE`                                                                                   | `user_visas.entries`, `user_etas.entries`    |
+| `visa_status`              | `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                                                                             | `user_visas.visa_status`                     |
+| `eta_type`                 | `TOURIST`, `TRANSIT`                                                                                             | `user_etas.eta_type`                         |
+| `eta_status`               | `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                                                                             | `user_etas.eta_status`                       |
 
 All enum values are sourced from `@chamuco/shared-types` — never hardcode them in schema files.
 
@@ -140,6 +141,8 @@ Each step is a separate migration file and a separate PR. Document the steps in 
 | 0007 | `0007_fast_carlie_cooper.sql` | Changed `user_profiles.bio` to `varchar(200)`                                                                                                    |
 | 0008 | `0008_numerous_spot.sql`      | CHECK constraints on `user_nationalities` for `national_id_number` and `passport_number` format                                                  |
 | 0009 | `0009_melodic_pyro.sql`       | `user_visas` and `user_etas` tables; visa/ETA enums                                                                                              |
+| 0010 | `0010_wide_mephisto.sql`      | Relaxed CHECK constraints on `user_nationalities` for `national_id_number` and `passport_number` (allow single-char values)                      |
+| 0011 | `0011_minor_adam_destine.sql` | `blood_type` enum + `user_profiles.blood_type` nullable column                                                                                   |
 
 ---
 
