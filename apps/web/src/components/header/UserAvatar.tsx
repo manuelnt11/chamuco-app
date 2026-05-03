@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { UserCircleIcon, SignOutIcon, UserIcon } from '@phosphor-icons/react';
 
 import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
 import {
   MenuRoot,
   MenuTrigger,
@@ -14,11 +15,13 @@ import {
   MenuLabel,
 } from '@/components/ui/menu';
 import { toast } from '@/components/ui/toast';
+import { getInitials } from '@/lib/name-utils';
 
 export function UserAvatar() {
   const { t } = useTranslation(['common', 'auth', 'errors']);
   const router = useRouter();
-  const { currentUser, isLoading, signOut } = useAuth();
+  const { currentUser, isLoading: authLoading, signOut } = useAuth();
+  const { appUser, isLoading: userLoading } = useUser();
 
   async function handleSignOut() {
     try {
@@ -29,8 +32,7 @@ export function UserAvatar() {
     }
   }
 
-  // While auth state is resolving, render a non-interactive placeholder
-  if (isLoading) {
+  if (authLoading || (currentUser !== null && userLoading)) {
     return (
       <div className="rounded-lg p-2">
         <UserCircleIcon
@@ -42,7 +44,6 @@ export function UserAvatar() {
     );
   }
 
-  // Unauthenticated: link to sign-in
   if (!currentUser) {
     return (
       <button
@@ -56,16 +57,10 @@ export function UserAvatar() {
     );
   }
 
-  // Authenticated: show dropdown menu
-  const displayName =
-    currentUser.displayName ?? currentUser.email ?? t('common:navigation.profile');
-  const email = currentUser.email;
-  const initials = (currentUser.displayName ?? currentUser.email ?? '?')
-    .split(/[\s@]/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s) => s.charAt(0).toUpperCase())
-    .join('');
+  const displayName = appUser?.displayName ?? currentUser.displayName ?? null;
+  const username = appUser?.username ?? null;
+  const avatarUrl = appUser?.avatarUrl ?? currentUser.photoURL ?? null;
+  const initials = getInitials(displayName ?? '?');
 
   return (
     <MenuRoot>
@@ -73,10 +68,10 @@ export function UserAvatar() {
         className="flex items-center justify-center h-9 w-9 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={t('common:navigation.profile')}
       >
-        {currentUser.photoURL ? (
+        {avatarUrl ? (
           <img
-            src={currentUser.photoURL}
-            alt={displayName}
+            src={avatarUrl}
+            alt={displayName ?? undefined}
             className="h-9 w-9 rounded-full object-cover"
             referrerPolicy="no-referrer"
           />
@@ -88,8 +83,10 @@ export function UserAvatar() {
       <MenuPopup>
         {/* User info — non-interactive */}
         <MenuLabel>
-          <p className="font-medium text-foreground truncate">{displayName}</p>
-          {email && displayName !== email && <p className="truncate">{email}</p>}
+          <p className="font-medium text-foreground truncate">
+            {displayName ?? t('common:navigation.profile')}
+          </p>
+          {username && <p className="truncate">{`@${username}`}</p>}
         </MenuLabel>
 
         <MenuSeparator />

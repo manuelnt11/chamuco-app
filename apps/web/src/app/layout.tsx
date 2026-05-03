@@ -8,6 +8,7 @@ import { I18nProvider } from '@/components/I18nProvider';
 import { AppShell } from '@/components/layout';
 import { PreferencesSync } from '@/components/PreferencesSync';
 import { AuthProvider } from '@/store/auth';
+import { UserProvider } from '@/store/user';
 import { cn } from '@/lib/utils';
 import { SIDEBAR_STORAGE_KEY, SIDEBAR_COLLAPSED_WIDTH } from '@/lib/sidebar-constants';
 
@@ -58,8 +59,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             storageKey="chamuco-theme"
           >
             <AuthProvider>
-              <PreferencesSync />
-              <AppShell>{children}</AppShell>
+              <UserProvider>
+                <PreferencesSync />
+                <AppShell>{children}</AppShell>
+              </UserProvider>
             </AuthProvider>
           </ThemeProvider>
         </I18nProvider>

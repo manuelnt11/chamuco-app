@@ -8,7 +8,7 @@ import {
   useRef,
   type KeyboardEvent,
 } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ import { LoyaltyProgramsSection } from '@/components/profile/LoyaltyProgramsSect
 import { HealthSection } from '@/components/profile/HealthSection';
 import { EmergencyContactsSection } from '@/components/profile/EmergencyContactsSection';
 import { NationalitiesSection } from '@/components/profile/NationalitiesSection';
-import type { BasicInfoUser, BasicInfoProfile } from '@/components/profile/BasicInfoSection';
+import type { BasicInfoProfile } from '@/components/profile/BasicInfoSection';
 import type { PersonalDetailsProfile } from '@/components/profile/PersonalDetailsSection';
 import type { PreferencesData } from '@/components/profile/PreferencesSection';
 import type { LoyaltyProgramDto } from '@/components/profile/LoyaltyProgramsSection';
@@ -28,19 +28,23 @@ import type { HealthData } from '@/components/profile/HealthSection';
 import type { EmergencyContactDto } from '@/components/profile/EmergencyContactsSection';
 import type { NationalityDto } from '@/components/profile/NationalitiesSection';
 import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
 import { apiClient } from '@/services/api-client';
 import { toast } from '@/components/ui/toast';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
 
-type Tab =
-  | 'basic'
-  | 'personal'
-  | 'nationalities'
-  | 'preferences'
-  | 'loyalty'
-  | 'health'
-  | 'emergency';
+const VALID_TABS = [
+  'basic',
+  'personal',
+  'nationalities',
+  'preferences',
+  'loyalty',
+  'health',
+  'emergency',
+] as const;
+
+type Tab = (typeof VALID_TABS)[number];
 
 const DEFAULT_PERSONAL_DETAILS: PersonalDetailsProfile = {
   firstName: '',
@@ -66,7 +70,6 @@ const DEFAULT_HEALTH_DATA: HealthData = {
 };
 
 interface ProfileData {
-  user: BasicInfoUser;
   userProfile: BasicInfoProfile;
   personalDetails: PersonalDetailsProfile;
   preferences: PreferencesData;
@@ -79,9 +82,20 @@ interface ProfileData {
 export default function ProfilePage() {
   const { t } = useTranslation('profile');
   const { currentUser, isLoading: authLoading } = useAuth();
+  const { appUser, isLoading: userLoading } = useUser();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<Tab>('basic');
+  const searchParams = useSearchParams();
+  const rawTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<Tab>(
+    VALID_TABS.includes(rawTab as Tab) ? (rawTab as Tab) : 'basic',
+  );
+
+  function handleTabChange(tab: Tab) {
+    setActiveTab(tab);
+    router.replace(`/profile?tab=${tab}`, { scroll: false });
+  }
+
   const [data, setData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadError, setHasLoadError] = useState(false);
@@ -113,9 +127,8 @@ export default function ProfilePage() {
     if (!loadedOnce.current) setIsLoading(true);
     setHasLoadError(false);
     try {
-      const [userRes, profileRes, prefRes, loyaltyRes, healthRes, emergencyRes, nationalitiesRes] =
+      const [profileRes, prefRes, loyaltyRes, healthRes, emergencyRes, nationalitiesRes] =
         await Promise.allSettled([
-          apiClient.get('/v1/users/me'),
           apiClient.get('/v1/users/me/profile'),
           apiClient.get('/v1/users/me/preferences'),
           apiClient.get('/v1/users/me/loyalty-programs'),
@@ -124,16 +137,7 @@ export default function ProfilePage() {
           apiClient.get('/v1/users/me/nationalities'),
         ]);
 
-      if (userRes.status === 'rejected') throw userRes.reason;
-
-      const freshUser = userRes.value.data as BasicInfoUser;
-      setData((prev) => ({
-        user: {
-          ...freshUser,
-          // Preserve cached avatarUrl — it only changes on re-auth, not on saves.
-          // Avoids repeated requests to Google's photo CDN, which has tight rate limits.
-          avatarUrl: prev?.user.avatarUrl ?? freshUser.avatarUrl,
-        },
+      setData({
         userProfile:
           profileRes.status === 'fulfilled'
             ? (profileRes.value.data as BasicInfoProfile)
@@ -160,7 +164,7 @@ export default function ProfilePage() {
           nationalitiesRes.status === 'fulfilled'
             ? (nationalitiesRes.value.data as NationalityDto[])
             : [],
-      }));
+      });
     } catch {
       if (!loadedOnce.current) {
         setHasLoadError(true);
@@ -179,7 +183,7 @@ export default function ProfilePage() {
     }
   }, [authLoading, currentUser, loadData]);
 
-  if (authLoading || isLoading) {
+  if (authLoading || isLoading || userLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center p-8">
         <Spinner size="lg" />
@@ -225,21 +229,21 @@ export default function ProfilePage() {
     if (e.key === 'ArrowRight') {
       e.preventDefault();
       const next = tabKeys[(currentIndex + 1) % tabKeys.length]!;
-      setActiveTab(next);
+      handleTabChange(next);
       document.getElementById(`tab-${next}`)?.focus();
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
       const prev = tabKeys[(currentIndex - 1 + tabKeys.length) % tabKeys.length]!;
-      setActiveTab(prev);
+      handleTabChange(prev);
       document.getElementById(`tab-${prev}`)?.focus();
     } else if (e.key === 'Home') {
       e.preventDefault();
-      setActiveTab(tabKeys[0]!);
+      handleTabChange(tabKeys[0]!);
       document.getElementById(`tab-${tabKeys[0]}`)?.focus();
     } else if (e.key === 'End') {
       e.preventDefault();
       const last = tabKeys[tabKeys.length - 1]!;
-      setActiveTab(last);
+      handleTabChange(last);
       document.getElementById(`tab-${last}`)?.focus();
     }
   }
@@ -262,7 +266,7 @@ export default function ProfilePage() {
               id={`tab-${key}`}
               role="tab"
               type="button"
-              onClick={() => setActiveTab(key)}
+              onClick={() => handleTabChange(key)}
               onKeyDown={(e) => handleTabKeyDown(e, key)}
               tabIndex={activeTab === key ? 0 : -1}
               aria-selected={activeTab === key}
@@ -291,7 +295,9 @@ export default function ProfilePage() {
         aria-labelledby="tab-basic"
         hidden={activeTab !== 'basic'}
       >
-        <BasicInfoSection user={data.user} userProfile={data.userProfile} onRefresh={loadData} />
+        {appUser && (
+          <BasicInfoSection user={appUser} userProfile={data.userProfile} onRefresh={loadData} />
+        )}
       </div>
       <div
         id="panel-personal"

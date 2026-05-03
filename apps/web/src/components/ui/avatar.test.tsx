@@ -1,5 +1,19 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+
+// Base UI's AvatarImage never mounts in JSDOM (image onLoad never fires).
+// Stub the primitives so the <img> is always rendered for prop assertions.
+vi.mock('@base-ui/react/avatar', () => ({
+  Avatar: {
+    Root: ({ children, ...props }: React.ComponentProps<'div'>) => <div {...props}>{children}</div>,
+    Image: ({ src, alt, className, referrerPolicy }: React.ComponentProps<'img'>) => (
+      <img src={src} alt={alt} className={className} referrerPolicy={referrerPolicy} />
+    ),
+    Fallback: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  },
+}));
+
 import { Avatar } from './avatar';
 
 describe('Avatar', () => {
@@ -38,6 +52,12 @@ describe('Avatar', () => {
     // The fallback uses a 300ms delay to avoid flash-of-fallback while image loads.
     const { container } = render(<Avatar src="/avatar.jpg" alt="User" fallback="U" />);
     expect(container.querySelector('[data-slot="avatar"]')).toBeInTheDocument();
+  });
+
+  it('sets referrerPolicy="no-referrer" on the image to share the browser cache with other instances', () => {
+    const { container } = render(<Avatar src="/avatar.jpg" alt="User" fallback="U" />);
+    const img = container.querySelector('img');
+    expect(img).toHaveAttribute('referrerpolicy', 'no-referrer');
   });
 
   it('renders fallback when no src is provided', () => {

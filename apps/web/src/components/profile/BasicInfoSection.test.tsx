@@ -5,10 +5,15 @@ const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
+  mockRefresh: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch },
+}));
+
+vi.mock('@/hooks/useUser', () => ({
+  useUser: () => ({ appUser: null, isLoading: false, refresh: mocks.mockRefresh }),
 }));
 
 vi.mock('@/components/ui/toast', () => ({
@@ -59,10 +64,11 @@ vi.mock('@/components/ui/timezone-combobox', () => ({
 
 import { ProfileVisibility } from '@chamuco/shared-types';
 
+import type { AppUser } from '@/store/user';
 import { BasicInfoSection } from './BasicInfoSection';
-import type { BasicInfoUser, BasicInfoProfile } from './BasicInfoSection';
+import type { BasicInfoProfile } from './BasicInfoSection';
 
-const baseUser: BasicInfoUser = {
+const baseUser: AppUser = {
   username: 'janedoe',
   displayName: 'Jane Doe',
   avatarUrl: null,
@@ -72,7 +78,7 @@ const baseUser: BasicInfoUser = {
 
 const baseProfile: BasicInfoProfile = { bio: 'Hello world', homeCountry: 'CO' };
 
-function setup(userOverride?: Partial<BasicInfoUser>, profileOverride?: Partial<BasicInfoProfile>) {
+function setup(userOverride?: Partial<AppUser>, profileOverride?: Partial<BasicInfoProfile>) {
   const onRefresh = vi.fn();
   const user = userEvent.setup();
   render(
@@ -207,6 +213,12 @@ describe('BasicInfoSection', () => {
       const { user, onRefresh } = setup({ timezone: 'UTC' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
+    });
+
+    it('calls store refresh after successful save', async () => {
+      const { user } = setup({ timezone: 'UTC' });
+      await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
+      await waitFor(() => expect(mocks.mockRefresh).toHaveBeenCalledOnce());
     });
 
     it('shows success toast on save', async () => {
