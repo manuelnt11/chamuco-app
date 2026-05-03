@@ -34,16 +34,7 @@ import { toast } from '@/components/ui/toast';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
 
-type Tab =
-  | 'basic'
-  | 'personal'
-  | 'nationalities'
-  | 'preferences'
-  | 'loyalty'
-  | 'health'
-  | 'emergency';
-
-const VALID_TABS: Tab[] = [
+const VALID_TABS = [
   'basic',
   'personal',
   'nationalities',
@@ -51,7 +42,9 @@ const VALID_TABS: Tab[] = [
   'loyalty',
   'health',
   'emergency',
-];
+] as const;
+
+type Tab = (typeof VALID_TABS)[number];
 
 const DEFAULT_PERSONAL_DETAILS: PersonalDetailsProfile = {
   firstName: '',
@@ -302,7 +295,9 @@ export default function ProfilePage() {
         aria-labelledby="tab-basic"
         hidden={activeTab !== 'basic'}
       >
-        <BasicInfoSection user={appUser!} userProfile={data.userProfile} onRefresh={loadData} />
+        {appUser && (
+          <BasicInfoSection user={appUser} userProfile={data.userProfile} onRefresh={loadData} />
+        )}
       </div>
       <div
         id="panel-personal"

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { preload } from 'react-dom';
 import type { ProfileVisibility } from '@chamuco/shared-types';
@@ -52,13 +52,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
     void fetchUser();
   }, [authLoading, currentUser, fetchUser]);
 
+  // Called during render (not in an effect) so React synchronously injects
+  // <link rel="preload"> before any consumer mounts, warming the browser cache.
   if (appUser?.avatarUrl) {
     preload(appUser.avatarUrl, { as: 'image', referrerPolicy: 'no-referrer' });
   }
 
-  return (
-    <UserContext.Provider value={{ appUser, isLoading, refresh: fetchUser }}>
-      {children}
-    </UserContext.Provider>
+  const value = useMemo(
+    () => ({ appUser, isLoading, refresh: fetchUser }),
+    [appUser, isLoading, fetchUser],
   );
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }

@@ -15,15 +15,7 @@ import {
   MenuLabel,
 } from '@/components/ui/menu';
 import { toast } from '@/components/ui/toast';
-
-function getInitials(name: string): string {
-  return name
-    .split(/[\s@]/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s) => s.charAt(0).toUpperCase())
-    .join('');
-}
+import { getInitials } from '@/lib/name-utils';
 
 export function UserAvatar() {
   const { t } = useTranslation(['common', 'auth', 'errors']);
