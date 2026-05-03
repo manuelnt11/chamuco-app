@@ -14,6 +14,7 @@ import { TimezoneCombobox } from '@/components/ui/timezone-combobox';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
+import { useUser } from '@/hooks/useUser';
 import { COUNTRY_TIMEZONE } from '@/lib/timezones';
 import { getInitials } from '@/lib/name-utils';
 
@@ -38,6 +39,7 @@ interface BasicInfoSectionProps {
 
 export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSectionProps) {
   const { t } = useTranslation('profile');
+  const { refresh } = useUser();
 
   const [displayName, setDisplayName] = useState(user.displayName);
   const [bio, setBio] = useState(userProfile.bio ?? '');
@@ -78,6 +80,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
         }),
       ]);
       toast.success(t('basicInfo.saveSuccess'));
+      void refresh();
       onRefresh();
     } catch {
       toast.error(t('basicInfo.saveError'));

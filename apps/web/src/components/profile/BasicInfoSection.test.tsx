@@ -5,10 +5,15 @@ const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
+  mockRefresh: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch },
+}));
+
+vi.mock('@/hooks/useUser', () => ({
+  useUser: () => ({ appUser: null, isLoading: false, refresh: mocks.mockRefresh }),
 }));
 
 vi.mock('@/components/ui/toast', () => ({
@@ -207,6 +212,12 @@ describe('BasicInfoSection', () => {
       const { user, onRefresh } = setup({ timezone: 'UTC' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
+    });
+
+    it('calls store refresh after successful save', async () => {
+      const { user } = setup({ timezone: 'UTC' });
+      await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
+      await waitFor(() => expect(mocks.mockRefresh).toHaveBeenCalledOnce());
     });
 
     it('shows success toast on save', async () => {

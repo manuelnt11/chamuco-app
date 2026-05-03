@@ -2,7 +2,9 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { User } from 'firebase/auth';
+import { ProfileVisibility } from '@chamuco/shared-types';
 import type { AuthContextValue } from '@/store/auth';
+import type { UserContextValue } from '@/store/user';
 
 // --- hoisted mocks ---
 
@@ -20,6 +22,10 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
+}));
+
+vi.mock('@/hooks/useUser', () => ({
+  useUser: vi.fn(),
 }));
 
 vi.mock('@/components/ui/toast', () => ({
@@ -58,6 +64,7 @@ vi.mock('@/components/ui/menu', () => ({
 }));
 
 import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
 import { UserAvatar } from './UserAvatar';
 
 // --- helpers ---
@@ -75,10 +82,25 @@ function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
   };
 }
 
-function makeUser(overrides: Partial<User> = {}): User {
+function makeAppUser(overrides: Partial<UserContextValue['appUser']> = {}): UserContextValue {
+  return {
+    appUser: {
+      username: 'janedoe',
+      displayName: 'Jane Doe',
+      avatarUrl: null,
+      timezone: 'America/Bogota',
+      profileVisibility: ProfileVisibility.PUBLIC,
+      ...overrides,
+    },
+    isLoading: false,
+    refresh: vi.fn(),
+  };
+}
+
+function makeFirebaseUser(overrides: Partial<User> = {}): User {
   return {
     uid: 'uid-123',
-    displayName: 'Jane Doe',
+    displayName: 'Firebase Name',
     email: 'jane@example.com',
     photoURL: null,
     ...overrides,
@@ -88,12 +110,24 @@ function makeUser(overrides: Partial<User> = {}): User {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockSignOut.mockResolvedValue(undefined);
+  vi.mocked(useUser).mockReturnValue({
+    appUser: null,
+    isLoading: false,
+    refresh: vi.fn(),
+  });
 });
 
 describe('UserAvatar', () => {
   describe('loading state', () => {
     it('renders a non-interactive placeholder while auth state is loading', () => {
       vi.mocked(useAuth).mockReturnValue(makeAuth({ isLoading: true }));
+      render(<UserAvatar />);
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('renders a non-interactive placeholder while user data is loading', () => {
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeFirebaseUser() }));
+      vi.mocked(useUser).mockReturnValue({ appUser: null, isLoading: true, refresh: vi.fn() });
       render(<UserAvatar />);
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
@@ -119,7 +153,8 @@ describe('UserAvatar', () => {
 
   describe('authenticated state', () => {
     beforeEach(() => {
-      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeFirebaseUser() }));
+      vi.mocked(useUser).mockReturnValue(makeAppUser());
     });
 
     it('renders a trigger button', () => {
@@ -127,18 +162,30 @@ describe('UserAvatar', () => {
       expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
-    it('shows user initials when photoURL is null', () => {
+    it('shows user initials from appUser displayName when avatarUrl is null', () => {
       render(<UserAvatar />);
       expect(screen.getByRole('button')).toHaveTextContent('JD');
     });
 
-    it('shows a photo img when photoURL is set', () => {
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ photoURL: 'https://example.com/avatar.jpg' }) }),
+    it('shows a photo img when appUser has avatarUrl', () => {
+      vi.mocked(useUser).mockReturnValue(
+        makeAppUser({ avatarUrl: 'https://example.com/avatar.jpg' }),
       );
       render(<UserAvatar />);
       const img = screen.getByRole('img');
       expect(img).toHaveAttribute('src', 'https://example.com/avatar.jpg');
+    });
+
+    it('falls back to firebase photoURL when appUser has no avatarUrl', () => {
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({
+          currentUser: makeFirebaseUser({ photoURL: 'https://firebase.example.com/photo.jpg' }),
+        }),
+      );
+      vi.mocked(useUser).mockReturnValue(makeAppUser({ avatarUrl: null }));
+      render(<UserAvatar />);
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', 'https://firebase.example.com/photo.jpg');
     });
 
     it('renders the dropdown menu', () => {
@@ -146,26 +193,33 @@ describe('UserAvatar', () => {
       expect(screen.getByTestId('menu-popup')).toBeInTheDocument();
     });
 
-    it('shows the display name in the menu label', () => {
+    it('shows appUser displayName in the menu label', () => {
       render(<UserAvatar />);
       expect(screen.getByTestId('menu-label')).toHaveTextContent('Jane Doe');
     });
 
-    it('shows the email in the menu label when different from display name', () => {
+    it('shows @username in the menu label', () => {
       render(<UserAvatar />);
-      expect(screen.getByTestId('menu-label')).toHaveTextContent('jane@example.com');
+      expect(screen.getByTestId('menu-label')).toHaveTextContent('@janedoe');
     });
 
-    it('hides the email line when displayName equals email', () => {
+    it('hides username line when appUser is null', () => {
+      vi.mocked(useUser).mockReturnValue({ appUser: null, isLoading: false, refresh: vi.fn() });
       vi.mocked(useAuth).mockReturnValue(
-        makeAuth({
-          currentUser: makeUser({ displayName: null, email: 'jane@example.com' }),
-        }),
+        makeAuth({ currentUser: makeFirebaseUser({ displayName: 'Firebase Name' }) }),
       );
       render(<UserAvatar />);
-      // email is used as displayName — the secondary email line should not appear twice
       const label = screen.getByTestId('menu-label');
       expect(label.querySelectorAll('p')).toHaveLength(1);
+    });
+
+    it('falls back to firebase displayName when appUser is null', () => {
+      vi.mocked(useUser).mockReturnValue({ appUser: null, isLoading: false, refresh: vi.fn() });
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeFirebaseUser({ displayName: 'Firebase Name' }) }),
+      );
+      render(<UserAvatar />);
+      expect(screen.getByTestId('menu-label')).toHaveTextContent('Firebase Name');
     });
 
     it('renders Profile and Sign out menu items', () => {
@@ -203,27 +257,26 @@ describe('UserAvatar', () => {
 
   describe('initials generation', () => {
     it('generates two initials from a two-word display name', () => {
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: 'John Smith' }) }),
-      );
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeFirebaseUser() }));
+      vi.mocked(useUser).mockReturnValue(makeAppUser({ displayName: 'John Smith' }));
       render(<UserAvatar />);
       expect(screen.getByRole('button')).toHaveTextContent('JS');
     });
 
-    it('falls back to email-based initial when displayName is null', () => {
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: null, email: 'admin@example.com' }) }),
-      );
+    it('generates one initial from a single-word display name', () => {
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeFirebaseUser() }));
+      vi.mocked(useUser).mockReturnValue(makeAppUser({ displayName: 'Janedoe' }));
       render(<UserAvatar />);
-      expect(screen.getByRole('button')).toHaveTextContent('A');
+      expect(screen.getByRole('button')).toHaveTextContent('J');
     });
 
-    it('shows "?" initial when both displayName and email are null', () => {
+    it('falls back to firebase displayName initial when appUser is null', () => {
       vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: null, email: null }) }),
+        makeAuth({ currentUser: makeFirebaseUser({ displayName: 'Admin User' }) }),
       );
+      vi.mocked(useUser).mockReturnValue({ appUser: null, isLoading: false, refresh: vi.fn() });
       render(<UserAvatar />);
-      expect(screen.getByRole('button')).toHaveTextContent('?');
+      expect(screen.getByRole('button')).toHaveTextContent('AU');
     });
   });
 });

@@ -46,6 +46,7 @@ function Avatar({ className, size, src, alt, fallback, ...props }: AvatarProps) 
           src={src}
           alt={alt ?? ''}
           className="aspect-square size-full object-cover"
+          referrerPolicy="no-referrer"
         />
       )}
       <AvatarPrimitive.Fallback
