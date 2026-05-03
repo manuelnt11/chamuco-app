@@ -64,10 +64,11 @@ vi.mock('@/components/ui/timezone-combobox', () => ({
 
 import { ProfileVisibility } from '@chamuco/shared-types';
 
+import type { AppUser } from '@/store/user';
 import { BasicInfoSection } from './BasicInfoSection';
-import type { BasicInfoUser, BasicInfoProfile } from './BasicInfoSection';
+import type { BasicInfoProfile } from './BasicInfoSection';
 
-const baseUser: BasicInfoUser = {
+const baseUser: AppUser = {
   username: 'janedoe',
   displayName: 'Jane Doe',
   avatarUrl: null,
@@ -77,7 +78,7 @@ const baseUser: BasicInfoUser = {
 
 const baseProfile: BasicInfoProfile = { bio: 'Hello world', homeCountry: 'CO' };
 
-function setup(userOverride?: Partial<BasicInfoUser>, profileOverride?: Partial<BasicInfoProfile>) {
+function setup(userOverride?: Partial<AppUser>, profileOverride?: Partial<BasicInfoProfile>) {
   const onRefresh = vi.fn();
   const user = userEvent.setup();
   render(

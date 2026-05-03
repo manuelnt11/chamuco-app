@@ -15,16 +15,9 @@ import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
 import { useUser } from '@/hooks/useUser';
+import type { AppUser } from '@/store/user';
 import { COUNTRY_TIMEZONE } from '@/lib/timezones';
 import { getInitials } from '@/lib/name-utils';
-
-export interface BasicInfoUser {
-  username: string;
-  displayName: string;
-  avatarUrl: string | null;
-  timezone: string;
-  profileVisibility: ProfileVisibility;
-}
 
 export interface BasicInfoProfile {
   bio: string | null;
@@ -32,7 +25,7 @@ export interface BasicInfoProfile {
 }
 
 interface BasicInfoSectionProps {
-  user: BasicInfoUser;
+  user: AppUser;
   userProfile: BasicInfoProfile;
   onRefresh: () => void;
 }

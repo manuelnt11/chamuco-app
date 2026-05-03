@@ -57,11 +57,10 @@ export function UserAvatar() {
     );
   }
 
-  const displayName =
-    appUser?.displayName ?? currentUser.displayName ?? t('common:navigation.profile');
+  const displayName = appUser?.displayName ?? currentUser.displayName ?? null;
   const username = appUser?.username ?? null;
   const avatarUrl = appUser?.avatarUrl ?? currentUser.photoURL ?? null;
-  const initials = getInitials(displayName !== t('common:navigation.profile') ? displayName : '?');
+  const initials = getInitials(displayName ?? '?');
 
   return (
     <MenuRoot>
@@ -72,7 +71,7 @@ export function UserAvatar() {
         {avatarUrl ? (
           <img
             src={avatarUrl}
-            alt={displayName}
+            alt={displayName ?? undefined}
             className="h-9 w-9 rounded-full object-cover"
             referrerPolicy="no-referrer"
           />
@@ -84,7 +83,9 @@ export function UserAvatar() {
       <MenuPopup>
         {/* User info — non-interactive */}
         <MenuLabel>
-          <p className="font-medium text-foreground truncate">{displayName}</p>
+          <p className="font-medium text-foreground truncate">
+            {displayName ?? t('common:navigation.profile')}
+          </p>
           {username && <p className="truncate">{`@${username}`}</p>}
         </MenuLabel>
 
