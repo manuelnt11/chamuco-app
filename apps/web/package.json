@@ -23,7 +23,7 @@
     "@chamuco/shared-types": "workspace:*",
     "@chamuco/shared-utils": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
-    "axios": "^1.14.0",
+    "axios": "^1.16.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
