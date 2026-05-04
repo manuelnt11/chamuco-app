@@ -1,6 +1,6 @@
 'use client';
 
-import { type SyntheticEvent, useEffect, useId, useState } from 'react';
+import { type SyntheticEvent, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Trans, useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { useTheme } from 'next-themes';
 import { getCountryData, type TCountryCode } from 'countries-list';
 
 import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
 import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
 import { apiClient } from '@/services/api-client';
 import { Logo } from '@/components/header/Logo';
@@ -160,6 +161,9 @@ export default function OnboardingPage() {
   const { theme } = useTheme();
   const router = useRouter();
   const { currentUser, isLoading, signOut } = useAuth();
+  const { refresh: refreshUser } = useUser();
+  // Stable ref so the pre-flight effect doesn't re-run when language changes
+  const tRef = useRef(t);
 
   // Global state
   const [step, setStep] = useState(1);
@@ -222,6 +226,12 @@ export default function OnboardingPage() {
     }
   }, [currentUser, isLoading, router]);
 
+  // Keep tRef current so the pre-flight effect can read the latest translation
+  // without listing t as a dependency (which would re-run the effect on language change).
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
   // Redirect already-registered users
   useEffect(() => {
     if (isLoading || !currentUser) return;
@@ -239,14 +249,17 @@ export default function OnboardingPage() {
         if (isAxiosError(err) && err.response?.status === 404) {
           setIsCheckingRegistration(false);
         } else {
-          toast.error(t('error.failed'));
-          router.replace('/sign-in');
+          // Non-404 errors (network failure, 5xx) are transient — show the form
+          // rather than bouncing the user back to sign-in. If they are already
+          // registered the submit will return 409, which is recoverable.
+          toast.error(tRef.current('error.failed'));
+          setIsCheckingRegistration(false);
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [currentUser, isLoading, router, t]);
+  }, [currentUser, isLoading, router]);
 
   // Debounced username availability check
   useEffect(() => {
@@ -346,6 +359,7 @@ export default function OnboardingPage() {
         })
         .catch(() => {});
       // localStorage.setItem(PROFILE_INCOMPLETE_KEY, 'true'); // TODO: re-enable with banner
+      await refreshUser();
       router.replace('/');
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
