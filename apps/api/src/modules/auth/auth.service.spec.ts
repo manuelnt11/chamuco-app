@@ -2,10 +2,16 @@ import { BadRequestException, ConflictException, UnauthorizedException } from '@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { AuthService } from '@/modules/auth/auth.service';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 import type { RegisterResponseDto } from './dto/register-response.dto';
 import type { RegisterDto } from './dto/register.dto';
+
+function getProfileInsertValues(mockInsert: jest.Mock): jest.Mock | undefined {
+  const idx = mockInsert.mock.calls.findIndex(([table]) => table === userProfiles);
+  return mockInsert.mock.results[idx]?.value?.values as jest.Mock | undefined;
+}
 
 const mockCreatedUser: RegisterResponseDto = {
   id: 'user-uuid',
@@ -336,8 +342,7 @@ describe('AuthService', () => {
 
       await service.register('Bearer valid-token', validRegisterDto);
 
-      // Third insert call is userProfiles (index 2)
-      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
       expect(profileInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({
           firstName: 'JOHN',
@@ -357,7 +362,7 @@ describe('AuthService', () => {
         email: 'alerts@example.com',
       });
 
-      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
       expect(profileInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({ email: 'alerts@example.com' }),
       );
@@ -372,7 +377,7 @@ describe('AuthService', () => {
         email: 'alerts@example.com',
       });
 
-      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
       expect(profileInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({ emailVerified: false }),
       );
@@ -387,7 +392,7 @@ describe('AuthService', () => {
         email: mockDecodedToken.email,
       });
 
-      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
       expect(profileInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({ emailVerified: true }),
       );
@@ -399,7 +404,7 @@ describe('AuthService', () => {
 
       await service.register('Bearer valid-token', validRegisterDto);
 
-      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
       expect(profileInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({ email: 'test@example.com' }),
       );
@@ -411,7 +416,7 @@ describe('AuthService', () => {
 
       await service.register('Bearer valid-token', validRegisterDto);
 
-      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
       expect(profileInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({ emailVerified: true }),
       );

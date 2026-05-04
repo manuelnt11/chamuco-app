@@ -174,7 +174,6 @@ export class RegisterDto {
     required: false,
   })
   @IsOptional()
-  @IsString()
   @IsEmail()
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
