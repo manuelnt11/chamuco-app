@@ -3,6 +3,7 @@ import { Type, Transform } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsEmail,
   IsObject,
   IsOptional,
   IsString,
@@ -165,4 +166,17 @@ export class RegisterDto {
   @ValidateNested({ each: true })
   @Type(() => EmergencyContactDto)
   emergencyContacts?: EmergencyContactDto[];
+
+  @ApiProperty({
+    example: 'notifications@example.com',
+    description:
+      'Email address for platform notifications. Defaults to the Firebase auth email if omitted.',
+    required: false,
+  })
+  @IsOptional()
+  @IsEmail()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
+  email?: string;
 }

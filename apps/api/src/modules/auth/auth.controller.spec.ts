@@ -10,7 +10,6 @@ import type { RegisterDto } from './dto/register.dto';
 
 const mockUser: RegisterResponseDto = {
   id: 'user-uuid',
-  email: 'test@example.com',
   username: 'john_doe',
   displayName: 'John Doe',
   avatarUrl: null,

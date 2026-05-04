@@ -689,6 +689,7 @@ describe('OnboardingPage', () => {
           homeCountry: 'CO',
           phoneCountryCode: '+57',
           phoneLocalNumber: '3001234567',
+          email: 'test@example.com',
         }),
       );
     });
@@ -837,6 +838,86 @@ describe('OnboardingPage', () => {
 
       await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
       expect(mocks.mockToastError).not.toHaveBeenCalled();
+    });
+
+    it('pre-fills notification email from Firebase auth email', async () => {
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({
+          currentUser: makeUser({ email: 'firebase@example.com', displayName: 'Test User' }),
+        }),
+      );
+      mockGetByUrl();
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi), delay: null });
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('next-btn')).toBeInTheDocument());
+      // Wait for the debounced username availability check (300ms)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('email-input')).toBeInTheDocument());
+      expect(screen.getByTestId<HTMLInputElement>('email-input').value).toBe(
+        'firebase@example.com',
+      );
+    });
+
+    it('blocks step 2 advance when notification email is malformed', async () => {
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
+      );
+      mockGetByUrl();
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi), delay: null });
+      render(<OnboardingPage />);
+      await waitFor(() => expect(screen.getByTestId('next-btn')).toBeInTheDocument());
+      // Wait for the debounced username availability check (300ms)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() =>
+        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+      );
+
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+
+      await user.type(screen.getByTestId('firstname-input'), 'JOHN');
+      await user.type(screen.getByTestId('lastname-input'), 'DOE');
+      await user.type(screen.getByTestId('dob-day-input'), '15');
+      await user.type(screen.getByTestId('dob-month-input'), '6');
+      await user.type(screen.getByTestId('dob-year-input'), '1990');
+      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+      const emailInput = screen.getByTestId('email-input');
+      await user.clear(emailInput);
+      await user.type(emailInput, 'not-an-email');
+
+      await user.click(screen.getByTestId('next-btn'));
+
+      expect(screen.queryByTestId('terms-checkbox')).not.toBeInTheDocument();
+      expect(screen.getByText('onboarding.validation.invalidEmail')).toBeInTheDocument();
+    });
+
+    it('sends null email when the field is cleared', async () => {
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      const user = await renderFormWithAvailableUsername({
+        currentUser: makeUser({ displayName: 'Test User' }),
+      });
+      // renderFormWithAvailableUsername ends on step 3; go back to step 2 to clear the email
+      await user.click(screen.getByTestId('back-btn'));
+      await waitFor(() => expect(screen.getByTestId('email-input')).toBeInTheDocument());
+      await user.clear(screen.getByTestId('email-input'));
+      // Return to step 3 (termsAccepted state is preserved)
+      await user.click(screen.getByTestId('next-btn'));
+      await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
+      await user.click(screen.getByTestId('submit-btn'));
+      await waitFor(() =>
+        expect(mocks.mockApiPost).toHaveBeenCalledWith(
+          '/v1/auth/register',
+          expect.objectContaining({ email: null }),
+        ),
+      );
     });
 
     it('shows generic error toast on unexpected submit error', async () => {

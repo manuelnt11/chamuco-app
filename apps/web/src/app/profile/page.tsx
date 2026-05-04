@@ -56,6 +56,9 @@ const DEFAULT_PERSONAL_DETAILS: PersonalDetailsProfile = {
   birthCity: null,
   homeCountry: 'CO',
   homeCity: null,
+  email: '',
+  emailVerified: false,
+  phoneVerified: false,
 };
 
 const DEFAULT_HEALTH_DATA: HealthData = {

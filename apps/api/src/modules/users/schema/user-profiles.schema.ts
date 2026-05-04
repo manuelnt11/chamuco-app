@@ -6,7 +6,17 @@ import {
   PhobiaType,
   PhysicalLimitationType,
 } from '@chamuco/shared-types';
-import { char, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  char,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 
 import { users } from './users.schema';
 
@@ -105,8 +115,13 @@ export const userProfiles = pgTable('user_profiles', {
   birthCity: text('birth_city'),
   homeCountry: char('home_country', { length: 2 }).notNull(),
   homeCity: text('home_city'),
+  email: text('email').notNull(),
+  // TODO: implement email verification flow when the notification emails module is built
+  emailVerified: boolean('email_verified').notNull().default(false),
   phoneCountryCode: text('phone_country_code').notNull(),
   phoneLocalNumber: text('phone_local_number').notNull(),
+  // TODO: implement phone verification flow when the SMS notifications module is built
+  phoneVerified: boolean('phone_verified').notNull().default(false),
   bio: varchar('bio', { length: 200 }),
   bloodType: bloodTypeEnum('blood_type'),
   dietaryPreference: dietaryPreferenceEnum('dietary_preference')

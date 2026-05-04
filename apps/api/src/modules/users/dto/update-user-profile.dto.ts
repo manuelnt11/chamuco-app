@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
+  IsEmail,
   IsOptional,
   IsString,
   Matches,
@@ -110,6 +111,16 @@ export class UpdateUserProfileDto {
       'homeCity must contain only letters and spaces (accents allowed, no digits or symbols)',
   })
   homeCity?: string | null;
+
+  @ApiProperty({
+    example: 'notifications@example.com',
+    description: 'Email address for platform notifications.',
+    required: false,
+  })
+  @IsOptional()
+  @IsEmail()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  email?: string;
 
   @ApiProperty({
     example: '+57',

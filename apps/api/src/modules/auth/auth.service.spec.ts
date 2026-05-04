@@ -2,14 +2,19 @@ import { BadRequestException, ConflictException, UnauthorizedException } from '@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { AuthService } from '@/modules/auth/auth.service';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 import type { RegisterResponseDto } from './dto/register-response.dto';
 import type { RegisterDto } from './dto/register.dto';
 
+function getProfileInsertValues(mockInsert: jest.Mock): jest.Mock | undefined {
+  const idx = mockInsert.mock.calls.findIndex(([table]) => table === userProfiles);
+  return mockInsert.mock.results[idx]?.value?.values as jest.Mock | undefined;
+}
+
 const mockCreatedUser: RegisterResponseDto = {
   id: 'user-uuid',
-  email: 'test@example.com',
   username: 'john_doe',
   displayName: 'John Doe',
   avatarUrl: 'https://example.com/avatar.jpg',
@@ -337,8 +342,7 @@ describe('AuthService', () => {
 
       await service.register('Bearer valid-token', validRegisterDto);
 
-      // Third insert call is userProfiles (index 2)
-      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
       expect(profileInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({
           firstName: 'JOHN',
@@ -346,6 +350,75 @@ describe('AuthService', () => {
           homeCountry: 'CO',
           phoneCountryCode: '+57',
         }),
+      );
+    });
+
+    it('should use dto.email as profile email when provided', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', {
+        ...validRegisterDto,
+        email: 'alerts@example.com',
+      });
+
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'alerts@example.com' }),
+      );
+    });
+
+    it('should set emailVerified false when dto.email differs from Firebase token email', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', {
+        ...validRegisterDto,
+        email: 'alerts@example.com',
+      });
+
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerified: false }),
+      );
+    });
+
+    it('should set emailVerified true when dto.email matches Firebase token email', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', {
+        ...validRegisterDto,
+        email: mockDecodedToken.email,
+      });
+
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerified: true }),
+      );
+    });
+
+    it('should fall back to Firebase token email when dto.email is omitted', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', validRegisterDto);
+
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'test@example.com' }),
+      );
+    });
+
+    it('should set emailVerified true when dto.email is omitted (falls back to Firebase email)', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', validRegisterDto);
+
+      const profileInsertValues = getProfileInsertValues(mockTrxInsert);
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerified: true }),
       );
     });
 

@@ -74,7 +74,8 @@ export class UsersController {
     description:
       'Updates any subset of personal-detail fields. ' +
       'Country codes must be ISO 3166-1 alpha-2 (two uppercase letters). ' +
-      'Empty or whitespace-only text fields (birthCity, homeCity, bio) are stored as null.',
+      'Empty or whitespace-only text fields (birthCity, homeCity, bio) are stored as null. ' +
+      'Email must be a valid address when provided; updating it resets emailVerified to false.',
   })
   @ApiResponse({ status: 200, type: UserProfileResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })

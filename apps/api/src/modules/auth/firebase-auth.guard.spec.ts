@@ -10,7 +10,6 @@ import type { AuthenticatedUser } from '@/types/express.d';
 
 const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
-  email: 'test@example.com',
   username: 'testuser',
   displayName: 'Test User',
   avatarUrl: null,

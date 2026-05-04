@@ -97,7 +97,7 @@ describe('Auth endpoints (integration)', () => {
 
   afterAll(async () => {
     // Clean up any test users created during this suite.
-    await db.execute(sql`DELETE FROM users WHERE email = ${'e2e-test@chamuco.dev'}`);
+    await db.execute(sql`DELETE FROM users WHERE firebase_uid LIKE ${'firebase-uid-e2e%'}`);
     await app.close();
   });
 
@@ -162,7 +162,6 @@ describe('Auth endpoints (integration)', () => {
         .expect(201);
 
       expect(res.body).toMatchObject({
-        email: 'e2e-test@chamuco.dev',
         username: 'e2e_test_user',
         displayName: 'E2E Test User',
         authProvider: 'GOOGLE',
