@@ -61,7 +61,6 @@ async function seedAdmin(): Promise<void> {
     const [user] = await db
       .insert(schema.users)
       .values({
-        email,
         username,
         displayName,
         authProvider,
@@ -71,7 +70,6 @@ async function seedAdmin(): Promise<void> {
       .onConflictDoUpdate({
         target: schema.users.firebaseUid,
         set: {
-          email,
           username,
           displayName,
           platformRole: PlatformRole.SUPPORT_ADMIN,
@@ -89,6 +87,26 @@ async function seedAdmin(): Promise<void> {
       .onConflictDoNothing({ target: schema.userPreferences.userId });
 
     console.log('user_preferences record ensured');
+
+    await db
+      .insert(schema.userProfiles)
+      .values({
+        userId,
+        email,
+        emailVerified: true,
+        firstName: 'ADMIN',
+        lastName: 'ADMIN',
+        dateOfBirth: { day: 1, month: 1, year: 1990, year_visible: false },
+        homeCountry: 'CO',
+        phoneCountryCode: '+1',
+        phoneLocalNumber: '0000000000',
+      })
+      .onConflictDoUpdate({
+        target: schema.userProfiles.userId,
+        set: { email },
+      });
+
+    console.log('user_profiles record ensured');
     console.log('Done.');
   } finally {
     await client.end();

@@ -25,6 +25,9 @@ export interface PersonalDetailsProfile {
   birthCity: string | null;
   homeCountry: string;
   homeCity: string | null;
+  email: string;
+  emailVerified: boolean;
+  phoneVerified: boolean;
 }
 
 interface PersonalDetailsSectionProps {
@@ -61,12 +64,14 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
   const [birthCity, setBirthCity] = useState(profile.birthCity ?? '');
   const [homeCountry, setHomeCountry] = useState(profile.homeCountry);
   const [homeCity, setHomeCity] = useState(profile.homeCity ?? '');
+  const [email, setEmail] = useState(profile.email);
 
   const [firstNameError, setFirstNameError] = useState<string | null>(null);
   const [lastNameError, setLastNameError] = useState<string | null>(null);
   const [dobError, setDobError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [homeCountryError, setHomeCountryError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const isDirty =
@@ -81,7 +86,8 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
     (birthCountry || null) !== profile.birthCountry ||
     (birthCity.trim() || null) !== profile.birthCity ||
     homeCountry !== profile.homeCountry ||
-    (homeCity.trim() || null) !== profile.homeCity;
+    (homeCity.trim() || null) !== profile.homeCity ||
+    email.trim() !== profile.email;
 
   async function handleSave(e: FormEvent) {
     e.preventDefault();
@@ -153,6 +159,14 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
       setHomeCountryError(null);
     }
 
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setEmailError(t('personalDetails.errors.invalidEmail'));
+      hasError = true;
+    } else {
+      setEmailError(null);
+    }
+
     if (hasError) return;
 
     setIsSaving(true);
@@ -167,6 +181,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
         birthCity: birthCity.trim() || null,
         homeCountry,
         homeCity: homeCity.trim() || null,
+        email: email.trim(),
       });
       toast.success(t('personalDetails.saveSuccess'));
       onRefresh();
@@ -275,6 +290,22 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
           />
           {t('personalDetails.yearVisible')}
         </label>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="email">{t('personalDetails.email')}</Label>
+        <Input
+          id="email"
+          type="text"
+          inputMode="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder={t('personalDetails.emailPlaceholder')}
+          aria-invalid={emailError !== null}
+          disabled={isSaving}
+        />
+        <FieldMessage error={emailError} hint={t('personalDetails.emailHint')} />
       </div>
 
       <div className="space-y-1.5">

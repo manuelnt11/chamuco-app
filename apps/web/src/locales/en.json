@@ -169,7 +169,13 @@
         "invalidPhoneCode": "Enter a valid country code (e.g. +57)",
         "invalidName": "Letters and spaces only (2–100 characters), as on your passport",
         "invalidDob": "Enter a valid date of birth",
-        "usernameUnavailable": "Choose an available username before continuing"
+        "usernameUnavailable": "Choose an available username before continuing",
+        "invalidEmail": "Enter a valid email address"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "your@email.com",
+        "hint": "Pre-filled from your sign-in account. You can change it."
       }
     }
   },
@@ -308,8 +314,12 @@
         "lastNameRequired": "Last name: letters and spaces only, 2–100 characters",
         "invalidDob": "Enter a valid date of birth (min age: 15)",
         "invalidPhone": "Enter a valid phone number",
-        "homeCountryRequired": "Home country is required"
-      }
+        "homeCountryRequired": "Home country is required",
+        "invalidEmail": "Enter a valid email address"
+      },
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "emailHint": "Email address for trip alerts and platform notifications."
     },
     "loyaltyPrograms": {
       "heading": "Loyalty Programs",
@@ -532,7 +542,10 @@
         "save": "Save",
         "cancel": "Cancel",
         "coverageType": "Coverage",
-        "coverageTypes": { "COUNTRY": "Country", "ZONE": "Zone" },
+        "coverageTypes": {
+          "COUNTRY": "Country",
+          "ZONE": "Zone"
+        },
         "country": "Country",
         "countryPlaceholder": "Select country",
         "countrySearch": "Search countries…",
@@ -558,7 +571,11 @@
           "OTHER": "Other"
         },
         "entries": "Entries",
-        "entriesOptions": { "SINGLE": "Single", "DOUBLE": "Double", "MULTIPLE": "Multiple" },
+        "entriesOptions": {
+          "SINGLE": "Single",
+          "DOUBLE": "Double",
+          "MULTIPLE": "Multiple"
+        },
         "expiryDate": "Expiry date",
         "notes": "Notes",
         "notesPlaceholder": "Optional notes...",
@@ -594,9 +611,16 @@
         "authorizationNumber": "Authorization number",
         "authorizationPlaceholder": "e.g. A1B2C3D4E5",
         "etaType": "ETA type",
-        "etaTypes": { "TOURIST": "Tourist", "TRANSIT": "Transit" },
+        "etaTypes": {
+          "TOURIST": "Tourist",
+          "TRANSIT": "Transit"
+        },
         "entries": "Entries",
-        "entriesOptions": { "SINGLE": "Single", "DOUBLE": "Double", "MULTIPLE": "Multiple" },
+        "entriesOptions": {
+          "SINGLE": "Single",
+          "DOUBLE": "Double",
+          "MULTIPLE": "Multiple"
+        },
         "expiryDate": "Expiry date",
         "notes": "Notes",
         "notesPlaceholder": "Optional notes...",

@@ -93,13 +93,13 @@ export class AuthService {
     }
 
     const { day, month, year, yearVisible } = dto.dateOfBirth;
+    const profileEmail = dto.email ?? decodedToken.email!;
 
     const newUser = await this.db
       .transaction(async (trx) => {
         const inserted = await trx
           .insert(users)
           .values({
-            email: decodedToken.email!,
             username: dto.username,
             displayName: dto.displayName,
             avatarUrl: decodedToken.picture ?? null,
@@ -125,6 +125,8 @@ export class AuthService {
           homeCity: dto.homeCity?.trim() ?? null,
           phoneCountryCode: dto.phoneCountryCode,
           phoneLocalNumber: dto.phoneLocalNumber,
+          email: profileEmail,
+          emailVerified: profileEmail === decodedToken.email,
           // Design decision: emergency contacts are stored as JSONB inside user_profiles rather
           // than as a separate user_emergency_contacts table. Independent queries on individual
           // contacts (e.g. "find all users whose emergency contact is X") are never needed, so a

@@ -112,6 +112,7 @@ function validateStep2(
   dobYear: string,
   phoneCountry: string,
   phoneNumber: string,
+  email: string,
   t: TFunction,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
@@ -133,6 +134,9 @@ function validateStep2(
   else if (computeAge(d, m, y) < 16) errors.dob = t('onboarding.validation.minAge');
   if (!isValidPhoneNumber(phoneNumber, phoneCountry as CountryCode))
     errors.phone = t('onboarding.validation.invalidPhone');
+  const trimmedEmail = email.trim();
+  if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail))
+    errors.email = t('onboarding.validation.invalidEmail');
   return errors;
 }
 
@@ -177,6 +181,7 @@ export default function OnboardingPage() {
   const [yearVisible, setYearVisible] = useState(false);
   const [phoneCountry, setPhoneCountry] = useState('CO');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
 
   // Step 3 — Location + terms
   const [homeCountry, setHomeCountry] = useState('');
@@ -204,6 +209,9 @@ export default function OnboardingPage() {
         setUsername(slug);
         setUsernameStatus('checking');
       }
+    }
+    if (currentUser?.email) {
+      setEmail(currentUser.email);
     }
   }, [currentUser]);
 
@@ -291,6 +299,7 @@ export default function OnboardingPage() {
         dobYear,
         phoneCountry,
         phoneNumber,
+        email,
         t,
       );
     }
@@ -326,6 +335,7 @@ export default function OnboardingPage() {
         homeCity: homeCity.trim() || undefined,
         phoneCountryCode: getCallingCode(phoneCountry),
         phoneLocalNumber: phoneNumber,
+        email: email.trim() || null,
       });
       document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
       void apiClient
@@ -411,6 +421,7 @@ export default function OnboardingPage() {
             yearVisible={yearVisible}
             phoneCountry={phoneCountry}
             phoneNumber={phoneNumber}
+            email={email}
             stepErrors={stepErrors}
             onFirstNameChange={(v) => {
               setFirstName(v.toUpperCase());
@@ -440,6 +451,10 @@ export default function OnboardingPage() {
             onPhoneNumberChange={(v) => {
               setPhoneNumber(v);
               clearError('phone');
+            }}
+            onEmailChange={(v) => {
+              setEmail(v);
+              clearError('email');
             }}
             t={t}
           />
@@ -602,6 +617,7 @@ interface Step2Props {
   yearVisible: boolean;
   phoneCountry: string;
   phoneNumber: string;
+  email: string;
   stepErrors: Record<string, string>;
   onFirstNameChange: (v: string) => void;
   onLastNameChange: (v: string) => void;
@@ -611,6 +627,7 @@ interface Step2Props {
   onYearVisibleChange: (v: boolean) => void;
   onPhoneCountryChange: (v: string) => void;
   onPhoneNumberChange: (v: string) => void;
+  onEmailChange: (v: string) => void;
   t: TFunction;
 }
 
@@ -623,6 +640,7 @@ function Step2({
   yearVisible,
   phoneCountry,
   phoneNumber,
+  email,
   stepErrors,
   onFirstNameChange,
   onLastNameChange,
@@ -632,6 +650,7 @@ function Step2({
   onYearVisibleChange,
   onPhoneCountryChange,
   onPhoneNumberChange,
+  onEmailChange,
   t,
 }: Step2Props) {
   const dobId = useId();
@@ -731,6 +750,26 @@ function Step2({
           {t('onboarding.dateOfBirth.yearVisibleLabel')}
         </span>
       </label>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="email">{t('onboarding.email.label')}</Label>
+        <Input
+          id="email"
+          type="text"
+          inputMode="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => onEmailChange(e.target.value)}
+          placeholder={t('onboarding.email.placeholder')}
+          aria-invalid={!!stepErrors.email}
+          data-testid="email-input"
+        />
+        <FieldMessage
+          error={stepErrors.email}
+          hint={t('onboarding.email.hint')}
+          className="text-xs"
+        />
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <Label id="phone-country-label">{t('onboarding.phone.label')}</Label>

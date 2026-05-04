@@ -41,7 +41,6 @@ const NOW = new Date('2026-01-01T00:00:00.000Z');
 
 const mockAuthUser: AuthenticatedUser = {
   id: 'user-uuid',
-  email: 'test@example.com',
   username: 'john_doe',
   displayName: 'John Doe',
   avatarUrl: null,
@@ -84,8 +83,11 @@ const mockProfileResponse: UserProfileResponseDto = {
   birthCity: null,
   homeCountry: 'CO',
   homeCity: null,
+  email: 'john@example.com',
+  emailVerified: true,
   phoneCountryCode: '+57',
   phoneLocalNumber: '3001234567',
+  phoneVerified: false,
   bio: null,
 };
 

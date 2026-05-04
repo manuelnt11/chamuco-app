@@ -50,6 +50,9 @@ const mockHealthProfile = {
   homeCity: null,
   phoneCountryCode: '+57',
   phoneLocalNumber: '3001234567',
+  phoneVerified: false,
+  email: 'test@example.com',
+  emailVerified: false,
   bio: null,
   bloodType: null,
   dietaryPreference: DietaryPreference.OMNIVORE,
@@ -66,7 +69,6 @@ const mockHealthProfile = {
 
 const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
-  email: 'test@example.com',
   username: 'john_doe',
   displayName: 'John Doe',
   avatarUrl: null,
@@ -712,6 +714,55 @@ describe('UsersService', () => {
 
       await expect(service.updateProfile('user-uuid', { firstName: 'Jane' })).rejects.toThrow(
         dbError,
+      );
+    });
+
+    it('sets email and resets emailVerified to false when email changes', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        email: null,
+        emailVerified: false,
+      });
+      mockReturning.mockResolvedValue([
+        { ...mockHealthProfile, email: 'new@example.com', emailVerified: false },
+      ]);
+
+      await service.updateProfile('user-uuid', { email: 'new@example.com' });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'new@example.com', emailVerified: false }),
+      );
+    });
+
+    it('does not reset emailVerified when email is unchanged', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        email: 'same@example.com',
+        emailVerified: true,
+      });
+      mockReturning.mockResolvedValue([
+        { ...mockHealthProfile, email: 'same@example.com', emailVerified: true },
+      ]);
+
+      await service.updateProfile('user-uuid', { email: 'same@example.com' });
+
+      expect(mockSet).toHaveBeenCalledWith(expect.not.objectContaining({ emailVerified: false }));
+    });
+
+    it('resets emailVerified when email is changed to a different address', async () => {
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        email: 'old@example.com',
+        emailVerified: true,
+      });
+      mockReturning.mockResolvedValue([
+        { ...mockHealthProfile, email: 'new@example.com', emailVerified: false },
+      ]);
+
+      await service.updateProfile('user-uuid', { email: 'new@example.com' });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'new@example.com', emailVerified: false }),
       );
     });
   });

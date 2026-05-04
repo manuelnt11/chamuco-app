@@ -20,7 +20,6 @@ describe('users schema', () => {
     expect(columnNames).toEqual(
       expect.arrayContaining([
         'id',
-        'email',
         'username',
         'display_name',
         'avatar_url',
@@ -36,10 +35,9 @@ describe('users schema', () => {
     );
   });
 
-  it('has unique columns: email, username, firebase_uid', () => {
+  it('has unique columns: username, firebase_uid', () => {
     const config = getTableConfig(users);
     const uniqueColumns = config.columns.filter((c) => c.isUnique).map((c) => c.name);
-    expect(uniqueColumns).toContain('email');
     expect(uniqueColumns).toContain('username');
     expect(uniqueColumns).toContain('firebase_uid');
   });

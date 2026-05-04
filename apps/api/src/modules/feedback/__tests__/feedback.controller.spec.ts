@@ -11,7 +11,6 @@ const NOW = new Date('2026-01-01T00:00:00.000Z');
 
 const mockAuthUser: AuthenticatedUser = {
   id: 'user-uuid',
-  email: 'test@example.com',
   username: 'john_doe',
   displayName: 'John Doe',
   avatarUrl: null,

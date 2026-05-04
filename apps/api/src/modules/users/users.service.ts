@@ -156,6 +156,10 @@ export class UsersService {
     if (dto.phoneCountryCode !== undefined) patch.phoneCountryCode = dto.phoneCountryCode;
     if (dto.phoneLocalNumber !== undefined) patch.phoneLocalNumber = dto.phoneLocalNumber;
     if (dto.bio !== undefined) patch.bio = dto.bio?.trim() || null;
+    if (dto.email !== undefined) {
+      patch.email = dto.email.trim().toLowerCase();
+      if (patch.email !== existing.email) patch.emailVerified = false;
+    }
 
     if (Object.keys(patch).length === 0) {
       return this.mapProfileResponse(existing);
@@ -646,6 +650,9 @@ export class UsersService {
       phoneCountryCode: profile.phoneCountryCode,
       phoneLocalNumber: profile.phoneLocalNumber,
       bio: profile.bio ?? null,
+      email: profile.email,
+      emailVerified: profile.emailVerified,
+      phoneVerified: profile.phoneVerified,
     };
   }
 

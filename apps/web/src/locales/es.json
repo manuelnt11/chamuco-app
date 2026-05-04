@@ -169,7 +169,13 @@
         "invalidPhoneCode": "Ingresa un código de país válido (ej. +57)",
         "invalidName": "Solo letras y espacios (2–100 caracteres), tal como aparece en tu pasaporte",
         "invalidDob": "Ingresa una fecha de nacimiento válida",
-        "usernameUnavailable": "Elige un nombre de usuario disponible antes de continuar"
+        "usernameUnavailable": "Elige un nombre de usuario disponible antes de continuar",
+        "invalidEmail": "Ingresa una dirección de correo válida"
+      },
+      "email": {
+        "label": "Correo",
+        "placeholder": "tu@correo.com",
+        "hint": "Prellenado con tu cuenta de inicio de sesión. Puedes cambiarlo."
       }
     }
   },
@@ -308,8 +314,12 @@
         "lastNameRequired": "El apellido puede contener letras y espacios (2–100 caracteres)",
         "invalidDob": "Ingresa una fecha de nacimiento válida (edad mínima: 15)",
         "invalidPhone": "Ingresa un número de teléfono válido",
-        "homeCountryRequired": "El país de residencia es obligatorio"
-      }
+        "homeCountryRequired": "El país de residencia es obligatorio",
+        "invalidEmail": "Ingresa una dirección de correo válida"
+      },
+      "email": "Correo",
+      "emailPlaceholder": "tu@correo.com",
+      "emailHint": "Dirección de correo para alertas de viaje y notificaciones de la plataforma."
     },
     "loyaltyPrograms": {
       "heading": "Programas de Fidelidad",
@@ -532,7 +542,10 @@
         "save": "Guardar",
         "cancel": "Cancelar",
         "coverageType": "Cobertura",
-        "coverageTypes": { "COUNTRY": "País", "ZONE": "Zona" },
+        "coverageTypes": {
+          "COUNTRY": "País",
+          "ZONE": "Zona"
+        },
         "country": "País",
         "countryPlaceholder": "Seleccionar país",
         "countrySearch": "Buscar países…",
@@ -558,7 +571,11 @@
           "OTHER": "Otro"
         },
         "entries": "Entradas",
-        "entriesOptions": { "SINGLE": "Simple", "DOUBLE": "Doble", "MULTIPLE": "Múltiple" },
+        "entriesOptions": {
+          "SINGLE": "Simple",
+          "DOUBLE": "Doble",
+          "MULTIPLE": "Múltiple"
+        },
         "expiryDate": "Fecha de vencimiento",
         "notes": "Notas",
         "notesPlaceholder": "Notas opcionales...",
@@ -594,9 +611,16 @@
         "authorizationNumber": "Número de autorización",
         "authorizationPlaceholder": "ej. A1B2C3D4E5",
         "etaType": "Tipo de ETA",
-        "etaTypes": { "TOURIST": "Turista", "TRANSIT": "Tránsito" },
+        "etaTypes": {
+          "TOURIST": "Turista",
+          "TRANSIT": "Tránsito"
+        },
         "entries": "Entradas",
-        "entriesOptions": { "SINGLE": "Simple", "DOUBLE": "Doble", "MULTIPLE": "Múltiple" },
+        "entriesOptions": {
+          "SINGLE": "Simple",
+          "DOUBLE": "Doble",
+          "MULTIPLE": "Múltiple"
+        },
         "expiryDate": "Fecha de vencimiento",
         "notes": "Notas",
         "notesPlaceholder": "Notas opcionales...",

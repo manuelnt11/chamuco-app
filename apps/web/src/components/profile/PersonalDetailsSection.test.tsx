@@ -93,6 +93,9 @@ const baseProfile: PersonalDetailsProfile = {
   birthCity: 'Bogotá',
   homeCountry: 'CO',
   homeCity: 'Medellín',
+  email: 'test@example.com',
+  emailVerified: false,
+  phoneVerified: false,
 };
 
 function setup(profileOverride?: Partial<PersonalDetailsProfile>) {
@@ -188,6 +191,16 @@ describe('PersonalDetailsSection', () => {
       expect(screen.getByTestId('home-city')).toHaveValue('Medellín');
     });
 
+    it('renders email field empty when profile email is empty string', () => {
+      setup({ email: '' });
+      expect(screen.getByLabelText('personalDetails.email')).toHaveValue('');
+    });
+
+    it('renders email field with initial value', () => {
+      setup();
+      expect(screen.getByLabelText('personalDetails.email')).toHaveValue('test@example.com');
+    });
+
     it('renders with empty birth fields when birthCountry and birthCity are null', () => {
       setup({ birthCountry: null, birthCity: null });
       expect(screen.getByTestId('birth-country')).toHaveValue('');
@@ -247,6 +260,7 @@ describe('PersonalDetailsSection', () => {
           birthCity: 'Bogotá',
           homeCountry: 'CO',
           homeCity: 'Medellín',
+          email: 'test@example.com',
         }),
       );
     });
@@ -382,6 +396,35 @@ describe('PersonalDetailsSection', () => {
       await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
       expect(screen.getByText('personalDetails.errors.homeCountryRequired')).toBeInTheDocument();
       expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('shows invalidEmail error and blocks save when email is malformed', async () => {
+      const { user } = setup({ email: '' });
+      await user.type(screen.getByLabelText('personalDetails.email'), 'not-an-email');
+      await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
+      expect(screen.getByText('personalDetails.errors.invalidEmail')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('accepts a valid email without error', async () => {
+      const { user } = setup({ email: '' });
+      await user.type(screen.getByLabelText('personalDetails.email'), 'test@example.com');
+      await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
+      await waitFor(() => expect(mocks.mockPatch).toHaveBeenCalled());
+      expect(screen.queryByText('personalDetails.errors.invalidEmail')).not.toBeInTheDocument();
+    });
+
+    it('allows empty email (clears the field)', async () => {
+      const { user } = setup({ email: 'old@example.com' });
+      const input = screen.getByLabelText('personalDetails.email');
+      await user.clear(input);
+      await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me/profile',
+          expect.objectContaining({ email: '' }),
+        ),
+      );
     });
 
     it('clears firstName error after fixing and successfully saving', async () => {

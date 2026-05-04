@@ -7,7 +7,6 @@ import type { AuthenticatedUser } from '@/types/express.d';
 
 const buildUser = (role: PlatformRole): AuthenticatedUser => ({
   id: 'user-uuid',
-  email: 'test@example.com',
   username: 'testuser',
   displayName: 'Test User',
   avatarUrl: null,

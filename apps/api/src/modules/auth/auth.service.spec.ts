@@ -9,7 +9,6 @@ import type { RegisterDto } from './dto/register.dto';
 
 const mockCreatedUser: RegisterResponseDto = {
   id: 'user-uuid',
-  email: 'test@example.com',
   username: 'john_doe',
   displayName: 'John Doe',
   avatarUrl: 'https://example.com/avatar.jpg',
@@ -346,6 +345,75 @@ describe('AuthService', () => {
           homeCountry: 'CO',
           phoneCountryCode: '+57',
         }),
+      );
+    });
+
+    it('should use dto.email as profile email when provided', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', {
+        ...validRegisterDto,
+        email: 'alerts@example.com',
+      });
+
+      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'alerts@example.com' }),
+      );
+    });
+
+    it('should set emailVerified false when dto.email differs from Firebase token email', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', {
+        ...validRegisterDto,
+        email: 'alerts@example.com',
+      });
+
+      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerified: false }),
+      );
+    });
+
+    it('should set emailVerified true when dto.email matches Firebase token email', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', {
+        ...validRegisterDto,
+        email: mockDecodedToken.email,
+      });
+
+      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerified: true }),
+      );
+    });
+
+    it('should fall back to Firebase token email when dto.email is omitted', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', validRegisterDto);
+
+      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'test@example.com' }),
+      );
+    });
+
+    it('should set emailVerified true when dto.email is omitted (falls back to Firebase email)', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', validRegisterDto);
+
+      const profileInsertValues = mockTrxInsert.mock.results[2]?.value?.values;
+      expect(profileInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerified: true }),
       );
     });
 
