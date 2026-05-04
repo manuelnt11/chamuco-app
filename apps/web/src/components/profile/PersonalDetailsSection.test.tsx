@@ -414,17 +414,13 @@ describe('PersonalDetailsSection', () => {
       expect(screen.queryByText('personalDetails.errors.invalidEmail')).not.toBeInTheDocument();
     });
 
-    it('allows empty email (clears the field)', async () => {
+    it('shows emailRequired error and blocks save when email is cleared', async () => {
       const { user } = setup({ email: 'old@example.com' });
       const input = screen.getByLabelText('personalDetails.email');
       await user.clear(input);
       await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
-      await waitFor(() =>
-        expect(mocks.mockPatch).toHaveBeenCalledWith(
-          '/v1/users/me/profile',
-          expect.objectContaining({ email: '' }),
-        ),
-      );
+      expect(screen.getByText('personalDetails.errors.emailRequired')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
     });
 
     it('clears firstName error after fixing and successfully saving', async () => {

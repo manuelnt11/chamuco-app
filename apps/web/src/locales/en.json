@@ -315,6 +315,7 @@
         "invalidDob": "Enter a valid date of birth (min age: 15)",
         "invalidPhone": "Enter a valid phone number",
         "homeCountryRequired": "Home country is required",
+        "emailRequired": "Email is required",
         "invalidEmail": "Enter a valid email address"
       },
       "email": "Email",

@@ -315,6 +315,7 @@
         "invalidDob": "Ingresa una fecha de nacimiento válida (edad mínima: 15)",
         "invalidPhone": "Ingresa un número de teléfono válido",
         "homeCountryRequired": "El país de residencia es obligatorio",
+        "emailRequired": "El correo es obligatorio",
         "invalidEmail": "Ingresa una dirección de correo válida"
       },
       "email": "Correo",

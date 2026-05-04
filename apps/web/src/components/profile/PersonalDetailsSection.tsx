@@ -160,7 +160,10 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
     }
 
     const trimmedEmail = email.trim();
-    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    if (!trimmedEmail) {
+      setEmailError(t('personalDetails.errors.emailRequired'));
+      hasError = true;
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(trimmedEmail)) {
       setEmailError(t('personalDetails.errors.invalidEmail'));
       hasError = true;
     } else {
