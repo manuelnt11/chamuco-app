@@ -85,7 +85,7 @@ function CountryCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-64 p-0" sideOffset={4}>
         <Command>
-          <CommandSearch placeholder={searchPlaceholder} />
+          <CommandSearch placeholder={searchPlaceholder} autoFocus />
           <CommandItems>
             <CommandNoResults>{noResultsText}</CommandNoResults>
             <CommandGroupSection>
