@@ -87,7 +87,6 @@ export const medicalConditionTypeEnum = pgEnum('medical_condition_type', [
   MedicalConditionType.HEART_CONDITION,
   MedicalConditionType.HYPERTENSION,
   MedicalConditionType.BLOOD_CLOTTING_DISORDER,
-  MedicalConditionType.IMMUNODEFICIENCY,
   MedicalConditionType.MENTAL_HEALTH_CONDITION,
   MedicalConditionType.OTHER,
 ]);

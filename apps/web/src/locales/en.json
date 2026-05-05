@@ -431,7 +431,6 @@
         "HEART_CONDITION": "Heart Condition",
         "HYPERTENSION": "Hypertension",
         "BLOOD_CLOTTING_DISORDER": "Blood Clotting Disorder",
-        "IMMUNODEFICIENCY": "Immunodeficiency",
         "MENTAL_HEALTH_CONDITION": "Mental Health Condition",
         "OTHER": "Other"
       },
