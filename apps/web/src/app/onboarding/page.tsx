@@ -349,6 +349,7 @@ export default function OnboardingPage() {
         phoneCountryCode: getCallingCode(phoneCountry),
         phoneLocalNumber: phoneNumber,
         email: email.trim() || null,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
       document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
       void apiClient
@@ -358,7 +359,7 @@ export default function OnboardingPage() {
           currency: deriveCurrency(homeCountry),
         })
         .catch(() => {});
-      // localStorage.setItem(PROFILE_INCOMPLETE_KEY, 'true'); // TODO: re-enable with banner
+      // TODO: localStorage.setItem(PROFILE_INCOMPLETE_KEY, 'true'); // TODO: re-enable with banner
       void refreshUser();
       router.replace('/');
     } catch (err) {
