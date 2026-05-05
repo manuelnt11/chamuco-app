@@ -338,7 +338,15 @@
       "addSuccess": "Program added",
       "updateSuccess": "Program updated",
       "deleteSuccess": "Program deleted",
-      "saveError": "Failed to save"
+      "saveError": "Failed to save",
+      "categories": {
+        "airline": "Airline",
+        "hotel": "Hotel",
+        "car_rental": "Car Rental",
+        "cruise": "Cruise",
+        "bank": "Bank & Credit Card",
+        "other": "Other"
+      }
     },
     "health": {
       "heading": "Health Profile",

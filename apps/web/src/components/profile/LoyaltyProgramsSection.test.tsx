@@ -29,6 +29,33 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+vi.mock('@/components/ui/loyalty-program-combobox', () => ({
+  LoyaltyProgramCombobox: ({
+    id,
+    value,
+    onChange,
+    required,
+    maxLength,
+    disabled,
+  }: {
+    id?: string;
+    value: string;
+    onChange: (v: string) => void;
+    required?: boolean;
+    maxLength?: number;
+    disabled?: boolean;
+  }) => (
+    <input
+      id={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={required}
+      maxLength={maxLength}
+      disabled={disabled}
+    />
+  ),
+}));
+
 // Polyfill crypto.randomUUID for jsdom
 Object.defineProperty(globalThis, 'crypto', {
   value: { randomUUID: mocks.mockRandomUUID },

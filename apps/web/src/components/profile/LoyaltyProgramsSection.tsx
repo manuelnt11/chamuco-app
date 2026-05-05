@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoyaltyProgramCombobox } from '@/components/ui/loyalty-program-combobox';
 import { SaveButton } from '@/components/ui/save-button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
@@ -61,10 +62,10 @@ function ProgramForm({
     <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border p-4">
       <div className="space-y-1.5">
         <Label htmlFor={`${idPrefix}-programName`}>{t('loyaltyPrograms.programName')}</Label>
-        <Input
+        <LoyaltyProgramCombobox
           id={`${idPrefix}-programName`}
           value={form.programName}
-          onChange={(e) => onChangeProgramName(e.target.value)}
+          onChange={onChangeProgramName}
           required
           maxLength={100}
           disabled={isSaving}
