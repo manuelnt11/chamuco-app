@@ -338,7 +338,15 @@
       "addSuccess": "Programa agregado",
       "updateSuccess": "Programa actualizado",
       "deleteSuccess": "Programa eliminado",
-      "saveError": "Error al guardar"
+      "saveError": "Error al guardar",
+      "categories": {
+        "airline": "Aerolínea",
+        "hotel": "Hotel",
+        "car_rental": "Alquiler de autos",
+        "cruise": "Crucero",
+        "bank": "Banco y tarjeta de crédito",
+        "other": "Otro"
+      }
     },
     "health": {
       "heading": "Perfil de Salud",
