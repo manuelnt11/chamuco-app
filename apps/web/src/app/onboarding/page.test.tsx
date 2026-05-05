@@ -703,6 +703,15 @@ describe('OnboardingPage', () => {
     });
 
     it('includes browser timezone in registration payload', async () => {
+      const mockDateTimeFormat = vi.spyOn(Intl, 'DateTimeFormat').mockReturnValue({
+        resolvedOptions: () => ({
+          timeZone: 'America/Bogota',
+          locale: 'en-US',
+          calendar: 'gregory',
+          numberingSystem: 'latn',
+        }),
+      } as Intl.DateTimeFormat);
+
       mocks.mockApiPost.mockResolvedValue({ status: 201 });
       const user = await renderFormWithAvailableUsername({
         currentUser: makeUser({ displayName: 'Test User' }),
@@ -714,10 +723,12 @@ describe('OnboardingPage', () => {
         expect(mocks.mockApiPost).toHaveBeenCalledWith(
           '/v1/auth/register',
           expect.objectContaining({
-            timezone: expect.any(String),
+            timezone: 'America/Bogota',
           }),
         ),
       );
+
+      mockDateTimeFormat.mockRestore();
     });
 
     it('normalizes whitespace in firstName and lastName before sending to API', async () => {
