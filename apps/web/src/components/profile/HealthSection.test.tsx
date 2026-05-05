@@ -498,5 +498,75 @@ describe('HealthSection', () => {
         ),
       );
     });
+
+    it('sends null for dietaryNotes when preference is OTHER but notes textarea is empty', async () => {
+      const { user } = setup({ dietaryPreference: null, dietaryNotes: null });
+      await user.click(screen.getByRole('button', { name: 'health.dietaryPreference.OTHER' }));
+      await user.click(screen.getByRole('button', { name: /health\.save/ }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me/health',
+          expect.objectContaining({ dietaryNotes: null }),
+        ),
+      );
+    });
+  });
+
+  describe('initializing with pre-populated data', () => {
+    it('marks pre-populated food allergy as selected', () => {
+      setup({ foodAllergies: [{ allergen: 'GLUTEN' as never, description: null }] });
+      expect(screen.getByTestId('foodAllergies-pill-GLUTEN')).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+    });
+
+    it('marks pre-populated phobia as selected', () => {
+      setup({ phobias: [{ phobia: 'HEIGHTS' as never, description: null }] });
+      expect(screen.getByTestId('phobias-pill-HEIGHTS')).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    it('marks pre-populated physical limitation as selected', () => {
+      setup({
+        physicalLimitations: [{ limitation: 'CHRONIC_PAIN' as never, description: null }],
+      });
+      expect(screen.getByTestId('physicalLimitations-pill-CHRONIC_PAIN')).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+    });
+
+    it('marks pre-populated medical condition as selected', () => {
+      setup({ medicalConditions: [{ condition: 'ASTHMA' as never, description: null }] });
+      expect(screen.getByTestId('medicalConditions-pill-ASTHMA')).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+    });
+
+    it('shows description input when pre-populated OTHER food allergy exists', () => {
+      setup({
+        foodAllergies: [{ allergen: 'OTHER' as never, description: 'existing allergy' }],
+      });
+      expect(screen.getByTestId('foodAllergies-description-OTHER')).toHaveValue('existing allergy');
+    });
+
+    it('updating description on pre-populated OTHER item triggers onChange', async () => {
+      const { user } = setup({
+        foodAllergies: [{ allergen: 'OTHER' as never, description: 'existing' }],
+      });
+      const descInput = screen.getByTestId('foodAllergies-description-OTHER');
+      await user.clear(descInput);
+      await user.type(descInput, 'updated allergy');
+      await user.click(screen.getByRole('button', { name: /health\.save/ }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me/health',
+          expect.objectContaining({
+            foodAllergies: [{ allergen: 'OTHER', description: 'updated allergy' }],
+          }),
+        ),
+      );
+    });
   });
 });

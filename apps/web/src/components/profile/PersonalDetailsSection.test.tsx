@@ -438,4 +438,66 @@ describe('PersonalDetailsSection', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  describe('field interactions', () => {
+    it('changing dobYear marks form as dirty', async () => {
+      const { user } = setup();
+      const yearInput = screen.getByLabelText('personalDetails.year');
+      await user.clear(yearInput);
+      await user.type(yearInput, '1985');
+      expect(screen.getByRole('button', { name: 'personalDetails.save' })).toBeEnabled();
+    });
+
+    it('changing phone local number marks form as dirty', async () => {
+      const { user } = setup();
+      const phoneInput = screen.getByLabelText('personalDetails.phoneNumber');
+      await user.clear(phoneInput);
+      await user.type(phoneInput, '3109876543');
+      expect(screen.getByRole('button', { name: 'personalDetails.save' })).toBeEnabled();
+    });
+
+    it('changing birth country clears birth city', async () => {
+      const { user } = setup();
+      const birthCountry = screen.getByTestId('birth-country');
+      await user.selectOptions(birthCountry, 'US');
+      expect(screen.getByTestId('birth-city')).toHaveValue('');
+    });
+
+    it('changing home country clears home city', async () => {
+      const { user } = setup();
+      const homeCountry = screen.getByTestId('home-country');
+      await user.selectOptions(homeCountry, 'US');
+      expect(screen.getByTestId('home-city')).toHaveValue('');
+    });
+
+    it('sends updated year in payload when dobYear is changed', async () => {
+      const { user } = setup();
+      const yearInput = screen.getByLabelText('personalDetails.year');
+      await user.clear(yearInput);
+      await user.type(yearInput, '1985');
+      await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me/profile',
+          expect.objectContaining({
+            dateOfBirth: expect.objectContaining({ year: 1985 }),
+          }),
+        ),
+      );
+    });
+
+    it('sends updated phone local number in payload', async () => {
+      const { user } = setup();
+      const phoneInput = screen.getByLabelText('personalDetails.phoneNumber');
+      await user.clear(phoneInput);
+      await user.type(phoneInput, '3109876543');
+      await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/users/me/profile',
+          expect.objectContaining({ phoneLocalNumber: '3109876543' }),
+        ),
+      );
+    });
+  });
 });

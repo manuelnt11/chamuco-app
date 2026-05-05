@@ -455,6 +455,50 @@ describe('VisasSubsection', () => {
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.cancel' }));
       expect(screen.queryByLabelText('nationalities.visas.visaType')).not.toBeInTheDocument();
     });
+
+    it('shows entries required error in edit form when entries is cleared', async () => {
+      const { user } = setup();
+      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), '');
+      await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
+      expect(screen.getByText('nationalities.visas.errors.entriesRequired')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('shows expiry required error in edit form when expiry date is cleared', async () => {
+      const { user } = setup();
+      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await user.clear(screen.getByLabelText('nationalities.visas.expiryDate'));
+      await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
+      expect(screen.getByText('nationalities.visas.errors.expiryRequired')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('shows type required error in edit form when visa type is cleared', async () => {
+      const { user } = setup();
+      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), '');
+      await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
+      expect(screen.getByText('nationalities.visas.errors.typeRequired')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('EXPIRING_SOON status badge', () => {
+    it('renders EXPIRING_SOON badge with amber style', async () => {
+      mocks.mockGet.mockResolvedValue({
+        data: [{ ...sampleVisas[0]!, visaStatus: DocumentStatus.EXPIRING_SOON }],
+      });
+      setup();
+      await waitFor(() =>
+        expect(
+          screen.getByText(`nationalities.documentStatus.${DocumentStatus.EXPIRING_SOON}`),
+        ).toBeInTheDocument(),
+      );
+    });
   });
 
   describe('deleting a visa', () => {

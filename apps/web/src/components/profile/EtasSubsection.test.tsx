@@ -502,6 +502,50 @@ describe('EtasSubsection', () => {
         screen.queryByLabelText('nationalities.etas.authorizationNumber'),
       ).not.toBeInTheDocument();
     });
+
+    it('shows entries required error in edit form when entries is cleared', async () => {
+      const { user } = setup();
+      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), '');
+      await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
+      expect(screen.getByText('nationalities.etas.errors.entriesRequired')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('shows expiry required error in edit form when expiry date is cleared', async () => {
+      const { user } = setup();
+      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await user.clear(screen.getByLabelText('nationalities.etas.expiryDate'));
+      await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
+      expect(screen.getByText('nationalities.etas.errors.expiryRequired')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('shows type required error in edit form when eta type is cleared', async () => {
+      const { user } = setup();
+      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), '');
+      await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
+      expect(screen.getByText('nationalities.etas.errors.typeRequired')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('EXPIRING_SOON status badge', () => {
+    it('renders EXPIRING_SOON badge with amber style', async () => {
+      mocks.mockGet.mockResolvedValue({
+        data: [{ ...sampleEtas[0]!, etaStatus: DocumentStatus.EXPIRING_SOON }],
+      });
+      setup();
+      await waitFor(() =>
+        expect(
+          screen.getByText(`nationalities.documentStatus.${DocumentStatus.EXPIRING_SOON}`),
+        ).toBeInTheDocument(),
+      );
+    });
   });
 
   describe('deleting an ETA', () => {
