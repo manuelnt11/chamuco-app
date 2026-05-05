@@ -79,7 +79,7 @@ users
 | `food_allergen`            | 15 values                                                                                                        | `user_profiles.food_allergies` (JSONB)       |
 | `phobia_type`              | 13 values                                                                                                        | `user_profiles.phobias` (JSONB)              |
 | `physical_limitation_type` | 13 values                                                                                                        | `user_profiles.physical_limitations` (JSONB) |
-| `medical_condition_type`   | 10 values                                                                                                        | `user_profiles.medical_conditions` (JSONB)   |
+| `medical_condition_type`   | 9 values                                                                                                         | `user_profiles.medical_conditions` (JSONB)   |
 | `passport_status`          | `OMITTED`, `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                                                                  | `user_nationalities.passport_status`         |
 | `visa_coverage_type`       | `COUNTRY`, `ZONE`                                                                                                | `user_visas.coverage_type`                   |
 | `visa_zone`                | `SCHENGEN`, `GCC`, `CARICOM`, `EAC`, `CAN`, `MERCOSUR`, `ECOWAS`                                                 | `user_visas.visa_zone`                       |
@@ -129,20 +129,23 @@ Each step is a separate migration file and a separate PR. Document the steps in 
 
 ### Migration history
 
-| #    | File                          | What changed                                                                                                                                     |
-| ---- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 0000 | `0000_initial_setup.sql`      | Baseline — establishes the migration system                                                                                                      |
-| 0001 | `0001_gigantic_madrox.sql`    | `users`, `user_preferences` tables; `auth_provider`, `platform_role`, `app_*` enums                                                              |
-| 0002 | `0002_chubby_marauders.sql`   | `support_admin_audit_log` table                                                                                                                  |
-| 0003 | `0003_flat_energizer.sql`     | `user_profiles` table; health enums (`dietary_preference`, `food_allergen`, `phobia_type`, `physical_limitation_type`, `medical_condition_type`) |
-| 0004 | `0004_short_sage.sql`         | `user_nationalities` table; `passport_status` enum                                                                                               |
-| 0005 | `0005_split_phone_number.sql` | Replaced `phone_number` with `phone_country_code` + `phone_local_number` on `user_profiles`                                                      |
-| 0006 | `0006_panoramic_vector.sql`   | `profile_visibility` enum + column on `users`                                                                                                    |
-| 0007 | `0007_fast_carlie_cooper.sql` | Changed `user_profiles.bio` to `varchar(200)`                                                                                                    |
-| 0008 | `0008_numerous_spot.sql`      | CHECK constraints on `user_nationalities` for `national_id_number` and `passport_number` format                                                  |
-| 0009 | `0009_melodic_pyro.sql`       | `user_visas` and `user_etas` tables; visa/ETA enums                                                                                              |
-| 0010 | `0010_wide_mephisto.sql`      | Relaxed CHECK constraints on `user_nationalities` for `national_id_number` and `passport_number` (allow single-char values)                      |
-| 0011 | `0011_minor_adam_destine.sql` | `blood_type` enum + `user_profiles.blood_type` nullable column                                                                                   |
+| #    | File                            | What changed                                                                                                                                     |
+| ---- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0000 | `0000_initial_setup.sql`        | Baseline — establishes the migration system                                                                                                      |
+| 0001 | `0001_gigantic_madrox.sql`      | `users`, `user_preferences` tables; `auth_provider`, `platform_role`, `app_*` enums                                                              |
+| 0002 | `0002_chubby_marauders.sql`     | `support_admin_audit_log` table                                                                                                                  |
+| 0003 | `0003_flat_energizer.sql`       | `user_profiles` table; health enums (`dietary_preference`, `food_allergen`, `phobia_type`, `physical_limitation_type`, `medical_condition_type`) |
+| 0004 | `0004_short_sage.sql`           | `user_nationalities` table; `passport_status` enum                                                                                               |
+| 0005 | `0005_split_phone_number.sql`   | Replaced `phone_number` with `phone_country_code` + `phone_local_number` on `user_profiles`                                                      |
+| 0006 | `0006_panoramic_vector.sql`     | `profile_visibility` enum + column on `users`                                                                                                    |
+| 0007 | `0007_fast_carlie_cooper.sql`   | Changed `user_profiles.bio` to `varchar(200)`                                                                                                    |
+| 0008 | `0008_numerous_spot.sql`        | CHECK constraints on `user_nationalities` for `national_id_number` and `passport_number` format                                                  |
+| 0009 | `0009_melodic_pyro.sql`         | `user_visas` and `user_etas` tables; visa/ETA enums                                                                                              |
+| 0010 | `0010_wide_mephisto.sql`        | Relaxed CHECK constraints on `user_nationalities` for `national_id_number` and `passport_number` (allow single-char values)                      |
+| 0011 | `0011_minor_adam_destine.sql`   | `blood_type` enum + `user_profiles.blood_type` nullable column                                                                                   |
+| 0012 | `0012_dizzy_naoko.sql`          | Added `phone_verified`, `email`, `email_verified` columns to `user_profiles`                                                                     |
+| 0013 | `0013_breezy_hannibal_king.sql` | Migrated `email` from `users` to `user_profiles` (backfill + drop `users.email`)                                                                 |
+| 0014 | `0014_mute_rictor.sql`          | Removed `IMMUNODEFICIENCY` from `medical_condition_type` enum                                                                                    |
 
 ---
 

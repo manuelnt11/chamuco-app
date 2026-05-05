@@ -1,0 +1,2 @@
+DROP TYPE "public"."medical_condition_type";--> statement-breakpoint
+CREATE TYPE "public"."medical_condition_type" AS ENUM('DIABETES', 'EPILEPSY', 'SEVERE_ALLERGY_EPIPEN', 'ASTHMA', 'HEART_CONDITION', 'HYPERTENSION', 'BLOOD_CLOTTING_DISORDER', 'MENTAL_HEALTH_CONDITION', 'OTHER');
