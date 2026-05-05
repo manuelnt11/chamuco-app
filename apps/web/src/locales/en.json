@@ -159,7 +159,7 @@
       },
       "error": {
         "failed": "Registration failed. Please try again.",
-        "usernameTaken": "That username is already taken. Please choose another."
+        "usernameTaken": "That username is already taken. If this is your account, try signing in instead."
       },
       "validation": {
         "required": "This field is required",

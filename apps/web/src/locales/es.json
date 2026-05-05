@@ -159,7 +159,7 @@
       },
       "error": {
         "failed": "El registro falló. Por favor intenta de nuevo.",
-        "usernameTaken": "Ese nombre de usuario ya está en uso. Por favor elige otro."
+        "usernameTaken": "Ese nombre de usuario ya está en uso. Si esta cuenta es tuya, intenta iniciar sesión."
       },
       "validation": {
         "required": "Este campo es obligatorio",

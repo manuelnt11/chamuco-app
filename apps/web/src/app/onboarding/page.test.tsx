@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   mockToastError: vi.fn(),
   mockToastInfo: vi.fn(),
   mockSignOut: vi.fn(),
+  mockRefreshUser: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -23,6 +24,10 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
+}));
+
+vi.mock('@/hooks/useUser', () => ({
+  useUser: () => ({ refresh: mocks.mockRefreshUser }),
 }));
 
 vi.mock('@/services/api-client', () => ({
@@ -204,6 +209,7 @@ async function renderFormAtStep3() {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockApiPatch.mockResolvedValue({ status: 200 });
+  mocks.mockRefreshUser.mockResolvedValue(undefined);
 });
 
 describe('OnboardingPage', () => {
@@ -243,7 +249,7 @@ describe('OnboardingPage', () => {
       await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
     });
 
-    it('redirects to /sign-in when GET /users/me returns an unexpected error', async () => {
+    it('shows the form and an error toast when GET /users/me returns an unexpected error', async () => {
       vi.mocked(useAuth).mockReturnValue(makeAuth());
       const serverErr = Object.assign(new Error('Server error'), {
         isAxiosError: true,
@@ -251,7 +257,9 @@ describe('OnboardingPage', () => {
       });
       mockGetByUrl({ meError: serverErr });
       render(<OnboardingPage />);
-      await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/sign-in'));
+      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('error.failed'));
+      expect(screen.getByTestId('username-input')).toBeInTheDocument();
+      expect(mocks.mockRouterReplace).not.toHaveBeenCalledWith('/sign-in');
     });
   });
 
@@ -708,6 +716,17 @@ describe('OnboardingPage', () => {
           expect.objectContaining({ firstName: 'JUAN CARLOS', lastName: 'GARCIA LOPEZ' }),
         ),
       );
+    });
+
+    it('calls refreshUser after successful registration', async () => {
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      const user = await renderFormWithAvailableUsername({
+        currentUser: makeUser({ displayName: 'Test User' }),
+      });
+
+      await user.click(screen.getByTestId('submit-btn'));
+
+      await waitFor(() => expect(mocks.mockRefreshUser).toHaveBeenCalledTimes(1));
     });
 
     it('sets chamuco-registered cookie on successful registration', async () => {
