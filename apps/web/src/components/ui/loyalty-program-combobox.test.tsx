@@ -85,10 +85,10 @@ describe('LoyaltyProgramCombobox', () => {
 
     it('limits results to 8 suggestions', async () => {
       const { user, input } = setup('');
-      // "a" matches many programs
+      // "a" matches >8 programs so the cap is always exercised
       await user.type(input, 'a');
       const buttons = screen.getAllByRole('button');
-      expect(buttons.length).toBeLessThanOrEqual(8);
+      expect(buttons.length).toBe(8);
     });
 
     it('hides dropdown after blur', async () => {
@@ -99,6 +99,16 @@ describe('LoyaltyProgramCombobox', () => {
       // dropdown closes after 150ms timeout
       await new Promise((r) => setTimeout(r, 200));
       expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    });
+
+    it('re-opens dropdown on focus when suggestions exist', async () => {
+      const { user, input } = setup('');
+      await user.type(input, 'Delta');
+      fireEvent.blur(input);
+      await new Promise((r) => setTimeout(r, 200));
+      expect(screen.queryByRole('list')).not.toBeInTheDocument();
+      fireEvent.focus(input);
+      expect(screen.getByRole('list')).toBeInTheDocument();
     });
   });
 
@@ -130,6 +140,25 @@ describe('LoyaltyProgramCombobox', () => {
       const user = userEvent.setup();
       await user.clear(screen.getByRole('textbox'));
       expect(onChange).toHaveBeenLastCalledWith('');
+    });
+  });
+
+  describe('external value sync', () => {
+    it('updates input when value prop changes via rerender', () => {
+      const { rerender } = render(
+        <LoyaltyProgramCombobox value="Delta SkyMiles" onChange={vi.fn()} />,
+      );
+      expect(screen.getByRole('textbox')).toHaveValue('Delta SkyMiles');
+      rerender(<LoyaltyProgramCombobox value="Marriott Bonvoy" onChange={vi.fn()} />);
+      expect(screen.getByRole('textbox')).toHaveValue('Marriott Bonvoy');
+    });
+
+    it('clears input when value prop is reset to empty string', () => {
+      const { rerender } = render(
+        <LoyaltyProgramCombobox value="Delta SkyMiles" onChange={vi.fn()} />,
+      );
+      rerender(<LoyaltyProgramCombobox value="" onChange={vi.fn()} />);
+      expect(screen.getByRole('textbox')).toHaveValue('');
     });
   });
 });

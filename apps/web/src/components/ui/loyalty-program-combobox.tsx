@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LOYALTY_PROGRAM_SUGGESTIONS, type LoyaltyProgramCategory } from '@chamuco/shared-types';
 
-import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 
 const MAX_SUGGESTIONS = 8;
@@ -30,10 +29,17 @@ function LoyaltyProgramCombobox({
   const { t } = useTranslation('profile');
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
     setQuery(value);
   }, [value]);
+
+  useEffect(() => {
+    return () => {
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+    };
+  }, []);
 
   const suggestions =
     query.trim().length > 0
@@ -59,12 +65,14 @@ function LoyaltyProgramCombobox({
         onChange={(e) => {
           setQuery(e.target.value);
           onChange(e.target.value);
-          setOpen(true);
+          setOpen(e.target.value.trim().length > 0);
         }}
         onFocus={() => {
           if (suggestions.length > 0) setOpen(true);
         }}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onBlur={() => {
+          blurTimerRef.current = setTimeout(() => setOpen(false), 150);
+        }}
         required={required}
         maxLength={maxLength}
         disabled={disabled}
@@ -78,9 +86,7 @@ function LoyaltyProgramCombobox({
               <li key={program.name}>
                 <button
                   type="button"
-                  className={cn(
-                    'flex w-full items-baseline gap-2 px-3 py-2 text-left text-sm hover:bg-muted',
-                  )}
+                  className="flex w-full items-baseline gap-2 px-3 py-2 text-left text-sm hover:bg-muted"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     handleSelect(program.name);

@@ -11,7 +11,7 @@ export interface LoyaltyProgramSuggestion {
   category: LoyaltyProgramCategory;
 }
 
-export const LOYALTY_PROGRAM_SUGGESTIONS: LoyaltyProgramSuggestion[] = [
+export const LOYALTY_PROGRAM_SUGGESTIONS: readonly LoyaltyProgramSuggestion[] = [
   // Airlines
   { name: 'Aeromexico Rewards', category: 'airline' },
   { name: 'Air Canada Aeroplan', category: 'airline' },
