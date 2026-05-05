@@ -422,6 +422,33 @@ describe('AuthService', () => {
       );
     });
 
+    it('should pass dto.timezone to the users insert when provided', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', {
+        ...validRegisterDto,
+        timezone: 'America/Bogota',
+      });
+
+      const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
+      expect(insertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ timezone: 'America/Bogota' }),
+      );
+    });
+
+    it('should omit timezone from users insert when dto.timezone is not provided', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', validRegisterDto);
+
+      const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
+      expect(insertValues).toHaveBeenCalledWith(
+        expect.not.objectContaining({ timezone: expect.anything() }),
+      );
+    });
+
     it('should throw when the DB insert returns no rows (defensive guard)', async () => {
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
       mockFindFirst.mockResolvedValue(undefined);

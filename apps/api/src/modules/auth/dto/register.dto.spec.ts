@@ -112,4 +112,25 @@ describe('RegisterDto', () => {
       expect(errors).toHaveLength(0);
     });
   });
+
+  describe('timezone field', () => {
+    it('accepts a valid IANA timezone', async () => {
+      const dto = plainToInstance(RegisterDto, { ...validBase, timezone: 'America/Bogota' });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('accepts payload without timezone (optional field)', async () => {
+      const dto = plainToInstance(RegisterDto, validBase);
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+      expect(dto.timezone).toBeUndefined();
+    });
+
+    it('rejects an invalid timezone string', async () => {
+      const dto = plainToInstance(RegisterDto, { ...validBase, timezone: 'NotATimezone/Invalid' });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'timezone')).toBe(true);
+    });
+  });
 });

@@ -7,6 +7,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsTimeZone,
   Length,
   Matches,
   MaxLength,
@@ -179,4 +180,13 @@ export class RegisterDto {
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   email?: string;
+
+  @ApiProperty({
+    example: 'America/Bogota',
+    description: 'IANA timezone identifier inferred from the browser. Defaults to UTC if omitted.',
+    required: false,
+  })
+  @IsOptional()
+  @IsTimeZone()
+  timezone?: string;
 }

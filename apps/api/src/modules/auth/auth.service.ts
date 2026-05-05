@@ -105,6 +105,7 @@ export class AuthService {
             avatarUrl: decodedToken.picture ?? null,
             authProvider,
             firebaseUid: decodedToken.uid,
+            ...(dto.timezone !== undefined ? { timezone: dto.timezone } : {}),
           })
           .returning();
 
