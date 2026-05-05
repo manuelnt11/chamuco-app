@@ -359,7 +359,7 @@ export default function OnboardingPage() {
         })
         .catch(() => {});
       // localStorage.setItem(PROFILE_INCOMPLETE_KEY, 'true'); // TODO: re-enable with banner
-      await refreshUser();
+      void refreshUser();
       router.replace('/');
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
