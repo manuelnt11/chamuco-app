@@ -193,6 +193,23 @@ describe('LoyaltyProgramsSection', () => {
         expect(mocks.mockToastError).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
       );
     });
+
+    it('includes notes in POST payload when notes are entered', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.type(screen.getByLabelText('loyaltyPrograms.programName'), 'Avianca');
+      await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
+      await user.type(screen.getByLabelText('loyaltyPrograms.notes'), 'Silver tier');
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/loyalty-programs', {
+          id: 'test-uuid-1234',
+          programName: 'Avianca',
+          memberId: 'AV999',
+          notes: 'Silver tier',
+        }),
+      );
+    });
   });
 
   describe('editing a program', () => {
@@ -245,6 +262,76 @@ describe('LoyaltyProgramsSection', () => {
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.cancel' }));
       expect(screen.queryByDisplayValue('LifeMiles')).not.toBeInTheDocument();
+    });
+
+    it('shows error toast when update fails', async () => {
+      mocks.mockPatch.mockRejectedValue(new Error('network error'));
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      await user.click(editButtons[0]!);
+      await user.type(screen.getByLabelText('loyaltyPrograms.programName'), ' ');
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      await waitFor(() =>
+        expect(mocks.mockToastError).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
+      );
+    });
+
+    it('edits memberId field in edit form', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      await user.click(editButtons[0]!);
+      const memberIdInput = screen.getByLabelText('loyaltyPrograms.memberId');
+      await user.clear(memberIdInput);
+      await user.type(memberIdInput, 'LM999');
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/loyalty-programs/prog-1', {
+          programName: 'LifeMiles',
+          memberId: 'LM999',
+          notes: 'Gold tier',
+        }),
+      );
+    });
+
+    it('edits notes field in edit form', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      await user.click(editButtons[0]!);
+      const notesInput = screen.getByLabelText('loyaltyPrograms.notes');
+      await user.clear(notesInput);
+      await user.type(notesInput, 'Platinum tier');
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/loyalty-programs/prog-1', {
+          programName: 'LifeMiles',
+          memberId: 'LM123',
+          notes: 'Platinum tier',
+        }),
+      );
+    });
+  });
+
+  describe('null notes handling', () => {
+    it('pre-fills notes as empty string when existing program has null notes', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      await user.click(editButtons[1]!); // prog-2 has notes: null
+      expect(screen.getByLabelText('loyaltyPrograms.notes')).toHaveValue('');
+    });
+
+    it('sends null for notes when notes field is cleared in edit form', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      await user.click(editButtons[0]!);
+      await user.clear(screen.getByLabelText('loyaltyPrograms.notes'));
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/loyalty-programs/prog-1', {
+          programName: 'LifeMiles',
+          memberId: 'LM123',
+          notes: null,
+        }),
+      );
     });
   });
 

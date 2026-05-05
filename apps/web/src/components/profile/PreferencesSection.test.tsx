@@ -144,6 +144,12 @@ describe('PreferencesSection', () => {
       await user.click(screen.getByRole('button', { name: 'preferences.currencies.USD' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
+
+    it('does not call PATCH when the same currency is selected', async () => {
+      const { user } = setup({ currency: AppCurrency.COP });
+      await user.click(screen.getByRole('button', { name: 'preferences.currencies.COP' }));
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
   });
 
   describe('theme change', () => {
@@ -155,6 +161,12 @@ describe('PreferencesSection', () => {
           theme: AppTheme.LIGHT,
         }),
       );
+    });
+
+    it('does not call PATCH when the same theme is selected', async () => {
+      const { user } = setup({ theme: AppTheme.SYSTEM });
+      await user.click(screen.getByRole('button', { name: 'preferences.themes.SYSTEM' }));
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
     });
 
     it('calls setTheme only after save succeeds', async () => {
