@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { uploadToGcs } from './gcs-upload';
 
 type XhrListener = () => void;
@@ -12,6 +12,7 @@ function makeXhr(status: number) {
     open: vi.fn(),
     send: vi.fn(),
     setRequestHeader: vi.fn(),
+    abort: vi.fn(),
     status,
     upload: {
       addEventListener: vi.fn((event: string, handler: ProgressListener) => {
@@ -38,6 +39,11 @@ function makeXhr(status: number) {
 describe('uploadToGcs', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('resolves on 2xx response', async () => {
@@ -151,5 +157,28 @@ describe('uploadToGcs', () => {
 
     await promise;
     expect(xhr.send).toHaveBeenCalledWith(file);
+  });
+
+  it('aborts and rejects after 5 minutes with no response', async () => {
+    const xhr = makeXhr(0);
+    const file = new File(['data'], 'img.jpg', { type: 'image/jpeg' });
+
+    const promise = uploadToGcs('https://bucket.com/key', file, vi.fn());
+
+    vi.advanceTimersByTime(5 * 60 * 1000);
+    xhr.fire('abort');
+
+    await expect(promise).rejects.toThrow('Upload aborted');
+  });
+
+  it('does not reject before timeout elapses', async () => {
+    const xhr = makeXhr(200);
+    const file = new File(['data'], 'img.jpg', { type: 'image/jpeg' });
+
+    const promise = uploadToGcs('https://bucket.com/key', file, vi.fn());
+    vi.advanceTimersByTime(4 * 60 * 1000);
+    xhr.fire('load');
+
+    await expect(promise).resolves.toBeUndefined();
   });
 });

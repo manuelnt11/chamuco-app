@@ -1,9 +1,5 @@
-export enum UploadType {
-  USER_AVATAR = 'USER_AVATAR',
-  GROUP_COVER = 'GROUP_COVER',
-  GROUP_RESOURCE_DOCUMENT = 'GROUP_RESOURCE_DOCUMENT',
-  TRIP_RESOURCE = 'TRIP_RESOURCE',
-}
+import { UploadType } from '@chamuco/shared-types';
+export { UploadType } from '@chamuco/shared-types';
 
 export const UPLOAD_SIZE_LIMITS_BYTES: Record<UploadType, number> = {
   [UploadType.USER_AVATAR]: 2 * 1024 * 1024,

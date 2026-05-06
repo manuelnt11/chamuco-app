@@ -1,18 +1,29 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
   ApiBadRequestResponse,
+  ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
-import { UPLOAD_SIZE_LIMITS_BYTES } from '@/modules/cloud-storage/cloud-storage.constants';
+import {
+  UPLOAD_SIZE_LIMITS_BYTES,
+  UploadType,
+} from '@/modules/cloud-storage/cloud-storage.constants';
 import { GenerateSignedUrlDto } from './dto/generate-signed-url.dto';
 import { SignedUrlResponseDto } from './dto/signed-url-response.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
-import { BadRequestException } from '@nestjs/common';
 
 @ApiTags('uploads')
 @ApiBearerAuth()
@@ -34,10 +45,18 @@ export class UploadsController {
     description:
       'Unsupported content type or file size exceeds the limit for the given upload type.',
   })
+  @ApiForbiddenResponse({
+    description:
+      'USER_AVATAR: contextId must match the authenticated user. ' +
+      'GROUP_COVER, GROUP_RESOURCE_DOCUMENT, TRIP_RESOURCE: not yet available ' +
+      '(membership validation is pending implementation).',
+  })
   async generateSignedUrl(
-    @CurrentUser() _user: AuthenticatedUser,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: GenerateSignedUrlDto,
   ): Promise<SignedUrlResponseDto> {
+    this.authorizeUpload(user, dto.uploadType, dto.contextId);
+
     if (!this.cloudStorageService.isAllowedContentType(dto.uploadType, dto.contentType)) {
       throw new BadRequestException(
         `Content type "${dto.contentType}" is not allowed for upload type "${dto.uploadType}".`,
@@ -56,5 +75,25 @@ export class UploadsController {
       dto.contextId,
       dto.contentType,
     );
+  }
+
+  private authorizeUpload(
+    user: AuthenticatedUser,
+    uploadType: UploadType,
+    contextId: string,
+  ): void {
+    switch (uploadType) {
+      case UploadType.USER_AVATAR:
+        if (contextId !== user.id) {
+          throw new ForbiddenException('contextId must match the authenticated user.');
+        }
+        break;
+      case UploadType.GROUP_COVER:
+      case UploadType.GROUP_RESOURCE_DOCUMENT:
+      case UploadType.TRIP_RESOURCE:
+        throw new ForbiddenException(
+          `Upload type "${uploadType}" is not available yet. Group and trip membership validation is pending implementation.`,
+        );
+    }
   }
 }

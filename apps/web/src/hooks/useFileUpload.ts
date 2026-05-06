@@ -1,14 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { UploadType } from '@chamuco/shared-types';
 import { apiClient } from '@/services/api-client';
 import { uploadToGcs } from '@/services/gcs-upload';
 
-export type UploadType =
-  | 'USER_AVATAR'
-  | 'GROUP_COVER'
-  | 'GROUP_RESOURCE_DOCUMENT'
-  | 'TRIP_RESOURCE';
+export { UploadType } from '@chamuco/shared-types';
 
 export interface UseFileUploadOptions {
   uploadType: UploadType;
@@ -62,6 +59,7 @@ export function useFileUpload({
         return data.objectKey;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Upload failed';
+        console.error('[useFileUpload]', message);
         setError(message);
         throw err;
       } finally {

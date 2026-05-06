@@ -1,6 +1,6 @@
 jest.mock('@google-cloud/storage', () => ({ Storage: jest.fn() }));
 
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import { UploadsController } from './uploads.controller';
@@ -67,79 +67,81 @@ describe('UploadsController', () => {
       fileSize: 500 * 1024,
     };
 
-    it('returns a signed URL result for a valid request', async () => {
-      const result = await controller.generateSignedUrl(mockAuthUser, validDto);
+    describe('authorization', () => {
+      it('returns a signed URL when USER_AVATAR contextId matches the authenticated user', async () => {
+        const result = await controller.generateSignedUrl(mockAuthUser, validDto);
 
-      expect(result).toEqual(mockSignedUrlResult);
-      expect(mockGenerateSignedUploadUrl).toHaveBeenCalledWith(
-        UploadType.USER_AVATAR,
-        'user-uuid',
-        'image/jpeg',
+        expect(result).toEqual(mockSignedUrlResult);
+        expect(mockGenerateSignedUploadUrl).toHaveBeenCalledWith(
+          UploadType.USER_AVATAR,
+          'user-uuid',
+          'image/jpeg',
+        );
+      });
+
+      it('throws ForbiddenException when USER_AVATAR contextId does not match the user', async () => {
+        const dto: GenerateSignedUrlDto = { ...validDto, contextId: 'different-user-uuid' };
+
+        await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
+          ForbiddenException,
+        );
+        expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        [UploadType.GROUP_COVER, 'group-uuid'],
+        [UploadType.GROUP_RESOURCE_DOCUMENT, 'group-uuid'],
+        [UploadType.TRIP_RESOURCE, 'trip-uuid'],
+      ])(
+        'throws ForbiddenException for %s (pending implementation)',
+        async (uploadType, contextId) => {
+          const dto: GenerateSignedUrlDto = {
+            uploadType,
+            contextId,
+            contentType: 'image/jpeg',
+            fileSize: 500 * 1024,
+          };
+
+          await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
+            ForbiddenException,
+          );
+          expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+        },
       );
     });
 
-    it('throws BadRequestException for an unsupported content type', async () => {
-      mockIsAllowedContentType.mockReturnValue(false);
+    describe('validation', () => {
+      it('throws BadRequestException for an unsupported content type', async () => {
+        mockIsAllowedContentType.mockReturnValue(false);
 
-      await expect(controller.generateSignedUrl(mockAuthUser, validDto)).rejects.toThrow(
-        BadRequestException,
-      );
-      expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
-    });
+        await expect(controller.generateSignedUrl(mockAuthUser, validDto)).rejects.toThrow(
+          BadRequestException,
+        );
+        expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+      });
 
-    it('throws BadRequestException when file size exceeds the limit for USER_AVATAR (2MB)', async () => {
-      const dto: GenerateSignedUrlDto = {
-        ...validDto,
-        fileSize: 3 * 1024 * 1024,
-      };
+      it('throws BadRequestException when file size exceeds the limit for USER_AVATAR (2MB)', async () => {
+        const dto: GenerateSignedUrlDto = { ...validDto, fileSize: 3 * 1024 * 1024 };
 
-      await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
-        BadRequestException,
-      );
-      expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
-    });
+        await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
+          BadRequestException,
+        );
+        expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+      });
 
-    it('throws BadRequestException when file size exceeds the limit for GROUP_COVER (5MB)', async () => {
-      const dto: GenerateSignedUrlDto = {
-        uploadType: UploadType.GROUP_COVER,
-        contextId: 'group-uuid',
-        contentType: 'image/png',
-        fileSize: 6 * 1024 * 1024,
-      };
+      it('accepts a file exactly at the USER_AVATAR size limit', async () => {
+        const dto: GenerateSignedUrlDto = { ...validDto, fileSize: 2 * 1024 * 1024 };
 
-      await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+        await expect(controller.generateSignedUrl(mockAuthUser, dto)).resolves.toEqual(
+          mockSignedUrlResult,
+        );
+      });
 
-    it('throws BadRequestException when file size exceeds the limit for GROUP_RESOURCE_DOCUMENT (20MB)', async () => {
-      const dto: GenerateSignedUrlDto = {
-        uploadType: UploadType.GROUP_RESOURCE_DOCUMENT,
-        contextId: 'group-uuid',
-        contentType: 'application/pdf',
-        fileSize: 21 * 1024 * 1024,
-      };
+      it('delegates content type validation to CloudStorageService', async () => {
+        await controller.generateSignedUrl(mockAuthUser, validDto);
 
-      await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('accepts a file exactly at the size limit', async () => {
-      const dto: GenerateSignedUrlDto = {
-        ...validDto,
-        fileSize: 2 * 1024 * 1024,
-      };
-
-      await expect(controller.generateSignedUrl(mockAuthUser, dto)).resolves.toEqual(
-        mockSignedUrlResult,
-      );
-    });
-
-    it('delegates content type validation to CloudStorageService', async () => {
-      await controller.generateSignedUrl(mockAuthUser, validDto);
-
-      expect(mockIsAllowedContentType).toHaveBeenCalledWith(UploadType.USER_AVATAR, 'image/jpeg');
+        expect(mockIsAllowedContentType).toHaveBeenCalledWith(UploadType.USER_AVATAR, 'image/jpeg');
+      });
     });
   });
 });

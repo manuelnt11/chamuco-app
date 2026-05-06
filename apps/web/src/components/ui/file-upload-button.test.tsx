@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { UploadType } from '@chamuco/shared-types';
 import { FileUploadButton } from './file-upload-button';
 import * as useFileUploadModule from '@/hooks/useFileUpload';
 
@@ -34,7 +35,7 @@ function mockHookState(overrides: Partial<ReturnType<typeof useFileUploadModule.
 }
 
 const defaultProps = {
-  uploadType: 'USER_AVATAR' as const,
+  uploadType: UploadType.USER_AVATAR,
   contextId: 'user-1',
   onSuccess: vi.fn(),
 };
@@ -78,11 +79,12 @@ describe('FileUploadButton', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
-  it('shows error message with retry button when error occurs', () => {
+  it('shows localized error message with retry button when error occurs', () => {
     mockHookState({ error: 'GCS upload failed with status 403', isUploading: false });
 
     render(<FileUploadButton {...defaultProps} />);
-    expect(screen.getByText(/GCS upload failed/)).toBeInTheDocument();
+    expect(screen.getByText(/Upload failed\. Please try again\./)).toBeInTheDocument();
+    expect(screen.queryByText(/GCS upload failed/)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 
@@ -90,7 +92,7 @@ describe('FileUploadButton', () => {
     mockHookState({ error: 'some error', isUploading: true, progress: 50 });
 
     render(<FileUploadButton {...defaultProps} />);
-    expect(screen.queryByText('some error')).not.toBeInTheDocument();
+    expect(screen.queryByText('Upload failed. Please try again.')).not.toBeInTheDocument();
   });
 
   it('disables button when disabled prop is true', () => {

@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { UploadType } from '@chamuco/shared-types';
 import { useFileUpload } from './useFileUpload';
 import { apiClient } from '@/services/api-client';
 import * as gcsUpload from '@/services/gcs-upload';
@@ -29,7 +30,7 @@ beforeEach(() => {
 });
 
 describe('useFileUpload', () => {
-  const defaultOptions = { uploadType: 'USER_AVATAR' as const, contextId: 'user-1' };
+  const defaultOptions = { uploadType: UploadType.USER_AVATAR, contextId: 'user-1' };
 
   it('starts with idle state', () => {
     const { result } = renderHook(() => useFileUpload(defaultOptions));

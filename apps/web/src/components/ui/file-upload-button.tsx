@@ -2,15 +2,17 @@
 
 import { useRef, type ReactNode, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { UploadType } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import type { UploadType } from '@/hooks/useFileUpload';
+
+export type { UploadType };
 
 const ACCEPTED_TYPES: Record<UploadType, string> = {
-  USER_AVATAR: 'image/jpeg,image/png,image/webp',
-  GROUP_COVER: 'image/jpeg,image/png,image/webp',
-  GROUP_RESOURCE_DOCUMENT: 'application/pdf,image/jpeg,image/png,.doc,.docx',
-  TRIP_RESOURCE: 'application/pdf,image/jpeg,image/png,.doc,.docx',
+  [UploadType.USER_AVATAR]: 'image/jpeg,image/png,image/webp',
+  [UploadType.GROUP_COVER]: 'image/jpeg,image/png,image/webp',
+  [UploadType.GROUP_RESOURCE_DOCUMENT]: 'application/pdf,image/jpeg,image/png,.doc,.docx',
+  [UploadType.TRIP_RESOURCE]: 'application/pdf,image/jpeg,image/png,.doc,.docx',
 };
 
 export interface FileUploadButtonProps {
@@ -99,7 +101,7 @@ export function FileUploadButton({
 
       {error && !isUploading && (
         <p className="text-xs text-destructive">
-          {error}{' '}
+          {t('upload.errorDefault')}{' '}
           <button
             type="button"
             onClick={handleClick}
