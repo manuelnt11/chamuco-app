@@ -75,7 +75,7 @@ importers:
         specifier: ^9.39.4
         version: 9.39.4
       '@types/node':
-        specifier: 'catalog:'
+        specifier: 25.6.0
         version: 25.6.0
       '@typescript-eslint/eslint-plugin':
         specifier: 'catalog:'
