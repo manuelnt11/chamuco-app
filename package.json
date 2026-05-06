@@ -41,7 +41,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
     "prettier": "catalog:",
-    "turbo": "^2.8.21",
+    "turbo": "^2.9.9",
     "typescript": "catalog:"
   },
   "engines": {
@@ -85,7 +85,8 @@
       "protobufjs@<7.5.5": ">=7.5.5",
       "fast-xml-parser@<5.7.0": ">=5.7.0",
       "uuid@<14.0.0": ">=14.0.0",
-      "postcss@<8.5.10": ">=8.5.10"
+      "postcss@<8.5.10": ">=8.5.10",
+      "ip-address@<=10.1.0": ">=10.1.1"
     }
   }
 }
