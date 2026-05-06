@@ -166,6 +166,7 @@ describe('uploadToGcs', () => {
     const promise = uploadToGcs('https://bucket.com/key', file, vi.fn());
 
     vi.advanceTimersByTime(5 * 60 * 1000);
+    expect(xhr.abort).toHaveBeenCalledTimes(1);
     xhr.fire('abort');
 
     await expect(promise).rejects.toThrow('Upload aborted');

@@ -94,6 +94,10 @@ export class UploadsController {
         throw new ForbiddenException(
           `Upload type "${uploadType}" is not available yet. Group and trip membership validation is pending implementation.`,
         );
+      default: {
+        const _exhaustive: never = uploadType;
+        throw new ForbiddenException(`Unknown upload type: ${String(_exhaustive)}`);
+      }
     }
   }
 }
