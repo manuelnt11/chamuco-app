@@ -12,6 +12,8 @@ import { HealthModule } from '@/modules/health/health.module';
 import { LocationsModule } from '@/modules/locations/locations.module';
 import { JobsModule } from '@/modules/jobs/jobs.module';
 import { UsersModule } from '@/modules/users/users.module';
+import { CloudStorageModule } from '@/modules/cloud-storage/cloud-storage.module';
+import { UploadsModule } from '@/modules/uploads/uploads.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
 import { I18nModule } from 'nestjs-i18n';
 import * as path from 'path';
@@ -24,6 +26,8 @@ import * as path from 'path';
     DatabaseModule,
     AuthModule,
     UsersModule,
+    CloudStorageModule,
+    UploadsModule,
     HealthModule,
     FeedbackModule,
     LocationsModule,

@@ -63,6 +63,10 @@ class EnvironmentVariables {
     message: 'CORS_ORIGIN must be one or more comma-separated https URLs',
   })
   CORS_ORIGIN?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  GOOGLE_CLOUD_STORAGE_BUCKET!: string;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {

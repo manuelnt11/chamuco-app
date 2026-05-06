@@ -4,6 +4,7 @@
   "testEnvironment": "node",
   "rootDir": "..",
   "testMatch": ["<rootDir>/test/**/*.e2e-spec.ts"],
+  "transformIgnorePatterns": ["/node_modules/.pnpm/(?!uuid@)"],
   "transform": {
     "^.+\\.(t|j)s$": [
       "@swc/jest",

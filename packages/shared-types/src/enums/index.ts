@@ -16,4 +16,5 @@ export * from './profile-visibility.enum';
 export * from './visa-coverage-type.enum';
 export * from './visa-entries.enum';
 export * from './visa-type.enum';
+export * from './upload-type.enum';
 export * from './visa-zone.enum';
