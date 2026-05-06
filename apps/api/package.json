@@ -24,6 +24,7 @@
   "dependencies": {
     "@chamuco/shared-types": "workspace:*",
     "@chamuco/shared-utils": "workspace:*",
+    "@google-cloud/storage": "^7.19.0",
     "@nestjs/common": "^11.1.17",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.17",

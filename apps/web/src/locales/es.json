@@ -63,6 +63,13 @@
       "message": "No se detectó conexión a internet. Algunas funciones pueden no estar disponibles.",
       "retry": "Intentar de Nuevo"
     },
+    "upload": {
+      "chooseFile": "Elegir archivo",
+      "uploading": "Subiendo...",
+      "retry": "Reintentar",
+      "errorDefault": "Error al subir. Inténtalo de nuevo.",
+      "progressLabel": "Progreso de subida: {{progress}}%"
+    },
     "profileIncomplete": {
       "title": "Completa tu perfil",
       "description": "Agrega tus nacionalidades y contactos de emergencia para acceder a todas las funciones.",

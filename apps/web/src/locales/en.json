@@ -63,6 +63,13 @@
       "message": "No internet connection detected. Some features may be unavailable.",
       "retry": "Try Again"
     },
+    "upload": {
+      "chooseFile": "Choose file",
+      "uploading": "Uploading...",
+      "retry": "Retry",
+      "errorDefault": "Upload failed. Please try again.",
+      "progressLabel": "Upload progress: {{progress}}%"
+    },
     "profileIncomplete": {
       "title": "Complete your profile",
       "description": "Add your nationalities and emergency contacts to access all features.",

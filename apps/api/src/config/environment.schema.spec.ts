@@ -5,6 +5,7 @@ const baseEnv = {
   NODE_ENV: 'development',
   FIREBASE_SERVICE_ACCOUNT_JSON: '{}',
   GEONAMES_USERNAME: 'testuser',
+  GOOGLE_CLOUD_STORAGE_BUCKET: 'chamuco-uploads',
 };
 
 describe('environment.schema — validate()', () => {
@@ -18,6 +19,25 @@ describe('environment.schema — validate()', () => {
     it('rejects when absent', () => {
       const { GEONAMES_USERNAME: _, ...withoutGeonames } = baseEnv;
       expect(() => validate(withoutGeonames)).toThrow('Environment validation failed');
+    });
+  });
+
+  describe('GOOGLE_CLOUD_STORAGE_BUCKET', () => {
+    it('rejects an empty string', () => {
+      expect(() => validate({ ...baseEnv, GOOGLE_CLOUD_STORAGE_BUCKET: '' })).toThrow(
+        'Environment validation failed',
+      );
+    });
+
+    it('rejects when absent', () => {
+      const { GOOGLE_CLOUD_STORAGE_BUCKET: _, ...withoutBucket } = baseEnv;
+      expect(() => validate(withoutBucket)).toThrow('Environment validation failed');
+    });
+
+    it('accepts a valid bucket name', () => {
+      expect(() =>
+        validate({ ...baseEnv, GOOGLE_CLOUD_STORAGE_BUCKET: 'chamuco-uploads' }),
+      ).not.toThrow();
     });
   });
 
