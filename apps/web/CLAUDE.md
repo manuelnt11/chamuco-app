@@ -177,3 +177,41 @@ When any of the following changes are made to the frontend codebase:
 - If many unused keys are reported, it's informational — no action required unless keys are confirmed obsolete
 
 **The script exits with code 1 if any keys are missing**, blocking commits via pre-commit hooks if integrated. All i18n keys must be valid before merging.
+
+### 3. File uploads — use FileUploadButton + useFileUpload
+
+All user-generated media uploads use the signed URL infrastructure. Never upload through the API — always direct-to-GCS.
+
+**Key files:**
+
+- `src/components/ui/file-upload-button.tsx` — drop-in trigger button with progress bar, error display, and retry
+- `src/hooks/useFileUpload.ts` — fetches signed URL, drives XHR upload, exposes `upload`, `progress`, `isUploading`, `error`, `reset`
+- `src/services/gcs-upload.ts` — low-level XHR PUT with progress events and 5-minute abort timeout
+- `UploadType` enum imported from `@chamuco/shared-types` (re-exported by both `useFileUpload` and `file-upload-button`)
+
+**Usage:**
+
+```tsx
+import { FileUploadButton, UploadType } from '@/components/ui/file-upload-button';
+
+<FileUploadButton
+  uploadType={UploadType.USER_AVATAR}
+  contextId={user.id}
+  onSuccess={(objectKey) => saveAvatarKey(objectKey)}
+  onError={(err) => console.error(err)}
+/>;
+```
+
+**Error handling contract:**
+
+- `useFileUpload` logs the raw error to `console.error('[useFileUpload]', message)` and sets `error` state with the technical message.
+- `FileUploadButton` always shows the localized `t('upload.errorDefault')` string — never exposes the raw error to the user.
+- Callers receive the original `Error` object via `onError` for upstream handling.
+
+**i18n keys** (all in `common` namespace under `upload.*`):
+
+- `upload.chooseFile` — default button label
+- `upload.uploading` — label while upload is in progress
+- `upload.retry` — retry button label
+- `upload.errorDefault` — user-facing error message
+- `upload.progressLabel` — ARIA label for the progress bar (`Upload progress: {{progress}}%`)

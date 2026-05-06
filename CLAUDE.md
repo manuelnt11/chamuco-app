@@ -393,6 +393,24 @@ TypeScript's type system is a critical safety net. **Never use `any` or `unknown
 - If a better-typed alternative exists, request changes.
 - Temporary workarounds with `@ts-expect-error` should reference a tracking issue or version number.
 
+### 7. Cloud Storage — always delete replaced or removed files
+
+Any backend operation that replaces or deletes a user-uploaded resource **must** also delete the old object from Cloud Storage. Orphaned objects are never cleaned up automatically — every object that becomes unreachable from the database is wasted storage cost.
+
+**Rule:** In any NestJS service method that overwrites a `storage_url` / `avatar_url` / `*_url` column or deletes a record that owns one, call `StorageService.delete(oldUrl)` **before** (or within the same transaction as) the database write. If the delete fails, surface the error — do not silently swallow it.
+
+```ts
+// ✅ Correct — delete old object before saving new URL
+const previous = await this.usersRepository.getAvatarUrl(userId);
+if (previous) await this.storageService.delete(previous);
+await this.usersRepository.updateAvatarUrl(userId, newUrl);
+
+// ❌ Wrong — orphaned object stays in the bucket forever
+await this.usersRepository.updateAvatarUrl(userId, newUrl);
+```
+
+**Applies to:** user avatar, trip cover image, agency logo, and any other entity field that stores a Cloud Storage URL. When implementing a new uploadable resource, always identify the prior value before writing the new one.
+
 ### 6. pnpm catalog — shared devDependency versioning
 
 Shared `devDependencies` that appear in more than one package are versioned exactly once in the `catalog:` block of `pnpm-workspace.yaml`. Individual `package.json` files reference them with `"catalog:"` instead of a pinned version string.
