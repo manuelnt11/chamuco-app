@@ -3,15 +3,16 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { preload } from 'react-dom';
-import type { ProfileVisibility } from '@chamuco/shared-types';
+import type { ProfileVisibility, ResolvedAsset } from '@chamuco/shared-types';
 
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/services/api-client';
 
 export interface AppUser {
+  id: string;
   username: string;
   displayName: string;
-  avatarUrl: string | null;
+  avatar: ResolvedAsset | null;
   timezone: string;
   profileVisibility: ProfileVisibility;
 }
@@ -54,8 +55,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   // Called during render (not in an effect) so React synchronously injects
   // <link rel="preload"> before any consumer mounts, warming the browser cache.
-  if (appUser?.avatarUrl) {
-    preload(appUser.avatarUrl, { as: 'image', referrerPolicy: 'no-referrer' });
+  if (appUser?.avatar?.url) {
+    preload(appUser.avatar.url, { as: 'image', referrerPolicy: 'no-referrer' });
   }
 
   const value = useMemo(

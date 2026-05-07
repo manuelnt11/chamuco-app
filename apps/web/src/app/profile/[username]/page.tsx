@@ -16,12 +16,13 @@ import {
 } from '@/components/public-profile';
 import type { KeyStats } from '@/components/public-profile';
 import { apiClient } from '@/services/api-client';
+import type { ResolvedAsset } from '@chamuco/shared-types';
 import { ProfileVisibility } from '@chamuco/shared-types';
 
 interface PublicProfileData {
   username: string;
   displayName: string;
-  avatarUrl: string | null;
+  avatar: ResolvedAsset | null;
   bio: string | null;
   profileVisibility: ProfileVisibility;
   travelerScore: number | null;
@@ -116,7 +117,7 @@ export default function PublicProfilePage() {
       <PublicProfileHeader
         displayName={profileData.displayName}
         username={profileData.username}
-        avatarUrl={profileData.avatarUrl}
+        avatar={profileData.avatar}
         bio={profileData.bio}
       />
 

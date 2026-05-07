@@ -64,7 +64,7 @@ import PublicProfilePage from './page';
 const publicProfileData = {
   username: 'jsmith',
   displayName: 'John Smith',
-  avatarUrl: null,
+  avatar: null,
   bio: 'Avid traveler.',
   profileVisibility: ProfileVisibility.PUBLIC,
   travelerScore: null,
@@ -83,7 +83,7 @@ const publicProfileData = {
 const privateProfileData = {
   username: 'jsmith',
   displayName: 'John Smith',
-  avatarUrl: null,
+  avatar: null,
   bio: null,
   profileVisibility: ProfileVisibility.PRIVATE,
   travelerScore: null,

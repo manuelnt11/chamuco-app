@@ -6,9 +6,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
+import type { ResolvedAsset } from '@chamuco/shared-types';
 import { AuthProvider } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
+import { assets } from '@/modules/assets/schema/assets.schema';
 import { userNationalities } from '@/modules/users/schema/user-nationalities.schema';
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
@@ -95,21 +97,28 @@ export class AuthService {
     const { day, month, year, yearVisible } = dto.dateOfBirth;
     const profileEmail = dto.email ?? decodedToken.email!;
 
-    const newUser = await this.db
+    const { createdUser, insertedAsset } = await this.db
       .transaction(async (trx) => {
-        const inserted = await trx
+        let insertedAsset: typeof assets.$inferSelect | null = null;
+        if (decodedToken.picture) {
+          const [asset] = await trx
+            .insert(assets)
+            .values({ type: 'image', source: 'url', target: decodedToken.picture, isPublic: true })
+            .returning();
+          insertedAsset = asset ?? null;
+        }
+
+        const [created] = await trx
           .insert(users)
           .values({
             username: dto.username,
             displayName: dto.displayName,
-            avatarUrl: decodedToken.picture ?? null,
+            avatar: insertedAsset?.id ?? null,
             authProvider,
             firebaseUid: decodedToken.uid,
             timezone: dto.timezone,
           })
           .returning();
-
-        const created = inserted[0];
 
         if (!created) {
           throw new Error('Failed to create user record');
@@ -150,7 +159,7 @@ export class AuthService {
           );
         }
 
-        return created;
+        return { createdUser: created, insertedAsset };
       })
       .catch((err: unknown) => {
         if (isUniqueViolation(err)) {
@@ -159,7 +168,35 @@ export class AuthService {
         throw err;
       });
 
-    return newUser;
+    // Construct ResolvedAsset manually instead of injecting AssetResolverService: the
+    // registration asset is always source='url' (OAuth picture), so url === target.
+    // If this ever handles non-URL sources, inject AssetResolverService and call resolve().
+    const avatar: ResolvedAsset | null = insertedAsset
+      ? {
+          id: insertedAsset.id,
+          type: insertedAsset.type,
+          source: insertedAsset.source,
+          target: insertedAsset.target,
+          fileSize: insertedAsset.fileSize ?? undefined,
+          isPublic: insertedAsset.isPublic,
+          createdAt: insertedAsset.createdAt.toISOString(),
+          url: insertedAsset.target,
+        }
+      : null;
+
+    return {
+      id: createdUser.id,
+      username: createdUser.username,
+      displayName: createdUser.displayName,
+      avatar,
+      authProvider: createdUser.authProvider,
+      timezone: createdUser.timezone,
+      platformRole: createdUser.platformRole,
+      agencyId: createdUser.agencyId,
+      createdAt: createdUser.createdAt,
+      updatedAt: createdUser.updatedAt,
+      lastActiveAt: createdUser.lastActiveAt,
+    };
   }
 
   async logout(firebaseUid: string): Promise<void> {

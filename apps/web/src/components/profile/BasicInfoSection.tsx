@@ -4,7 +4,6 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProfileVisibility } from '@chamuco/shared-types';
 
-import { Avatar } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SaveButton } from '@/components/ui/save-button';
@@ -17,7 +16,7 @@ import { apiClient } from '@/services/api-client';
 import { useUser } from '@/hooks/useUser';
 import type { AppUser } from '@/store/user';
 import { COUNTRY_TIMEZONE } from '@/lib/timezones';
-import { getInitials } from '@/lib/name-utils';
+import { AvatarEditor } from './AvatarEditor';
 
 export interface BasicInfoProfile {
   bio: string | null;
@@ -86,18 +85,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
     <form onSubmit={handleSave} className="max-w-lg space-y-6">
       <h2 className="text-xl font-semibold">{t('basicInfo.heading')}</h2>
 
-      <div className="flex items-center gap-4">
-        <Avatar
-          src={user.avatarUrl ?? undefined}
-          alt=""
-          fallback={getInitials(user.displayName)}
-          size="lg"
-        />
-        <div>
-          <p className="text-sm font-medium">{t('basicInfo.avatar')}</p>
-          <p className="text-xs text-muted-foreground">{t('basicInfo.avatarHint')}</p>
-        </div>
-      </div>
+      <AvatarEditor user={user} />
 
       <div className="space-y-1.5">
         <Label htmlFor="displayName">{t('basicInfo.displayName')}</Label>

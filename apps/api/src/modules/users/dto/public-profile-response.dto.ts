@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ProfileVisibility } from '@chamuco/shared-types';
+import type { ResolvedAsset } from '@chamuco/shared-types';
+import { ResolvedAssetDto } from './user-response.dto';
 
 export class KeyStatsDto {
   @ApiProperty({ example: 12 })
@@ -25,8 +27,8 @@ export class PublicProfileResponseDto {
   @ApiProperty({ example: 'John Smith' })
   displayName!: string;
 
-  @ApiProperty({ example: 'https://cdn.example.com/avatars/jsmith.jpg', nullable: true })
-  avatarUrl!: string | null;
+  @ApiProperty({ type: () => ResolvedAssetDto, nullable: true })
+  avatar!: ResolvedAsset | null;
 
   @ApiProperty({ example: 'Avid traveler and mountain lover.', nullable: true })
   bio!: string | null;

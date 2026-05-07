@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { ResolvedAsset } from '@chamuco/shared-types';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
+import { ResolvedAssetDto } from '@/modules/users/dto/user-response.dto';
 
 export class RegisterResponseDto {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
@@ -11,8 +13,8 @@ export class RegisterResponseDto {
   @ApiProperty({ example: 'John Doe' })
   displayName!: string;
 
-  @ApiProperty({ example: 'https://example.com/avatar.jpg', nullable: true })
-  avatarUrl!: string | null;
+  @ApiProperty({ type: () => ResolvedAssetDto, nullable: true })
+  avatar!: ResolvedAsset | null;
 
   @ApiProperty({ enum: AuthProvider, example: AuthProvider.GOOGLE })
   authProvider!: AuthProvider;

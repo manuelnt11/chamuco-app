@@ -7,6 +7,10 @@ import {
 } from '@nestjs/common';
 import { and, eq, ne } from 'drizzle-orm';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
+import { assets } from '@/modules/assets/schema/assets.schema';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
+import { PUBLIC_OBJECT_PREFIXES } from '@/modules/cloud-storage/cloud-storage.constants';
 import { userNationalities } from '@/modules/users/schema/user-nationalities.schema';
 import { userEtas } from '@/modules/users/schema/user-etas.schema';
 import { userVisas } from '@/modules/users/schema/user-visas.schema';
@@ -14,10 +18,12 @@ import { userPreferences } from '@/modules/users/schema/user-preferences.schema'
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
 import { DocumentStatus, PassportStatus, ProfileVisibility } from '@chamuco/shared-types';
+import type { Asset, ResolvedAsset } from '@chamuco/shared-types';
 import { computeDocumentStatus } from '@/common/utils/document-status.util';
 import { computePassportStatus } from '@/common/utils/passport-status.util';
 import type { AuthenticatedUser } from '@/types/express';
 import type { DateOfBirthDto } from './dto/date-of-birth.dto';
+import type { UpdateAvatarDto } from './dto/update-avatar.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type {
   CreateNationalityDto,
@@ -40,7 +46,11 @@ import type { CreateEtaDto, EtaResponseDto, UpdateEtaDto } from './dto/eta.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient) {}
+  constructor(
+    @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
+    private readonly assetResolver: AssetResolverService,
+    private readonly cloudStorage: CloudStorageService,
+  ) {}
 
   async findByFirebaseUid(firebaseUid: string): Promise<AuthenticatedUser> {
     const user = await this.db.query.users.findFirst({
@@ -62,7 +72,6 @@ export class UsersService {
   async updateMe(existingUser: AuthenticatedUser, dto: UpdateUserDto): Promise<UserResponseDto> {
     const patch: Partial<typeof users.$inferInsert> = {};
     if (dto.displayName !== undefined) patch.displayName = dto.displayName.trim();
-    if (dto.avatarUrl !== undefined) patch.avatarUrl = dto.avatarUrl?.trim() || null;
     if (dto.timezone !== undefined) patch.timezone = dto.timezone;
     if (dto.profileVisibility !== undefined) patch.profileVisibility = dto.profileVisibility;
 
@@ -474,6 +483,11 @@ export class UsersService {
       .where(and(eq(userNationalities.id, nationalityId), eq(userNationalities.userId, userId)));
   }
 
+  async getMe(user: AuthenticatedUser): Promise<UserResponseDto> {
+    // TODO: resolve avatar in the auth middleware so GET /v1/users/me stays zero-query.
+    return this.mapUserResponse(user);
+  }
+
   async getPublicProfile(username: string): Promise<PublicProfileResponseDto> {
     const user = await this.db.query.users.findFirst({
       where: eq(users.username, username),
@@ -489,7 +503,7 @@ export class UsersService {
     return {
       username: user.username,
       displayName: user.displayName,
-      avatarUrl: user.avatarUrl ?? null,
+      avatar: await this.fetchAndResolveAvatar(user.avatar ?? null),
       bio: profile?.bio ?? null,
       profileVisibility: user.profileVisibility,
       travelerScore: null,
@@ -498,6 +512,49 @@ export class UsersService {
       keyStats: null,
       discoveryMap: showGamification ? [] : null,
     };
+  }
+
+  async updateAvatar(user: AuthenticatedUser, dto: UpdateAvatarDto): Promise<UserResponseDto> {
+    const oldAsset = user.avatar
+      ? await this.db.query.assets.findFirst({ where: eq(assets.id, user.avatar) })
+      : null;
+
+    const newUserId = user.id;
+    await this.db.transaction(async (trx) => {
+      const [newAsset] = await trx
+        .insert(assets)
+        .values({
+          // type='image' for both gcs and emoji: asset_type describes rendered output (PNG image).
+          // AssetResolverService dispatches on source, not type.
+          type: 'image',
+          source: dto.source,
+          target: dto.target,
+          fileSize: dto.fileSize ?? null,
+          isPublic: true,
+        })
+        .returning();
+
+      if (!newAsset) throw new Error('Failed to create asset record');
+      await trx.update(users).set({ avatar: newAsset.id }).where(eq(users.id, newUserId));
+    });
+
+    if (dto.source === 'gcs') {
+      const prefix = dto.target.split('/')[0];
+      if (prefix && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
+        await this.cloudStorage.makePublic(dto.target);
+      }
+    }
+
+    if (oldAsset) {
+      if (oldAsset.source === 'gcs') {
+        await this.cloudStorage.deleteObject(oldAsset.target);
+      }
+      await this.db.delete(assets).where(eq(assets.id, oldAsset.id));
+    }
+
+    const updatedUser = await this.db.query.users.findFirst({ where: eq(users.id, user.id) });
+    if (!updatedUser) throw new NotFoundException('User not found');
+    return this.mapUserResponse(updatedUser);
   }
 
   async getLoyaltyPrograms(userId: string): Promise<LoyaltyProgramDto[]> {
@@ -612,9 +669,28 @@ export class UsersService {
     };
   }
 
-  private mapUserResponse(user: typeof users.$inferSelect): UserResponseDto {
-    const { firebaseUid: _, ...dto } = user;
-    return dto;
+  private async mapUserResponse(user: typeof users.$inferSelect): Promise<UserResponseDto> {
+    const { firebaseUid: _, avatar, ...rest } = user;
+    return { ...rest, avatar: await this.fetchAndResolveAvatar(avatar ?? null) };
+  }
+
+  private async fetchAndResolveAvatar(avatarId: string | null): Promise<ResolvedAsset | null> {
+    if (!avatarId) return null;
+    const row = await this.db.query.assets.findFirst({ where: eq(assets.id, avatarId) });
+    if (!row) return null;
+    return this.assetResolver.resolve(this.toAsset(row));
+  }
+
+  private toAsset(row: typeof assets.$inferSelect): Asset {
+    return {
+      id: row.id,
+      type: row.type,
+      source: row.source,
+      target: row.target,
+      fileSize: row.fileSize ?? undefined,
+      isPublic: row.isPublic,
+      createdAt: row.createdAt.toISOString(),
+    };
   }
 
   private mapPreferencesResponse(

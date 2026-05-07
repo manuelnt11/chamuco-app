@@ -9,6 +9,7 @@
  * export * from './trips.schema';
  */
 
+export * from '@/modules/assets/schema/assets.schema';
 export * from '@/modules/users/schema/users.schema';
 export * from '@/modules/users/schema/user-preferences.schema';
 export * from '@/modules/users/schema/user-profiles.schema';

@@ -80,8 +80,9 @@ The `cover_emoji` column on `groups` and `trips` stores a single emoji character
 
 ### Users & Identity
 
-- `users` — Account records. Linked to Google SSO identity.
-- `user_profiles` — Extended profile data (bio, avatar, privacy settings). Could be a JSONB column on `users` or a separate table depending on query needs.
+- `users` — Account records. Linked to Google SSO identity. Holds `avatar UUID FK → assets.id`.
+- `user_profiles` — Extended profile data (bio, privacy settings). Avatar is NOT stored here — it lives on `users` as an FK.
+- `assets` — Normalized media records shared across entities. Columns: `id`, `type` (enum: `image | video | file | link | emoji | text`), `source` (enum: `gcs | url | emoji | text`), `target` (objectKey for GCS, full URL, emoji char, or plain text), `file_size` (bigint, GCS only), `is_public` (boolean), `created_at`. URLs are never stored — computed at read time by `AssetResolverService`. Scalar assets (avatar, cover image) are referenced by a direct FK on the entity. Collection assets (group resources, trip attachments) use a join table — see [Asset Collection Pattern](#asset-collection-pattern-post-mvp) below.
 - `user_preferences` — Display and UX preferences (language, currency, theme). 1:1 with `users`. See `design/preferences.md`.
 - `user_stats` — Computed travel statistics (trips completed, countries visited, km traveled, etc.). 1:1 with `users`. Updated during trip completion flow. See `features/gamification.md`.
 - `user_achievements` — Records of unlocked achievements per user. See `features/gamification.md`.
@@ -167,6 +168,42 @@ The `cover_emoji` column on `groups` and `trips` stores a single emoji character
 | `stays`      | `metadata`           | Check-in instructions, contact info, amenities                         |
 | `activities` | `details`            | Custom fields specific to the activity type                            |
 | `users`      | `preferences`        | App-level user preferences (language, currency, notification settings) |
+
+---
+
+## Asset Collection Pattern (Post-MVP)
+
+Entities that own a **single** asset (user avatar, group cover, trip cover) hold a direct `UUID FK → assets.id` column on the entity table. Entities that own a **collection** of assets (group resources, trip attachments) use a dedicated join table that carries the relationship metadata.
+
+### Design rules
+
+- The `assets` table records only what the asset _is_ — type, source, target, size, visibility, creation time. It never carries context about who uploaded it, to which group, or in what order.
+- Context belongs in the join table: who uploaded it, when, what it means within that collection (description, position, etc.).
+- This separation ensures the same asset record can be re-referenced without duplication and storage accounting (`SUM(file_size)`) is always accurate via a JOIN.
+
+### Projected schema — `group_assets` (example)
+
+```sql
+CREATE TABLE group_assets (
+  group_id    UUID        NOT NULL REFERENCES groups(id)  ON DELETE CASCADE,
+  asset_id    UUID        NOT NULL REFERENCES assets(id)  ON DELETE RESTRICT,
+  description TEXT,
+  position    INTEGER     NOT NULL,
+  uploaded_by UUID        REFERENCES users(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (group_id, asset_id)
+);
+```
+
+Key decisions:
+
+- **Composite PK `(group_id, asset_id)`** — enforces at the DB level that the same asset cannot appear twice in the same group. No separate `UNIQUE` constraint needed. A surrogate `id` is intentionally omitted: the domain rule is that an asset belongs to a group at most once, so the PK should reflect that invariant directly. If a future table needs to reference a specific `group_assets` row (e.g., `group_asset_comments`), add a surrogate key at that point.
+- `ON DELETE RESTRICT` on `asset_id` — prevents deleting an asset that is still referenced by a group. The service must remove the `group_assets` row first, then delete the asset and its GCS object.
+- `is_public = false` on all document assets — enforced in the service layer at creation, never inferred from the prefix.
+- Storage limit check: `SELECT SUM(a.file_size) FROM group_assets ga JOIN assets a ON a.id = ga.asset_id WHERE ga.group_id = $1 AND a.source = 'gcs'`.
+- Orphan detection (audit job): compare all `assets.target WHERE source = 'gcs'` against the GCS bucket listing; objects with no live reference are flagged for deletion.
+
+The same pattern applies to `trip_assets`. The `assets` table schema requires no changes when new collection types are added — only a new join table and service logic.
 
 ---
 

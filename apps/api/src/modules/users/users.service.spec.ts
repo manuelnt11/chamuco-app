@@ -21,7 +21,14 @@ import {
   VisaType,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
 import { UsersService } from './users.service';
+import type { UpdateAvatarDto } from './dto/update-avatar.dto';
+
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
+}));
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
@@ -71,7 +78,7 @@ const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
   username: 'john_doe',
   displayName: 'John Doe',
-  avatarUrl: null,
+  avatar: null,
   authProvider: AuthProvider.GOOGLE,
   firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
@@ -86,6 +93,7 @@ const mockUser: AuthenticatedUser = {
 describe('UsersService', () => {
   let service: UsersService;
   let mockFindFirst: jest.Mock;
+  let mockAssetsFindFirst: jest.Mock;
   let mockProfileFindFirst: jest.Mock;
   let mockPrefFindFirst: jest.Mock;
   let mockReturning: jest.Mock;
@@ -100,9 +108,13 @@ describe('UsersService', () => {
   let mockInsertValues: jest.Mock;
   let mockDeleteWhere: jest.Mock;
   let mockTransaction: jest.Mock;
+  let mockAssetResolverResolve: jest.Mock;
+  let mockCloudStorageDelete: jest.Mock;
+  let mockCloudStorageMakePublic: jest.Mock;
 
   beforeEach(async () => {
     mockFindFirst = jest.fn();
+    mockAssetsFindFirst = jest.fn().mockResolvedValue(null);
     mockProfileFindFirst = jest.fn();
     mockPrefFindFirst = jest.fn();
     mockReturning = jest.fn();
@@ -114,6 +126,9 @@ describe('UsersService', () => {
     mockEtasFindMany = jest.fn();
     mockInsertReturning = jest.fn();
     mockDeleteWhere = jest.fn();
+    mockAssetResolverResolve = jest.fn().mockResolvedValue(null);
+    mockCloudStorageDelete = jest.fn().mockResolvedValue(undefined);
+    mockCloudStorageMakePublic = jest.fn().mockResolvedValue(undefined);
 
     const mockWhere = jest.fn().mockReturnValue({ returning: mockReturning });
     mockSet = jest.fn().mockReturnValue({ where: mockWhere });
@@ -130,6 +145,7 @@ describe('UsersService', () => {
           useValue: {
             query: {
               users: { findFirst: mockFindFirst },
+              assets: { findFirst: mockAssetsFindFirst },
               userProfiles: { findFirst: mockProfileFindFirst },
               userPreferences: { findFirst: mockPrefFindFirst },
               userNationalities: {
@@ -153,6 +169,25 @@ describe('UsersService', () => {
               .mockImplementation(async (callback: (trx: unknown) => Promise<unknown>) =>
                 callback({ update: mockUpdate, insert: mockInsert, delete: mockDelete }),
               )),
+          },
+        },
+        {
+          provide: AssetResolverService,
+          useValue: {
+            resolve: mockAssetResolverResolve,
+            resolveMany: jest.fn().mockResolvedValue([]),
+          },
+        },
+        {
+          provide: CloudStorageService,
+          useValue: {
+            deleteObject: mockCloudStorageDelete,
+            makePublic: mockCloudStorageMakePublic,
+            getPublicUrl: jest.fn().mockReturnValue('https://storage.googleapis.com/bucket/key'),
+            generateSignedDownloadUrl: jest.fn().mockResolvedValue('https://signed-url'),
+            generateSignedUploadUrl: jest.fn(),
+            isAllowedContentType: jest.fn().mockReturnValue(true),
+            extractObjectKey: jest.fn(),
           },
         },
       ],
@@ -220,21 +255,12 @@ describe('UsersService', () => {
     });
 
     it('updates and returns the mapped response on success', async () => {
-      const updated = {
-        ...mockUser,
-        displayName: 'Jane Doe',
-        avatarUrl: 'https://example.com/a.jpg',
-      };
+      const updated = { ...mockUser, displayName: 'Jane Doe' };
       mockReturning.mockResolvedValue([updated]);
 
-      const dto: UpdateUserDto = {
-        displayName: 'Jane Doe',
-        avatarUrl: 'https://example.com/a.jpg',
-      };
-      const result = await service.updateMe(mockUser, dto);
+      const result = await service.updateMe(mockUser, { displayName: 'Jane Doe' });
 
       expect(result.displayName).toBe('Jane Doe');
-      expect(result.avatarUrl).toBe('https://example.com/a.jpg');
       expect(result).not.toHaveProperty('firebaseUid');
     });
 
@@ -246,14 +272,6 @@ describe('UsersService', () => {
 
       expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ timezone: 'America/Bogota' }));
       expect(result.timezone).toBe('America/Bogota');
-    });
-
-    it('normalizes empty and whitespace-only avatarUrl to null before saving', async () => {
-      mockReturning.mockResolvedValue([{ ...mockUser, avatarUrl: null }]);
-
-      await service.updateMe(mockUser, { avatarUrl: '' });
-
-      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ avatarUrl: null }));
     });
 
     it('returns profileVisibility in the response when dto has no fields', async () => {
@@ -289,6 +307,149 @@ describe('UsersService', () => {
       mockReturning.mockRejectedValue(dbError);
 
       await expect(service.updateMe(mockUser, { displayName: 'Jane' })).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('getMe', () => {
+    it('returns mapped user response for the given user', async () => {
+      const result = await service.getMe(mockUser);
+
+      expect(result.id).toBe('user-uuid');
+      expect(result.avatar).toBeNull();
+      expect(result).not.toHaveProperty('firebaseUid');
+    });
+  });
+
+  describe('updateAvatar', () => {
+    const newAssetId = 'new-asset-uuid';
+    const newAsset = {
+      id: newAssetId,
+      type: 'image' as const,
+      source: 'gcs' as const,
+      target: 'avatars/user-uuid/photo.jpg',
+      fileSize: 50000,
+      isPublic: true,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    };
+    const updatedUser = { ...mockUser, avatar: newAssetId };
+
+    it('creates new gcs asset, updates user, and returns resolved user', async () => {
+      mockInsertReturning.mockResolvedValue([newAsset]);
+      mockFindFirst.mockResolvedValue(updatedUser);
+
+      const dto: UpdateAvatarDto = {
+        source: 'gcs',
+        target: 'avatars/user-uuid/photo.jpg',
+        fileSize: 50000,
+      };
+      const result = await service.updateAvatar(mockUser, dto);
+
+      expect(mockTransaction).toHaveBeenCalled();
+      expect(mockInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'gcs',
+          target: 'avatars/user-uuid/photo.jpg',
+          isPublic: true,
+        }),
+      );
+      expect(mockCloudStorageMakePublic).toHaveBeenCalledWith('avatars/user-uuid/photo.jpg');
+      expect(result.id).toBe('user-uuid');
+      expect(mockCloudStorageDelete).not.toHaveBeenCalled();
+    });
+
+    it('deletes old gcs asset from storage and db when replacing gcs avatar', async () => {
+      const oldAsset = {
+        id: 'old-asset-uuid',
+        type: 'image' as const,
+        source: 'gcs' as const,
+        target: 'avatars/user-uuid/old.jpg',
+        fileSize: null,
+        isPublic: true,
+        createdAt: new Date(),
+      };
+      const userWithAvatar = { ...mockUser, avatar: 'old-asset-uuid' };
+      mockAssetsFindFirst.mockResolvedValueOnce(oldAsset).mockResolvedValue(null);
+      mockInsertReturning.mockResolvedValue([newAsset]);
+      mockFindFirst.mockResolvedValue(updatedUser);
+
+      await service.updateAvatar(userWithAvatar, {
+        source: 'gcs',
+        target: 'avatars/user-uuid/photo.jpg',
+        fileSize: 50000,
+      });
+
+      expect(mockCloudStorageDelete).toHaveBeenCalledWith('avatars/user-uuid/old.jpg');
+      expect(mockDeleteWhere).toHaveBeenCalled();
+    });
+
+    it('skips storage delete but cleans db record when old avatar is non-gcs', async () => {
+      const oldUrlAsset = {
+        id: 'old-url-asset-uuid',
+        type: 'image' as const,
+        source: 'url' as const,
+        target: 'https://lh3.googleusercontent.com/photo.jpg',
+        fileSize: null,
+        isPublic: true,
+        createdAt: new Date(),
+      };
+      const userWithUrlAvatar = { ...mockUser, avatar: 'old-url-asset-uuid' };
+      mockAssetsFindFirst.mockResolvedValueOnce(oldUrlAsset).mockResolvedValue(null);
+      mockInsertReturning.mockResolvedValue([newAsset]);
+      mockFindFirst.mockResolvedValue(updatedUser);
+
+      await service.updateAvatar(userWithUrlAvatar, {
+        source: 'gcs',
+        target: 'avatars/user-uuid/photo.jpg',
+        fileSize: 50000,
+      });
+
+      expect(mockCloudStorageDelete).not.toHaveBeenCalled();
+      expect(mockDeleteWhere).toHaveBeenCalled();
+    });
+
+    it('creates emoji asset and returns resolved user', async () => {
+      const emojiAsset = {
+        ...newAsset,
+        id: 'emoji-asset-uuid',
+        source: 'emoji' as const,
+        target: '😀',
+      };
+      mockInsertReturning.mockResolvedValue([emojiAsset]);
+      mockFindFirst.mockResolvedValue({ ...mockUser, avatar: 'emoji-asset-uuid' });
+
+      const result = await service.updateAvatar(mockUser, { source: 'emoji', target: '😀' });
+
+      expect(mockInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'emoji', target: '😀', isPublic: true }),
+      );
+      expect(mockCloudStorageMakePublic).not.toHaveBeenCalled();
+      expect(result.id).toBe('user-uuid');
+    });
+
+    it('does not call makePublic for gcs asset with private prefix', async () => {
+      const privateAsset = {
+        ...newAsset,
+        source: 'gcs' as const,
+        target: 'group-resources/g-uuid/doc.pdf',
+      };
+      mockInsertReturning.mockResolvedValue([privateAsset]);
+      mockFindFirst.mockResolvedValue(updatedUser);
+
+      await service.updateAvatar(mockUser, {
+        source: 'gcs',
+        target: 'group-resources/g-uuid/doc.pdf',
+      });
+
+      expect(mockCloudStorageMakePublic).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when user vanishes after transaction', async () => {
+      mockInsertReturning.mockResolvedValue([newAsset]);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await expect(
+        service.updateAvatar(mockUser, { source: 'gcs', target: 'avatars/user-uuid/photo.jpg' }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -1723,7 +1884,7 @@ describe('UsersService', () => {
       expect(result).toMatchObject({
         username: 'john_doe',
         displayName: 'John Doe',
-        avatarUrl: null,
+        avatar: null,
         bio: 'Avid traveler',
         profileVisibility: ProfileVisibility.PRIVATE,
       });

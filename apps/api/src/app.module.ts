@@ -12,6 +12,7 @@ import { HealthModule } from '@/modules/health/health.module';
 import { LocationsModule } from '@/modules/locations/locations.module';
 import { JobsModule } from '@/modules/jobs/jobs.module';
 import { UsersModule } from '@/modules/users/users.module';
+import { AssetsModule } from '@/modules/assets/assets.module';
 import { CloudStorageModule } from '@/modules/cloud-storage/cloud-storage.module';
 import { UploadsModule } from '@/modules/uploads/uploads.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
@@ -26,6 +27,7 @@ import * as path from 'path';
     DatabaseModule,
     AuthModule,
     UsersModule,
+    AssetsModule,
     CloudStorageModule,
     UploadsModule,
     HealthModule,

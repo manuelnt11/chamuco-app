@@ -82,12 +82,15 @@ function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
   };
 }
 
-function makeAppUser(overrides: Partial<UserContextValue['appUser']> = {}): UserContextValue {
+function makeAppUser(
+  overrides: Partial<NonNullable<UserContextValue['appUser']>> = {},
+): UserContextValue {
   return {
     appUser: {
+      id: 'user-uuid',
       username: 'janedoe',
       displayName: 'Jane Doe',
-      avatarUrl: null,
+      avatar: null,
       timezone: 'America/Bogota',
       profileVisibility: ProfileVisibility.PUBLIC,
       ...overrides,
@@ -162,27 +165,37 @@ describe('UserAvatar', () => {
       expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
-    it('shows user initials from appUser displayName when avatarUrl is null', () => {
+    it('shows user initials from appUser displayName when avatar is null', () => {
       render(<UserAvatar />);
       expect(screen.getByRole('button')).toHaveTextContent('JD');
     });
 
-    it('shows a photo img when appUser has avatarUrl', () => {
+    it('shows a photo img when appUser has avatar url', () => {
       vi.mocked(useUser).mockReturnValue(
-        makeAppUser({ avatarUrl: 'https://example.com/avatar.jpg' }),
+        makeAppUser({
+          avatar: {
+            id: 'a1',
+            type: 'image',
+            source: 'gcs',
+            target: 'avatars/user-uuid/photo.jpg',
+            isPublic: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            url: 'https://example.com/avatar.jpg',
+          },
+        }),
       );
       render(<UserAvatar />);
       const img = screen.getByRole('img');
       expect(img).toHaveAttribute('src', 'https://example.com/avatar.jpg');
     });
 
-    it('falls back to firebase photoURL when appUser has no avatarUrl', () => {
+    it('falls back to firebase photoURL when appUser has no avatar', () => {
       vi.mocked(useAuth).mockReturnValue(
         makeAuth({
           currentUser: makeFirebaseUser({ photoURL: 'https://firebase.example.com/photo.jpg' }),
         }),
       );
-      vi.mocked(useUser).mockReturnValue(makeAppUser({ avatarUrl: null }));
+      vi.mocked(useUser).mockReturnValue(makeAppUser({ avatar: null }));
       render(<UserAvatar />);
       const img = screen.getByRole('img');
       expect(img).toHaveAttribute('src', 'https://firebase.example.com/photo.jpg');

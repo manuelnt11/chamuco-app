@@ -15,7 +15,7 @@ describe('PublicProfileHeader', () => {
   const baseProps = {
     displayName: 'John Smith',
     username: 'jsmith',
-    avatarUrl: null,
+    avatar: null,
     bio: null,
   };
 
@@ -39,8 +39,21 @@ describe('PublicProfileHeader', () => {
     expect(screen.queryByRole('paragraph')).not.toBeInTheDocument();
   });
 
-  it('passes avatarUrl to Avatar', () => {
-    render(<PublicProfileHeader {...baseProps} avatarUrl="https://cdn.example.com/avatar.jpg" />);
+  it('renders Avatar when avatar is provided', () => {
+    render(
+      <PublicProfileHeader
+        {...baseProps}
+        avatar={{
+          id: 'a1',
+          type: 'image',
+          source: 'gcs',
+          target: 'avatars/jsmith/photo.jpg',
+          isPublic: true,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          url: 'https://cdn.example.com/avatar.jpg',
+        }}
+      />,
+    );
     expect(screen.getByTestId('avatar')).toBeInTheDocument();
   });
 

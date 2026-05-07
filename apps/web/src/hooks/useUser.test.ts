@@ -11,9 +11,10 @@ import { useUser } from './useUser';
 
 const mockContextValue: UserContextValue = {
   appUser: {
+    id: 'user-uuid',
     username: 'janedoe',
     displayName: 'Jane Doe',
-    avatarUrl: null,
+    avatar: null,
     timezone: 'America/Bogota',
     profileVisibility: ProfileVisibility.PUBLIC,
   },

@@ -15,7 +15,7 @@ const mockAuthUser: AuthenticatedUser = {
   id: 'user-uuid',
   username: 'john_doe',
   displayName: 'John Doe',
-  avatarUrl: null,
+  avatar: null,
   authProvider: AuthProvider.GOOGLE,
   firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',

@@ -245,6 +245,15 @@
       "timezonePlaceholder": "Selecciona una zona horaria",
       "timezoneSearchPlaceholder": "Buscar zonas horarias...",
       "timezoneNoResults": "No se encontró zona horaria.",
+      "avatarEditor": {
+        "editButton": "Cambiar avatar",
+        "tabPhoto": "Subir foto",
+        "tabEmoji": "Elegir emoji",
+        "photoSuccess": "Avatar actualizado",
+        "photoError": "Error al actualizar el avatar",
+        "emojiSuccess": "Avatar actualizado",
+        "emojiError": "Error al actualizar el avatar"
+      },
       "save": "Guardar cambios",
       "saveSuccess": "Perfil actualizado",
       "saveError": "Error al guardar el perfil",

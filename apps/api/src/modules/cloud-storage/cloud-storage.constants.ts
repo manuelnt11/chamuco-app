@@ -42,3 +42,12 @@ export const DOWNLOAD_TTL_SECONDS: Record<UploadType, number> = {
 };
 
 export const UPLOAD_URL_TTL_SECONDS = 15 * 60;
+
+export const OBJECT_KEY_TO_UPLOAD_TYPE: Record<string, UploadType> = {
+  avatars: UploadType.USER_AVATAR,
+  'group-covers': UploadType.GROUP_COVER,
+  'group-resources': UploadType.GROUP_RESOURCE_DOCUMENT,
+  'trip-resources': UploadType.TRIP_RESOURCE,
+};
+
+export const PUBLIC_OBJECT_PREFIXES: ReadonlySet<string> = new Set(['avatars', 'group-covers']);

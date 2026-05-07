@@ -11,9 +11,11 @@ import {
 
 const mockGetSignedUrl = jest.fn();
 const mockDelete = jest.fn();
+const mockMakePublic = jest.fn();
 const mockFile = jest.fn(() => ({
   getSignedUrl: mockGetSignedUrl,
   delete: mockDelete,
+  makePublic: mockMakePublic,
 }));
 const mockBucket = jest.fn(() => ({ file: mockFile }));
 
@@ -32,7 +34,10 @@ describe('CloudStorageService', () => {
         CloudStorageService,
         {
           provide: ConfigService,
-          useValue: { getOrThrow: jest.fn().mockReturnValue('chamuco-uploads') },
+          useValue: {
+            get: jest.fn().mockReturnValue(undefined),
+            getOrThrow: jest.fn().mockReturnValue('chamuco-uploads'),
+          },
         },
       ],
     }).compile();
@@ -173,6 +178,17 @@ describe('CloudStorageService', () => {
       await service.deleteObject('nonexistent/file.jpg');
 
       expect(mockDelete).toHaveBeenCalledWith({ ignoreNotFound: true });
+    });
+  });
+
+  describe('makePublic', () => {
+    it('calls makePublic on the correct file', async () => {
+      mockMakePublic.mockResolvedValueOnce(undefined);
+
+      await service.makePublic('avatars/user-1/photo.jpg');
+
+      expect(mockFile).toHaveBeenCalledWith('avatars/user-1/photo.jpg');
+      expect(mockMakePublic).toHaveBeenCalled();
     });
   });
 

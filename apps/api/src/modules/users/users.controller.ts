@@ -25,6 +25,7 @@ import { FirebaseOnly } from '@/common/decorators/firebase-only.decorator';
 import { Public } from '@/common/decorators/public.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { UsersService } from './users.service';
+import { UpdateAvatarDto } from './dto/update-avatar.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 import { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
@@ -99,12 +100,8 @@ export class UsersController {
   @ApiResponse({ status: 200, type: UserResponseDto })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
   @ApiResponse({ status: 404, description: 'User record not found — registration not completed' })
-  getMe(@CurrentUser() user: AuthenticatedUser): UserResponseDto {
-    // The guard already fetched this user from the DB; return it directly
-    // to avoid a redundant query. Destructure to exclude firebaseUid from
-    // the serialized response.
-    const { firebaseUid: _, ...dto } = user;
-    return dto;
+  getMe(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
+    return this.usersService.getMe(user);
   }
 
   @Patch('me')
@@ -113,7 +110,7 @@ export class UsersController {
   @ApiOperation({
     summary: 'Update the current authenticated user',
     description:
-      'Updates any subset of editable user fields: displayName, avatarUrl, timezone, profileVisibility.',
+      'Updates any subset of editable user fields: displayName, timezone, profileVisibility.',
   })
   @ApiResponse({ status: 200, type: UserResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
@@ -124,6 +121,27 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
   ): Promise<UserResponseDto> {
     return this.usersService.updateMe(user, dto);
+  }
+
+  @Patch('me/avatar')
+  @HttpCode(200)
+  @ApiBody({ type: UpdateAvatarDto })
+  @ApiOperation({
+    summary: "Update the current user's avatar",
+    description:
+      'Sets a new avatar for the authenticated user. ' +
+      'source=gcs: provide the objectKey returned by POST /v1/uploads/signed-url. ' +
+      'source=emoji: provide the emoji character (max 8 chars). ' +
+      'The previous avatar asset is deleted after the new one is stored.',
+  })
+  @ApiResponse({ status: 200, type: UserResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid source or target' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  updateAvatar(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateAvatarDto,
+  ): Promise<UserResponseDto> {
+    return this.usersService.updateAvatar(user, dto);
   }
 
   @Get('me/health')
