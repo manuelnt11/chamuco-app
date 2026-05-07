@@ -9,4 +9,6 @@
  * Valid:   A1B2C3, AB-123456, 12345678, A-BC-123
  * Invalid: -AB123, AB123-, AB 123, ab123
  */
+export * from './emoji-utils';
+
 export const DOCUMENT_ID_FORMAT_REGEX = /^[A-Z0-9]([A-Z0-9-]*[A-Z0-9])?$/;

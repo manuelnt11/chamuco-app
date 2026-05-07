@@ -59,7 +59,7 @@ export function UserAvatar() {
 
   const displayName = appUser?.displayName ?? currentUser.displayName ?? null;
   const username = appUser?.username ?? null;
-  const avatarUrl = appUser?.avatarUrl ?? currentUser.photoURL ?? null;
+  const avatarUrl = appUser?.avatar?.url ?? currentUser.photoURL ?? null;
   const initials = getInitials(displayName ?? '?');
 
   return (

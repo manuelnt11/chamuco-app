@@ -69,6 +69,7 @@ backups/
 # Misc
 .cache
 .parcel-cache
+.*-key.json
 
 # Playwright
 .playwright-mcp

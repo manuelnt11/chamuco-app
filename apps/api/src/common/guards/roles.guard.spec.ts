@@ -9,7 +9,7 @@ const buildUser = (role: PlatformRole): AuthenticatedUser => ({
   id: 'user-uuid',
   username: 'testuser',
   displayName: 'Test User',
-  avatarUrl: null,
+  avatar: null,
   authProvider: AuthProvider.GOOGLE,
   firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',

@@ -12,7 +12,7 @@ const mockUser: RegisterResponseDto = {
   id: 'user-uuid',
   username: 'john_doe',
   displayName: 'John Doe',
-  avatarUrl: null,
+  avatar: null,
   authProvider: AuthProvider.GOOGLE,
   timezone: 'UTC',
   platformRole: PlatformRole.USER,

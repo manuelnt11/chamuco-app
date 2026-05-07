@@ -22,7 +22,8 @@ export class CloudStorageService {
   private readonly bucketName: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.storage = new Storage();
+    const keyFilename = this.configService.get<string>('GOOGLE_CLOUD_KEY_FILE');
+    this.storage = keyFilename ? new Storage({ keyFilename }) : new Storage();
     this.bucketName = this.configService.getOrThrow<string>('GOOGLE_CLOUD_STORAGE_BUCKET');
   }
 
@@ -59,8 +60,22 @@ export class CloudStorageService {
     await this.storage.bucket(this.bucketName).file(objectKey).delete({ ignoreNotFound: true });
   }
 
+  async makePublic(objectKey: string): Promise<void> {
+    await this.storage.bucket(this.bucketName).file(objectKey).makePublic();
+  }
+
   isAllowedContentType(uploadType: UploadType, contentType: string): boolean {
     return ALLOWED_CONTENT_TYPES[uploadType].includes(contentType);
+  }
+
+  getPublicUrl(objectKey: string): string {
+    return `https://storage.googleapis.com/${this.bucketName}/${objectKey}`;
+  }
+
+  extractObjectKey(url: string): string | null {
+    const prefix = `https://storage.googleapis.com/${this.bucketName}/`;
+    if (url.startsWith(prefix)) return url.slice(prefix.length);
+    return null;
   }
 
   private extensionFromContentType(contentType: string): string {

@@ -82,9 +82,10 @@ describe('UserProvider', () => {
     );
     mocks.mockApiGet.mockResolvedValue({
       data: {
+        id: 'user-uuid',
         username: 'janedoe',
         displayName: 'Jane Doe',
-        avatarUrl: null,
+        avatar: null,
         timezone: 'America/Bogota',
         profileVisibility: ProfileVisibility.PUBLIC,
       },
@@ -94,9 +95,10 @@ describe('UserProvider', () => {
 
     await waitFor(() => expect(result.current?.isLoading).toBe(false));
     expect(result.current?.appUser).toEqual({
+      id: 'user-uuid',
       username: 'janedoe',
       displayName: 'Jane Doe',
-      avatarUrl: null,
+      avatar: null,
       timezone: 'America/Bogota',
       profileVisibility: ProfileVisibility.PUBLIC,
     });
@@ -120,9 +122,10 @@ describe('UserProvider', () => {
     mockUseAuth.mockReturnValue(makeAuth({ isLoading: false, currentUser: makeFirebaseUser() }));
     mocks.mockApiGet.mockResolvedValue({
       data: {
+        id: 'user-uuid',
         username: 'janedoe',
         displayName: 'Jane Doe',
-        avatarUrl: null,
+        avatar: null,
         timezone: 'America/Bogota',
         profileVisibility: ProfileVisibility.PUBLIC,
       },
@@ -147,9 +150,10 @@ describe('UserProvider', () => {
     );
     mocks.mockApiGet.mockResolvedValueOnce({
       data: {
+        id: 'user-uuid',
         username: 'janedoe',
         displayName: 'Jane Doe',
-        avatarUrl: null,
+        avatar: null,
         timezone: 'America/Bogota',
         profileVisibility: ProfileVisibility.PUBLIC,
       },
@@ -161,9 +165,10 @@ describe('UserProvider', () => {
 
     mocks.mockApiGet.mockResolvedValueOnce({
       data: {
+        id: 'user-uuid',
         username: 'janedoe',
         displayName: 'Jane Updated',
-        avatarUrl: null,
+        avatar: null,
         timezone: 'America/Bogota',
         profileVisibility: ProfileVisibility.PUBLIC,
       },

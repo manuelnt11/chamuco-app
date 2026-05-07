@@ -106,6 +106,13 @@
       "when": 1777940349311,
       "tag": "0014_mute_rictor",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1778180329756,
+      "tag": "0015_0015_asset_infrastructure",
+      "breakpoints": true
     }
   ]
 }

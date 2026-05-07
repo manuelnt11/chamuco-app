@@ -1,7 +1,8 @@
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { check, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
+import { assets } from '@/modules/assets/schema/assets.schema';
 
 export const authProviderEnum = pgEnum('auth_provider', [
   AuthProvider.GOOGLE,
@@ -26,7 +27,7 @@ export const users = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     username: varchar('username', { length: 30 }).notNull().unique(),
     displayName: text('display_name').notNull(),
-    avatarUrl: text('avatar_url'),
+    avatar: uuid('avatar').references(() => assets.id),
     authProvider: authProviderEnum('auth_provider').notNull(),
     firebaseUid: text('firebase_uid').notNull().unique(),
     timezone: text('timezone').notNull().default('UTC'),
@@ -42,3 +43,7 @@ export const users = pgTable(
   },
   (table) => [check('users_username_format', sql`${table.username} ~ '^[a-z0-9_-]{3,30}$'`)],
 );
+
+export const usersRelations = relations(users, ({ one }) => ({
+  avatarAsset: one(assets, { fields: [users.avatar], references: [assets.id] }),
+}));

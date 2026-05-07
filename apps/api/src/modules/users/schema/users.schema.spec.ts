@@ -22,7 +22,7 @@ describe('users schema', () => {
         'id',
         'username',
         'display_name',
-        'avatar_url',
+        'avatar',
         'auth_provider',
         'firebase_uid',
         'timezone',

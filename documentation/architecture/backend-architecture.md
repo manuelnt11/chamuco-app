@@ -17,23 +17,25 @@ Each feature domain is encapsulated in its own NestJS module. A module owns ever
 
 ### Module Boundaries
 
-| Module                | Domain Responsibility                                              |
-| --------------------- | ------------------------------------------------------------------ |
-| `AuthModule`          | Authentication, token issuance, session management                 |
-| `UsersModule`         | User accounts, profiles, privacy settings                          |
-| `GroupsModule`        | User groups, group membership                                      |
-| `TripsModule`         | Trip creation, lifecycle, status management                        |
-| `ParticipantsModule`  | Trip participant management, invitation logic, confirmation rules  |
-| `ItineraryModule`     | Ordered sequence of movements, stays, and activities within a trip |
-| `MovementsModule`     | Transport segments (flights, buses, cars, etc.)                    |
-| `StaysModule`         | Accommodation bookings and stay details                            |
-| `ActivitiesModule`    | Planned activities and experiences                                 |
-| `ReservationsModule`  | Booking status tracking for stays and movements                    |
-| `ExpensesModule`      | Shared expense recording, splitting, and settlement                |
-| `CommunityModule`     | Chats, channels, broadcast messaging                               |
-| `NotificationsModule` | Push/email/in-app notifications                                    |
-| `SchedulerModule`     | Scheduled job endpoints triggered by Cloud Scheduler               |
-| `LocalizationModule`  | i18n and currency utilities                                        |
+| Module                | Domain Responsibility                                                                                                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthModule`          | Authentication, token issuance, session management                                                                                                                                             |
+| `UsersModule`         | User accounts, profiles, privacy settings                                                                                                                                                      |
+| `AssetsModule`        | `@Global()` — normalized asset records, `AssetResolverService` (resolves any `Asset` to `ResolvedAsset` with computed `url`). Consumed by `UsersModule`, future `GroupsModule`, `TripsModule`. |
+| `CloudStorageModule`  | `@Global()` — signed upload/download URL generation, object deletion, `makePublic`. All GCS operations go through `CloudStorageService`.                                                       |
+| `GroupsModule`        | User groups, group membership                                                                                                                                                                  |
+| `TripsModule`         | Trip creation, lifecycle, status management                                                                                                                                                    |
+| `ParticipantsModule`  | Trip participant management, invitation logic, confirmation rules                                                                                                                              |
+| `ItineraryModule`     | Ordered sequence of movements, stays, and activities within a trip                                                                                                                             |
+| `MovementsModule`     | Transport segments (flights, buses, cars, etc.)                                                                                                                                                |
+| `StaysModule`         | Accommodation bookings and stay details                                                                                                                                                        |
+| `ActivitiesModule`    | Planned activities and experiences                                                                                                                                                             |
+| `ReservationsModule`  | Booking status tracking for stays and movements                                                                                                                                                |
+| `ExpensesModule`      | Shared expense recording, splitting, and settlement                                                                                                                                            |
+| `CommunityModule`     | Chats, channels, broadcast messaging                                                                                                                                                           |
+| `NotificationsModule` | Push/email/in-app notifications                                                                                                                                                                |
+| `SchedulerModule`     | Scheduled job endpoints triggered by Cloud Scheduler                                                                                                                                           |
+| `LocalizationModule`  | i18n and currency utilities                                                                                                                                                                    |
 
 > Module boundaries are intentionally strict. If a module needs data from another module's domain, it accesses it through an exported service — never by importing the other module's repository directly.
 

@@ -18,6 +18,11 @@ import {
 } from '@chamuco/shared-types';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import type { UpdateAvatarDto } from './dto/update-avatar.dto';
+
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
+}));
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 import type {
@@ -43,7 +48,7 @@ const mockAuthUser: AuthenticatedUser = {
   id: 'user-uuid',
   username: 'john_doe',
   displayName: 'John Doe',
-  avatarUrl: null,
+  avatar: null,
   authProvider: AuthProvider.GOOGLE,
   firebaseUid: 'firebase-uid-123',
   timezone: 'UTC',
@@ -123,11 +128,13 @@ describe('UsersController', () => {
   let mockUpdateEta: jest.Mock;
   let mockDeleteEta: jest.Mock;
   let mockGetPublicProfile: jest.Mock;
+  let mockGetMe: jest.Mock;
+  let mockUpdateAvatar: jest.Mock;
 
   const mockPublicProfileResponse: PublicProfileResponseDto = {
     username: 'john_doe',
     displayName: 'John Doe',
-    avatarUrl: null,
+    avatar: null,
     bio: null,
     profileVisibility: ProfileVisibility.PRIVATE,
     travelerScore: null,
@@ -227,6 +234,8 @@ describe('UsersController', () => {
     mockUpdateEta = jest.fn().mockResolvedValue(mockEtaResponse);
     mockDeleteEta = jest.fn().mockResolvedValue(undefined);
     mockGetPublicProfile = jest.fn().mockResolvedValue(mockPublicProfileResponse);
+    mockGetMe = jest.fn().mockResolvedValue(mockUser);
+    mockUpdateAvatar = jest.fn().mockResolvedValue(mockUser);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -236,7 +245,9 @@ describe('UsersController', () => {
           useValue: {
             findByFirebaseUid: mockFindByFirebaseUid,
             checkUsernameAvailability: mockCheckUsernameAvailability,
+            getMe: mockGetMe,
             updateMe: mockUpdateMe,
+            updateAvatar: mockUpdateAvatar,
             getHealth: mockGetHealth,
             updateHealth: mockUpdateHealth,
             getPreferences: mockGetPreferences,
@@ -273,13 +284,21 @@ describe('UsersController', () => {
   });
 
   describe('GET /v1/users/me', () => {
-    it('returns the authenticated user without the firebaseUid field', () => {
-      const result = controller.getMe(mockAuthUser);
+    it('delegates to UsersService.getMe and returns the result', async () => {
+      const result = await controller.getMe(mockAuthUser);
 
+      expect(mockGetMe).toHaveBeenCalledWith(mockAuthUser);
       expect(result).toEqual(mockUser);
-      expect(result).not.toHaveProperty('firebaseUid');
-      // Must NOT call the service — the user is already in request.user from the guard
-      expect(mockFindByFirebaseUid).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('PATCH /v1/users/me/avatar', () => {
+    it('delegates to UsersService.updateAvatar and returns the result', async () => {
+      const dto: UpdateAvatarDto = { source: 'emoji', target: '😀' };
+      const result = await controller.updateAvatar(mockAuthUser, dto);
+
+      expect(mockUpdateAvatar).toHaveBeenCalledWith(mockAuthUser, dto);
+      expect(result).toEqual(mockUser);
     });
   });
 

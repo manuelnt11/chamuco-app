@@ -245,6 +245,15 @@
       "timezonePlaceholder": "Select a timezone",
       "timezoneSearchPlaceholder": "Search timezones...",
       "timezoneNoResults": "No timezone found.",
+      "avatarEditor": {
+        "editButton": "Change avatar",
+        "tabPhoto": "Upload photo",
+        "tabEmoji": "Choose emoji",
+        "photoSuccess": "Avatar updated",
+        "photoError": "Failed to update avatar",
+        "emojiSuccess": "Avatar updated",
+        "emojiError": "Failed to update avatar"
+      },
       "save": "Save changes",
       "saveSuccess": "Profile updated",
       "saveError": "Failed to save profile",

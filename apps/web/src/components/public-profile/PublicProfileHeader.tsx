@@ -1,25 +1,27 @@
 'use client';
 
+import type { ResolvedAsset } from '@chamuco/shared-types';
+
 import { Avatar } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/name-utils';
 
 export interface PublicProfileHeaderProps {
   displayName: string;
   username: string;
-  avatarUrl: string | null;
+  avatar: ResolvedAsset | null;
   bio: string | null;
 }
 
 export function PublicProfileHeader({
   displayName,
   username,
-  avatarUrl,
+  avatar,
   bio,
 }: PublicProfileHeaderProps) {
   return (
     <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
       <Avatar
-        src={avatarUrl ?? undefined}
+        src={avatar?.url ?? undefined}
         alt={displayName}
         fallback={getInitials(displayName)}
         size="lg"

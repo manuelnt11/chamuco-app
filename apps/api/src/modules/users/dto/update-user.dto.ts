@@ -15,15 +15,6 @@ export class UpdateUserDto {
   displayName?: string;
 
   @ApiProperty({
-    example: 'https://example.com/avatar.jpg',
-    nullable: true,
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  avatarUrl?: string | null;
-
-  @ApiProperty({
     example: 'America/Bogota',
     required: false,
   })

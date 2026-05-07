@@ -13,25 +13,26 @@ function getProfileInsertValues(mockInsert: jest.Mock): jest.Mock | undefined {
   return mockInsert.mock.results[idx]?.value?.values as jest.Mock | undefined;
 }
 
+const NOW = new Date('2026-01-01T00:00:00.000Z');
+
 const mockCreatedUser: RegisterResponseDto = {
   id: 'user-uuid',
   username: 'john_doe',
   displayName: 'John Doe',
-  avatarUrl: 'https://example.com/avatar.jpg',
+  avatar: null,
   authProvider: AuthProvider.GOOGLE,
   timezone: 'UTC',
   platformRole: PlatformRole.USER,
   agencyId: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  lastActiveAt: new Date(),
+  createdAt: NOW,
+  updatedAt: NOW,
+  lastActiveAt: NOW,
 };
 
 const mockDecodedToken = {
   uid: 'firebase-uid-123',
   email: 'test@example.com',
   name: 'John Doe',
-  picture: 'https://example.com/avatar.jpg',
   firebase: { sign_in_provider: 'google.com' },
 };
 
@@ -326,14 +327,15 @@ describe('AuthService', () => {
       );
     });
 
-    it('should set avatarUrl to null when picture claim is absent', async () => {
+    it('should set avatar to null and skip asset insert when picture claim is absent', async () => {
       mockVerifyIdToken.mockResolvedValue({ ...mockDecodedToken, picture: undefined });
       mockFindFirst.mockResolvedValue(undefined);
 
       await service.register('Bearer valid-token', validRegisterDto);
 
+      // No picture → no asset insert → users insert is the first call
       const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
-      expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({ avatarUrl: null }));
+      expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({ avatar: null }));
     });
 
     it('should insert profile with firstName, lastName, homeCountry and emergency contacts', async () => {
@@ -445,6 +447,31 @@ describe('AuthService', () => {
 
       const insertValues = mockTrxInsert.mock.results[0]?.value?.values;
       expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({ timezone: undefined }));
+    });
+
+    it('should insert an asset record and set avatar FK when picture claim is present', async () => {
+      const pictureUrl = 'https://example.com/pic.jpg';
+      mockVerifyIdToken.mockResolvedValue({ ...mockDecodedToken, picture: pictureUrl });
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const mockAsset = {
+        id: 'asset-uuid',
+        type: 'image',
+        source: 'url',
+        target: pictureUrl,
+        isPublic: true,
+        fileSize: null,
+        createdAt: NOW,
+      };
+      const mockAssetReturning = jest.fn().mockResolvedValue([mockAsset]);
+      const mockAssetValues = jest.fn().mockReturnValue({ returning: mockAssetReturning });
+      mockTrxInsert.mockReturnValueOnce({ values: mockAssetValues });
+
+      const result = await service.register('Bearer valid-token', validRegisterDto);
+
+      // Five inserts: assets + users + preferences + profiles + nationalities
+      expect(mockTrxInsert).toHaveBeenCalledTimes(5);
+      expect(result.avatar).toMatchObject({ id: 'asset-uuid', source: 'url', url: pictureUrl });
     });
 
     it('should throw when the DB insert returns no rows (defensive guard)', async () => {

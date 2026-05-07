@@ -27,8 +27,8 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock('@/components/ui/avatar', () => ({
-  Avatar: ({ fallback }: { fallback: string }) => <div data-testid="avatar">{fallback}</div>,
+vi.mock('./AvatarEditor', () => ({
+  AvatarEditor: () => <div data-testid="avatar-editor" />,
 }));
 
 vi.mock('@/lib/timezones', () => ({
@@ -69,9 +69,10 @@ import { BasicInfoSection } from './BasicInfoSection';
 import type { BasicInfoProfile } from './BasicInfoSection';
 
 const baseUser: AppUser = {
+  id: 'user-uuid',
   username: 'janedoe',
   displayName: 'Jane Doe',
-  avatarUrl: null,
+  avatar: null,
   timezone: 'America/Bogota',
   profileVisibility: ProfileVisibility.PRIVATE,
 };
@@ -103,9 +104,9 @@ describe('BasicInfoSection', () => {
       expect(screen.getByText('basicInfo.heading')).toBeInTheDocument();
     });
 
-    it('renders the avatar with initials fallback', () => {
+    it('renders the avatar editor', () => {
       setup();
-      expect(screen.getByTestId('avatar')).toHaveTextContent('JD');
+      expect(screen.getByTestId('avatar-editor')).toBeInTheDocument();
     });
 
     it('renders the display name field with current value', () => {

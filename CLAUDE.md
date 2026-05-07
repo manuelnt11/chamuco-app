@@ -393,23 +393,43 @@ TypeScript's type system is a critical safety net. **Never use `any` or `unknown
 - If a better-typed alternative exists, request changes.
 - Temporary workarounds with `@ts-expect-error` should reference a tracking issue or version number.
 
-### 7. Cloud Storage — always delete replaced or removed files
+### 7. Cloud Storage — always delete replaced or removed assets
 
-Any backend operation that replaces or deletes a user-uploaded resource **must** also delete the old object from Cloud Storage. Orphaned objects are never cleaned up automatically — every object that becomes unreachable from the database is wasted storage cost.
+Media is stored as normalized `assets` records (see `documentation/architecture/database-design.md`). Entity tables hold a `UUID FK → assets.id`, never a raw URL. When an asset is replaced or removed:
 
-**Rule:** In any NestJS service method that overwrites a `storage_url` / `avatar_url` / `*_url` column or deletes a record that owns one, call `StorageService.delete(oldUrl)` **before** (or within the same transaction as) the database write. If the delete fails, surface the error — do not silently swallow it.
+1. **After the DB transaction commits**, call `cloudStorage.deleteObject(oldAsset.target)` if `oldAsset.source === 'gcs'`.
+2. Then `DELETE FROM assets WHERE id = oldAsset.id`.
+3. For new GCS uploads with a public-intent prefix (`avatars/`, `group-covers/`), call `cloudStorage.makePublic(newObjectKey)` after the transaction.
+
+Step order matters: GCS delete happens after the DB commit to avoid rollback leaving a deleted object with a live DB record. If the GCS delete fails, the orphaned object will be caught by the storage audit job — surface the error but do not block the user.
 
 ```ts
-// ✅ Correct — delete old object before saving new URL
-const previous = await this.usersRepository.getAvatarUrl(userId);
-if (previous) await this.storageService.delete(previous);
-await this.usersRepository.updateAvatarUrl(userId, newUrl);
+// ✅ Correct — asset replacement pattern (see UsersService.updateAvatar)
+const oldAsset = user.avatar
+  ? await db.query.assets.findFirst({ where: eq(assets.id, user.avatar) })
+  : null;
 
-// ❌ Wrong — orphaned object stays in the bucket forever
-await this.usersRepository.updateAvatarUrl(userId, newUrl);
+await db.transaction(async (trx) => {
+  const [newAsset] = await trx.insert(assets).values({ ... }).returning();
+  await trx.update(users).set({ avatar: newAsset.id }).where(eq(users.id, userId));
+});
+
+// After commit:
+if (dto.source === 'gcs' && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
+  await cloudStorage.makePublic(dto.target);
+}
+if (oldAsset?.source === 'gcs') {
+  await cloudStorage.deleteObject(oldAsset.target);
+}
+if (oldAsset) {
+  await db.delete(assets).where(eq(assets.id, oldAsset.id));
+}
+
+// ❌ Wrong — orphaned GCS object and stale assets record
+await db.update(users).set({ avatar: newAssetId }).where(eq(users.id, userId));
 ```
 
-**Applies to:** user avatar, trip cover image, agency logo, and any other entity field that stores a Cloud Storage URL. When implementing a new uploadable resource, always identify the prior value before writing the new one.
+**Applies to:** user avatar, trip cover image, agency logo, and any future entity field that holds an `assets` FK. When implementing a new uploadable resource, always fetch the old asset before the transaction and clean it up after commit.
 
 ### 6. pnpm catalog — shared devDependency versioning
 
