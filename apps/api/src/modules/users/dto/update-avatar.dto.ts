@@ -28,6 +28,10 @@ export class UpdateAvatarDto {
       'For emoji: the emoji character (e.g. "😀"), max 8 chars.',
     example: 'avatars/user-uuid/photo.jpg',
   })
+  // @IsString and @IsNotEmpty apply unconditionally (both sources require a non-empty string).
+  // @MaxLength(8) applies only for source='emoji' via @ValidateIf.
+  // GCS objectKeys are not validated beyond IsString/IsNotEmpty; prefix trust delegated to
+  // the signed-URL flow (POST /v1/uploads/signed-url enforces allowed prefixes at issue time).
   @IsString()
   @IsNotEmpty()
   @ValidateIf((o: UpdateAvatarDto) => o.source === 'emoji')

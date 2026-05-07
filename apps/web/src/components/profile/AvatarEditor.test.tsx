@@ -44,13 +44,13 @@ vi.mock('@/components/ui/file-upload-button', () => ({
   }: {
     uploadType: string;
     contextId: string;
-    onSuccess: (key: string) => void;
+    onSuccess: (key: string, fileSize: number) => void;
     disabled?: boolean;
   }) => (
     <button
       data-testid="file-upload-button"
       disabled={disabled}
-      onClick={() => onSuccess('avatars/user-uuid/photo.jpg')}
+      onClick={() => onSuccess('avatars/user-uuid/photo.jpg', 102400)}
     >
       upload
     </button>
@@ -155,6 +155,7 @@ describe('AvatarEditor', () => {
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/avatar', {
           source: 'gcs',
           target: 'avatars/user-uuid/photo.jpg',
+          fileSize: 102400,
         });
       });
       expect(mocks.mockRefresh).toHaveBeenCalled();

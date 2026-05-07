@@ -168,6 +168,9 @@ export class AuthService {
         throw err;
       });
 
+    // Construct ResolvedAsset manually instead of injecting AssetResolverService: the
+    // registration asset is always source='url' (OAuth picture), so url === target.
+    // If this ever handles non-URL sources, inject AssetResolverService and call resolve().
     const avatar: ResolvedAsset | null = insertedAsset
       ? {
           id: insertedAsset.id,

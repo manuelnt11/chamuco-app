@@ -119,7 +119,7 @@ describe('FileUploadButton', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(onSuccess).toHaveBeenCalledWith('avatars/user-1/uuid.jpg');
+      expect(onSuccess).toHaveBeenCalledWith('avatars/user-1/uuid.jpg', file.size);
     });
   });
 

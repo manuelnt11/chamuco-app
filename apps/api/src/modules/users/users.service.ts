@@ -484,6 +484,7 @@ export class UsersService {
   }
 
   async getMe(user: AuthenticatedUser): Promise<UserResponseDto> {
+    // TODO: resolve avatar in the auth middleware so GET /v1/users/me stays zero-query.
     return this.mapUserResponse(user);
   }
 
@@ -523,6 +524,8 @@ export class UsersService {
       const [newAsset] = await trx
         .insert(assets)
         .values({
+          // type='image' for both gcs and emoji: asset_type describes rendered output (PNG image).
+          // AssetResolverService dispatches on source, not type.
           type: 'image',
           source: dto.source,
           target: dto.target,

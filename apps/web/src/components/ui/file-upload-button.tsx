@@ -18,7 +18,7 @@ const ACCEPTED_TYPES: Record<UploadType, string> = {
 export interface FileUploadButtonProps {
   uploadType: UploadType;
   contextId: string;
-  onSuccess: (objectKey: string) => void;
+  onSuccess: (objectKey: string, fileSize: number) => void;
   onError?: (error: Error) => void;
   children?: ReactNode;
   className?: string;
@@ -47,7 +47,7 @@ export function FileUploadButton({
 
     try {
       const objectKey = await upload(file);
-      onSuccess(objectKey);
+      onSuccess(objectKey, file.size);
     } catch (err) {
       onError?.(err instanceof Error ? err : new Error(String(err)));
     }

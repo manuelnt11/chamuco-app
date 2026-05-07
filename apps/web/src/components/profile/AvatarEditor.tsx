@@ -35,10 +35,10 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
   const [activeTab, setActiveTab] = useState<Tab>('photo');
   const [isSaving, setIsSaving] = useState(false);
 
-  async function handlePhotoSuccess(objectKey: string) {
+  async function handlePhotoSuccess(objectKey: string, fileSize: number) {
     setIsSaving(true);
     try {
-      await apiClient.patch('/v1/users/me/avatar', { source: 'gcs', target: objectKey });
+      await apiClient.patch('/v1/users/me/avatar', { source: 'gcs', target: objectKey, fileSize });
       toast.success(t('basicInfo.avatarEditor.photoSuccess'));
       await refresh();
       setOpen(false);
