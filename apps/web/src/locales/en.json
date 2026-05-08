@@ -214,7 +214,54 @@
     "groupDetails": "Group Details",
     "members": "Members",
     "events": "Events",
-    "announcements": "Announcements"
+    "announcements": "Announcements",
+    "name": "Group name",
+    "namePlaceholder": "e.g. Mountain Crew",
+    "description": "Description",
+    "descriptionPlaceholder": "What's this group about?",
+    "visibility": {
+      "label": "Visibility",
+      "public": "Public",
+      "public_desc": "Anyone can find and request to join",
+      "private": "Private",
+      "private_desc": "Only invited people can join"
+    },
+    "cover": {
+      "label": "Cover",
+      "tabImage": "Photo",
+      "tabEmoji": "Emoji",
+      "editButton": "Edit cover",
+      "photoSuccess": "Cover updated",
+      "photoError": "Failed to update cover photo",
+      "emojiSuccess": "Cover updated",
+      "emojiError": "Failed to update cover emoji",
+      "currentCover": "Current cover",
+      "cropTitle": "Crop photo",
+      "usePhoto": "Use photo"
+    },
+    "form": {
+      "createTitle": "Create group",
+      "editTitle": "Edit group",
+      "saving": "Saving...",
+      "submit": "Create group",
+      "saveChanges": "Save changes"
+    },
+    "detail": {
+      "noGroups": "You don't have any groups yet",
+      "createFirst": "Create your first group to start organizing trips"
+    },
+    "settings": {
+      "title": "Group settings",
+      "dangerZone": "Danger zone",
+      "deleteGroup": "Delete group",
+      "deleteConfirm": "Are you sure you want to delete this group? This action cannot be undone.",
+      "deleting": "Deleting..."
+    },
+    "errors": {
+      "notFound": "Group not found",
+      "forbidden": "You don't have permission to do that",
+      "deleteFailed": "Failed to delete group"
+    }
   },
   "profile": {
     "title": "Profile",

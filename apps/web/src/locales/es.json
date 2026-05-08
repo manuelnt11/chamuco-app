@@ -214,7 +214,54 @@
     "groupDetails": "Detalles del Grupo",
     "members": "Miembros",
     "events": "Eventos",
-    "announcements": "Anuncios"
+    "announcements": "Anuncios",
+    "name": "Nombre del grupo",
+    "namePlaceholder": "p.ej. Crew de Montaña",
+    "description": "Descripción",
+    "descriptionPlaceholder": "¿De qué trata este grupo?",
+    "visibility": {
+      "label": "Visibilidad",
+      "public": "Público",
+      "public_desc": "Cualquiera puede encontrarlo y solicitar unirse",
+      "private": "Privado",
+      "private_desc": "Solo personas invitadas pueden unirse"
+    },
+    "cover": {
+      "label": "Portada",
+      "tabImage": "Foto",
+      "tabEmoji": "Emoji",
+      "editButton": "Editar portada",
+      "photoSuccess": "Portada actualizada",
+      "photoError": "Error al actualizar la foto de portada",
+      "emojiSuccess": "Portada actualizada",
+      "emojiError": "Error al actualizar el emoji de portada",
+      "currentCover": "Portada actual",
+      "cropTitle": "Recortar foto",
+      "usePhoto": "Usar foto"
+    },
+    "form": {
+      "createTitle": "Crear grupo",
+      "editTitle": "Editar grupo",
+      "saving": "Guardando...",
+      "submit": "Crear grupo",
+      "saveChanges": "Guardar cambios"
+    },
+    "detail": {
+      "noGroups": "Aún no tienes grupos",
+      "createFirst": "Crea tu primer grupo para empezar a organizar viajes"
+    },
+    "settings": {
+      "title": "Configuración del grupo",
+      "dangerZone": "Zona de peligro",
+      "deleteGroup": "Eliminar grupo",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar este grupo? Esta acción no se puede deshacer.",
+      "deleting": "Eliminando..."
+    },
+    "errors": {
+      "notFound": "Grupo no encontrado",
+      "forbidden": "No tienes permiso para hacer eso",
+      "deleteFailed": "Error al eliminar el grupo"
+    }
   },
   "profile": {
     "title": "Perfil",

@@ -20,6 +20,7 @@ import {
   UPLOAD_SIZE_LIMITS_BYTES,
   UploadType,
 } from '@/modules/cloud-storage/cloud-storage.constants';
+import { GroupsService } from '@/modules/groups/groups.service';
 import { GenerateSignedUrlDto } from './dto/generate-signed-url.dto';
 import { SignedUrlResponseDto } from './dto/signed-url-response.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -29,7 +30,10 @@ import type { AuthenticatedUser } from '@/types/express';
 @ApiBearerAuth()
 @Controller('v1/uploads')
 export class UploadsController {
-  constructor(private readonly cloudStorageService: CloudStorageService) {}
+  constructor(
+    private readonly cloudStorageService: CloudStorageService,
+    private readonly groupsService: GroupsService,
+  ) {}
 
   @Post('signed-url')
   @HttpCode(HttpStatus.OK)
@@ -55,7 +59,7 @@ export class UploadsController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: GenerateSignedUrlDto,
   ): Promise<SignedUrlResponseDto> {
-    this.authorizeUpload(user, dto.uploadType, dto.contextId);
+    await this.authorizeUpload(user, dto.uploadType, dto.contextId);
 
     if (!this.cloudStorageService.isAllowedContentType(dto.uploadType, dto.contentType)) {
       throw new BadRequestException(
@@ -77,18 +81,25 @@ export class UploadsController {
     );
   }
 
-  private authorizeUpload(
+  private async authorizeUpload(
     user: AuthenticatedUser,
     uploadType: UploadType,
     contextId: string,
-  ): void {
+  ): Promise<void> {
     switch (uploadType) {
       case UploadType.USER_AVATAR:
         if (contextId !== user.id) {
           throw new ForbiddenException('contextId must match the authenticated user.');
         }
         break;
-      case UploadType.GROUP_COVER:
+      case UploadType.GROUP_COVER: {
+        const group = await this.groupsService.findById(contextId);
+        if (!group || group.createdBy !== user.id) {
+          // TODO(#next-issue): expand to check group_members OWNER/ADMIN roles
+          throw new ForbiddenException('Only the group owner can upload a group cover.');
+        }
+        break;
+      }
       case UploadType.GROUP_RESOURCE_DOCUMENT:
       case UploadType.TRIP_RESOURCE:
         throw new ForbiddenException(
