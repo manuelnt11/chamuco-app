@@ -72,6 +72,9 @@ export class GroupsService {
   }
 
   async getGroup(id: string): Promise<GroupResponseDto> {
+    // TODO(#next-issue): once group_members exists, pass the requesting user here and
+    // throw NotFoundException (not ForbiddenException) when the group is PRIVATE and
+    // the user is not a member — avoids confirming existence of private groups.
     return this.fetchAndMapGroup(id);
   }
 
@@ -99,10 +102,11 @@ export class GroupsService {
     if (dto.visibility !== undefined) patch.visibility = dto.visibility;
 
     if (dto.cover) {
-      const oldAssetId = group.cover;
-      const oldAsset = await this.db.query.assets.findFirst({ where: eq(assets.id, oldAssetId) });
+      let oldAsset: typeof assets.$inferSelect | undefined;
 
       await this.db.transaction(async (trx) => {
+        oldAsset = await trx.query.assets.findFirst({ where: eq(assets.id, group.cover) });
+
         const [newAsset] = await trx
           .insert(assets)
           .values({
@@ -155,13 +159,17 @@ export class GroupsService {
       where: eq(assets.id, group.cover),
     });
 
-    await this.db.delete(groups).where(eq(groups.id, id));
-
     if (coverAsset) {
-      if (coverAsset.source === 'gcs') {
-        await this.cloudStorage.deleteObject(coverAsset.target);
-      }
-      await this.db.delete(assets).where(eq(assets.id, coverAsset.id));
+      await this.db.transaction(async (trx) => {
+        await trx.delete(groups).where(eq(groups.id, id));
+        await trx.delete(assets).where(eq(assets.id, coverAsset.id));
+      });
+    } else {
+      await this.db.delete(groups).where(eq(groups.id, id));
+    }
+
+    if (coverAsset?.source === 'gcs') {
+      await this.cloudStorage.deleteObject(coverAsset.target);
     }
   }
 

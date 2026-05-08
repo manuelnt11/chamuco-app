@@ -112,7 +112,12 @@ describe('GroupsService', () => {
             transaction: (mockTransaction = jest
               .fn()
               .mockImplementation(async (callback: (trx: unknown) => Promise<unknown>) =>
-                callback({ update: mockUpdate, insert: mockInsert, delete: mockDelete }),
+                callback({
+                  update: mockUpdate,
+                  insert: mockInsert,
+                  delete: mockDelete,
+                  query: { assets: { findFirst: mockAssetsFindFirst } },
+                }),
               )),
           },
         },
@@ -449,12 +454,13 @@ describe('GroupsService', () => {
   });
 
   describe('deleteGroup', () => {
-    it('deletes group and cover asset', async () => {
+    it('deletes group and cover asset in a single transaction', async () => {
       mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
       mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
 
       await service.deleteGroup(mockUser, 'group-uuid');
 
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
       expect(mockDeleteWhere).toHaveBeenCalledTimes(2);
     });
 
@@ -472,12 +478,13 @@ describe('GroupsService', () => {
       await expect(service.deleteGroup(mockUser, 'group-uuid')).rejects.toThrow(ForbiddenException);
     });
 
-    it('skips asset cleanup when cover asset is not found', async () => {
+    it('skips asset cleanup and transaction when cover asset is not found', async () => {
       mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
       mockAssetsFindFirst.mockResolvedValue(undefined);
 
       await service.deleteGroup(mockUser, 'group-uuid');
 
+      expect(mockTransaction).not.toHaveBeenCalled();
       expect(mockDeleteWhere).toHaveBeenCalledTimes(1);
       expect(mockCloudStorageDelete).not.toHaveBeenCalled();
     });

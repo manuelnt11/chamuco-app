@@ -9,6 +9,11 @@ const mocks = vi.hoisted(() => ({
   mockToastError: vi.fn(),
   mockOnSuccess: vi.fn(),
   mockUploadToGcs: vi.fn(),
+  mockIsAxiosError: vi.fn(),
+}));
+
+vi.mock('axios', () => ({
+  default: { isAxiosError: mocks.mockIsAxiosError },
 }));
 
 vi.mock('@/services/api-client', () => ({
@@ -94,6 +99,7 @@ beforeEach(() => {
   mocks.mockPost.mockResolvedValue({ data: mockGroup });
   mocks.mockPatch.mockResolvedValue({ data: mockGroup });
   mocks.mockUploadToGcs.mockResolvedValue(undefined);
+  mocks.mockIsAxiosError.mockReturnValue(false);
   global.URL.createObjectURL = vi.fn(() => 'blob:mock-preview-url');
   global.URL.revokeObjectURL = vi.fn();
 });
@@ -292,8 +298,22 @@ describe('GroupForm', () => {
       });
     });
 
-    it('shows error toast when POST fails', async () => {
+    it('shows createFailed toast on generic POST error', async () => {
       mocks.mockPost.mockRejectedValue(new Error('Server error'));
+      const { user } = setupCreate();
+      await user.type(screen.getByLabelText('name'), 'Hiking Squad');
+      await user.click(screen.getByRole('button', { name: 'form.submit' }));
+
+      await waitFor(() => {
+        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.createFailed');
+      });
+      expect(mocks.mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('shows forbidden toast on 403 POST error', async () => {
+      const err = { response: { status: 403 } };
+      mocks.mockPost.mockRejectedValue(err);
+      mocks.mockIsAxiosError.mockReturnValue(true);
       const { user } = setupCreate();
       await user.type(screen.getByLabelText('name'), 'Hiking Squad');
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
@@ -301,7 +321,6 @@ describe('GroupForm', () => {
       await waitFor(() => {
         expect(mocks.mockToastError).toHaveBeenCalledWith('errors.forbidden');
       });
-      expect(mocks.mockOnSuccess).not.toHaveBeenCalled();
     });
   });
 

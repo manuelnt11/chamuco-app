@@ -260,7 +260,9 @@
     "errors": {
       "notFound": "Grupo no encontrado",
       "forbidden": "No tienes permiso para hacer eso",
-      "deleteFailed": "Error al eliminar el grupo"
+      "deleteFailed": "Error al eliminar el grupo",
+      "createFailed": "Error al crear el grupo",
+      "saveFailed": "Error al guardar los cambios"
     }
   },
   "profile": {

@@ -29,16 +29,18 @@ export class UpdateGroupDto {
   name?: string;
 
   @ApiProperty({
-    description: 'Group description',
+    description: 'Group description. Null clears the field.',
     example: 'A group for mountain hiking enthusiasts.',
     required: false,
+    minLength: 1,
     maxLength: 500,
     nullable: true,
   })
   @IsOptional()
   @IsString()
+  @MinLength(1)
   @MaxLength(500)
-  description?: string;
+  description?: string | null;
 
   @ApiProperty({
     description: 'Group visibility',

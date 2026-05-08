@@ -21,18 +21,13 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  function fetchGroup() {
+  useEffect(() => {
     setIsLoading(true);
     apiClient
       .get<Group>(`/v1/groups/${id}`)
       .then((res) => setGroup(res.data))
       .catch(() => setNotFound(true))
       .finally(() => setIsLoading(false));
-  }
-
-  useEffect(() => {
-    fetchGroup();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (isLoading) return null;

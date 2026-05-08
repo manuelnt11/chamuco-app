@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useCallback, useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -22,18 +22,17 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  function fetchGroup() {
+  const fetchGroup = useCallback(() => {
     apiClient
       .get<Group>(`/v1/groups/${id}`)
       .then((res) => setGroup(res.data))
       .catch(() => router.replace('/groups'))
       .finally(() => setIsLoading(false));
-  }
+  }, [id, router]);
 
   useEffect(() => {
     fetchGroup();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [fetchGroup]);
 
   async function handleDelete() {
     if (!window.confirm(t('settings.deleteConfirm'))) return;

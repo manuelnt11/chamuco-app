@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { getTwemojiUrl } from '@chamuco/shared-utils';
 import { GroupVisibility, UploadType } from '@chamuco/shared-types';
 
+import axios from 'axios';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -106,8 +108,13 @@ export function GroupForm({ mode, groupId, initialValues, onSuccess }: GroupForm
         });
         onSuccess(res.data);
       }
-    } catch {
-      toast.error(t('errors.forbidden'));
+    } catch (err) {
+      const isForbidden = axios.isAxiosError(err) && err.response?.status === 403;
+      if (isForbidden) {
+        toast.error(t('errors.forbidden'));
+      } else {
+        toast.error(mode === 'create' ? t('errors.createFailed') : t('errors.saveFailed'));
+      }
     } finally {
       setIsSaving(false);
     }
@@ -158,7 +165,7 @@ export function GroupForm({ mode, groupId, initialValues, onSuccess }: GroupForm
         {[GroupVisibility.PUBLIC, GroupVisibility.PRIVATE].map((v) => (
           <label
             key={v}
-            className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-checked:border-primary has-checked:bg-primary/5"
           >
             <input
               type="radio"

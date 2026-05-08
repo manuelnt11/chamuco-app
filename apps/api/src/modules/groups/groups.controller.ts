@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -67,7 +68,7 @@ export class GroupsController {
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 200, type: GroupResponseDto })
   @ApiNotFoundResponse({ description: 'Group not found.' })
-  async getGroup(@Param('id') id: string): Promise<GroupResponseDto> {
+  async getGroup(@Param('id', ParseUUIDPipe) id: string): Promise<GroupResponseDto> {
     return this.groupsService.getGroup(id);
   }
 
@@ -83,7 +84,7 @@ export class GroupsController {
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async updateGroup(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateGroupDto,
   ): Promise<GroupResponseDto> {
     return this.groupsService.updateGroup(user, id, dto);
@@ -101,7 +102,7 @@ export class GroupsController {
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async deleteGroup(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
     return this.groupsService.deleteGroup(user, id);
   }

@@ -3,7 +3,6 @@ import {
   IsIn,
   IsNotEmpty,
   IsNumber,
-  IsOptional,
   IsString,
   Max,
   MaxLength,
@@ -42,7 +41,7 @@ export class GroupCoverDto {
     maximum: FIVE_MB,
   })
   @ValidateIf((o: GroupCoverDto) => o.source === 'gcs')
-  @IsOptional()
+  @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(FIVE_MB)

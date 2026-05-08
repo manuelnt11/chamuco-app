@@ -260,7 +260,9 @@
     "errors": {
       "notFound": "Group not found",
       "forbidden": "You don't have permission to do that",
-      "deleteFailed": "Failed to delete group"
+      "deleteFailed": "Failed to delete group",
+      "createFailed": "Failed to create group",
+      "saveFailed": "Failed to save changes"
     }
   },
   "profile": {

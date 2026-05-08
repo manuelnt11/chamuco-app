@@ -39,6 +39,15 @@ describe('GroupCoverDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  it('rejects gcs source with missing fileSize', async () => {
+    const dto = plainToInstance(GroupCoverDto, {
+      source: 'gcs',
+      target: 'group-covers/id/photo.jpg',
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
 });
 
 describe('CreateGroupDto', () => {
@@ -70,5 +79,18 @@ describe('UpdateGroupDto', () => {
   it('creates nested GroupCoverDto via Type', () => {
     const dto = plainToInstance(UpdateGroupDto, { cover: { source: 'emoji', target: '🌴' } });
     expect(dto.cover).toBeInstanceOf(GroupCoverDto);
+  });
+
+  it('accepts null description to clear the field', async () => {
+    const dto = plainToInstance(UpdateGroupDto, { description: null });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.description).toBeNull();
+  });
+
+  it('rejects empty string description', async () => {
+    const dto = plainToInstance(UpdateGroupDto, { description: '' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
   });
 });
