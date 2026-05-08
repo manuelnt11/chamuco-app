@@ -407,6 +407,31 @@ describe('UsersService', () => {
       expect(mockDeleteWhere).toHaveBeenCalled();
     });
 
+    it('does not throw when gcs delete fails during updateAvatar', async () => {
+      const oldAsset = {
+        id: 'old-asset-uuid',
+        type: 'image' as const,
+        source: 'gcs' as const,
+        target: 'avatars/user-uuid/old.jpg',
+        fileSize: null,
+        isPublic: true,
+        createdAt: new Date(),
+      };
+      const userWithAvatar = { ...mockUser, avatar: 'old-asset-uuid' };
+      mockAssetsFindFirst.mockResolvedValueOnce(oldAsset).mockResolvedValue(null);
+      mockInsertReturning.mockResolvedValue([newAsset]);
+      mockFindFirst.mockResolvedValue(updatedUser);
+      mockCloudStorageDelete.mockRejectedValue(new Error('GCS unavailable'));
+
+      await expect(
+        service.updateAvatar(userWithAvatar, {
+          source: 'gcs',
+          target: 'avatars/user-uuid/photo.jpg',
+          fileSize: 50000,
+        }),
+      ).resolves.toBeDefined();
+    });
+
     it('creates emoji asset and returns resolved user', async () => {
       const emojiAsset = {
         ...newAsset,

@@ -135,7 +135,9 @@ export class GroupsService {
 
       if (oldAsset) {
         if (oldAsset.source === 'gcs') {
-          await this.cloudStorage.deleteObject(oldAsset.target);
+          await this.cloudStorage.deleteObject(oldAsset.target).catch((e: unknown) => {
+            console.error('[GroupsService] GCS delete failed (orphan caught by audit):', e);
+          });
         }
         await this.db.delete(assets).where(eq(assets.id, oldAsset.id));
       }
@@ -169,7 +171,9 @@ export class GroupsService {
     }
 
     if (coverAsset?.source === 'gcs') {
-      await this.cloudStorage.deleteObject(coverAsset.target);
+      await this.cloudStorage.deleteObject(coverAsset.target).catch((e: unknown) => {
+        console.error('[GroupsService] GCS delete failed (orphan caught by audit):', e);
+      });
     }
   }
 
@@ -186,7 +190,7 @@ export class GroupsService {
     return {
       id: group.id,
       name: group.name,
-      description: group.description ?? null,
+      description: group.description,
       cover: resolvedCover,
       visibility: group.visibility,
       createdBy: group.createdBy,

@@ -356,6 +356,30 @@ describe('GroupsService', () => {
       expect(mockCloudStorageDelete).toHaveBeenCalledWith('group-covers/group-uuid/old.jpg');
     });
 
+    it('does not throw when gcs delete fails during updateGroup', async () => {
+      const gcsCoverRow = {
+        ...mockCoverAssetRow,
+        id: 'old-gcs-asset',
+        source: 'gcs' as const,
+        target: 'group-covers/group-uuid/old.jpg',
+      };
+      const coverUpdateDto: UpdateGroupDto = {
+        cover: { source: 'emoji', target: '🌴' },
+      };
+      const newAssetRow = { ...mockCoverAssetRow, id: 'new-asset-uuid', target: '🌴' };
+
+      mockGroupsFindFirst
+        .mockResolvedValueOnce({ ...mockGroupRow, cover: 'old-gcs-asset' })
+        .mockResolvedValueOnce({ ...mockGroupRow, cover: 'new-asset-uuid' });
+      mockAssetsFindFirst.mockResolvedValueOnce(gcsCoverRow).mockResolvedValueOnce(newAssetRow);
+      mockInsertReturning.mockResolvedValue([newAssetRow]);
+      mockCloudStorageDelete.mockRejectedValue(new Error('GCS unavailable'));
+
+      await expect(
+        service.updateGroup(mockUser, 'group-uuid', coverUpdateDto),
+      ).resolves.toBeDefined();
+    });
+
     it('updates description and visibility fields', async () => {
       const dto: UpdateGroupDto = { description: 'New desc', visibility: GroupVisibility.PRIVATE };
       mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce(mockGroupRow);
@@ -503,6 +527,21 @@ describe('GroupsService', () => {
       await service.deleteGroup(mockUser, 'group-uuid');
 
       expect(mockCloudStorageDelete).toHaveBeenCalledWith('group-covers/group-uuid/cover.jpg');
+    });
+
+    it('does not throw when gcs delete fails during deleteGroup', async () => {
+      const gcsGroup = { ...mockGroupRow, cover: 'gcs-asset-uuid' };
+      const gcsCoverRow = {
+        ...mockCoverAssetRow,
+        id: 'gcs-asset-uuid',
+        source: 'gcs' as const,
+        target: 'group-covers/group-uuid/cover.jpg',
+      };
+      mockGroupsFindFirst.mockResolvedValue(gcsGroup);
+      mockAssetsFindFirst.mockResolvedValue(gcsCoverRow);
+      mockCloudStorageDelete.mockRejectedValue(new Error('GCS unavailable'));
+
+      await expect(service.deleteGroup(mockUser, 'group-uuid')).resolves.toBeUndefined();
     });
   });
 });

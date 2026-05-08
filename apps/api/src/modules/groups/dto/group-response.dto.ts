@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 import { GroupVisibility } from '@chamuco/shared-types';
-import { ResolvedAssetDto } from '@/modules/users/dto/user-response.dto';
+import { ResolvedAssetDto } from '@/modules/assets/dto/resolved-asset.dto';
 
 export class GroupResponseDto {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
