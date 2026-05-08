@@ -12,9 +12,18 @@ interface AvatarCropModalProps {
   onConfirm: (blob: Blob) => void;
   onCancel: () => void;
   isConfirming: boolean;
+  uploadProgress: number;
+  isUploading: boolean;
 }
 
-export function AvatarCropModal({ file, onConfirm, onCancel, isConfirming }: AvatarCropModalProps) {
+export function AvatarCropModal({
+  file,
+  onConfirm,
+  onCancel,
+  isConfirming,
+  uploadProgress,
+  isUploading,
+}: AvatarCropModalProps) {
   const { t } = useTranslation('profile');
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSrc, setImgSrc] = useState('');
@@ -103,6 +112,21 @@ export function AvatarCropModal({ file, onConfirm, onCancel, isConfirming }: Ava
           </ReactCrop>
         )}
       </div>
+
+      {isUploading && (
+        <div
+          role="progressbar"
+          aria-valuenow={uploadProgress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+        >
+          <div
+            className="h-full bg-primary transition-all duration-150"
+            style={{ width: `${uploadProgress}%` }}
+          />
+        </div>
+      )}
 
       <div className="flex justify-end gap-2">
         <button

@@ -51,6 +51,8 @@ const defaultProps = {
   onConfirm: mocks.mockOnConfirm,
   onCancel: mocks.mockOnCancel,
   isConfirming: false,
+  uploadProgress: 0,
+  isUploading: false,
 };
 
 function setup(props?: Partial<typeof defaultProps>) {
@@ -93,6 +95,18 @@ describe('AvatarCropModal', () => {
       expect(screen.getByText('basicInfo.avatarEditor.cropEditor.cancel')).toBeDisabled();
       expect(screen.getByText('basicInfo.avatarEditor.cropEditor.usePhoto')).toBeDisabled();
     });
+
+    it('shows progress bar when isUploading is true', () => {
+      setup({ isUploading: true, uploadProgress: 60 });
+      const bar = screen.getByRole('progressbar');
+      expect(bar).toBeInTheDocument();
+      expect(bar).toHaveAttribute('aria-valuenow', '60');
+    });
+
+    it('hides progress bar when not uploading', () => {
+      setup({ isUploading: false, uploadProgress: 0 });
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
   });
 
   describe('cancel', () => {
@@ -128,6 +142,33 @@ describe('AvatarCropModal', () => {
     it('creates object URL for the file', () => {
       setup();
       expect(URL.createObjectURL).toHaveBeenCalledWith(testFile);
+    });
+
+    it('revokes object URL on unmount', () => {
+      const { unmount } = render(<AvatarCropModal {...defaultProps} />);
+      unmount();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
+    });
+  });
+
+  describe('confirm — edge cases', () => {
+    it('does not call onConfirm when toBlob returns null', async () => {
+      HTMLCanvasElement.prototype.toBlob = vi
+        .fn()
+        .mockImplementation((cb: (blob: Blob | null) => void) => cb(null));
+
+      const { user } = setup();
+
+      const img = screen.getByRole('img');
+      act(() => {
+        Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
+        Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
+        img.dispatchEvent(new Event('load'));
+      });
+
+      await user.click(screen.getByText('basicInfo.avatarEditor.cropEditor.usePhoto'));
+
+      expect(mocks.mockOnConfirm).not.toHaveBeenCalled();
     });
   });
 });

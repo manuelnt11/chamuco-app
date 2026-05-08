@@ -56,6 +56,8 @@ vi.mock('./AvatarCropModal', () => ({
     onConfirm: (blob: Blob) => void;
     onCancel: () => void;
     isConfirming: boolean;
+    uploadProgress: number;
+    isUploading: boolean;
   }) => (
     <div data-testid="crop-modal">
       <button

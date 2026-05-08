@@ -2,7 +2,7 @@
 
 ## Context
 
-Right now, the photo tab in `AvatarEditor` uses `FileUploadButton` which immediately uploads the raw file to GCS the moment the user picks it. This produces oversized, inconsistently-sized originals. The goal is to intercept the file, show a crop/zoom editor so the user can frame their face, export a normalized 512×512 JPEG blob, and only then upload. A new requirement adds that the current avatar should be visible inside the crop view for comparison.
+Right now, the photo tab in `AvatarEditor` uses `FileUploadButton` which immediately uploads the raw file to GCS the moment the user picks it. This produces oversized, inconsistently-sized originals. The goal is to intercept the file, show a crop/zoom editor so the user can frame their face, export a normalized 256×256 JPEG blob, and only then upload. The current avatar is shown in the main dialog view (not in the crop editor) so the user can see what they're replacing.
 
 ---
 
@@ -53,7 +53,7 @@ File input onChange
   → AvatarCropModal renders
 
 User clicks "Use photo"
-  → canvas.toBlob(cb, 'image/jpeg', 0.9)   // 512×512
+  → canvas.toBlob(cb, 'image/jpeg', 0.9)   // 256×256
   → new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
   → upload(file)                            // useFileUpload
   → handlePhotoSuccess(objectKey, blob.size)
@@ -95,10 +95,10 @@ Layout (inside the existing `DialogPopup` content area):
 └─────────────────────────────────────────────────┘
 ```
 
-- `ReactCrop` from `react-image-crop` with `aspect={1}`, `circularCrop={false}` (square)
-- Zoom via an HTML `<input type="range">` (simpler cross-platform than pinch, which requires a gesture lib)
-- "Use photo" calls `drawToCanvas(512, 512).toBlob(...)` and passes blob to `onConfirm`
-- Current avatar shown as a small `<Avatar>` with label `t('basicInfo.avatarEditor.cropEditor.currentAvatar')`; hidden when `currentAvatarUrl` is undefined
+- `ReactCrop` from `react-image-crop` with `aspect={1}`, `circularCrop` (matches how avatars render)
+- "Use photo" calls `canvas.toBlob(cb, 'image/jpeg', 0.9)` at 256×256 and passes blob to `onConfirm`
+- Upload progress bar shown while `isUploading` is true
+- Current avatar shown in the main `AvatarEditor` dialog view (not inside the crop editor); hidden when no avatar is set
 
 ---
 
@@ -125,7 +125,6 @@ Add under `profile.basicInfo.avatarEditor.cropEditor` in both `en.json` and `es.
 | `usePhoto`      | `"Use photo"`      | `"Usar foto"`     |
 | `cancel`        | `"Cancel"`         | `"Cancelar"`      |
 | `currentAvatar` | `"Current avatar"` | `"Avatar actual"` |
-| `zoomLabel`     | `"Zoom"`           | `"Zoom"`          |
 
 ---
 

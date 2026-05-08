@@ -38,7 +38,10 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
   const [cropFile, setCropFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { upload } = useFileUpload({ uploadType: UploadType.USER_AVATAR, contextId: user.id });
+  const { upload, progress, isUploading } = useFileUpload({
+    uploadType: UploadType.USER_AVATAR,
+    contextId: user.id,
+  });
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -115,20 +118,24 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
               onConfirm={(blob) => void handleCropConfirm(blob)}
               onCancel={handleCropCancel}
               isConfirming={isSaving}
+              uploadProgress={progress}
+              isUploading={isUploading}
             />
           ) : (
             <>
-              <div className="mt-6 flex items-center gap-3">
-                <Avatar
-                  src={user.avatar?.url ?? undefined}
-                  alt=""
-                  fallback={getInitials(user.displayName)}
-                  size="lg"
-                />
-                <span className="text-sm text-muted-foreground">
-                  {t('basicInfo.avatarEditor.cropEditor.currentAvatar')}
-                </span>
-              </div>
+              {user.avatar && (
+                <div className="mt-6 flex items-center gap-3">
+                  <Avatar
+                    src={user.avatar.url ?? undefined}
+                    alt=""
+                    fallback={getInitials(user.displayName)}
+                    size="lg"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {t('basicInfo.avatarEditor.cropEditor.currentAvatar')}
+                  </span>
+                </div>
+              )}
 
               <div className="mt-4 flex gap-2 border-b">
                 <button
