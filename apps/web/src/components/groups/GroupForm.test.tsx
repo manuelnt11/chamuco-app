@@ -45,13 +45,15 @@ vi.mock('@/lib/avatar-emojis', () => ({
   AVATAR_EMOJIS: ['😀', '✈️', '🏔️'],
 }));
 
-vi.mock('./GroupCoverCropModal', () => ({
-  GroupCoverCropModal: ({
+vi.mock('@/components/ui/crop-modal', () => ({
+  CropModal: ({
     onConfirm,
     onCancel,
   }: {
     onConfirm: (blob: Blob) => void;
     onCancel: () => void;
+    title: string;
+    confirmLabel: string;
   }) => (
     <div data-testid="crop-modal">
       <button

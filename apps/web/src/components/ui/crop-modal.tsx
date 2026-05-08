@@ -5,26 +5,37 @@ import { useTranslation } from 'react-i18next';
 import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-const OUTPUT_SIZE = 512;
-
-interface GroupCoverCropModalProps {
+interface CropModalProps {
   file: File;
   onConfirm: (blob: Blob) => void;
   onCancel: () => void;
   isConfirming: boolean;
   uploadProgress: number;
   isUploading: boolean;
+  title: string;
+  confirmLabel: string;
+  circular?: boolean;
+  aspect?: number;
+  outputWidth?: number;
+  outputHeight?: number;
 }
 
-export function GroupCoverCropModal({
+export function CropModal({
   file,
   onConfirm,
   onCancel,
   isConfirming,
   uploadProgress,
   isUploading,
-}: GroupCoverCropModalProps) {
-  const { t } = useTranslation(['groups', 'common']);
+  title,
+  confirmLabel,
+  circular = false,
+  aspect = 1,
+  outputWidth = 512,
+  outputHeight,
+}: CropModalProps) {
+  const { t } = useTranslation('common');
+  const resolvedOutputHeight = outputHeight ?? outputWidth;
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
@@ -39,7 +50,7 @@ export function GroupCoverCropModal({
   function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
     const { naturalWidth, naturalHeight } = e.currentTarget;
     const initial = centerCrop(
-      makeAspectCrop({ unit: '%', width: 90 }, 1, naturalWidth, naturalHeight),
+      makeAspectCrop({ unit: '%', width: 90 }, aspect, naturalWidth, naturalHeight),
       naturalWidth,
       naturalHeight,
     );
@@ -52,8 +63,8 @@ export function GroupCoverCropModal({
     if (!img || !activeCrop) return;
 
     const canvas = document.createElement('canvas');
-    canvas.width = OUTPUT_SIZE;
-    canvas.height = OUTPUT_SIZE;
+    canvas.width = outputWidth;
+    canvas.height = resolvedOutputHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -73,7 +84,7 @@ export function GroupCoverCropModal({
       sh = activeCrop.height * scaleY;
     }
 
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outputWidth, resolvedOutputHeight);
 
     canvas.toBlob(
       (blob) => {
@@ -86,7 +97,7 @@ export function GroupCoverCropModal({
 
   return (
     <div className="mt-4 flex flex-col gap-4">
-      <p className="text-lg font-semibold leading-none tracking-tight">{t('cover.cropTitle')}</p>
+      <p className="text-lg font-semibold leading-none tracking-tight">{title}</p>
 
       <div className="overflow-hidden rounded-lg bg-muted">
         {imgSrc && (
@@ -94,7 +105,8 @@ export function GroupCoverCropModal({
             crop={crop}
             onChange={(c) => setCrop(c)}
             onComplete={(c) => setCompletedCrop(c)}
-            aspect={1}
+            aspect={aspect}
+            circularCrop={circular}
             keepSelection
           >
             <img
@@ -114,7 +126,7 @@ export function GroupCoverCropModal({
           aria-valuenow={uploadProgress}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={t('common:upload.progressLabel', { progress: uploadProgress })}
+          aria-label={t('upload.progressLabel', { progress: uploadProgress })}
           className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
         >
           <div
@@ -131,7 +143,7 @@ export function GroupCoverCropModal({
           disabled={isConfirming}
           className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
         >
-          {t('common:actions.cancel')}
+          {t('actions.cancel')}
         </button>
         <button
           type="button"
@@ -139,7 +151,7 @@ export function GroupCoverCropModal({
           disabled={isConfirming || !crop}
           className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         >
-          {t('cover.usePhoto')}
+          {confirmLabel}
         </button>
       </div>
     </div>

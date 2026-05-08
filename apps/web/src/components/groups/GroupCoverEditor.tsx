@@ -18,7 +18,7 @@ import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { AVATAR_EMOJIS } from '@/lib/avatar-emojis';
-import { GroupCoverCropModal } from './GroupCoverCropModal';
+import { CropModal } from '@/components/ui/crop-modal';
 
 type Tab = 'photo' | 'emoji';
 
@@ -116,13 +116,15 @@ export function GroupCoverEditor({ group, onUpdate }: GroupCoverEditorProps) {
           <DialogClose />
 
           {cropFile ? (
-            <GroupCoverCropModal
+            <CropModal
               file={cropFile}
               onConfirm={(blob) => void handleCropConfirm(blob)}
               onCancel={handleCropCancel}
               isConfirming={isSaving}
               uploadProgress={progress}
               isUploading={isUploading}
+              title={t('cover.cropTitle')}
+              confirmLabel={t('cover.usePhoto')}
             />
           ) : (
             <>

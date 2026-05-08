@@ -47,8 +47,8 @@ vi.mock('@/hooks/useFileUpload', () => ({
   }),
 }));
 
-vi.mock('./AvatarCropModal', () => ({
-  AvatarCropModal: ({
+vi.mock('@/components/ui/crop-modal', () => ({
+  CropModal: ({
     onConfirm,
     onCancel,
   }: {
@@ -58,6 +58,10 @@ vi.mock('./AvatarCropModal', () => ({
     isConfirming: boolean;
     uploadProgress: number;
     isUploading: boolean;
+    title: string;
+    confirmLabel: string;
+    circular?: boolean;
+    outputWidth?: number;
   }) => (
     <div data-testid="crop-modal">
       <button

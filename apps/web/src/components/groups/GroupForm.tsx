@@ -15,7 +15,7 @@ import { apiClient } from '@/services/api-client';
 import { uploadToGcs } from '@/services/gcs-upload';
 import { AVATAR_EMOJIS } from '@/lib/avatar-emojis';
 import type { Group } from '@/types/group';
-import { GroupCoverCropModal } from './GroupCoverCropModal';
+import { CropModal } from '@/components/ui/crop-modal';
 
 type CoverTab = 'emoji' | 'photo';
 
@@ -195,7 +195,7 @@ export function GroupForm({ mode, groupId, initialValues, onSuccess }: GroupForm
           <p className="text-sm font-medium">{t('cover.label')}</p>
 
           {cropFile ? (
-            <GroupCoverCropModal
+            <CropModal
               file={cropFile}
               onConfirm={(blob) => {
                 setCroppedBlob(blob);
@@ -205,6 +205,8 @@ export function GroupForm({ mode, groupId, initialValues, onSuccess }: GroupForm
               isConfirming={false}
               uploadProgress={0}
               isUploading={false}
+              title={t('cover.cropTitle')}
+              confirmLabel={t('cover.usePhoto')}
             />
           ) : (
             <>

@@ -8,28 +8,27 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key.replace(/^common:/, ''),
-  }),
+  useTranslation: () => ({ t: (key: string) => key }),
 }));
 
 vi.mock('react-image-crop', () => ({
   default: ({
     children,
     onChange,
+    circularCrop,
   }: {
     children: ReactNode;
     onChange: (crop: { unit: string; x: number; y: number; width: number; height: number }) => void;
-  }) => {
-    return (
-      <div
-        data-testid="react-crop"
-        onClick={() => onChange({ unit: 'px', x: 10, y: 10, width: 100, height: 100 })}
-      >
-        {children}
-      </div>
-    );
-  },
+    circularCrop?: boolean;
+  }) => (
+    <div
+      data-testid="react-crop"
+      data-circular={circularCrop ? 'true' : 'false'}
+      onClick={() => onChange({ unit: 'px', x: 10, y: 10, width: 100, height: 100 })}
+    >
+      {children}
+    </div>
+  ),
   centerCrop: vi.fn((crop: { unit: string; width: number }) => ({
     ...crop,
     x: 5,
@@ -44,34 +43,33 @@ vi.mock('react-image-crop', () => ({
 
 vi.mock('react-image-crop/dist/ReactCrop.css', () => ({}));
 
-import { GroupCoverCropModal } from './GroupCoverCropModal';
+import type { ComponentProps } from 'react';
+import { CropModal } from './crop-modal';
 
-const testFile = new File(['test'], 'cover.jpg', { type: 'image/jpeg' });
+const testFile = new File(['test'], 'photo.jpg', { type: 'image/jpeg' });
 
-const defaultProps = {
+const defaultProps: ComponentProps<typeof CropModal> = {
   file: testFile,
   onConfirm: mocks.mockOnConfirm,
   onCancel: mocks.mockOnCancel,
   isConfirming: false,
   uploadProgress: 0,
   isUploading: false,
+  title: 'Crop your photo',
+  confirmLabel: 'Use photo',
 };
 
-function setup(props?: Partial<typeof defaultProps>) {
+function setup(props?: Partial<ComponentProps<typeof CropModal>>) {
   const user = userEvent.setup();
-  render(<GroupCoverCropModal {...defaultProps} {...props} />);
+  render(<CropModal {...defaultProps} {...props} />);
   return { user };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-
   vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
   vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
-
-  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
-    drawImage: vi.fn(),
-  });
+  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({ drawImage: vi.fn() });
   HTMLCanvasElement.prototype.toBlob = vi
     .fn()
     .mockImplementation((cb: (blob: Blob | null) => void) =>
@@ -79,35 +77,49 @@ beforeEach(() => {
     );
 });
 
-describe('GroupCoverCropModal', () => {
+describe('CropModal', () => {
   describe('rendering', () => {
-    it('shows crop title', () => {
+    it('shows the title prop', () => {
       setup();
-      expect(screen.getByText('cover.cropTitle')).toBeInTheDocument();
+      expect(screen.getByText('Crop your photo')).toBeInTheDocument();
     });
 
-    it('renders cancel and use photo buttons', () => {
+    it('shows the confirmLabel prop', () => {
+      setup();
+      expect(screen.getByText('Use photo')).toBeInTheDocument();
+    });
+
+    it('shows cancel button with actions.cancel key', () => {
       setup();
       expect(screen.getByText('actions.cancel')).toBeInTheDocument();
-      expect(screen.getByText('cover.usePhoto')).toBeInTheDocument();
     });
 
     it('disables buttons when isConfirming is true', () => {
       setup({ isConfirming: true });
       expect(screen.getByText('actions.cancel')).toBeDisabled();
-      expect(screen.getByText('cover.usePhoto')).toBeDisabled();
+      expect(screen.getByText('Use photo')).toBeDisabled();
     });
 
     it('shows progress bar when isUploading is true', () => {
-      setup({ isUploading: true, uploadProgress: 75 });
+      setup({ isUploading: true, uploadProgress: 60 });
       const bar = screen.getByRole('progressbar');
       expect(bar).toBeInTheDocument();
-      expect(bar).toHaveAttribute('aria-valuenow', '75');
+      expect(bar).toHaveAttribute('aria-valuenow', '60');
     });
 
     it('hides progress bar when not uploading', () => {
-      setup({ isUploading: false, uploadProgress: 0 });
+      setup({ isUploading: false });
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+
+    it('passes circular=false to ReactCrop by default', () => {
+      setup();
+      expect(screen.getByTestId('react-crop')).toHaveAttribute('data-circular', 'false');
+    });
+
+    it('passes circular=true to ReactCrop when circular prop is set', () => {
+      setup({ circular: true });
+      expect(screen.getByTestId('react-crop')).toHaveAttribute('data-circular', 'true');
     });
   });
 
@@ -120,7 +132,7 @@ describe('GroupCoverCropModal', () => {
   });
 
   describe('confirm', () => {
-    it('calls onConfirm with a Blob after clicking use photo', async () => {
+    it('calls onConfirm with a Blob after clicking confirm', async () => {
       const { user } = setup();
 
       const img = screen.getByRole('img');
@@ -132,27 +144,12 @@ describe('GroupCoverCropModal', () => {
         img.dispatchEvent(new Event('load'));
       });
 
-      await user.click(screen.getByText('cover.usePhoto'));
+      await user.click(screen.getByText('Use photo'));
 
       expect(mocks.mockOnConfirm).toHaveBeenCalledOnce();
       expect(mocks.mockOnConfirm).toHaveBeenCalledWith(expect.any(Blob));
     });
-  });
 
-  describe('object URL lifecycle', () => {
-    it('creates object URL for the file', () => {
-      setup();
-      expect(URL.createObjectURL).toHaveBeenCalledWith(testFile);
-    });
-
-    it('revokes object URL on unmount', () => {
-      const { unmount } = render(<GroupCoverCropModal {...defaultProps} />);
-      unmount();
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
-    });
-  });
-
-  describe('confirm — edge cases', () => {
     it('does not call onConfirm when toBlob returns null', async () => {
       HTMLCanvasElement.prototype.toBlob = vi
         .fn()
@@ -167,9 +164,22 @@ describe('GroupCoverCropModal', () => {
         img.dispatchEvent(new Event('load'));
       });
 
-      await user.click(screen.getByText('cover.usePhoto'));
+      await user.click(screen.getByText('Use photo'));
 
       expect(mocks.mockOnConfirm).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('object URL lifecycle', () => {
+    it('creates object URL for the file', () => {
+      setup();
+      expect(URL.createObjectURL).toHaveBeenCalledWith(testFile);
+    });
+
+    it('revokes object URL on unmount', () => {
+      const { unmount } = render(<CropModal {...defaultProps} />);
+      unmount();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
     });
   });
 });

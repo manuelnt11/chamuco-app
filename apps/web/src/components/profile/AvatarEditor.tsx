@@ -21,7 +21,7 @@ import { useUser } from '@/hooks/useUser';
 import type { AppUser } from '@/store/user';
 import { getInitials } from '@/lib/name-utils';
 import { AVATAR_EMOJIS } from '@/lib/avatar-emojis';
-import { AvatarCropModal } from './AvatarCropModal';
+import { CropModal } from '@/components/ui/crop-modal';
 
 type Tab = 'photo' | 'emoji';
 
@@ -113,13 +113,17 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
           <DialogClose />
 
           {cropFile ? (
-            <AvatarCropModal
+            <CropModal
               file={cropFile}
               onConfirm={(blob) => void handleCropConfirm(blob)}
               onCancel={handleCropCancel}
               isConfirming={isSaving}
               uploadProgress={progress}
               isUploading={isUploading}
+              title={t('basicInfo.avatarEditor.cropEditor.title')}
+              confirmLabel={t('basicInfo.avatarEditor.cropEditor.usePhoto')}
+              circular
+              outputWidth={256}
             />
           ) : (
             <>
