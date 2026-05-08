@@ -196,6 +196,15 @@ describe('AvatarEditor', () => {
       );
     });
 
+    it('does not show current avatar section when user has no avatar', async () => {
+      const { user } = setup({ avatar: null });
+      await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
+
+      // Only one avatar rendered: the one outside the dialog
+      const avatars = screen.getAllByTestId('avatar');
+      expect(avatars).toHaveLength(1);
+    });
+
     it('calls PATCH with gcs source after crop confirm', async () => {
       mocks.mockUpload.mockResolvedValue('avatars/user-uuid/photo.jpg');
       const { user } = setup();

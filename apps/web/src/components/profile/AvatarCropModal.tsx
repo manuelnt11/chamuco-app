@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect, type SyntheticEvent } from 'react';
+import { useState, useRef, useEffect, type SyntheticEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -24,7 +24,7 @@ export function AvatarCropModal({
   uploadProgress,
   isUploading,
 }: AvatarCropModalProps) {
-  const { t } = useTranslation('profile');
+  const { t } = useTranslation(['profile', 'common']);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
@@ -36,7 +36,7 @@ export function AvatarCropModal({
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  const onImageLoad = useCallback((e: SyntheticEvent<HTMLImageElement>) => {
+  function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
     const { naturalWidth, naturalHeight } = e.currentTarget;
     const initial = centerCrop(
       makeAspectCrop({ unit: '%', width: 90 }, 1, naturalWidth, naturalHeight),
@@ -44,7 +44,7 @@ export function AvatarCropModal({
       naturalHeight,
     );
     setCrop(initial);
-  }, []);
+  }
 
   function handleConfirm() {
     const img = imgRef.current;
@@ -119,6 +119,7 @@ export function AvatarCropModal({
           aria-valuenow={uploadProgress}
           aria-valuemin={0}
           aria-valuemax={100}
+          aria-label={t('common:upload.progressLabel', { progress: uploadProgress })}
           className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
         >
           <div
