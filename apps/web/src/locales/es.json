@@ -252,7 +252,13 @@
         "photoSuccess": "Avatar actualizado",
         "photoError": "Error al actualizar el avatar",
         "emojiSuccess": "Avatar actualizado",
-        "emojiError": "Error al actualizar el avatar"
+        "emojiError": "Error al actualizar el avatar",
+        "cropEditor": {
+          "title": "Recortar foto",
+          "usePhoto": "Usar foto",
+          "cancel": "Cancelar",
+          "currentAvatar": "Avatar actual"
+        }
       },
       "save": "Guardar cambios",
       "saveSuccess": "Perfil actualizado",

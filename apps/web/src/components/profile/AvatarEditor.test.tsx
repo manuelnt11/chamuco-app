@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
   mockRefresh: vi.fn(),
-  mockOnSuccess: vi.fn(),
+  mockUpload: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
@@ -26,7 +26,7 @@ vi.mock('@/components/ui/toast', () => ({
 }));
 
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: (key: string) => key.replace(/^common:/, '') }),
 }));
 
 vi.mock('@/components/ui/avatar', () => ({
@@ -37,25 +37,40 @@ vi.mock('@/components/ui/avatar', () => ({
   ),
 }));
 
-vi.mock('@/components/ui/file-upload-button', () => ({
-  FileUploadButton: ({
-    onSuccess,
-    disabled,
+vi.mock('@/hooks/useFileUpload', () => ({
+  useFileUpload: () => ({
+    upload: mocks.mockUpload,
+    progress: 0,
+    isUploading: false,
+    error: null,
+    reset: vi.fn(),
+  }),
+}));
+
+vi.mock('./AvatarCropModal', () => ({
+  AvatarCropModal: ({
+    onConfirm,
+    onCancel,
   }: {
-    uploadType: string;
-    contextId: string;
-    onSuccess: (key: string, fileSize: number) => void;
-    disabled?: boolean;
+    file: File;
+    onConfirm: (blob: Blob) => void;
+    onCancel: () => void;
+    isConfirming: boolean;
+    uploadProgress: number;
+    isUploading: boolean;
   }) => (
-    <button
-      data-testid="file-upload-button"
-      disabled={disabled}
-      onClick={() => onSuccess('avatars/user-uuid/photo.jpg', 102400)}
-    >
-      upload
-    </button>
+    <div data-testid="crop-modal">
+      <button
+        data-testid="crop-confirm"
+        onClick={() => onConfirm(new Blob(['jpeg'], { type: 'image/jpeg' }))}
+      >
+        confirm
+      </button>
+      <button data-testid="crop-cancel" onClick={onCancel}>
+        cancel
+      </button>
+    </div>
   ),
-  UploadType: { USER_AVATAR: 'USER_AVATAR' },
 }));
 
 vi.mock('@chamuco/shared-utils', () => ({
@@ -88,6 +103,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockPatch.mockResolvedValue({});
   mocks.mockRefresh.mockResolvedValue(undefined);
+  mocks.mockUpload.mockResolvedValue('avatars/user-uuid/photo.jpg');
 });
 
 describe('AvatarEditor', () => {
@@ -131,10 +147,10 @@ describe('AvatarEditor', () => {
       expect(screen.getByText('basicInfo.avatarEditor.tabEmoji')).toBeInTheDocument();
     });
 
-    it('shows photo tab by default', async () => {
+    it('shows photo tab by default with file input', async () => {
       const { user } = setup();
       await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
-      expect(screen.getByTestId('file-upload-button')).toBeInTheDocument();
+      expect(document.querySelector('input[type="file"]')).toBeInTheDocument();
     });
 
     it('switches to emoji tab', async () => {
@@ -146,27 +162,105 @@ describe('AvatarEditor', () => {
   });
 
   describe('photo upload', () => {
-    it('calls PATCH with gcs source after successful upload', async () => {
+    it('shows crop modal after file selection', async () => {
       const { user } = setup();
       await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
-      await user.click(screen.getByTestId('file-upload-button'));
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const testFile = new File(['test'], 'photo.jpg', { type: 'image/jpeg' });
+      await user.upload(fileInput, testFile);
+
+      expect(screen.getByTestId('crop-modal')).toBeInTheDocument();
+    });
+
+    it('shows current avatar inside dialog when it opens', async () => {
+      const { user } = setup({
+        avatar: {
+          id: 'a1',
+          type: 'image',
+          source: 'gcs',
+          target: 'avatars/user-uuid/photo.jpg',
+          isPublic: true,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          url: 'https://storage.googleapis.com/bucket/avatars/user-uuid/photo.jpg',
+        },
+      });
+      await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
+
+      // Two avatars rendered: one outside the dialog, one inside
+      const avatars = screen.getAllByTestId('avatar');
+      expect(avatars).toHaveLength(2);
+      expect(avatars[1]).toHaveAttribute(
+        'data-src',
+        'https://storage.googleapis.com/bucket/avatars/user-uuid/photo.jpg',
+      );
+    });
+
+    it('does not show current avatar section when user has no avatar', async () => {
+      const { user } = setup({ avatar: null });
+      await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
+
+      // Only one avatar rendered: the one outside the dialog
+      const avatars = screen.getAllByTestId('avatar');
+      expect(avatars).toHaveLength(1);
+    });
+
+    it('calls PATCH with gcs source after crop confirm', async () => {
+      mocks.mockUpload.mockResolvedValue('avatars/user-uuid/photo.jpg');
+      const { user } = setup();
+      await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      await user.upload(fileInput, new File(['test'], 'photo.jpg', { type: 'image/jpeg' }));
+      await user.click(screen.getByTestId('crop-confirm'));
 
       await waitFor(() => {
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/avatar', {
           source: 'gcs',
           target: 'avatars/user-uuid/photo.jpg',
-          fileSize: 102400,
+          fileSize: expect.any(Number),
         });
       });
       expect(mocks.mockRefresh).toHaveBeenCalled();
       expect(mocks.mockToastSuccess).toHaveBeenCalledWith('basicInfo.avatarEditor.photoSuccess');
     });
 
+    it('hides crop modal after cancel', async () => {
+      const { user } = setup();
+      await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      await user.upload(fileInput, new File(['test'], 'photo.jpg', { type: 'image/jpeg' }));
+
+      expect(screen.getByTestId('crop-modal')).toBeInTheDocument();
+      await user.click(screen.getByTestId('crop-cancel'));
+      expect(screen.queryByTestId('crop-modal')).not.toBeInTheDocument();
+    });
+
+    it('shows error toast when upload fails', async () => {
+      mocks.mockUpload.mockRejectedValue(new Error('Upload failed'));
+      const { user } = setup();
+      await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      await user.upload(fileInput, new File(['test'], 'photo.jpg', { type: 'image/jpeg' }));
+      await user.click(screen.getByTestId('crop-confirm'));
+
+      await waitFor(() => {
+        expect(mocks.mockToastError).toHaveBeenCalledWith('basicInfo.avatarEditor.photoError');
+      });
+      expect(mocks.mockRefresh).not.toHaveBeenCalled();
+    });
+
     it('shows error toast when PATCH fails', async () => {
+      mocks.mockUpload.mockResolvedValue('avatars/user-uuid/photo.jpg');
       mocks.mockPatch.mockRejectedValue(new Error('Network error'));
       const { user } = setup();
       await user.click(screen.getByText('basicInfo.avatarEditor.editButton'));
-      await user.click(screen.getByTestId('file-upload-button'));
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      await user.upload(fileInput, new File(['test'], 'photo.jpg', { type: 'image/jpeg' }));
+      await user.click(screen.getByTestId('crop-confirm'));
 
       await waitFor(() => {
         expect(mocks.mockToastError).toHaveBeenCalledWith('basicInfo.avatarEditor.photoError');
