@@ -77,7 +77,7 @@ import { GroupCoverEditor } from './GroupCoverEditor';
 
 const emojiCover: ResolvedAsset = {
   id: 'asset-1',
-  type: 'text',
+  type: 'image',
   source: 'emoji',
   target: '🏔️',
   isPublic: true,

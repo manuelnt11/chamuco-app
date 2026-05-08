@@ -40,7 +40,7 @@ const mockGroupResponse: GroupResponseDto = {
   description: null,
   cover: {
     id: 'asset-uuid',
-    type: 'text',
+    type: 'image',
     source: 'emoji',
     target: '🏔️',
     isPublic: true,

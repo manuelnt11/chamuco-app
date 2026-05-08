@@ -77,7 +77,7 @@ const mockGroup: Group = {
   description: 'Hikers group',
   cover: {
     id: 'asset-1',
-    type: 'text',
+    type: 'image',
     source: 'emoji',
     target: '😀',
     isPublic: true,
