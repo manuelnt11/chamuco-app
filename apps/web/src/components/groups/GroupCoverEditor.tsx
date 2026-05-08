@@ -4,8 +4,8 @@ import { useState, useRef, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getTwemojiUrl } from '@chamuco/shared-utils';
 import { UploadType } from '@chamuco/shared-types';
+import type { ResolvedAsset } from '@chamuco/shared-types';
 
-import { Avatar } from '@/components/ui/avatar';
 import {
   Dialog,
   DialogTrigger,
@@ -17,21 +17,18 @@ import {
 import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import { useUser } from '@/hooks/useUser';
-import type { AppUser } from '@/store/user';
-import { getInitials } from '@/lib/name-utils';
 import { AVATAR_EMOJIS } from '@/lib/avatar-emojis';
 import { CropModal } from '@/components/ui/crop-modal';
 
 type Tab = 'photo' | 'emoji';
 
-interface AvatarEditorProps {
-  user: AppUser;
+interface GroupCoverEditorProps {
+  group: { id: string; cover: ResolvedAsset };
+  onUpdate: () => void;
 }
 
-export function AvatarEditor({ user }: AvatarEditorProps) {
-  const { t } = useTranslation(['profile', 'common']);
-  const { refresh } = useUser();
+export function GroupCoverEditor({ group, onUpdate }: GroupCoverEditorProps) {
+  const { t } = useTranslation(['groups', 'common']);
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('photo');
   const [isSaving, setIsSaving] = useState(false);
@@ -39,8 +36,8 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { upload, progress, isUploading } = useFileUpload({
-    uploadType: UploadType.USER_AVATAR,
-    contextId: user.id,
+    uploadType: UploadType.GROUP_COVER,
+    contextId: group.id,
   });
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
@@ -53,19 +50,17 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
   async function handleCropConfirm(blob: Blob) {
     setIsSaving(true);
     try {
-      const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      const file = new File([blob], 'cover.jpg', { type: 'image/jpeg' });
       const objectKey = await upload(file);
-      await apiClient.patch('/v1/users/me/avatar', {
-        source: 'gcs',
-        target: objectKey,
-        fileSize: blob.size,
+      await apiClient.patch(`/v1/groups/${group.id}`, {
+        cover: { source: 'gcs', target: objectKey, fileSize: blob.size },
       });
-      toast.success(t('basicInfo.avatarEditor.photoSuccess'));
-      await refresh();
+      toast.success(t('cover.photoSuccess'));
+      onUpdate();
       setCropFile(null);
       setOpen(false);
     } catch {
-      toast.error(t('basicInfo.avatarEditor.photoError'));
+      toast.error(t('cover.photoError'));
     } finally {
       setIsSaving(false);
     }
@@ -78,12 +73,14 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
   async function handleEmojiSelect(emoji: string) {
     setIsSaving(true);
     try {
-      await apiClient.patch('/v1/users/me/avatar', { source: 'emoji', target: emoji });
-      toast.success(t('basicInfo.avatarEditor.emojiSuccess'));
-      await refresh();
+      await apiClient.patch(`/v1/groups/${group.id}`, {
+        cover: { source: 'emoji', target: emoji },
+      });
+      toast.success(t('cover.emojiSuccess'));
+      onUpdate();
       setOpen(false);
     } catch {
-      toast.error(t('basicInfo.avatarEditor.emojiError'));
+      toast.error(t('cover.emojiError'));
     } finally {
       setIsSaving(false);
     }
@@ -96,19 +93,25 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
 
   return (
     <div className="flex items-center gap-4">
-      <Avatar
-        src={user.avatar?.url ?? undefined}
-        alt=""
-        fallback={getInitials(user.displayName)}
-        size="lg"
-      />
+      <div className="size-12 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
+        {group.cover.source === 'emoji' ? (
+          <img
+            src={getTwemojiUrl(group.cover.target)}
+            alt={group.cover.target}
+            className="size-8"
+            aria-hidden="true"
+          />
+        ) : (
+          <img src={group.cover.url} alt="" className="size-full object-cover" />
+        )}
+      </div>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger className="text-sm font-medium underline-offset-2 hover:underline">
-          {t('basicInfo.avatarEditor.editButton')}
+          {t('cover.editButton')}
         </DialogTrigger>
         <DialogPopup>
           <DialogHeader>
-            <DialogTitle>{t('basicInfo.avatarEditor.editButton')}</DialogTitle>
+            <DialogTitle>{t('cover.editButton')}</DialogTitle>
           </DialogHeader>
           <DialogClose />
 
@@ -120,26 +123,26 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
               isConfirming={isSaving}
               uploadProgress={progress}
               isUploading={isUploading}
-              title={t('basicInfo.avatarEditor.cropEditor.title')}
-              confirmLabel={t('basicInfo.avatarEditor.cropEditor.usePhoto')}
-              circular
-              outputWidth={256}
+              title={t('cover.cropTitle')}
+              confirmLabel={t('cover.usePhoto')}
             />
           ) : (
             <>
-              {user.avatar && (
-                <div className="mt-6 flex items-center gap-3">
-                  <Avatar
-                    src={user.avatar.url ?? undefined}
-                    alt=""
-                    fallback={getInitials(user.displayName)}
-                    size="lg"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {t('basicInfo.avatarEditor.cropEditor.currentAvatar')}
-                  </span>
+              <div className="mt-6 flex items-center gap-3">
+                <div className="size-12 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
+                  {group.cover.source === 'emoji' ? (
+                    <img
+                      src={getTwemojiUrl(group.cover.target)}
+                      alt={group.cover.target}
+                      className="size-8"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <img src={group.cover.url} alt="" className="size-full object-cover" />
+                  )}
                 </div>
-              )}
+                <span className="text-sm text-muted-foreground">{t('cover.currentCover')}</span>
+              </div>
 
               <div className="mt-4 flex gap-2 border-b">
                 <button
@@ -151,7 +154,7 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {t('basicInfo.avatarEditor.tabPhoto')}
+                  {t('cover.tabImage')}
                 </button>
                 <button
                   type="button"
@@ -162,7 +165,7 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {t('basicInfo.avatarEditor.tabEmoji')}
+                  {t('cover.tabEmoji')}
                 </button>
               </div>
 

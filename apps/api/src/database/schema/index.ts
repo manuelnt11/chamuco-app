@@ -17,3 +17,4 @@ export * from '@/modules/users/schema/user-nationalities.schema';
 export * from '@/modules/users/schema/user-visas.schema';
 export * from '@/modules/users/schema/user-etas.schema';
 export * from '@/modules/users/schema/support-admin-audit-log.schema';
+export * from '@/modules/groups/schema/groups.schema';

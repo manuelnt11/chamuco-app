@@ -5,6 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import { UploadsController } from './uploads.controller';
 import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
+import { GroupsService } from '@/modules/groups/groups.service';
 import { UploadType } from '@/modules/cloud-storage/cloud-storage.constants';
 import type { GenerateSignedUrlDto } from './dto/generate-signed-url.dto';
 import type { AuthenticatedUser } from '@/types/express';
@@ -35,6 +36,7 @@ const mockSignedUrlResult = {
 
 let mockIsAllowedContentType: jest.Mock;
 let mockGenerateSignedUploadUrl: jest.Mock;
+let mockGroupsFindById: jest.Mock;
 
 describe('UploadsController', () => {
   let controller: UploadsController;
@@ -42,6 +44,7 @@ describe('UploadsController', () => {
   beforeEach(async () => {
     mockIsAllowedContentType = jest.fn().mockReturnValue(true);
     mockGenerateSignedUploadUrl = jest.fn().mockResolvedValue(mockSignedUrlResult);
+    mockGroupsFindById = jest.fn().mockResolvedValue(null);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UploadsController],
@@ -52,6 +55,10 @@ describe('UploadsController', () => {
             isAllowedContentType: mockIsAllowedContentType,
             generateSignedUploadUrl: mockGenerateSignedUploadUrl,
           },
+        },
+        {
+          provide: GroupsService,
+          useValue: { findById: mockGroupsFindById },
         },
       ],
     }).compile();
@@ -88,8 +95,56 @@ describe('UploadsController', () => {
         expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
       });
 
+      it('throws ForbiddenException for GROUP_COVER when group does not exist', async () => {
+        mockGroupsFindById.mockResolvedValue(null);
+        const dto: GenerateSignedUrlDto = {
+          uploadType: UploadType.GROUP_COVER,
+          contextId: 'group-uuid',
+          contentType: 'image/jpeg',
+          fileSize: 500 * 1024,
+        };
+
+        await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
+          ForbiddenException,
+        );
+        expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+      });
+
+      it('throws ForbiddenException for GROUP_COVER when user is not the group owner', async () => {
+        mockGroupsFindById.mockResolvedValue({ id: 'group-uuid', createdBy: 'other-user-uuid' });
+        const dto: GenerateSignedUrlDto = {
+          uploadType: UploadType.GROUP_COVER,
+          contextId: 'group-uuid',
+          contentType: 'image/jpeg',
+          fileSize: 500 * 1024,
+        };
+
+        await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
+          ForbiddenException,
+        );
+        expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+      });
+
+      it('returns a signed URL for GROUP_COVER when user is the group owner', async () => {
+        mockGroupsFindById.mockResolvedValue({ id: 'group-uuid', createdBy: 'user-uuid' });
+        const dto: GenerateSignedUrlDto = {
+          uploadType: UploadType.GROUP_COVER,
+          contextId: 'group-uuid',
+          contentType: 'image/jpeg',
+          fileSize: 500 * 1024,
+        };
+
+        const result = await controller.generateSignedUrl(mockAuthUser, dto);
+
+        expect(result).toEqual(mockSignedUrlResult);
+        expect(mockGenerateSignedUploadUrl).toHaveBeenCalledWith(
+          UploadType.GROUP_COVER,
+          'group-uuid',
+          'image/jpeg',
+        );
+      });
+
       it.each([
-        [UploadType.GROUP_COVER, 'group-uuid'],
         [UploadType.GROUP_RESOURCE_DOCUMENT, 'group-uuid'],
         [UploadType.TRIP_RESOURCE, 'trip-uuid'],
       ])(

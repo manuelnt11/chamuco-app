@@ -547,7 +547,9 @@ export class UsersService {
 
     if (oldAsset) {
       if (oldAsset.source === 'gcs') {
-        await this.cloudStorage.deleteObject(oldAsset.target);
+        await this.cloudStorage.deleteObject(oldAsset.target).catch((e: unknown) => {
+          console.error('[UsersService] GCS delete failed (orphan caught by audit):', e);
+        });
       }
       await this.db.delete(assets).where(eq(assets.id, oldAsset.id));
     }

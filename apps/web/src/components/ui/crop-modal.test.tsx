@@ -15,19 +15,20 @@ vi.mock('react-image-crop', () => ({
   default: ({
     children,
     onChange,
+    circularCrop,
   }: {
     children: ReactNode;
     onChange: (crop: { unit: string; x: number; y: number; width: number; height: number }) => void;
-  }) => {
-    return (
-      <div
-        data-testid="react-crop"
-        onClick={() => onChange({ unit: 'px', x: 10, y: 10, width: 100, height: 100 })}
-      >
-        {children}
-      </div>
-    );
-  },
+    circularCrop?: boolean;
+  }) => (
+    <div
+      data-testid="react-crop"
+      data-circular={circularCrop ? 'true' : 'false'}
+      onClick={() => onChange({ unit: 'px', x: 10, y: 10, width: 100, height: 100 })}
+    >
+      {children}
+    </div>
+  ),
   centerCrop: vi.fn((crop: { unit: string; width: number }) => ({
     ...crop,
     x: 5,
@@ -42,34 +43,33 @@ vi.mock('react-image-crop', () => ({
 
 vi.mock('react-image-crop/dist/ReactCrop.css', () => ({}));
 
-import { AvatarCropModal } from './AvatarCropModal';
+import type { ComponentProps } from 'react';
+import { CropModal } from './crop-modal';
 
 const testFile = new File(['test'], 'photo.jpg', { type: 'image/jpeg' });
 
-const defaultProps = {
+const defaultProps: ComponentProps<typeof CropModal> = {
   file: testFile,
   onConfirm: mocks.mockOnConfirm,
   onCancel: mocks.mockOnCancel,
   isConfirming: false,
   uploadProgress: 0,
   isUploading: false,
+  title: 'Crop your photo',
+  confirmLabel: 'Use photo',
 };
 
-function setup(props?: Partial<typeof defaultProps>) {
+function setup(props?: Partial<ComponentProps<typeof CropModal>>) {
   const user = userEvent.setup();
-  render(<AvatarCropModal {...defaultProps} {...props} />);
+  render(<CropModal {...defaultProps} {...props} />);
   return { user };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-
   vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
   vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
-
-  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
-    drawImage: vi.fn(),
-  });
+  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({ drawImage: vi.fn() });
   HTMLCanvasElement.prototype.toBlob = vi
     .fn()
     .mockImplementation((cb: (blob: Blob | null) => void) =>
@@ -77,23 +77,27 @@ beforeEach(() => {
     );
 });
 
-describe('AvatarCropModal', () => {
+describe('CropModal', () => {
   describe('rendering', () => {
-    it('shows crop editor title', () => {
+    it('shows the title prop', () => {
       setup();
-      expect(screen.getByText('basicInfo.avatarEditor.cropEditor.title')).toBeInTheDocument();
+      expect(screen.getByText('Crop your photo')).toBeInTheDocument();
     });
 
-    it('renders cancel and use photo buttons', () => {
+    it('shows the confirmLabel prop', () => {
       setup();
-      expect(screen.getByText('basicInfo.avatarEditor.cropEditor.cancel')).toBeInTheDocument();
-      expect(screen.getByText('basicInfo.avatarEditor.cropEditor.usePhoto')).toBeInTheDocument();
+      expect(screen.getByText('Use photo')).toBeInTheDocument();
+    });
+
+    it('shows cancel button with actions.cancel key', () => {
+      setup();
+      expect(screen.getByText('actions.cancel')).toBeInTheDocument();
     });
 
     it('disables buttons when isConfirming is true', () => {
       setup({ isConfirming: true });
-      expect(screen.getByText('basicInfo.avatarEditor.cropEditor.cancel')).toBeDisabled();
-      expect(screen.getByText('basicInfo.avatarEditor.cropEditor.usePhoto')).toBeDisabled();
+      expect(screen.getByText('actions.cancel')).toBeDisabled();
+      expect(screen.getByText('Use photo')).toBeDisabled();
     });
 
     it('shows progress bar when isUploading is true', () => {
@@ -104,24 +108,33 @@ describe('AvatarCropModal', () => {
     });
 
     it('hides progress bar when not uploading', () => {
-      setup({ isUploading: false, uploadProgress: 0 });
+      setup({ isUploading: false });
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+
+    it('passes circular=false to ReactCrop by default', () => {
+      setup();
+      expect(screen.getByTestId('react-crop')).toHaveAttribute('data-circular', 'false');
+    });
+
+    it('passes circular=true to ReactCrop when circular prop is set', () => {
+      setup({ circular: true });
+      expect(screen.getByTestId('react-crop')).toHaveAttribute('data-circular', 'true');
     });
   });
 
   describe('cancel', () => {
     it('calls onCancel when cancel button is clicked', async () => {
       const { user } = setup();
-      await user.click(screen.getByText('basicInfo.avatarEditor.cropEditor.cancel'));
+      await user.click(screen.getByText('actions.cancel'));
       expect(mocks.mockOnCancel).toHaveBeenCalledOnce();
     });
   });
 
   describe('confirm', () => {
-    it('calls onConfirm with a Blob after clicking use photo', async () => {
+    it('calls onConfirm with a Blob after clicking confirm', async () => {
       const { user } = setup();
 
-      // Simulate image load to set completedCrop
       const img = screen.getByRole('img');
       act(() => {
         Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
@@ -131,27 +144,12 @@ describe('AvatarCropModal', () => {
         img.dispatchEvent(new Event('load'));
       });
 
-      await user.click(screen.getByText('basicInfo.avatarEditor.cropEditor.usePhoto'));
+      await user.click(screen.getByText('Use photo'));
 
       expect(mocks.mockOnConfirm).toHaveBeenCalledOnce();
       expect(mocks.mockOnConfirm).toHaveBeenCalledWith(expect.any(Blob));
     });
-  });
 
-  describe('object URL lifecycle', () => {
-    it('creates object URL for the file', () => {
-      setup();
-      expect(URL.createObjectURL).toHaveBeenCalledWith(testFile);
-    });
-
-    it('revokes object URL on unmount', () => {
-      const { unmount } = render(<AvatarCropModal {...defaultProps} />);
-      unmount();
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
-    });
-  });
-
-  describe('confirm — edge cases', () => {
     it('does not call onConfirm when toBlob returns null', async () => {
       HTMLCanvasElement.prototype.toBlob = vi
         .fn()
@@ -166,9 +164,22 @@ describe('AvatarCropModal', () => {
         img.dispatchEvent(new Event('load'));
       });
 
-      await user.click(screen.getByText('basicInfo.avatarEditor.cropEditor.usePhoto'));
+      await user.click(screen.getByText('Use photo'));
 
       expect(mocks.mockOnConfirm).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('object URL lifecycle', () => {
+    it('creates object URL for the file', () => {
+      setup();
+      expect(URL.createObjectURL).toHaveBeenCalledWith(testFile);
+    });
+
+    it('revokes object URL on unmount', () => {
+      const { unmount } = render(<CropModal {...defaultProps} />);
+      unmount();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
     });
   });
 });
