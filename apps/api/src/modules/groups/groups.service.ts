@@ -1,5 +1,5 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 
 import type { Asset } from '@chamuco/shared-types';
 import { GroupMemberStatus, GroupRole } from '@chamuco/shared-types';
@@ -86,12 +86,16 @@ export class GroupsService {
   }
 
   async findById(id: string): Promise<typeof groups.$inferSelect | null> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     return group ?? null;
   }
 
   async getGroup(requestingUserId: string, id: string): Promise<GroupResponseDto> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
 
     if (group.visibility === 'PRIVATE') {
@@ -120,7 +124,7 @@ export class GroupsService {
 
     const groupIds = memberships.map((m) => m.groupId);
     const groupRows = await this.db.query.groups.findMany({
-      where: inArray(groups.id, groupIds),
+      where: and(inArray(groups.id, groupIds), isNull(groups.deletedAt)),
     });
 
     return Promise.all(groupRows.map((g) => this.fetchAndMapGroup(g.id)));
@@ -131,7 +135,9 @@ export class GroupsService {
     id: string,
     dto: UpdateGroupDto,
   ): Promise<GroupResponseDto> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
 
     const membership = await this.db.query.groupMembers.findFirst({
@@ -153,7 +159,9 @@ export class GroupsService {
       let oldAsset: typeof assets.$inferSelect | undefined;
 
       await this.db.transaction(async (trx) => {
-        oldAsset = await trx.query.assets.findFirst({ where: eq(assets.id, group.cover) });
+        oldAsset = group.cover
+          ? await trx.query.assets.findFirst({ where: eq(assets.id, group.cover) })
+          : undefined;
 
         const [newAsset] = await trx
           .insert(assets)
@@ -197,7 +205,9 @@ export class GroupsService {
   }
 
   async deleteGroup(user: AuthenticatedUser, id: string): Promise<void> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
 
     const membership = await this.db.query.groupMembers.findFirst({
@@ -210,29 +220,32 @@ export class GroupsService {
     });
     if (!membership) throw new ForbiddenException('Only the group owner can delete this group');
 
-    const coverAsset = await this.db.query.assets.findFirst({
-      where: eq(assets.id, group.cover),
-    });
+    const coverAsset = group.cover
+      ? await this.db.query.assets.findFirst({ where: eq(assets.id, group.cover) })
+      : null;
 
-    await this.db.transaction(async (trx) => {
-      await trx.delete(groupMemberStats).where(eq(groupMemberStats.groupId, id));
-      await trx.delete(groupMembers).where(eq(groupMembers.groupId, id));
-      await trx.delete(groups).where(eq(groups.id, id));
-      if (coverAsset) {
-        await trx.delete(assets).where(eq(assets.id, coverAsset.id));
+    // Soft-delete: null the cover FK so the asset row can be cleaned up after commit (rule #7)
+    await this.db
+      .update(groups)
+      .set({ deletedAt: new Date(), cover: null })
+      .where(eq(groups.id, id));
+
+    if (coverAsset) {
+      if (coverAsset.source === 'gcs') {
+        await this.cloudStorage.deleteObject(coverAsset.target).catch((e: unknown) => {
+          console.error('[GroupsService] GCS delete failed (orphan caught by audit):', e);
+        });
       }
-    });
-
-    if (coverAsset?.source === 'gcs') {
-      await this.cloudStorage.deleteObject(coverAsset.target).catch((e: unknown) => {
-        console.error('[GroupsService] GCS delete failed (orphan caught by audit):', e);
-      });
+      await this.db.delete(assets).where(eq(assets.id, coverAsset.id));
     }
   }
 
   private async fetchAndMapGroup(id: string): Promise<GroupResponseDto> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
+    if (!group.cover) throw new NotFoundException('Group cover asset not found');
 
     const coverRow = await this.db.query.assets.findFirst({ where: eq(assets.id, group.cover) });
     if (!coverRow) throw new NotFoundException('Group cover asset not found');

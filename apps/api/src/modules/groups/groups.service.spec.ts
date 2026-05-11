@@ -541,15 +541,16 @@ describe('GroupsService', () => {
   });
 
   describe('deleteGroup', () => {
-    it('deletes group, members, stats and cover asset in a transaction', async () => {
+    it('soft-deletes group and hard-deletes cover asset record', async () => {
       mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
       mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
 
       await service.deleteGroup(mockUser, 'group-uuid');
 
-      expect(mockTransaction).toHaveBeenCalledTimes(1);
-      // groupMemberStats + groupMembers + groups + assets = 4 deletes
-      expect(mockDeleteWhere).toHaveBeenCalledTimes(4);
+      expect(mockTransaction).not.toHaveBeenCalled();
+      // update groups (soft-delete) + delete assets = 2 write ops via mockDeleteWhere + mockWhere
+      expect(mockDeleteWhere).toHaveBeenCalledTimes(1);
+      expect(mockCloudStorageDelete).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when group does not exist', async () => {
@@ -567,19 +568,17 @@ describe('GroupsService', () => {
       await expect(service.deleteGroup(mockUser, 'group-uuid')).rejects.toThrow(ForbiddenException);
     });
 
-    it('deletes group without cover asset (3 delete operations in transaction)', async () => {
-      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(undefined);
+    it('skips asset cleanup when group has no cover', async () => {
+      mockGroupsFindFirst.mockResolvedValue({ ...mockGroupRow, cover: null });
 
       await service.deleteGroup(mockUser, 'group-uuid');
 
-      expect(mockTransaction).toHaveBeenCalledTimes(1);
-      // groupMemberStats + groupMembers + groups = 3 deletes
-      expect(mockDeleteWhere).toHaveBeenCalledTimes(3);
+      expect(mockTransaction).not.toHaveBeenCalled();
+      expect(mockDeleteWhere).not.toHaveBeenCalled();
       expect(mockCloudStorageDelete).not.toHaveBeenCalled();
     });
 
-    it('calls deleteObject for gcs cover before deleting asset record', async () => {
+    it('calls deleteObject and deletes asset record for gcs cover', async () => {
       const gcsGroup = { ...mockGroupRow, cover: 'gcs-asset-uuid' };
       const gcsCoverRow = {
         ...mockCoverAssetRow,
@@ -593,6 +592,7 @@ describe('GroupsService', () => {
       await service.deleteGroup(mockUser, 'group-uuid');
 
       expect(mockCloudStorageDelete).toHaveBeenCalledWith('group-covers/group-uuid/cover.jpg');
+      expect(mockDeleteWhere).toHaveBeenCalledTimes(1);
     });
 
     it('does not throw when gcs delete fails during deleteGroup', async () => {

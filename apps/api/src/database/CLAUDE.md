@@ -80,11 +80,22 @@ avatar: uuid('avatar').references(() => assets.id),
 
 The asset replacement pattern (documented in the root CLAUDE.md rule #7) guarantees that the entity FK is updated to the new asset _inside the transaction_, before the old asset record is deleted _after_ the transaction. By the time `DELETE FROM assets WHERE id = old` runs, no entity references that row anymore — so `restrict` never fires in normal operation. If it does fire, a bug violated the replacement contract: surface the error rather than silently nulling the FK or cascading a deletion.
 
-### User deletion is logical (soft-delete)
+### Entities that use logical soft-delete
 
-Users are never hard-deleted from the `users` table. Account deletion is always logical: a `deleted_at` timestamp column will be added to `users` when account deletion is implemented.
+The following entities are never hard-deleted. Deletion is always logical: a `deleted_at` timestamp is set on the row and all queries must filter `IS NULL deleted_at` to exclude them.
 
-This has one direct consequence for FK design: **all `NOT NULL` foreign keys pointing to `users.id` with `ON DELETE restrict` are safe in practice**, because the referenced row never disappears from the table. `restrict` remains the declared behavior for semantic correctness — it documents intent — but it will not be triggered by normal application flows.
+| Entity   | Column       | Notes                                                                                                                                                                                              |
+| -------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`  | `deleted_at` | Account deletion (post-MVP). All `NOT NULL` FKs pointing to `users.id` with `ON DELETE restrict` are safe — the row never disappears.                                                              |
+| `groups` | `deleted_at` | Group deletion (owner action or dissolution when last active member leaves). The `cover` FK is nulled inside the same update so the orphaned asset row can be cleaned up after commit per rule #7. |
+
+**Why soft-delete for groups?** Group membership history, stats, and past activity should survive a group deletion for audit and potential recovery. Hard-deleting the group row would cascade or leave orphaned foreign keys across group_members and group_member_stats.
+
+**Query filter:** every query that looks up a group must include `isNull(groups.deletedAt)`:
+
+```ts
+where: and(eq(groups.id, id), isNull(groups.deletedAt));
+```
 
 ### Key relationships
 
@@ -186,6 +197,7 @@ Each step is a separate migration file and a separate PR. Document the steps in 
 | 0015 | `0015_asset_infrastructure.sql` | `assets` table; asset source and type enums                                                                                                      |
 | 0016 | `0016_groups_core.sql`          | `groups` table; `group_visibility` enum                                                                                                          |
 | 0017 | `0017_perpetual_unicorn.sql`    | `group_members` and `group_member_stats` tables (composite PKs); `group_member_status`, `group_role`, `group_member_tier` enums                  |
+| 0018 | `0018_condemned_pestilence.sql` | `groups.cover` made nullable; `groups.deleted_at` added (soft-delete support)                                                                    |
 
 ---
 

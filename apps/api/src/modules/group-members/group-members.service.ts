@@ -273,9 +273,7 @@ export class GroupMembersService {
             );
 
           if ((activeCount?.total ?? 0) === 0) {
-            await trx.delete(groupMemberStats).where(eq(groupMemberStats.groupId, groupId));
-            await trx.delete(groupMembers).where(eq(groupMembers.groupId, groupId));
-            await trx.delete(groups).where(eq(groups.id, groupId));
+            await trx.update(groups).set({ deletedAt: now }).where(eq(groups.id, groupId));
           }
         });
         return;
