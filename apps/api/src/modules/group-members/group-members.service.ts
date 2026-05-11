@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, count, eq, inArray } from 'drizzle-orm';
+import { and, count, eq, inArray, isNull } from 'drizzle-orm';
 
 import { GroupMemberStatus, GroupMemberTier, GroupRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -19,6 +19,7 @@ import type { CreateInvitationDto } from './dto/create-invitation.dto';
 import type { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import type { MemberResponseDto } from './dto/member-response.dto';
 import type { PendingItemResponseDto } from './dto/pending-item-response.dto';
+import type { MyMembershipResponseDto } from './dto/my-membership-response.dto';
 
 const ADMIN_ROLES = [GroupRole.OWNER, GroupRole.ADMIN] as const;
 
@@ -32,8 +33,7 @@ export class GroupMembersService {
   // ─── Join request ────────────────────────────────────────────────────────────
 
   async submitJoinRequest(groupId: string, requestingUserId: string): Promise<void> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, groupId) });
-    if (!group) throw new NotFoundException('Group not found');
+    const group = await this.assertGroupExists(groupId);
     if (group.visibility !== 'PUBLIC') {
       throw new ForbiddenException('Join requests are only allowed for public groups');
     }
@@ -49,11 +49,12 @@ export class GroupMembersService {
       ) {
         throw new ConflictException('A pending request or active membership already exists');
       }
-      // Re-request after REJECTED / REMOVED / LEFT
+      // Re-request after REJECTED / REMOVED / LEFT — always reset to MEMBER role
       await this.db
         .update(groupMembers)
         .set({
           status: GroupMemberStatus.REQUEST,
+          role: GroupRole.MEMBER,
           initiatedBy: requestingUserId,
           initiatedAt: new Date(),
           respondedAt: null,
@@ -148,15 +149,19 @@ export class GroupMembersService {
     if (existing) {
       if (
         existing.status === GroupMemberStatus.ACTIVE ||
-        existing.status === GroupMemberStatus.INVITED
+        existing.status === GroupMemberStatus.INVITED ||
+        existing.status === GroupMemberStatus.REQUEST
       ) {
-        throw new ConflictException('User is already an active member or has a pending invitation');
+        throw new ConflictException(
+          'User is already an active member, has a pending invitation, or a pending join request',
+        );
       }
-      // Re-invite after REJECTED / REMOVED / LEFT
+      // Re-invite after REJECTED / REMOVED / LEFT — always reset to MEMBER role
       await this.db
         .update(groupMembers)
         .set({
           status: GroupMemberStatus.INVITED,
+          role: GroupRole.MEMBER,
           initiatedBy: adminUserId,
           initiatedAt: new Date(),
           respondedAt: null,
@@ -236,8 +241,7 @@ export class GroupMembersService {
     targetUserId: string,
     requestingUserId: string,
   ): Promise<void> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, groupId) });
-    if (!group) throw new NotFoundException('Group not found');
+    await this.assertGroupExists(groupId);
 
     const targetMembership = await this.findMemberOrThrow(groupId, targetUserId);
 
@@ -300,6 +304,11 @@ export class GroupMembersService {
 
     if (targetMembership.status !== GroupMemberStatus.ACTIVE) {
       throw new ConflictException('Target user is not an active member');
+    }
+
+    // Only an OWNER can remove another OWNER
+    if (targetMembership.role === GroupRole.OWNER && requesterMembership.role !== GroupRole.OWNER) {
+      throw new ForbiddenException('Only the group owner can remove another owner');
     }
 
     await this.assertNotSoleAdmin(groupId, targetUserId);
@@ -375,6 +384,23 @@ export class GroupMembersService {
       .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
   }
 
+  // ─── My membership ───────────────────────────────────────────────────────────
+
+  async getMyMembership(groupId: string, userId: string): Promise<MyMembershipResponseDto | null> {
+    await this.assertGroupExists(groupId);
+
+    const membership = await this.db.query.groupMembers.findFirst({
+      where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)),
+    });
+
+    if (!membership) return null;
+
+    return {
+      status: membership.status as GroupMemberStatus,
+      role: membership.role as GroupRole,
+    };
+  }
+
   // ─── List endpoints ───────────────────────────────────────────────────────────
 
   async listActiveMembers(groupId: string, requestingUserId: string): Promise<MemberResponseDto[]> {
@@ -401,7 +427,7 @@ export class GroupMembersService {
 
     return rows.map((membership) => {
       const user = userMap.get(membership.userId);
-      if (!user) throw new Error(`User ${membership.userId} not found`);
+      if (!user) throw new NotFoundException(`User ${membership.userId} not found`);
       const stats = statsMap.get(membership.userId);
 
       return {
@@ -438,7 +464,7 @@ export class GroupMembersService {
 
     return rows.map((membership) => {
       const user = userMap.get(membership.userId);
-      if (!user) throw new Error(`User ${membership.userId} not found`);
+      if (!user) throw new NotFoundException(`User ${membership.userId} not found`);
 
       return {
         userId: user.id,
@@ -461,9 +487,16 @@ export class GroupMembersService {
     return membership;
   }
 
-  private async assertGroupAdmin(groupId: string, userId: string): Promise<void> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, groupId) });
+  private async assertGroupExists(groupId: string) {
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, groupId), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
+    return group;
+  }
+
+  private async assertGroupAdmin(groupId: string, userId: string): Promise<void> {
+    await this.assertGroupExists(groupId);
 
     const membership = await this.db.query.groupMembers.findFirst({
       where: and(
@@ -477,8 +510,7 @@ export class GroupMembersService {
   }
 
   private async assertActiveMember(groupId: string, userId: string): Promise<void> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, groupId) });
-    if (!group) throw new NotFoundException('Group not found');
+    await this.assertGroupExists(groupId);
 
     const membership = await this.db.query.groupMembers.findFirst({
       where: and(

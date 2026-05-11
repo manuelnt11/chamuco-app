@@ -219,7 +219,7 @@ describe('GroupMembersService', () => {
 
       expect(mockUpdate).toHaveBeenCalled();
       expect(mockUpdateSet).toHaveBeenCalledWith(
-        expect.objectContaining({ status: GroupMemberStatus.REQUEST }),
+        expect.objectContaining({ status: GroupMemberStatus.REQUEST, role: GroupRole.MEMBER }),
       );
       expect(mockInsert).not.toHaveBeenCalled();
     });
@@ -393,16 +393,27 @@ describe('GroupMembersService', () => {
       );
     });
 
-    it('updates row when re-inviting after REJECTED', async () => {
+    it('throws ConflictException when target already has REQUEST status', async () => {
       mockGroupMembersFindFirst
         .mockResolvedValueOnce(ownerMembership)
-        .mockResolvedValueOnce(rejectedMembership);
+        .mockResolvedValueOnce(requestMembership);
+
+      await expect(service.sendInvitation(GROUP_ID, dto, ADMIN_ID)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('updates row when re-inviting after REJECTED and resets role to MEMBER', async () => {
+      const formerAdmin = makeMembership(USER_ID, GroupMemberStatus.REJECTED, GroupRole.ADMIN);
+      mockGroupMembersFindFirst
+        .mockResolvedValueOnce(ownerMembership)
+        .mockResolvedValueOnce(formerAdmin);
 
       await service.sendInvitation(GROUP_ID, dto, ADMIN_ID);
 
       expect(mockUpdate).toHaveBeenCalled();
       expect(mockUpdateSet).toHaveBeenCalledWith(
-        expect.objectContaining({ status: GroupMemberStatus.INVITED }),
+        expect.objectContaining({ status: GroupMemberStatus.INVITED, role: GroupRole.MEMBER }),
       );
       expect(mockInsert).not.toHaveBeenCalled();
     });
@@ -530,6 +541,18 @@ describe('GroupMembersService', () => {
 
       await expect(service.removeMember(GROUP_ID, USER_ID, ADMIN_ID)).rejects.toThrow(
         ConflictException,
+      );
+    });
+
+    it('throws ForbiddenException when ADMIN tries to remove the OWNER', async () => {
+      const ownerTarget = makeMembership(USER_ID, GroupMemberStatus.ACTIVE, GroupRole.OWNER);
+      const adminRequester = makeMembership(ADMIN_ID, GroupMemberStatus.ACTIVE, GroupRole.ADMIN);
+      mockGroupMembersFindFirst
+        .mockResolvedValueOnce(ownerTarget) // target
+        .mockResolvedValueOnce(adminRequester); // requester (ADMIN, not OWNER)
+
+      await expect(service.removeMember(GROUP_ID, USER_ID, ADMIN_ID)).rejects.toThrow(
+        ForbiddenException,
       );
     });
 

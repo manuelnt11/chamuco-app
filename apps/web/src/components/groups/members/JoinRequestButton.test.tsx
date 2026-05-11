@@ -32,6 +32,7 @@ describe('JoinRequestButton', () => {
       render(
         <JoinRequestButton
           groupId="g1"
+          userId="u1"
           hasPendingRequest={false}
           onSuccess={mocks.mockOnSuccess}
         />,
@@ -46,6 +47,7 @@ describe('JoinRequestButton', () => {
       render(
         <JoinRequestButton
           groupId="g1"
+          userId="u1"
           hasPendingRequest={false}
           onSuccess={mocks.mockOnSuccess}
         />,
@@ -62,6 +64,7 @@ describe('JoinRequestButton', () => {
       render(
         <JoinRequestButton
           groupId="g1"
+          userId="u1"
           hasPendingRequest={false}
           onSuccess={mocks.mockOnSuccess}
         />,
@@ -81,6 +84,7 @@ describe('JoinRequestButton', () => {
       render(
         <JoinRequestButton
           groupId="g1"
+          userId="u1"
           hasPendingRequest={false}
           onSuccess={mocks.mockOnSuccess}
         />,
@@ -95,29 +99,44 @@ describe('JoinRequestButton', () => {
   describe('withdraw mode (hasPendingRequest = true)', () => {
     it('renders withdraw button', () => {
       render(
-        <JoinRequestButton groupId="g1" hasPendingRequest={true} onSuccess={mocks.mockOnSuccess} />,
+        <JoinRequestButton
+          groupId="g1"
+          userId="u1"
+          hasPendingRequest={true}
+          onSuccess={mocks.mockOnSuccess}
+        />,
       );
       expect(
         screen.getByRole('button', { name: 'members.joinRequest.withdraw' }),
       ).toBeInTheDocument();
     });
 
-    it('calls DELETE members/me when clicked', async () => {
+    it('calls DELETE members/:userId when clicked', async () => {
       const user = userEvent.setup();
       render(
-        <JoinRequestButton groupId="g1" hasPendingRequest={true} onSuccess={mocks.mockOnSuccess} />,
+        <JoinRequestButton
+          groupId="g1"
+          userId="u1"
+          hasPendingRequest={true}
+          onSuccess={mocks.mockOnSuccess}
+        />,
       );
       await user.click(screen.getByRole('button', { name: 'members.joinRequest.withdraw' }));
 
       await waitFor(() => {
-        expect(mocks.mockDelete).toHaveBeenCalledWith('/v1/groups/g1/members/me');
+        expect(mocks.mockDelete).toHaveBeenCalledWith('/v1/groups/g1/members/u1');
       });
     });
 
     it('calls onSuccess after successful withdraw', async () => {
       const user = userEvent.setup();
       render(
-        <JoinRequestButton groupId="g1" hasPendingRequest={true} onSuccess={mocks.mockOnSuccess} />,
+        <JoinRequestButton
+          groupId="g1"
+          userId="u1"
+          hasPendingRequest={true}
+          onSuccess={mocks.mockOnSuccess}
+        />,
       );
       await user.click(screen.getByRole('button', { name: 'members.joinRequest.withdraw' }));
 
@@ -132,7 +151,12 @@ describe('JoinRequestButton', () => {
 
       const user = userEvent.setup();
       render(
-        <JoinRequestButton groupId="g1" hasPendingRequest={true} onSuccess={mocks.mockOnSuccess} />,
+        <JoinRequestButton
+          groupId="g1"
+          userId="u1"
+          hasPendingRequest={true}
+          onSuccess={mocks.mockOnSuccess}
+        />,
       );
       await user.click(screen.getByRole('button', { name: 'members.joinRequest.withdraw' }));
 

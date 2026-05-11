@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgEnum, pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, pgEnum, pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { GroupMemberStatus, GroupRole } from '@chamuco/shared-types';
 import { groups } from '@/modules/groups/schema/groups.schema';
@@ -38,7 +38,13 @@ export const groupMembers = pgTable(
       .notNull(),
     decidedBy: uuid('decided_by').references(() => users.id, { onDelete: 'restrict' }),
   },
-  (t) => [primaryKey({ columns: [t.groupId, t.userId] })],
+  (t) => [
+    primaryKey({ columns: [t.groupId, t.userId] }),
+    // Supports listMyGroups: filter by user_id + status, join to groups
+    index('idx_group_members_user_id_status').on(t.userId, t.status),
+    // Supports listActiveMembers / listPendingMembers: filter by group_id + status
+    index('idx_group_members_group_id_status').on(t.groupId, t.status),
+  ],
 );
 
 export const groupMembersRelations = relations(groupMembers, ({ one }) => ({

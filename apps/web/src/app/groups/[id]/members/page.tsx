@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { GroupRole, GroupVisibility } from '@chamuco/shared-types';
+import { GroupMemberStatus, GroupRole, GroupVisibility } from '@chamuco/shared-types';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 import { apiClient } from '@/services/api-client';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,7 +35,7 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [pending, setPending] = useState<PendingGroupMember[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<GroupRole | null>(null);
-  const hasPendingRequest = false;
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
 
   const isAdmin =
     currentUserRole !== null && [GroupRole.OWNER, GroupRole.ADMIN].includes(currentUserRole);
@@ -50,7 +50,11 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
       setGroup(groupRes.data);
 
       if (!membersRes) {
-        // 403 → not an active member
+        // 403 → not an active member; check for pending request/invitation
+        const myMembershipRes = await apiClient
+          .get<{ status: GroupMemberStatus; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
+          .catch(() => null);
+        setHasPendingRequest(myMembershipRes?.data?.status === GroupMemberStatus.REQUEST);
         setPageState('not-member');
         return;
       }
@@ -108,6 +112,7 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
         {pageState === 'not-member' && group.visibility === GroupVisibility.PUBLIC && (
           <JoinRequestButton
             groupId={id}
+            userId={appUser?.id ?? ''}
             hasPendingRequest={hasPendingRequest}
             onSuccess={() => void loadData()}
           />

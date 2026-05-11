@@ -19,6 +19,7 @@ import {
   ApiParam,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -27,6 +28,7 @@ import { GroupMembersService } from './group-members.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import { MemberResponseDto } from './dto/member-response.dto';
+import { MyMembershipResponseDto } from './dto/my-membership-response.dto';
 import { PendingItemResponseDto } from './dto/pending-item-response.dto';
 
 @ApiTags('group-members')
@@ -46,6 +48,7 @@ export class GroupMembersController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 204, description: 'Join request submitted.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Group is not public.' })
   @ApiConflictResponse({ description: 'Active membership or pending request already exists.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
@@ -65,6 +68,7 @@ export class GroupMembersController {
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiParam({ name: 'userId', type: String, description: 'User UUID of the requester' })
   @ApiResponse({ status: 204, description: 'Join request accepted.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Caller is not a group admin.' })
   @ApiConflictResponse({ description: 'No pending join request found.' })
   @ApiNotFoundResponse({ description: 'Group or user not found.' })
@@ -85,6 +89,7 @@ export class GroupMembersController {
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiParam({ name: 'userId', type: String, description: 'User UUID of the requester' })
   @ApiResponse({ status: 204, description: 'Join request rejected.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Caller is not a group admin.' })
   @ApiConflictResponse({ description: 'No pending join request found.' })
   @ApiNotFoundResponse({ description: 'Group or user not found.' })
@@ -106,8 +111,11 @@ export class GroupMembersController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 204, description: 'Invitation sent.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Caller is not a group admin.' })
-  @ApiConflictResponse({ description: 'User is already a member or has a pending invitation.' })
+  @ApiConflictResponse({
+    description: 'User is already a member, has a pending invitation, or a pending join request.',
+  })
   @ApiNotFoundResponse({ description: 'Group or target user not found.' })
   async sendInvitation(
     @CurrentUser() user: AuthenticatedUser,
@@ -125,6 +133,7 @@ export class GroupMembersController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 204, description: 'Invitation accepted.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiConflictResponse({ description: 'No pending invitation found.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async acceptInvitation(
@@ -142,6 +151,7 @@ export class GroupMembersController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 204, description: 'Invitation declined.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiConflictResponse({ description: 'No pending invitation found.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async declineInvitation(
@@ -160,6 +170,7 @@ export class GroupMembersController {
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiParam({ name: 'userId', type: String, description: 'User UUID of the invitee' })
   @ApiResponse({ status: 204, description: 'Invitation revoked.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Caller is not a group admin.' })
   @ApiConflictResponse({ description: 'No pending invitation found.' })
   @ApiNotFoundResponse({ description: 'Group or user not found.' })
@@ -185,8 +196,10 @@ export class GroupMembersController {
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiParam({ name: 'userId', type: String, description: 'User UUID' })
   @ApiResponse({ status: 204, description: 'Member removed or user left.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({
-    description: 'Caller is not a group admin (when removing another user).',
+    description:
+      'Caller is not a group admin (when removing another user), or ADMIN tried to remove OWNER.',
   })
   @ApiConflictResponse({ description: 'Cannot remove or demote the last admin.' })
   @ApiNotFoundResponse({ description: 'Group or user not found.' })
@@ -208,6 +221,7 @@ export class GroupMembersController {
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiParam({ name: 'userId', type: String, description: 'User UUID of the target member' })
   @ApiResponse({ status: 204, description: 'Role updated.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({
     description: 'Caller is not a group admin, or only OWNER can transfer ownership.',
   })
@@ -222,6 +236,27 @@ export class GroupMembersController {
     return this.groupMembersService.updateMemberRole(id, userId, dto, user.id);
   }
 
+  @Get('members/me')
+  @ApiOperation({
+    summary: 'Get my membership',
+    description:
+      "Returns the authenticated user's current membership status and role for the group, or null if no membership record exists.",
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
+  @ApiResponse({
+    status: 200,
+    type: MyMembershipResponseDto,
+    description: 'Membership record, or null if none.',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
+  @ApiNotFoundResponse({ description: 'Group not found.' })
+  async getMyMembership(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<MyMembershipResponseDto | null> {
+    return this.groupMembersService.getMyMembership(id, user.id);
+  }
+
   @Get('members')
   @ApiOperation({
     summary: 'List active members',
@@ -229,6 +264,7 @@ export class GroupMembersController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 200, type: [MemberResponseDto] })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Caller is not an active group member.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async listActiveMembers(
@@ -245,6 +281,7 @@ export class GroupMembersController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 200, type: [PendingItemResponseDto] })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Caller is not a group admin.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async listPendingMembers(

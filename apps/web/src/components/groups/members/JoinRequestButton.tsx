@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/button';
 
 interface JoinRequestButtonProps {
   groupId: string;
+  userId: string;
   hasPendingRequest: boolean;
   onSuccess: () => void;
 }
 
 export function JoinRequestButton({
   groupId,
+  userId,
   hasPendingRequest,
   onSuccess,
 }: JoinRequestButtonProps) {
@@ -32,7 +34,7 @@ export function JoinRequestButton({
   const handleWithdraw = async () => {
     setIsLoading(true);
     try {
-      await apiClient.delete(`/v1/groups/${groupId}/members/me`);
+      await apiClient.delete(`/v1/groups/${groupId}/members/${userId}`);
       onSuccess();
     } finally {
       setIsLoading(false);

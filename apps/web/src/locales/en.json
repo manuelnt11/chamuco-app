@@ -231,6 +231,7 @@
         "usernamePlaceholder": "e.g. john_doe",
         "submit": "Send invitation",
         "sending": "Sending...",
+        "cancel": "Cancel",
         "success": "Invitation sent",
         "error": "Failed to send invitation"
       },

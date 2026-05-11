@@ -79,7 +79,7 @@ export function InviteMemberModal({ groupId, onSuccess }: InviteMemberModalProps
             <DialogClose
               render={
                 <Button variant="outline" size="sm" type="button">
-                  {t('form.saveChanges', { ns: 'groups', defaultValue: 'Cancel' })}
+                  {t('members.invite.cancel', { ns: 'groups' })}
                 </Button>
               }
             />

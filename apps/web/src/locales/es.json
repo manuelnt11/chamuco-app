@@ -231,6 +231,7 @@
         "usernamePlaceholder": "p.ej. juan_doe",
         "submit": "Enviar invitación",
         "sending": "Enviando...",
+        "cancel": "Cancelar",
         "success": "Invitación enviada",
         "error": "Error al enviar la invitación"
       },
