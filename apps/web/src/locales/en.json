@@ -248,10 +248,21 @@
       "leave": {
         "button": "Leave group",
         "confirm": "Are you sure you want to leave this group?",
+        "cancel": "Cancel",
+        "confirmButton": "Leave group",
         "leaving": "Leaving...",
         "success": "You have left the group",
         "error": "Failed to leave group",
         "lastAdmin": "You are the last admin. Promote another member before leaving."
+      },
+      "invitation": {
+        "received": "You have been invited to join this group",
+        "accept": "Accept invitation",
+        "decline": "Decline",
+        "accepting": "Accepting...",
+        "declining": "Declining...",
+        "acceptError": "Failed to accept invitation",
+        "declineError": "Failed to decline invitation"
       },
       "pending": {
         "title": "Pending ({{count}})",

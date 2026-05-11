@@ -24,11 +24,6 @@ describe('LeaveGroupButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.mockDelete.mockResolvedValue({ data: {} });
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it('renders leave button', () => {
@@ -36,27 +31,44 @@ describe('LeaveGroupButton', () => {
     expect(screen.getByRole('button', { name: 'members.leave.button' })).toBeInTheDocument();
   });
 
-  it('shows confirm dialog with t key when button clicked', async () => {
-    const user = userEvent.setup();
+  it('dialog is not visible initially', () => {
     render(<LeaveGroupButton groupId="g1" userId="u1" />);
-    await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
-
-    expect(window.confirm).toHaveBeenCalledWith('members.leave.confirm');
+    expect(screen.queryByText('members.leave.confirm')).not.toBeInTheDocument();
   });
 
-  it('does not call API when confirm is cancelled', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+  it('opens confirmation dialog when leave button is clicked', async () => {
     const user = userEvent.setup();
     render(<LeaveGroupButton groupId="g1" userId="u1" />);
     await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
 
+    expect(screen.getByText('members.leave.confirm')).toBeInTheDocument();
+  });
+
+  it('does not call API when cancel is clicked', async () => {
+    const user = userEvent.setup();
+    render(<LeaveGroupButton groupId="g1" userId="u1" />);
+    await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
+    await user.click(screen.getByRole('button', { name: 'members.leave.cancel' }));
+
     expect(mocks.mockDelete).not.toHaveBeenCalled();
+  });
+
+  it('closes dialog when cancel is clicked', async () => {
+    const user = userEvent.setup();
+    render(<LeaveGroupButton groupId="g1" userId="u1" />);
+    await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
+    await user.click(screen.getByRole('button', { name: 'members.leave.cancel' }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('members.leave.confirm')).not.toBeInTheDocument();
+    });
   });
 
   it('calls DELETE with correct URL when confirmed', async () => {
     const user = userEvent.setup();
     render(<LeaveGroupButton groupId="g1" userId="u1" />);
     await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
+    await user.click(screen.getByRole('button', { name: 'members.leave.confirmButton' }));
 
     await waitFor(() => {
       expect(mocks.mockDelete).toHaveBeenCalledWith('/v1/groups/g1/members/u1');
@@ -67,17 +79,19 @@ describe('LeaveGroupButton', () => {
     const user = userEvent.setup();
     render(<LeaveGroupButton groupId="g1" userId="u1" />);
     await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
+    await user.click(screen.getByRole('button', { name: 'members.leave.confirmButton' }));
 
     await waitFor(() => {
       expect(mocks.mockRouterPush).toHaveBeenCalledWith('/groups');
     });
   });
 
-  it('shows generic error message on failure', async () => {
+  it('shows error in dialog on failure', async () => {
     mocks.mockDelete.mockRejectedValue(new Error('Something failed'));
     const user = userEvent.setup();
     render(<LeaveGroupButton groupId="g1" userId="u1" />);
     await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
+    await user.click(screen.getByRole('button', { name: 'members.leave.confirmButton' }));
 
     await waitFor(() => {
       expect(screen.getByText('members.leave.error')).toBeInTheDocument();
@@ -94,21 +108,36 @@ describe('LeaveGroupButton', () => {
     const user = userEvent.setup();
     render(<LeaveGroupButton groupId="g1" userId="u1" />);
     await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
+    await user.click(screen.getByRole('button', { name: 'members.leave.confirmButton' }));
 
     await waitFor(() => {
       expect(screen.getByText('members.leave.lastAdmin')).toBeInTheDocument();
     });
   });
 
-  it('shows leaving label while request is in flight', async () => {
+  it('shows leaving label on confirm button while request is in flight', async () => {
     let resolve!: () => void;
     mocks.mockDelete.mockReturnValue(new Promise<void>((r) => (resolve = r)));
 
     const user = userEvent.setup();
     render(<LeaveGroupButton groupId="g1" userId="u1" />);
     await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
+    await user.click(screen.getByRole('button', { name: 'members.leave.confirmButton' }));
 
     expect(screen.getByRole('button', { name: 'members.leave.leaving' })).toBeDisabled();
+    resolve();
+  });
+
+  it('disables cancel button while request is in flight', async () => {
+    let resolve!: () => void;
+    mocks.mockDelete.mockReturnValue(new Promise<void>((r) => (resolve = r)));
+
+    const user = userEvent.setup();
+    render(<LeaveGroupButton groupId="g1" userId="u1" />);
+    await user.click(screen.getByRole('button', { name: 'members.leave.button' }));
+    await user.click(screen.getByRole('button', { name: 'members.leave.confirmButton' }));
+
+    expect(screen.getByRole('button', { name: 'members.leave.cancel' })).toBeDisabled();
     resolve();
   });
 });

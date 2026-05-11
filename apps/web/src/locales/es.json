@@ -248,10 +248,21 @@
       "leave": {
         "button": "Salir del grupo",
         "confirm": "¿Estás seguro de que quieres salir de este grupo?",
+        "cancel": "Cancelar",
+        "confirmButton": "Salir del grupo",
         "leaving": "Saliendo...",
         "success": "Has salido del grupo",
         "error": "Error al salir del grupo",
         "lastAdmin": "Eres el último admin. Promueve otro miembro antes de salir."
+      },
+      "invitation": {
+        "received": "Has sido invitado a unirte a este grupo",
+        "accept": "Aceptar invitación",
+        "decline": "Rechazar",
+        "accepting": "Aceptando...",
+        "declining": "Rechazando...",
+        "acceptError": "Error al aceptar la invitación",
+        "declineError": "Error al rechazar la invitación"
       },
       "pending": {
         "title": "Pendientes ({{count}})",

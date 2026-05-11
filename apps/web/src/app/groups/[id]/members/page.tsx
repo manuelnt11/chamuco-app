@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { MemberList } from '@/components/groups/members/MemberList';
 import { PendingRequestsPanel } from '@/components/groups/members/PendingRequestsPanel';
+import { InvitationResponseButtons } from '@/components/groups/members/InvitationResponseButtons';
 import { JoinRequestButton } from '@/components/groups/members/JoinRequestButton';
 import { LeaveGroupButton } from '@/components/groups/members/LeaveGroupButton';
 import type { Group, GroupMember, PendingGroupMember } from '@/types/group';
@@ -35,7 +36,7 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [pending, setPending] = useState<PendingGroupMember[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<GroupRole | null>(null);
-  const [hasPendingRequest, setHasPendingRequest] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<GroupMemberStatus | null>(null);
 
   const isAdmin =
     currentUserRole !== null && [GroupRole.OWNER, GroupRole.ADMIN].includes(currentUserRole);
@@ -54,7 +55,7 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
         const myMembershipRes = await apiClient
           .get<{ status: GroupMemberStatus; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
           .catch(() => null);
-        setHasPendingRequest(myMembershipRes?.data?.status === GroupMemberStatus.REQUEST);
+        setPendingStatus(myMembershipRes?.data?.status ?? null);
         setPageState('not-member');
         return;
       }
@@ -109,14 +110,20 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t('members.title')}</h1>
 
-        {pageState === 'not-member' && group.visibility === GroupVisibility.PUBLIC && (
-          <JoinRequestButton
-            groupId={id}
-            userId={appUser?.id ?? ''}
-            hasPendingRequest={hasPendingRequest}
-            onSuccess={() => void loadData()}
-          />
+        {pageState === 'not-member' && pendingStatus === GroupMemberStatus.INVITED && (
+          <InvitationResponseButtons groupId={id} onSuccess={() => void loadData()} />
         )}
+
+        {pageState === 'not-member' &&
+          pendingStatus !== GroupMemberStatus.INVITED &&
+          group.visibility === GroupVisibility.PUBLIC && (
+            <JoinRequestButton
+              groupId={id}
+              userId={appUser?.id ?? ''}
+              hasPendingRequest={pendingStatus === GroupMemberStatus.REQUEST}
+              onSuccess={() => void loadData()}
+            />
+          )}
 
         {pageState === 'ready' && appUser && currentUserRole !== null && (
           <LeaveGroupButton groupId={id} userId={appUser.id} />
