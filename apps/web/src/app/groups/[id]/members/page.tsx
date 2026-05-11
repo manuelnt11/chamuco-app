@@ -35,7 +35,7 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [pending, setPending] = useState<PendingGroupMember[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<GroupRole | null>(null);
-  const [hasPendingRequest, setHasPendingRequest] = useState(false);
+  const hasPendingRequest = false;
 
   const isAdmin =
     currentUserRole !== null && [GroupRole.OWNER, GroupRole.ADMIN].includes(currentUserRole);
@@ -74,24 +74,11 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
     }
   };
 
-  const loadNonMemberState = async () => {
-    // Check for pending join request in the pending list (accessible to admins only)
-    // For non-members we can't fetch pending, so we just mark hasPendingRequest=false
-    // The backend will return ConflictException if they try to submit again
-    setHasPendingRequest(false);
-  };
-
   useEffect(() => {
     if (isAuthLoading) return;
     void loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isAuthLoading]);
-
-  useEffect(() => {
-    if (pageState === 'not-member') {
-      void loadNonMemberState();
-    }
-  }, [pageState]);
 
   if (pageState === 'loading') return null;
 

@@ -127,7 +127,34 @@ export class GroupsService {
       where: and(inArray(groups.id, groupIds), isNull(groups.deletedAt)),
     });
 
-    return Promise.all(groupRows.map((g) => this.fetchAndMapGroup(g.id)));
+    if (groupRows.length === 0) return [];
+
+    const coverIds = groupRows.map((g) => g.cover).filter((id): id is string => id !== null);
+    const coverAssets =
+      coverIds.length > 0
+        ? await this.db.query.assets.findMany({ where: inArray(assets.id, coverIds) })
+        : [];
+    const assetMap = new Map(coverAssets.map((a) => [a.id, a]));
+
+    return Promise.all(
+      groupRows.map(async (group) => {
+        if (!group.cover) throw new NotFoundException('Group cover asset not found');
+        const coverRow = assetMap.get(group.cover);
+        if (!coverRow) throw new NotFoundException('Group cover asset not found');
+        const resolvedCover = await this.assetResolver.resolve(this.toAsset(coverRow));
+        if (!resolvedCover) throw new NotFoundException('Failed to resolve group cover');
+        return {
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          cover: resolvedCover,
+          visibility: group.visibility,
+          createdBy: group.createdBy,
+          createdAt: group.createdAt.toISOString(),
+          updatedAt: group.updatedAt.toISOString(),
+        };
+      }),
+    );
   }
 
   async updateGroup(

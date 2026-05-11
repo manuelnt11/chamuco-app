@@ -85,8 +85,12 @@ describe('LeaveGroupButton', () => {
     expect(mocks.mockRouterPush).not.toHaveBeenCalled();
   });
 
-  it('shows last admin error when error message contains "last admin"', async () => {
-    mocks.mockDelete.mockRejectedValue(new Error('Cannot remove last admin'));
+  it('shows last admin error on HTTP 409 response', async () => {
+    const axiosError = Object.assign(new Error('Conflict'), {
+      isAxiosError: true,
+      response: { status: 409 },
+    });
+    mocks.mockDelete.mockRejectedValue(axiosError);
     const user = userEvent.setup();
     render(<LeaveGroupButton groupId="g1" userId="u1" />);
     await user.click(screen.getByRole('button', { name: 'members.leave.button' }));

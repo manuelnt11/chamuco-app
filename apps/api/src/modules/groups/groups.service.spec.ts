@@ -86,6 +86,7 @@ describe('GroupsService', () => {
   let mockGroupMembersFindFirst: jest.Mock;
   let mockGroupMembersFindMany: jest.Mock;
   let mockAssetsFindFirst: jest.Mock;
+  let mockAssetsFindMany: jest.Mock;
   let mockReturning: jest.Mock;
   let mockInsertReturning: jest.Mock;
   let mockInsertValues: jest.Mock;
@@ -101,6 +102,7 @@ describe('GroupsService', () => {
     mockGroupMembersFindFirst = jest.fn().mockResolvedValue(mockOwnerMembership);
     mockGroupMembersFindMany = jest.fn().mockResolvedValue([]);
     mockAssetsFindFirst = jest.fn();
+    mockAssetsFindMany = jest.fn().mockResolvedValue([]);
     mockReturning = jest.fn();
     mockInsertReturning = jest.fn();
     mockDeleteWhere = jest.fn().mockResolvedValue(undefined);
@@ -123,7 +125,7 @@ describe('GroupsService', () => {
           useValue: {
             query: {
               groups: { findFirst: mockGroupsFindFirst, findMany: mockGroupsFindMany },
-              assets: { findFirst: mockAssetsFindFirst },
+              assets: { findFirst: mockAssetsFindFirst, findMany: mockAssetsFindMany },
               groupMembers: {
                 findFirst: mockGroupMembersFindFirst,
                 findMany: mockGroupMembersFindMany,
@@ -337,8 +339,7 @@ describe('GroupsService', () => {
     it('returns groups for active memberships', async () => {
       mockGroupMembersFindMany.mockResolvedValue([mockOwnerMembership]);
       mockGroupsFindMany.mockResolvedValue([mockGroupRow]);
-      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+      mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow]);
 
       const result = await service.listMyGroups('user-uuid');
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 import { apiClient } from '@/services/api-client';
 import { Button } from '@/components/ui/button';
 
@@ -28,7 +29,7 @@ export function LeaveGroupButton({ groupId, userId }: LeaveGroupButtonProps) {
       router.push('/groups');
     } catch (err) {
       const message =
-        err instanceof Error && err.message.includes('last admin')
+        axios.isAxiosError(err) && err.response?.status === 409
           ? t('members.leave.lastAdmin')
           : t('members.leave.error');
       setError(message);
