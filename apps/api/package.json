@@ -19,7 +19,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:push": "echo '❌ Schema push is disabled. Use db:generate instead.' && exit 1",
-    "db:seed-admin": "ts-node -r tsconfig-paths/register src/database/seeds/seed-admin.ts"
+    "db:seed-admin": "ts-node -r tsconfig-paths/register src/database/seeds/seed-admin.ts",
+    "db:seed-dev": "ts-node -r tsconfig-paths/register src/database/seeds/seed-dev.ts"
   },
   "dependencies": {
     "@chamuco/shared-types": "workspace:*",
