@@ -165,7 +165,7 @@
           "tableTo": "assets",
           "columnsFrom": ["avatar"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
@@ -1028,7 +1028,7 @@
           "tableTo": "assets",
           "columnsFrom": ["cover"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         },
         "groups_created_by_users_id_fk": {
@@ -1037,7 +1037,7 @@
           "tableTo": "users",
           "columnsFrom": ["created_by"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },

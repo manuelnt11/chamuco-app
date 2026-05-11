@@ -81,6 +81,7 @@ describe('GroupMembersService', () => {
   let mockUsersFindMany: jest.Mock;
   let mockGroupMemberStatsFindMany: jest.Mock;
   let mockAssetsFindFirst: jest.Mock;
+  let mockAssetsFindMany: jest.Mock;
 
   let mockUpdateWhere: jest.Mock;
   let mockUpdateSet: jest.Mock;
@@ -105,6 +106,7 @@ describe('GroupMembersService', () => {
     mockUsersFindMany = jest.fn().mockResolvedValue([]);
     mockGroupMemberStatsFindMany = jest.fn().mockResolvedValue([]);
     mockAssetsFindFirst = jest.fn().mockResolvedValue(null);
+    mockAssetsFindMany = jest.fn().mockResolvedValue([]);
 
     mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
     mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
@@ -126,11 +128,14 @@ describe('GroupMembersService', () => {
     mockSelectFrom = jest.fn().mockReturnValue({ where: mockSelectWhere });
     mockSelect = jest.fn().mockReturnValue({ from: mockSelectFrom });
 
-    mockTransaction = jest
-      .fn()
-      .mockImplementation(async (callback) =>
-        callback({ update: mockUpdate, insert: mockInsert, delete: mockDelete }),
-      );
+    mockTransaction = jest.fn().mockImplementation(async (callback) =>
+      callback({
+        update: mockUpdate,
+        insert: mockInsert,
+        delete: mockDelete,
+        select: mockSelect,
+      }),
+    );
 
     mockAssetResolverResolve = jest.fn().mockResolvedValue(null);
 
@@ -148,7 +153,7 @@ describe('GroupMembersService', () => {
               },
               groupMemberStats: { findMany: mockGroupMemberStatsFindMany },
               users: { findFirst: mockUsersFindFirst, findMany: mockUsersFindMany },
-              assets: { findFirst: mockAssetsFindFirst },
+              assets: { findFirst: mockAssetsFindFirst, findMany: mockAssetsFindMany },
             },
             update: mockUpdate,
             insert: mockInsert,
@@ -487,12 +492,11 @@ describe('GroupMembersService', () => {
 
   describe('removeMember', () => {
     it('admin removes active member → REMOVED', async () => {
-      // Call sequence: groups.findFirst, groupMembers.findFirst ×2 (requester, target)
+      // Call sequence: groups.findFirst, groupMembers.findFirst(target), groupMembers.findFirst(requester)
       mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerMembership) // requester (admin with ACTIVE)
-        .mockResolvedValueOnce(activeMembership); // target
-      // assertNotSoleAdmin: count = 2 (target is not sole admin, is MEMBER anyway)
-      mockSelectWhere.mockResolvedValue([{ total: 2 }]);
+        .mockResolvedValueOnce(activeMembership) // target (findMemberOrThrow)
+        .mockResolvedValueOnce(ownerMembership); // requester (admin check)
+      // assertNotSoleAdmin uses findMany; default [] → length not 1 → no throw
 
       await service.removeMember(GROUP_ID, USER_ID, ADMIN_ID);
 
@@ -503,8 +507,8 @@ describe('GroupMembersService', () => {
 
     it('throws ForbiddenException when non-admin tries to remove another member', async () => {
       mockGroupMembersFindFirst
-        .mockResolvedValueOnce(activeMembership) // requester is plain MEMBER
-        .mockResolvedValueOnce(ownerMembership); // target
+        .mockResolvedValueOnce(ownerMembership) // target (findMemberOrThrow)
+        .mockResolvedValueOnce(activeMembership); // requester is plain MEMBER → not in ADMIN_ROLES
 
       await expect(service.removeMember(GROUP_ID, ADMIN_ID, USER_ID)).rejects.toThrow(
         ForbiddenException,
@@ -521,8 +525,8 @@ describe('GroupMembersService', () => {
 
     it('throws ConflictException when admin tries to remove non-active member', async () => {
       mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerMembership)
-        .mockResolvedValueOnce(requestMembership); // target is REQUEST, not ACTIVE
+        .mockResolvedValueOnce(requestMembership) // target (REQUEST, not ACTIVE)
+        .mockResolvedValueOnce(ownerMembership); // requester (admin check passes)
 
       await expect(service.removeMember(GROUP_ID, USER_ID, ADMIN_ID)).rejects.toThrow(
         ConflictException,
@@ -530,18 +534,10 @@ describe('GroupMembersService', () => {
     });
 
     it('member leaves (self-action, ACTIVE) → LEFT', async () => {
-      // requestingUserId === targetUserId: call sequence changes
-      // groups.findFirst, groupMembers.findFirst (requester == target in findMemberOrThrow path)
-      //
-      // Actual code: requesterMembership query runs first, then findMemberOrThrow
-      // Both use the same userId (USER_ID for self-action)
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(activeMembership) // requesterMembership
-        .mockResolvedValueOnce(activeMembership); // findMemberOrThrow (target)
-      // assertNotSoleAdmin: 2 admins → no throw
-      mockSelectWhere.mockResolvedValue([{ total: 2 }]);
-      // dissolveIfEmpty: 1 active member remains after leave
-      mockSelectWhere.mockResolvedValueOnce([{ total: 2 }]).mockResolvedValueOnce([{ total: 1 }]);
+      // Self-action: only findMemberOrThrow is called (no separate requesterMembership query)
+      // assertNotSoleAdmin uses findMany; default [] → no throw (user is MEMBER)
+      // Transaction select count returns default [{ total: 2 }] → no dissolution
+      mockGroupMembersFindFirst.mockResolvedValue(activeMembership);
 
       await service.removeMember(GROUP_ID, USER_ID, USER_ID);
 
@@ -551,9 +547,7 @@ describe('GroupMembersService', () => {
     });
 
     it('member self-withdraws pending REQUEST → DELETE row', async () => {
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(requestMembership) // requesterMembership (status != ACTIVE)
-        .mockResolvedValueOnce(requestMembership); // findMemberOrThrow
+      mockGroupMembersFindFirst.mockResolvedValue(requestMembership);
 
       await service.removeMember(GROUP_ID, USER_ID, USER_ID);
 
@@ -562,9 +556,7 @@ describe('GroupMembersService', () => {
     });
 
     it('member self-withdraws pending INVITED → DELETE row', async () => {
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(invitedMembership)
-        .mockResolvedValueOnce(invitedMembership);
+      mockGroupMembersFindFirst.mockResolvedValue(invitedMembership);
 
       await service.removeMember(GROUP_ID, USER_ID, USER_ID);
 
@@ -573,9 +565,7 @@ describe('GroupMembersService', () => {
 
     it('throws ConflictException when self-action with terminal status (not pending/active)', async () => {
       const leftMembership = makeMembership(USER_ID, GroupMemberStatus.LEFT, GroupRole.MEMBER);
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(leftMembership) // requesterMembership (status != ACTIVE for self-check)
-        .mockResolvedValueOnce(leftMembership); // findMemberOrThrow
+      mockGroupMembersFindFirst.mockResolvedValue(leftMembership);
 
       await expect(service.removeMember(GROUP_ID, USER_ID, USER_ID)).rejects.toThrow(
         ConflictException,
@@ -584,12 +574,9 @@ describe('GroupMembersService', () => {
 
     it('throws ConflictException when sole admin tries to leave', async () => {
       const ownerSelf = makeMembership(USER_ID, GroupMemberStatus.ACTIVE, GroupRole.OWNER);
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerSelf) // requesterMembership
-        .mockResolvedValueOnce(ownerSelf) // findMemberOrThrow
-        .mockResolvedValueOnce(ownerSelf); // assertNotSoleAdmin sole-admin check
-      // assertNotSoleAdmin: count = 1 → sole admin
-      mockSelectWhere.mockResolvedValue([{ total: 1 }]);
+      mockGroupMembersFindFirst.mockResolvedValue(ownerSelf);
+      // assertNotSoleAdmin uses findMany; [ownerSelf] → sole admin → throw
+      mockGroupMembersFindMany.mockResolvedValueOnce([ownerSelf]);
 
       await expect(service.removeMember(GROUP_ID, USER_ID, USER_ID)).rejects.toThrow(
         ConflictException,
@@ -599,17 +586,13 @@ describe('GroupMembersService', () => {
     it('last member leaves → group is dissolved', async () => {
       // USER_ID is a MEMBER (not admin), sole active member
       const memberSelf = makeMembership(USER_ID, GroupMemberStatus.ACTIVE, GroupRole.MEMBER);
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(memberSelf) // requesterMembership
-        .mockResolvedValueOnce(memberSelf); // findMemberOrThrow
-      // assertNotSoleAdmin count: 0 active admins (user is MEMBER) → no throw
-      mockSelectWhere
-        .mockResolvedValueOnce([{ total: 0 }]) // assertNotSoleAdmin
-        .mockResolvedValueOnce([{ total: 0 }]); // dissolveIfEmpty → dissolve
+      mockGroupMembersFindFirst.mockResolvedValue(memberSelf);
+      // assertNotSoleAdmin: default findMany [] → length 0 → no throw (user is MEMBER)
+      // Transaction select count → 0 active members → dissolve
+      mockSelectWhere.mockResolvedValueOnce([{ total: 0 }]);
 
       await service.removeMember(GROUP_ID, USER_ID, USER_ID);
 
-      // dissolveIfEmpty should trigger a transaction with deletes
       expect(mockTransaction).toHaveBeenCalledTimes(1);
     });
   });
@@ -638,8 +621,8 @@ describe('GroupMembersService', () => {
       mockGroupMembersFindFirst
         .mockResolvedValueOnce(ownerMembership) // requester (OWNER)
         .mockResolvedValueOnce(adminMembership); // target
-      // assertNotSoleAdmin: 2 admins → ok
-      mockSelectWhere.mockResolvedValue([{ total: 2 }]);
+      // assertNotSoleAdmin uses findMany; 2 admins → not sole → no throw
+      mockGroupMembersFindMany.mockResolvedValueOnce([ownerMembership, adminMembership]);
 
       await service.updateMemberRole(GROUP_ID, USER_ID, demoteDto, ADMIN_ID);
 
@@ -652,9 +635,9 @@ describe('GroupMembersService', () => {
       const adminMembership = makeMembership(USER_ID, GroupMemberStatus.ACTIVE, GroupRole.ADMIN);
       mockGroupMembersFindFirst
         .mockResolvedValueOnce(ownerMembership)
-        .mockResolvedValueOnce(adminMembership)
-        .mockResolvedValueOnce(adminMembership); // assertNotSoleAdmin sole check
-      mockSelectWhere.mockResolvedValue([{ total: 1 }]); // sole admin
+        .mockResolvedValueOnce(adminMembership);
+      // assertNotSoleAdmin uses findMany; [adminMembership] → sole admin → throw
+      mockGroupMembersFindMany.mockResolvedValueOnce([adminMembership]);
 
       await expect(
         service.updateMemberRole(GROUP_ID, USER_ID, demoteDto, ADMIN_ID),
@@ -774,7 +757,7 @@ describe('GroupMembersService', () => {
       mockGroupMembersFindMany.mockResolvedValue([activeMembership]);
       mockUsersFindMany.mockResolvedValue([userWithAvatar]);
       mockGroupMemberStatsFindMany.mockResolvedValue([]);
-      mockAssetsFindFirst.mockResolvedValue(mockAsset);
+      mockAssetsFindMany.mockResolvedValue([mockAsset]);
       mockAssetResolverResolve.mockResolvedValue({ url: 'https://cdn.example.com/emoji.svg' });
 
       const result = await service.listActiveMembers(GROUP_ID, USER_ID);

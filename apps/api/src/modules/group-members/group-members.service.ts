@@ -239,14 +239,6 @@ export class GroupMembersService {
     const group = await this.db.query.groups.findFirst({ where: eq(groups.id, groupId) });
     if (!group) throw new NotFoundException('Group not found');
 
-    const requesterMembership = await this.db.query.groupMembers.findFirst({
-      where: and(
-        eq(groupMembers.groupId, groupId),
-        eq(groupMembers.userId, requestingUserId),
-        eq(groupMembers.status, GroupMemberStatus.ACTIVE),
-      ),
-    });
-
     const targetMembership = await this.findMemberOrThrow(groupId, targetUserId);
 
     if (requestingUserId === targetUserId) {
@@ -263,19 +255,44 @@ export class GroupMembersService {
 
       if (targetMembership.status === GroupMemberStatus.ACTIVE) {
         await this.assertNotSoleAdmin(groupId, targetUserId);
-        await this.db
-          .update(groupMembers)
-          .set({ status: GroupMemberStatus.LEFT, respondedAt: new Date(), decidedBy: targetUserId })
-          .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
+        await this.db.transaction(async (trx) => {
+          const now = new Date();
+          await trx
+            .update(groupMembers)
+            .set({ status: GroupMemberStatus.LEFT, respondedAt: now, decidedBy: targetUserId })
+            .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
 
-        await this.dissolveIfEmpty(groupId);
+          const [activeCount] = await trx
+            .select({ total: count() })
+            .from(groupMembers)
+            .where(
+              and(
+                eq(groupMembers.groupId, groupId),
+                eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+              ),
+            );
+
+          if ((activeCount?.total ?? 0) === 0) {
+            await trx.delete(groupMemberStats).where(eq(groupMemberStats.groupId, groupId));
+            await trx.delete(groupMembers).where(eq(groupMembers.groupId, groupId));
+            await trx.delete(groups).where(eq(groups.id, groupId));
+          }
+        });
         return;
       }
 
       throw new ConflictException('No active membership to leave');
     }
 
-    // Admin removing another member
+    // Admin removing another member — load requester only when needed
+    const requesterMembership = await this.db.query.groupMembers.findFirst({
+      where: and(
+        eq(groupMembers.groupId, groupId),
+        eq(groupMembers.userId, requestingUserId),
+        eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+      ),
+    });
+
     if (
       !requesterMembership ||
       !ADMIN_ROLES.includes(requesterMembership.role as (typeof ADMIN_ROLES)[number])
@@ -382,25 +399,23 @@ export class GroupMembersService {
 
     const userMap = new Map(userRows.map((u) => [u.id, u]));
     const statsMap = new Map(statsRows.map((s) => [s.userId, s]));
+    const avatarUrlMap = await this.batchResolveAvatarUrls(userRows);
 
-    return Promise.all(
-      rows.map(async (membership) => {
-        const user = userMap.get(membership.userId);
-        if (!user) throw new Error(`User ${membership.userId} not found`);
-        const stats = statsMap.get(membership.userId);
-        const avatarUrl = await this.resolveAvatarUrl(user.avatar ?? null);
+    return rows.map((membership) => {
+      const user = userMap.get(membership.userId);
+      if (!user) throw new Error(`User ${membership.userId} not found`);
+      const stats = statsMap.get(membership.userId);
 
-        return {
-          userId: user.id,
-          username: user.username,
-          displayName: user.displayName,
-          avatarUrl,
-          role: membership.role as GroupRole,
-          tier: (stats?.tier ?? GroupMemberTier.NEWCOMER) as GroupMemberTier,
-          joinedAt: stats?.joinedAt.toISOString() ?? membership.initiatedAt.toISOString(),
-        };
-      }),
-    );
+      return {
+        userId: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: avatarUrlMap.get(user.id) ?? null,
+        role: membership.role as GroupRole,
+        tier: (stats?.tier ?? GroupMemberTier.NEWCOMER) as GroupMemberTier,
+        joinedAt: stats?.joinedAt.toISOString() ?? membership.initiatedAt.toISOString(),
+      };
+    });
   }
 
   async listPendingMembers(
@@ -421,23 +436,21 @@ export class GroupMembersService {
 
     const userRows = await this.db.query.users.findMany({ where: inArray(users.id, userIds) });
     const userMap = new Map(userRows.map((u) => [u.id, u]));
+    const avatarUrlMap = await this.batchResolveAvatarUrls(userRows);
 
-    return Promise.all(
-      rows.map(async (membership) => {
-        const user = userMap.get(membership.userId);
-        if (!user) throw new Error(`User ${membership.userId} not found`);
-        const avatarUrl = await this.resolveAvatarUrl(user.avatar ?? null);
+    return rows.map((membership) => {
+      const user = userMap.get(membership.userId);
+      if (!user) throw new Error(`User ${membership.userId} not found`);
 
-        return {
-          userId: user.id,
-          username: user.username,
-          displayName: user.displayName,
-          avatarUrl,
-          status: membership.status as GroupMemberStatus.REQUEST | GroupMemberStatus.INVITED,
-          initiatedAt: membership.initiatedAt.toISOString(),
-        };
-      }),
-    );
+      return {
+        userId: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: avatarUrlMap.get(user.id) ?? null,
+        status: membership.status as GroupMemberStatus.REQUEST | GroupMemberStatus.INVITED,
+        initiatedAt: membership.initiatedAt.toISOString(),
+      };
+    });
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────────
@@ -481,70 +494,53 @@ export class GroupMembersService {
   }
 
   private async assertNotSoleAdmin(groupId: string, userId: string): Promise<void> {
-    const [result] = await this.db
-      .select({ total: count() })
-      .from(groupMembers)
-      .where(
-        and(
-          eq(groupMembers.groupId, groupId),
-          eq(groupMembers.status, GroupMemberStatus.ACTIVE),
-          inArray(groupMembers.role, [...ADMIN_ROLES]),
-        ),
+    const activeAdmins = await this.db.query.groupMembers.findMany({
+      where: and(
+        eq(groupMembers.groupId, groupId),
+        eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+        inArray(groupMembers.role, [...ADMIN_ROLES]),
+      ),
+      limit: 2,
+    });
+
+    if (activeAdmins.length === 1 && activeAdmins[0]?.userId === userId) {
+      throw new ConflictException(
+        'Cannot remove or demote the last admin. Promote another member first.',
       );
-
-    const adminCount = result?.total ?? 0;
-
-    if (adminCount === 1) {
-      const sole = await this.db.query.groupMembers.findFirst({
-        where: and(
-          eq(groupMembers.groupId, groupId),
-          eq(groupMembers.status, GroupMemberStatus.ACTIVE),
-          inArray(groupMembers.role, [...ADMIN_ROLES]),
-        ),
-      });
-      if (sole?.userId === userId) {
-        throw new ConflictException(
-          'Cannot remove or demote the last admin. Promote another member first.',
-        );
-      }
     }
   }
 
-  private async dissolveIfEmpty(groupId: string): Promise<void> {
-    const [result] = await this.db
-      .select({ total: count() })
-      .from(groupMembers)
-      .where(
-        and(eq(groupMembers.groupId, groupId), eq(groupMembers.status, GroupMemberStatus.ACTIVE)),
-      );
+  private async batchResolveAvatarUrls(
+    userRows: Array<{ id: string; avatar: string | null }>,
+  ): Promise<Map<string, string | null>> {
+    const avatarIds = userRows.map((u) => u.avatar).filter((id): id is string => id !== null);
 
-    if ((result?.total ?? 0) === 0) {
-      await this.db.transaction(async (trx) => {
-        await trx.delete(groupMemberStats).where(eq(groupMemberStats.groupId, groupId));
-        await trx.delete(groupMembers).where(eq(groupMembers.groupId, groupId));
-        await trx.delete(groups).where(eq(groups.id, groupId));
-      });
-    }
-  }
+    const avatarAssets =
+      avatarIds.length > 0
+        ? await this.db.query.assets.findMany({ where: inArray(assets.id, avatarIds) })
+        : [];
 
-  private async resolveAvatarUrl(avatarId: string | null): Promise<string | null> {
-    if (!avatarId) return null;
+    const assetMap = new Map(avatarAssets.map((a) => [a.id, a]));
 
-    const avatarAsset = await this.db.query.assets.findFirst({
-      where: eq(assets.id, avatarId),
-    });
-    if (!avatarAsset) return null;
+    const entries = await Promise.all(
+      userRows.map(async (user): Promise<[string, string | null]> => {
+        const asset = user.avatar ? (assetMap.get(user.avatar) ?? null) : null;
+        if (!asset) return [user.id, null];
 
-    const resolved = await this.assetResolver.resolve({
-      id: avatarAsset.id,
-      type: avatarAsset.type,
-      source: avatarAsset.source,
-      target: avatarAsset.target,
-      fileSize: avatarAsset.fileSize ?? undefined,
-      isPublic: avatarAsset.isPublic,
-      createdAt: avatarAsset.createdAt.toISOString(),
-    });
+        const resolved = await this.assetResolver.resolve({
+          id: asset.id,
+          type: asset.type,
+          source: asset.source,
+          target: asset.target,
+          fileSize: asset.fileSize ?? undefined,
+          isPublic: asset.isPublic,
+          createdAt: asset.createdAt.toISOString(),
+        });
 
-    return resolved?.url ?? null;
+        return [user.id, resolved?.url ?? null];
+      }),
+    );
+
+    return new Map(entries);
   }
 }
