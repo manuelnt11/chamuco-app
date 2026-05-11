@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { GroupRole, GroupVisibility } from '@chamuco/shared-types';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 import { apiClient } from '@/services/api-client';
+import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { MemberList } from '@/components/groups/members/MemberList';
 import { PendingRequestsPanel } from '@/components/groups/members/PendingRequestsPanel';
@@ -26,6 +27,7 @@ type PageState =
 export default function GroupMembersPage({ params }: MembersPageProps) {
   const { id } = use(params);
   const { t } = useTranslation('groups');
+  const { isLoading: isAuthLoading } = useAuth();
   const { appUser } = useUser();
 
   const [pageState, setPageState] = useState<PageState>('loading');
@@ -80,9 +82,10 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
   };
 
   useEffect(() => {
+    if (isAuthLoading) return;
     void loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, isAuthLoading]);
 
   useEffect(() => {
     if (pageState === 'not-member') {

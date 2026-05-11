@@ -4,8 +4,10 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { GroupVisibility } from '@chamuco/shared-types';
+import { ArrowLeftIcon } from '@phosphor-icons/react';
 
 import { apiClient } from '@/services/api-client';
+import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import type { Group } from '@/types/group';
 
@@ -16,19 +18,21 @@ interface GroupDetailPageProps {
 export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { id } = use(params);
   const { t } = useTranslation('groups');
+  const { isLoading: isAuthLoading } = useAuth();
   const { appUser } = useUser();
   const [group, setGroup] = useState<Group | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    if (isAuthLoading) return;
     setIsLoading(true);
     apiClient
       .get<Group>(`/v1/groups/${id}`)
       .then((res) => setGroup(res.data))
       .catch(() => setNotFound(true))
       .finally(() => setIsLoading(false));
-  }, [id]);
+  }, [id, isAuthLoading]);
 
   if (isLoading) return null;
 
@@ -44,6 +48,16 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
   return (
     <div className="p-8 max-w-2xl">
+      <div className="mb-6">
+        <Link
+          href="/groups"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeftIcon className="size-4" />
+          {t('title')}
+        </Link>
+      </div>
+
       <div className="flex items-start gap-6 mb-6">
         <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted flex items-center justify-center">
           {group.cover.source === 'emoji' ? (

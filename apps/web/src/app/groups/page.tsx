@@ -5,21 +5,24 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 
 import { apiClient } from '@/services/api-client';
+import { useAuth } from '@/hooks/useAuth';
 import { GroupCard } from '@/components/groups/GroupCard';
 import type { Group } from '@/types/group';
 
 export default function GroupsPage() {
   const { t } = useTranslation('groups');
+  const { isLoading: isAuthLoading } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (isAuthLoading) return;
     apiClient
       .get<Group[]>('/v1/groups')
       .then((res) => setGroups(res.data))
       .catch(() => setGroups([]))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [isAuthLoading]);
 
   return (
     <div className="p-8">
