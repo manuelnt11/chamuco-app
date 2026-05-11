@@ -114,9 +114,9 @@ describe('GroupsController', () => {
 
   describe('GET /v1/groups/:id', () => {
     it('delegates to GroupsService.getGroup and returns the group', async () => {
-      const result = await controller.getGroup('group-uuid');
+      const result = await controller.getGroup(mockAuthUser, 'group-uuid');
 
-      expect(mockGetGroup).toHaveBeenCalledWith('group-uuid');
+      expect(mockGetGroup).toHaveBeenCalledWith(mockAuthUser.id, 'group-uuid');
       expect(result).toEqual(mockGroupResponse);
     });
   });

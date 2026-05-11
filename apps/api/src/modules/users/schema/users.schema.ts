@@ -27,7 +27,7 @@ export const users = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     username: varchar('username', { length: 30 }).notNull().unique(),
     displayName: text('display_name').notNull(),
-    avatar: uuid('avatar').references(() => assets.id),
+    avatar: uuid('avatar').references(() => assets.id, { onDelete: 'restrict' }),
     authProvider: authProviderEnum('auth_provider').notNull(),
     firebaseUid: text('firebase_uid').notNull().unique(),
     timezone: text('timezone').notNull().default('UTC'),

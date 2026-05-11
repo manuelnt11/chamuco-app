@@ -1,7 +1,8 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 
 import type { Asset } from '@chamuco/shared-types';
+import { GroupMemberStatus, GroupRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
@@ -9,6 +10,8 @@ import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.servi
 import { PUBLIC_OBJECT_PREFIXES } from '@/modules/cloud-storage/cloud-storage.constants';
 import type { AuthenticatedUser } from '@/types/express';
 import { groups } from './schema/groups.schema';
+import { groupMembers } from './schema/group-members.schema';
+import { groupMemberStats } from './schema/group-member-stats.schema';
 import type { CreateGroupDto } from './dto/create-group.dto';
 import type { UpdateGroupDto } from './dto/update-group.dto';
 import type { GroupResponseDto } from './dto/group-response.dto';
@@ -51,7 +54,23 @@ export class GroupsService {
 
       if (!group) throw new Error('Failed to create group');
 
-      // TODO(#next-issue): insert creator as OWNER into group_members once that table exists
+      const now = new Date();
+
+      await trx.insert(groupMembers).values({
+        groupId: group.id,
+        userId: user.id,
+        status: GroupMemberStatus.ACTIVE,
+        role: GroupRole.OWNER,
+        initiatedBy: user.id,
+        respondedAt: now,
+        decidedBy: user.id,
+      });
+
+      await trx.insert(groupMemberStats).values({
+        groupId: group.id,
+        userId: user.id,
+        joinedAt: now,
+      });
 
       groupId = group.id;
     });
@@ -67,20 +86,75 @@ export class GroupsService {
   }
 
   async findById(id: string): Promise<typeof groups.$inferSelect | null> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     return group ?? null;
   }
 
-  async getGroup(id: string): Promise<GroupResponseDto> {
-    // TODO(#next-issue): once group_members exists, pass the requesting user here and
-    // throw NotFoundException (not ForbiddenException) when the group is PRIVATE and
-    // the user is not a member — avoids confirming existence of private groups.
+  async getGroup(requestingUserId: string, id: string): Promise<GroupResponseDto> {
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
+    if (!group) throw new NotFoundException('Group not found');
+
+    if (group.visibility === 'PRIVATE') {
+      const membership = await this.db.query.groupMembers.findFirst({
+        where: and(
+          eq(groupMembers.groupId, id),
+          eq(groupMembers.userId, requestingUserId),
+          eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+        ),
+      });
+      if (!membership) throw new NotFoundException('Group not found');
+    }
+
     return this.fetchAndMapGroup(id);
   }
 
-  async listMyGroups(_userId: string): Promise<GroupResponseDto[]> {
-    // TODO(#next-issue): query group_members for the user's active memberships
-    return [];
+  async listMyGroups(userId: string): Promise<GroupResponseDto[]> {
+    const memberships = await this.db.query.groupMembers.findMany({
+      where: and(
+        eq(groupMembers.userId, userId),
+        eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+      ),
+    });
+
+    if (memberships.length === 0) return [];
+
+    const groupIds = memberships.map((m) => m.groupId);
+    const groupRows = await this.db.query.groups.findMany({
+      where: and(inArray(groups.id, groupIds), isNull(groups.deletedAt)),
+    });
+
+    if (groupRows.length === 0) return [];
+
+    const coverIds = groupRows.map((g) => g.cover).filter((id): id is string => id !== null);
+    const coverAssets =
+      coverIds.length > 0
+        ? await this.db.query.assets.findMany({ where: inArray(assets.id, coverIds) })
+        : [];
+    const assetMap = new Map(coverAssets.map((a) => [a.id, a]));
+
+    return Promise.all(
+      groupRows.map(async (group) => {
+        if (!group.cover) throw new NotFoundException('Group cover asset not found');
+        const coverRow = assetMap.get(group.cover);
+        if (!coverRow) throw new NotFoundException('Group cover asset not found');
+        const resolvedCover = await this.assetResolver.resolve(this.toAsset(coverRow));
+        if (!resolvedCover) throw new NotFoundException('Failed to resolve group cover');
+        return {
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          cover: resolvedCover,
+          visibility: group.visibility,
+          createdBy: group.createdBy,
+          createdAt: group.createdAt.toISOString(),
+          updatedAt: group.updatedAt.toISOString(),
+        };
+      }),
+    );
   }
 
   async updateGroup(
@@ -88,13 +162,20 @@ export class GroupsService {
     id: string,
     dto: UpdateGroupDto,
   ): Promise<GroupResponseDto> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
 
-    if (group.createdBy !== user.id) {
-      // TODO(#next-issue): replace with group_members OWNER/ADMIN check
-      throw new ForbiddenException('Only the group owner can update this group');
-    }
+    const membership = await this.db.query.groupMembers.findFirst({
+      where: and(
+        eq(groupMembers.groupId, id),
+        eq(groupMembers.userId, user.id),
+        eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+        inArray(groupMembers.role, [GroupRole.OWNER, GroupRole.ADMIN]),
+      ),
+    });
+    if (!membership) throw new ForbiddenException('Only group admins can update this group');
 
     const patch: Partial<typeof groups.$inferInsert> = {};
     if (dto.name !== undefined) patch.name = dto.name;
@@ -105,7 +186,9 @@ export class GroupsService {
       let oldAsset: typeof assets.$inferSelect | undefined;
 
       await this.db.transaction(async (trx) => {
-        oldAsset = await trx.query.assets.findFirst({ where: eq(assets.id, group.cover) });
+        oldAsset = group.cover
+          ? await trx.query.assets.findFirst({ where: eq(assets.id, group.cover) })
+          : undefined;
 
         const [newAsset] = await trx
           .insert(assets)
@@ -149,37 +232,47 @@ export class GroupsService {
   }
 
   async deleteGroup(user: AuthenticatedUser, id: string): Promise<void> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
 
-    if (group.createdBy !== user.id) {
-      // TODO(#next-issue): only OWNER may delete; check no other members exist
-      throw new ForbiddenException('Only the group owner can delete this group');
-    }
-
-    const coverAsset = await this.db.query.assets.findFirst({
-      where: eq(assets.id, group.cover),
+    const membership = await this.db.query.groupMembers.findFirst({
+      where: and(
+        eq(groupMembers.groupId, id),
+        eq(groupMembers.userId, user.id),
+        eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+        eq(groupMembers.role, GroupRole.OWNER),
+      ),
     });
+    if (!membership) throw new ForbiddenException('Only the group owner can delete this group');
+
+    const coverAsset = group.cover
+      ? await this.db.query.assets.findFirst({ where: eq(assets.id, group.cover) })
+      : null;
+
+    // Soft-delete: null the cover FK so the asset row can be cleaned up after commit (rule #7)
+    await this.db
+      .update(groups)
+      .set({ deletedAt: new Date(), cover: null })
+      .where(eq(groups.id, id));
 
     if (coverAsset) {
-      await this.db.transaction(async (trx) => {
-        await trx.delete(groups).where(eq(groups.id, id));
-        await trx.delete(assets).where(eq(assets.id, coverAsset.id));
-      });
-    } else {
-      await this.db.delete(groups).where(eq(groups.id, id));
-    }
-
-    if (coverAsset?.source === 'gcs') {
-      await this.cloudStorage.deleteObject(coverAsset.target).catch((e: unknown) => {
-        console.error('[GroupsService] GCS delete failed (orphan caught by audit):', e);
-      });
+      if (coverAsset.source === 'gcs') {
+        await this.cloudStorage.deleteObject(coverAsset.target).catch((e: unknown) => {
+          console.error('[GroupsService] GCS delete failed (orphan caught by audit):', e);
+        });
+      }
+      await this.db.delete(assets).where(eq(assets.id, coverAsset.id));
     }
   }
 
   private async fetchAndMapGroup(id: string): Promise<GroupResponseDto> {
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, id) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
+    if (!group.cover) throw new NotFoundException('Group cover asset not found');
 
     const coverRow = await this.db.query.assets.findFirst({ where: eq(assets.id, group.cover) });
     if (!coverRow) throw new NotFoundException('Group cover asset not found');

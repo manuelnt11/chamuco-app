@@ -212,7 +212,71 @@
     "createGroup": "Create Group",
     "myGroups": "My Groups",
     "groupDetails": "Group Details",
-    "members": "Members",
+    "members": {
+      "title": "Members",
+      "role": {
+        "OWNER": "Owner",
+        "ADMIN": "Admin",
+        "MEMBER": "Member"
+      },
+      "tier": {
+        "NEWCOMER": "Newcomer",
+        "NOVICE": "Novice",
+        "EXPLORER": "Explorer",
+        "VETERAN": "Veteran"
+      },
+      "invite": {
+        "button": "Invite member",
+        "title": "Invite a member",
+        "usernamePlaceholder": "e.g. john_doe",
+        "submit": "Send invitation",
+        "sending": "Sending...",
+        "cancel": "Cancel",
+        "success": "Invitation sent",
+        "error": "Failed to send invitation"
+      },
+      "joinRequest": {
+        "button": "Request to join",
+        "requesting": "Requesting...",
+        "success": "Join request sent",
+        "error": "Failed to send request",
+        "withdraw": "Withdraw request",
+        "withdrawing": "Withdrawing...",
+        "withdrawSuccess": "Request withdrawn",
+        "withdrawError": "Failed to withdraw request"
+      },
+      "leave": {
+        "button": "Leave group",
+        "confirm": "Are you sure you want to leave this group?",
+        "cancel": "Cancel",
+        "confirmButton": "Leave group",
+        "leaving": "Leaving...",
+        "success": "You have left the group",
+        "error": "Failed to leave group",
+        "lastAdmin": "You are the last admin. Promote another member before leaving."
+      },
+      "invitation": {
+        "received": "You have been invited to join this group",
+        "accept": "Accept invitation",
+        "decline": "Decline",
+        "accepting": "Accepting...",
+        "declining": "Declining...",
+        "acceptError": "Failed to accept invitation",
+        "declineError": "Failed to decline invitation"
+      },
+      "pending": {
+        "title": "Pending ({{count}})",
+        "noItems": "No pending requests or invitations",
+        "accept": "Accept",
+        "reject": "Reject",
+        "revoke": "Revoke",
+        "statusRequest": "Wants to join",
+        "statusInvited": "Invited"
+      },
+      "empty": "No members yet",
+      "loading": "Loading members...",
+      "loadError": "Failed to load members"
+    },
     "events": "Events",
     "announcements": "Announcements",
     "name": "Group name",

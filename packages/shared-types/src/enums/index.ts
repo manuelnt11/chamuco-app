@@ -16,6 +16,8 @@ export * from './profile-visibility.enum';
 export * from './visa-coverage-type.enum';
 export * from './visa-entries.enum';
 export * from './visa-type.enum';
+export * from './group-member-status.enum';
+export * from './group-member-tier.enum';
 export * from './group-role.enum';
 export * from './group-visibility.enum';
 export * from './upload-type.enum';

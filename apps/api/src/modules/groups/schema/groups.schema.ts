@@ -14,15 +14,14 @@ export const groups = pgTable('groups', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 100 }).notNull(),
   description: text('description'),
-  cover: uuid('cover')
-    .references(() => assets.id)
-    .notNull(),
+  cover: uuid('cover').references(() => assets.id, { onDelete: 'restrict' }),
   visibility: groupVisibilityEnum('visibility').notNull(),
   createdBy: uuid('created_by')
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: 'restrict' })
     .notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 });
 
 export const groupsRelations = relations(groups, ({ one }) => ({

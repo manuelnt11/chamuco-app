@@ -1,0 +1,218 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import {
+  AuthProvider,
+  GroupMemberStatus,
+  GroupMemberTier,
+  GroupRole,
+  PlatformRole,
+  ProfileVisibility,
+} from '@chamuco/shared-types';
+import { GroupMembersController } from './group-members.controller';
+import { GroupMembersService } from './group-members.service';
+import type { CreateInvitationDto } from './dto/create-invitation.dto';
+import type { UpdateMemberRoleDto } from './dto/update-member-role.dto';
+import type { MemberResponseDto } from './dto/member-response.dto';
+import type { PendingItemResponseDto } from './dto/pending-item-response.dto';
+import type { AuthenticatedUser } from '@/types/express';
+
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
+}));
+
+const NOW = new Date('2026-01-01T00:00:00.000Z');
+
+const mockAuthUser: AuthenticatedUser = {
+  id: 'admin-uuid',
+  username: 'admin',
+  displayName: 'Admin',
+  avatar: null,
+  authProvider: AuthProvider.GOOGLE,
+  firebaseUid: 'firebase-uid',
+  timezone: 'UTC',
+  platformRole: PlatformRole.USER,
+  profileVisibility: ProfileVisibility.PRIVATE,
+  agencyId: null,
+  createdAt: NOW,
+  updatedAt: NOW,
+  lastActiveAt: NOW,
+};
+
+const mockMemberResponse: MemberResponseDto = {
+  userId: 'user-uuid',
+  username: 'user',
+  displayName: 'User',
+  avatarUrl: null,
+  role: GroupRole.MEMBER,
+  tier: GroupMemberTier.NEWCOMER,
+  joinedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const mockPendingResponse: PendingItemResponseDto = {
+  userId: 'user-uuid',
+  username: 'user',
+  displayName: 'User',
+  avatarUrl: null,
+  status: GroupMemberStatus.REQUEST,
+  initiatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+let mockSubmitJoinRequest: jest.Mock;
+let mockAcceptJoinRequest: jest.Mock;
+let mockRejectJoinRequest: jest.Mock;
+let mockSendInvitation: jest.Mock;
+let mockAcceptInvitation: jest.Mock;
+let mockDeclineInvitation: jest.Mock;
+let mockRevokeInvitation: jest.Mock;
+let mockRemoveMember: jest.Mock;
+let mockUpdateMemberRole: jest.Mock;
+let mockListActiveMembers: jest.Mock;
+let mockListPendingMembers: jest.Mock;
+
+describe('GroupMembersController', () => {
+  let controller: GroupMembersController;
+
+  beforeEach(async () => {
+    mockSubmitJoinRequest = jest.fn().mockResolvedValue(undefined);
+    mockAcceptJoinRequest = jest.fn().mockResolvedValue(undefined);
+    mockRejectJoinRequest = jest.fn().mockResolvedValue(undefined);
+    mockSendInvitation = jest.fn().mockResolvedValue(undefined);
+    mockAcceptInvitation = jest.fn().mockResolvedValue(undefined);
+    mockDeclineInvitation = jest.fn().mockResolvedValue(undefined);
+    mockRevokeInvitation = jest.fn().mockResolvedValue(undefined);
+    mockRemoveMember = jest.fn().mockResolvedValue(undefined);
+    mockUpdateMemberRole = jest.fn().mockResolvedValue(undefined);
+    mockListActiveMembers = jest.fn().mockResolvedValue([mockMemberResponse]);
+    mockListPendingMembers = jest.fn().mockResolvedValue([mockPendingResponse]);
+
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [GroupMembersController],
+      providers: [
+        {
+          provide: GroupMembersService,
+          useValue: {
+            submitJoinRequest: mockSubmitJoinRequest,
+            acceptJoinRequest: mockAcceptJoinRequest,
+            rejectJoinRequest: mockRejectJoinRequest,
+            sendInvitation: mockSendInvitation,
+            acceptInvitation: mockAcceptInvitation,
+            declineInvitation: mockDeclineInvitation,
+            revokeInvitation: mockRevokeInvitation,
+            removeMember: mockRemoveMember,
+            updateMemberRole: mockUpdateMemberRole,
+            listActiveMembers: mockListActiveMembers,
+            listPendingMembers: mockListPendingMembers,
+          },
+        },
+      ],
+    }).compile();
+
+    controller = module.get<GroupMembersController>(GroupMembersController);
+  });
+
+  describe('POST /v1/groups/:id/join-request', () => {
+    it('delegates to GroupMembersService.submitJoinRequest', async () => {
+      await controller.submitJoinRequest(mockAuthUser, 'group-uuid');
+
+      expect(mockSubmitJoinRequest).toHaveBeenCalledWith('group-uuid', mockAuthUser.id);
+    });
+  });
+
+  describe('PATCH /v1/groups/:id/join-requests/:userId/accept', () => {
+    it('delegates to GroupMembersService.acceptJoinRequest', async () => {
+      await controller.acceptJoinRequest(mockAuthUser, 'group-uuid', 'user-uuid');
+
+      expect(mockAcceptJoinRequest).toHaveBeenCalledWith(
+        'group-uuid',
+        'user-uuid',
+        mockAuthUser.id,
+      );
+    });
+  });
+
+  describe('PATCH /v1/groups/:id/join-requests/:userId/reject', () => {
+    it('delegates to GroupMembersService.rejectJoinRequest', async () => {
+      await controller.rejectJoinRequest(mockAuthUser, 'group-uuid', 'user-uuid');
+
+      expect(mockRejectJoinRequest).toHaveBeenCalledWith(
+        'group-uuid',
+        'user-uuid',
+        mockAuthUser.id,
+      );
+    });
+  });
+
+  describe('POST /v1/groups/:id/invitations', () => {
+    it('delegates to GroupMembersService.sendInvitation', async () => {
+      const dto: CreateInvitationDto = { targetUsername: 'target_user' };
+
+      await controller.sendInvitation(mockAuthUser, 'group-uuid', dto);
+
+      expect(mockSendInvitation).toHaveBeenCalledWith('group-uuid', dto, mockAuthUser.id);
+    });
+  });
+
+  describe('PATCH /v1/groups/:id/invitations/accept', () => {
+    it('delegates to GroupMembersService.acceptInvitation', async () => {
+      await controller.acceptInvitation(mockAuthUser, 'group-uuid');
+
+      expect(mockAcceptInvitation).toHaveBeenCalledWith('group-uuid', mockAuthUser.id);
+    });
+  });
+
+  describe('PATCH /v1/groups/:id/invitations/decline', () => {
+    it('delegates to GroupMembersService.declineInvitation', async () => {
+      await controller.declineInvitation(mockAuthUser, 'group-uuid');
+
+      expect(mockDeclineInvitation).toHaveBeenCalledWith('group-uuid', mockAuthUser.id);
+    });
+  });
+
+  describe('DELETE /v1/groups/:id/invitations/:userId', () => {
+    it('delegates to GroupMembersService.revokeInvitation', async () => {
+      await controller.revokeInvitation(mockAuthUser, 'group-uuid', 'user-uuid');
+
+      expect(mockRevokeInvitation).toHaveBeenCalledWith('group-uuid', 'user-uuid', mockAuthUser.id);
+    });
+  });
+
+  describe('DELETE /v1/groups/:id/members/:userId', () => {
+    it('delegates to GroupMembersService.removeMember', async () => {
+      await controller.removeMember(mockAuthUser, 'group-uuid', 'user-uuid');
+
+      expect(mockRemoveMember).toHaveBeenCalledWith('group-uuid', 'user-uuid', mockAuthUser.id);
+    });
+  });
+
+  describe('PATCH /v1/groups/:id/members/:userId/role', () => {
+    it('delegates to GroupMembersService.updateMemberRole', async () => {
+      const dto: UpdateMemberRoleDto = { role: GroupRole.ADMIN };
+
+      await controller.updateMemberRole(mockAuthUser, 'group-uuid', 'user-uuid', dto);
+
+      expect(mockUpdateMemberRole).toHaveBeenCalledWith(
+        'group-uuid',
+        'user-uuid',
+        dto,
+        mockAuthUser.id,
+      );
+    });
+  });
+
+  describe('GET /v1/groups/:id/members', () => {
+    it('delegates to GroupMembersService.listActiveMembers and returns the list', async () => {
+      const result = await controller.listActiveMembers(mockAuthUser, 'group-uuid');
+
+      expect(mockListActiveMembers).toHaveBeenCalledWith('group-uuid', mockAuthUser.id);
+      expect(result).toEqual([mockMemberResponse]);
+    });
+  });
+
+  describe('GET /v1/groups/:id/pending', () => {
+    it('delegates to GroupMembersService.listPendingMembers and returns the list', async () => {
+      const result = await controller.listPendingMembers(mockAuthUser, 'group-uuid');
+
+      expect(mockListPendingMembers).toHaveBeenCalledWith('group-uuid', mockAuthUser.id);
+      expect(result).toEqual([mockPendingResponse]);
+    });
+  });
+});

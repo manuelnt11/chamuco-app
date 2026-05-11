@@ -212,7 +212,71 @@
     "createGroup": "Crear Grupo",
     "myGroups": "Mis Grupos",
     "groupDetails": "Detalles del Grupo",
-    "members": "Miembros",
+    "members": {
+      "title": "Miembros",
+      "role": {
+        "OWNER": "Fundador",
+        "ADMIN": "Admin",
+        "MEMBER": "Miembro"
+      },
+      "tier": {
+        "NEWCOMER": "Recién llegado",
+        "NOVICE": "Novato",
+        "EXPLORER": "Explorador",
+        "VETERAN": "Veterano"
+      },
+      "invite": {
+        "button": "Invitar miembro",
+        "title": "Invitar un miembro",
+        "usernamePlaceholder": "p.ej. juan_doe",
+        "submit": "Enviar invitación",
+        "sending": "Enviando...",
+        "cancel": "Cancelar",
+        "success": "Invitación enviada",
+        "error": "Error al enviar la invitación"
+      },
+      "joinRequest": {
+        "button": "Solicitar unirse",
+        "requesting": "Solicitando...",
+        "success": "Solicitud enviada",
+        "error": "Error al enviar la solicitud",
+        "withdraw": "Retirar solicitud",
+        "withdrawing": "Retirando...",
+        "withdrawSuccess": "Solicitud retirada",
+        "withdrawError": "Error al retirar la solicitud"
+      },
+      "leave": {
+        "button": "Salir del grupo",
+        "confirm": "¿Estás seguro de que quieres salir de este grupo?",
+        "cancel": "Cancelar",
+        "confirmButton": "Salir del grupo",
+        "leaving": "Saliendo...",
+        "success": "Has salido del grupo",
+        "error": "Error al salir del grupo",
+        "lastAdmin": "Eres el último admin. Promueve otro miembro antes de salir."
+      },
+      "invitation": {
+        "received": "Has sido invitado a unirte a este grupo",
+        "accept": "Aceptar invitación",
+        "decline": "Rechazar",
+        "accepting": "Aceptando...",
+        "declining": "Rechazando...",
+        "acceptError": "Error al aceptar la invitación",
+        "declineError": "Error al rechazar la invitación"
+      },
+      "pending": {
+        "title": "Pendientes ({{count}})",
+        "noItems": "No hay solicitudes ni invitaciones pendientes",
+        "accept": "Aceptar",
+        "reject": "Rechazar",
+        "revoke": "Revocar",
+        "statusRequest": "Quiere unirse",
+        "statusInvited": "Invitado"
+      },
+      "empty": "Aún no hay miembros",
+      "loading": "Cargando miembros...",
+      "loadError": "Error al cargar miembros"
+    },
     "events": "Eventos",
     "announcements": "Anuncios",
     "name": "Nombre del grupo",

@@ -68,8 +68,11 @@ export class GroupsController {
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 200, type: GroupResponseDto })
   @ApiNotFoundResponse({ description: 'Group not found.' })
-  async getGroup(@Param('id', ParseUUIDPipe) id: string): Promise<GroupResponseDto> {
-    return this.groupsService.getGroup(id);
+  async getGroup(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<GroupResponseDto> {
+    return this.groupsService.getGroup(user.id, id);
   }
 
   @Patch(':id')

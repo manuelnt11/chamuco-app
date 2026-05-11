@@ -1,5 +1,11 @@
 {
   "permissions": {
-    "allow": ["Bash(./scripts/*)", "Read(//private/tmp/**)", "Bash(pnpm *)", "Bash(gh pr *)"]
+    "allow": [
+      "Bash(./scripts/*)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Bash(pnpm *)",
+      "Bash(gh pr *)"
+    ]
   }
 }

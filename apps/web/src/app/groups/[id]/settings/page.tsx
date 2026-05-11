@@ -1,10 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState, use } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { ArrowLeftIcon } from '@phosphor-icons/react';
 
 import { apiClient } from '@/services/api-client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/toast';
 import { GroupCoverEditor } from '@/components/groups/GroupCoverEditor';
 import { GroupForm } from '@/components/groups/GroupForm';
@@ -19,16 +22,18 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   const { t } = useTranslation('groups');
   const router = useRouter();
   const [group, setGroup] = useState<Group | null>(null);
+  const { isLoading: isAuthLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchGroup = useCallback(() => {
+    if (isAuthLoading) return;
     apiClient
       .get<Group>(`/v1/groups/${id}`)
       .then((res) => setGroup(res.data))
       .catch(() => router.replace('/groups'))
       .finally(() => setIsLoading(false));
-  }, [id, router]);
+  }, [id, router, isAuthLoading]);
 
   useEffect(() => {
     fetchGroup();
@@ -50,6 +55,16 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
 
   return (
     <div className="p-8 max-w-xl">
+      <div className="mb-6">
+        <Link
+          href={`/groups/${id}`}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeftIcon className="size-4" />
+          {group.name}
+        </Link>
+      </div>
+
       <h1 className="text-3xl font-bold mb-6">{t('settings.title')}</h1>
 
       <div className="mb-8">
