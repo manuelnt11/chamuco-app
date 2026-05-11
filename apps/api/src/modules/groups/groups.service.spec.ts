@@ -2,6 +2,8 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   AuthProvider,
+  GroupMemberStatus,
+  GroupRole,
   GroupVisibility,
   PlatformRole,
   ProfileVisibility,
@@ -55,6 +57,17 @@ const mockGroupRow = {
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
+const mockOwnerMembership = {
+  groupId: 'group-uuid',
+  userId: 'user-uuid',
+  status: GroupMemberStatus.ACTIVE,
+  role: GroupRole.OWNER,
+  initiatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  respondedAt: new Date('2026-01-01T00:00:00.000Z'),
+  initiatedBy: 'user-uuid',
+  decidedBy: 'user-uuid',
+};
+
 const mockResolvedCover = {
   id: 'asset-uuid',
   type: 'image' as const,
@@ -69,6 +82,9 @@ const mockResolvedCover = {
 describe('GroupsService', () => {
   let service: GroupsService;
   let mockGroupsFindFirst: jest.Mock;
+  let mockGroupsFindMany: jest.Mock;
+  let mockGroupMembersFindFirst: jest.Mock;
+  let mockGroupMembersFindMany: jest.Mock;
   let mockAssetsFindFirst: jest.Mock;
   let mockReturning: jest.Mock;
   let mockInsertReturning: jest.Mock;
@@ -81,6 +97,9 @@ describe('GroupsService', () => {
 
   beforeEach(async () => {
     mockGroupsFindFirst = jest.fn();
+    mockGroupsFindMany = jest.fn().mockResolvedValue([]);
+    mockGroupMembersFindFirst = jest.fn().mockResolvedValue(mockOwnerMembership);
+    mockGroupMembersFindMany = jest.fn().mockResolvedValue([]);
     mockAssetsFindFirst = jest.fn();
     mockReturning = jest.fn();
     mockInsertReturning = jest.fn();
@@ -103,8 +122,12 @@ describe('GroupsService', () => {
           provide: DRIZZLE_CLIENT,
           useValue: {
             query: {
-              groups: { findFirst: mockGroupsFindFirst },
+              groups: { findFirst: mockGroupsFindFirst, findMany: mockGroupsFindMany },
               assets: { findFirst: mockAssetsFindFirst },
+              groupMembers: {
+                findFirst: mockGroupMembersFindFirst,
+                findMany: mockGroupMembersFindMany,
+              },
             },
             update: mockUpdate,
             insert: mockInsert,
@@ -155,7 +178,7 @@ describe('GroupsService', () => {
       mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
     });
 
-    it('creates group and returns response DTO', async () => {
+    it('creates group, inserts creator membership, and returns response DTO', async () => {
       const result = await service.createGroup(mockUser, createDto);
 
       expect(mockTransaction).toHaveBeenCalledTimes(1);
@@ -178,6 +201,7 @@ describe('GroupsService', () => {
         cover: { source: 'gcs', target: 'group-covers/group-uuid/cover.jpg', fileSize: 512000 },
       };
       mockInsertReturning
+        .mockReset()
         .mockResolvedValueOnce([
           { ...mockCoverAssetRow, source: 'gcs', target: 'group-covers/group-uuid/cover.jpg' },
         ])
@@ -244,11 +268,11 @@ describe('GroupsService', () => {
   });
 
   describe('getGroup', () => {
-    it('returns the group response DTO', async () => {
+    it('returns the group response DTO for a public group', async () => {
       mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
       mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
 
-      const result = await service.getGroup('group-uuid');
+      const result = await service.getGroup('user-uuid', 'group-uuid');
 
       expect(result.id).toBe('group-uuid');
       expect(result.cover).toEqual(mockResolvedCover);
@@ -257,14 +281,16 @@ describe('GroupsService', () => {
     it('throws NotFoundException when group is missing', async () => {
       mockGroupsFindFirst.mockResolvedValue(undefined);
 
-      await expect(service.getGroup('missing-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.getGroup('user-uuid', 'missing-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('throws NotFoundException when cover asset is not found', async () => {
       mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
       mockAssetsFindFirst.mockResolvedValue(undefined);
 
-      await expect(service.getGroup('group-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.getGroup('user-uuid', 'group-uuid')).rejects.toThrow(NotFoundException);
     });
 
     it('throws NotFoundException when cover resolution fails', async () => {
@@ -272,15 +298,52 @@ describe('GroupsService', () => {
       mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
       mockAssetResolverResolve.mockResolvedValue(null);
 
-      await expect(service.getGroup('group-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.getGroup('user-uuid', 'group-uuid')).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException for a private group when user is not a member', async () => {
+      mockGroupsFindFirst.mockResolvedValue({
+        ...mockGroupRow,
+        visibility: GroupVisibility.PRIVATE,
+      });
+      mockGroupMembersFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getGroup('user-uuid', 'group-uuid')).rejects.toThrow(NotFoundException);
+    });
+
+    it('returns the group for a private group when user is an active member', async () => {
+      mockGroupsFindFirst.mockResolvedValue({
+        ...mockGroupRow,
+        visibility: GroupVisibility.PRIVATE,
+      });
+      mockGroupMembersFindFirst.mockResolvedValue(mockOwnerMembership);
+      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+
+      const result = await service.getGroup('user-uuid', 'group-uuid');
+
+      expect(result.id).toBe('group-uuid');
     });
   });
 
   describe('listMyGroups', () => {
-    it('returns empty array (stub until group_members is implemented)', async () => {
+    it('returns empty array when user has no active memberships', async () => {
+      mockGroupMembersFindMany.mockResolvedValue([]);
+
       const result = await service.listMyGroups('user-uuid');
 
       expect(result).toEqual([]);
+    });
+
+    it('returns groups for active memberships', async () => {
+      mockGroupMembersFindMany.mockResolvedValue([mockOwnerMembership]);
+      mockGroupsFindMany.mockResolvedValue([mockGroupRow]);
+      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
+      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+
+      const result = await service.listMyGroups('user-uuid');
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.id).toBe('group-uuid');
     });
   });
 
@@ -290,7 +353,6 @@ describe('GroupsService', () => {
     it('updates group metadata and returns response DTO', async () => {
       mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce(mockGroupRow);
       mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
-      mockReturning.mockResolvedValue([{ ...mockGroupRow, name: 'Updated Crew' }]);
 
       const result = await service.updateGroup(mockUser, 'group-uuid', updateDto);
 
@@ -305,8 +367,9 @@ describe('GroupsService', () => {
       );
     });
 
-    it('throws ForbiddenException when user is not the owner', async () => {
-      mockGroupsFindFirst.mockResolvedValue({ ...mockGroupRow, createdBy: 'other-user-uuid' });
+    it('throws ForbiddenException when user is not a group admin', async () => {
+      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
+      mockGroupMembersFindFirst.mockResolvedValue(undefined);
 
       await expect(service.updateGroup(mockUser, 'group-uuid', updateDto)).rejects.toThrow(
         ForbiddenException,
@@ -478,14 +541,15 @@ describe('GroupsService', () => {
   });
 
   describe('deleteGroup', () => {
-    it('deletes group and cover asset in a single transaction', async () => {
+    it('deletes group, members, stats and cover asset in a transaction', async () => {
       mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
       mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
 
       await service.deleteGroup(mockUser, 'group-uuid');
 
       expect(mockTransaction).toHaveBeenCalledTimes(1);
-      expect(mockDeleteWhere).toHaveBeenCalledTimes(2);
+      // groupMemberStats + groupMembers + groups + assets = 4 deletes
+      expect(mockDeleteWhere).toHaveBeenCalledTimes(4);
     });
 
     it('throws NotFoundException when group does not exist', async () => {
@@ -496,20 +560,22 @@ describe('GroupsService', () => {
       );
     });
 
-    it('throws ForbiddenException when user is not the owner', async () => {
-      mockGroupsFindFirst.mockResolvedValue({ ...mockGroupRow, createdBy: 'other-user-uuid' });
+    it('throws ForbiddenException when user is not the group owner', async () => {
+      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
+      mockGroupMembersFindFirst.mockResolvedValue(undefined);
 
       await expect(service.deleteGroup(mockUser, 'group-uuid')).rejects.toThrow(ForbiddenException);
     });
 
-    it('skips asset cleanup and transaction when cover asset is not found', async () => {
+    it('deletes group without cover asset (3 delete operations in transaction)', async () => {
       mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
       mockAssetsFindFirst.mockResolvedValue(undefined);
 
       await service.deleteGroup(mockUser, 'group-uuid');
 
-      expect(mockTransaction).not.toHaveBeenCalled();
-      expect(mockDeleteWhere).toHaveBeenCalledTimes(1);
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+      // groupMemberStats + groupMembers + groups = 3 deletes
+      expect(mockDeleteWhere).toHaveBeenCalledTimes(3);
       expect(mockCloudStorageDelete).not.toHaveBeenCalled();
     });
 

@@ -15,11 +15,11 @@ export const groups = pgTable('groups', {
   name: varchar('name', { length: 100 }).notNull(),
   description: text('description'),
   cover: uuid('cover')
-    .references(() => assets.id)
+    .references(() => assets.id, { onDelete: 'restrict' })
     .notNull(),
   visibility: groupVisibilityEnum('visibility').notNull(),
   createdBy: uuid('created_by')
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: 'restrict' })
     .notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

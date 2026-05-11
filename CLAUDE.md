@@ -106,6 +106,7 @@ Authentication is fully delegated to Firebase Authentication. The backend verifi
 - **Traveler stats and discovery map** visibility follows the main `ProfileVisibility` setting — no independent toggle.
 - **Platform roles** (`platform_role` on `users`): `USER` (default) or `SUPPORT_ADMIN`. A `SUPPORT_ADMIN` is a service account for troubleshooting — it bypasses all trip and group access restrictions (authentication still required), is never counted as a participant, has no travel profile or gamification records, and every write it performs is logged immutably in `support_admin_audit_log`. The role is not assignable from within the app.
 - **Agencies** — a higher-level entity (`agencies` table) that groups professional trip organizers under a common brand. A user may belong to at most one agency (`agency_id` on `users`). Agency coordinators can create and manage trips on behalf of the agency. See `features/agencies.md`.
+- **User deletion is logical (soft-delete)** — users are never hard-deleted from the `users` table. When account deletion is implemented, it will set a `deleted_at` timestamp; the row persists. This means all `NOT NULL` foreign keys referencing `users.id` with `ON DELETE restrict` are safe: the referenced row is never physically removed.
 
 ### Trips
 

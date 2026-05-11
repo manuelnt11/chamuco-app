@@ -69,14 +69,22 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           )}
         </div>
 
-        {isOwner && (
+        <div className="flex shrink-0 gap-2">
           <Link
-            href={`/groups/${group.id}/settings`}
-            className="shrink-0 inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
+            href={`/groups/${group.id}/members`}
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
           >
-            {t('settings.title')}
+            {t('members.title')}
           </Link>
-        )}
+          {isOwner && (
+            <Link
+              href={`/groups/${group.id}/settings`}
+              className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              {t('settings.title')}
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );
