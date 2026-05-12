@@ -433,6 +433,65 @@ await db.update(users).set({ avatar: newAssetId }).where(eq(users.id, userId));
 
 **Applies to:** user avatar, trip cover image, agency logo, and any future entity field that holds an `assets` FK. When implementing a new uploadable resource, always fetch the old asset before the transaction and clean it up after commit.
 
+### 8. Cloud Run deployment — invariants that must never be dropped
+
+When modifying `.github/workflows/api.yml` or any `gcloud run deploy` command, the following flags are **required**. Omitting them silently reverts Cloud Run to defaults on every deploy.
+
+| Flag                      | Value  | Why                                               |
+| ------------------------- | ------ | ------------------------------------------------- |
+| `--execution-environment` | `gen2` | Faster cold starts, better Unix socket support    |
+| `--no-use-http2`          | (flag) | Required for NestJS WebSocket / SSE compatibility |
+
+```bash
+# ✅ Must always be present in gcloud run deploy
+gcloud run deploy chamuco-api \
+  --execution-environment=gen2 \
+  --no-use-http2 \
+  ...
+```
+
+**Migrations run inside the container — never in GitHub Actions.**
+
+GitHub Actions has no access to Cloud SQL (private VPC only). Migrations are applied by `apps/api/scripts/startup.sh` at container start, before the NestJS process launches. Do not add a migration step to the CI/CD pipeline.
+
+```
+Container start:
+  startup.sh → get-iam-token.js → run-migrations.js → pnpm start:prod
+```
+
+If migrations fail, the container exits with code 1 and Cloud Run keeps the previous revision live.
+
+**IAM token for Cloud SQL must be fetched dynamically per connection.**
+
+Tokens expire after ~1 hour. Setting `PGPASSWORD` once at startup (via `startup.sh`) is only safe for `run-migrations.js`, which runs and exits immediately. The long-lived NestJS process (`drizzle.provider.ts`) must use an async `password` function that fetches a fresh token on every new pool connection.
+
+```ts
+// ✅ Correct — drizzle.provider.ts production path
+password: async () => {
+  const res = await fetch(
+    'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+    { headers: { 'Metadata-Flavor': 'Google' } },
+  );
+  const data = (await res.json()) as { access_token: string };
+  return data.access_token;
+},
+
+// ❌ Wrong — token is stale after ~1 hour, new connections fail
+password: process.env.PGPASSWORD || '',
+```
+
+**Correct OAuth2 scope for Cloud SQL IAM database auth: `sqlservice.login`**
+
+`scripts/get-iam-token.js` (used by `startup.sh` for migrations) must request the token with the `sqlservice.login` scope. Using `sqlservice.admin` (instance management) or no scope restriction are both incorrect: the former restricts the token to admin operations, the latter returns a broad token unrelated to DB login.
+
+```js
+// ✅ Correct
+?scopes=https://www.googleapis.com/auth/sqlservice.login
+
+// ❌ Wrong — admin scope, not for DB authentication
+?scopes=https://www.googleapis.com/auth/sqlservice.admin
+```
+
 ### 6. pnpm catalog — shared devDependency versioning
 
 Shared `devDependencies` that appear in more than one package are versioned exactly once in the `catalog:` block of `pnpm-workspace.yaml`. Individual `package.json` files reference them with `"catalog:"` instead of a pinned version string.

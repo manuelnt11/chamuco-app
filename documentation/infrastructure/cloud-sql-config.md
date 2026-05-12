@@ -179,13 +179,13 @@ gcloud run deploy chamuco-api \
   --add-cloudsql-instances=chamuco-app-mn:us-central1:chamuco-postgres \
   --vpc-connector=chamuco-vpc-connector \
   --vpc-egress=private-ranges-only \
-  --set-secrets="DATABASE_URL=DATABASE_URL:latest,DATABASE_POOL_MIN=DATABASE_POOL_MIN:latest,DATABASE_POOL_MAX=DATABASE_POOL_MAX:latest,NODE_ENV=NODE_ENV:latest,SWAGGER_ENABLED=SWAGGER_ENABLED:latest" \
+  --set-secrets="FIREBASE_SERVICE_ACCOUNT_JSON=FIREBASE_SERVICE_ACCOUNT_JSON:latest,GEONAMES_USERNAME=GEONAMES_USERNAME:latest,GITHUB_TOKEN=GITHUB_TOKEN:latest,GOOGLE_CLOUD_STORAGE_BUCKET=GOOGLE_CLOUD_STORAGE_BUCKET:latest" \
   --memory=512Mi \
   --cpu=1 \
   --min-instances=0 \
   --max-instances=10 \
   --concurrency=80 \
-  --timeout=60s \
+  --timeout=300 \
   --port=3000 \
   --allow-unauthenticated \
   --ingress=all \
@@ -194,64 +194,57 @@ gcloud run deploy chamuco-api \
   --project=chamuco-app-mn
 ```
 
-**Key Changes from Design:**
+**Notes:**
 
-- ✅ Using **Artifact Registry** (`us-central1-docker.pkg.dev`) instead of Container Registry
-- ✅ Using **Secret Manager** (`--set-secrets`) instead of `--set-env-vars` for sensitive data
-- ✅ Added **VPC egress** control (`private-ranges-only`) for security
-- ✅ Set explicit **resource limits** (512Mi RAM, 1 CPU) and **scaling** (0-10 instances)
-- ✅ Using **gen2 execution environment** for faster cold starts
-- ✅ Service name is `chamuco-api` (not just `api`)
+- `DATABASE_URL` is **not a secret** in Cloud Run — `drizzle.provider.ts` uses hardcoded Unix socket config when `K_SERVICE` is set. The IAM token is fetched dynamically from the metadata server.
+- `--execution-environment=gen2` and `--no-use-http2` are **required** — omitting them on any deploy reverts to GCP defaults silently.
+- `--set-secrets` **replaces** all secret bindings on each deploy (not additive). Keep this list authoritative.
 
 ### Database Connection from Cloud Run
 
-The NestJS API connects to Cloud SQL via **Unix socket** using the connection string stored in Secret Manager:
+The NestJS API connects to Cloud SQL via **Unix socket**. In production (`NODE_ENV=production` + `K_SERVICE` set by Cloud Run), `drizzle.provider.ts` hardcodes the connection — `DATABASE_URL` is not used and not required.
 
-```bash
-postgresql://chamuco-api-sa@/chamuco_prod?host=/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres
+**Connection config (production):**
+
+```ts
+host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres';
+database: 'chamuco_prod';
+user: 'chamuco-api-sa@chamuco-app-mn.iam';
+password: async () => fetchIamToken(); // fetched per connection from metadata server
 ```
+
+**IAM token — must be fetched dynamically, never cached:**
+
+IAM tokens expire after ~1 hour. The `password` option in postgres.js accepts an async function; this is called on each new pool connection so the token is always fresh. Passing `process.env.PGPASSWORD` (a static value set at startup) causes auth failures after ~1 hour as the pool opens new connections.
 
 **Connection flow:**
 
-1. Cloud Run container starts and reads `DATABASE_URL` from Secret Manager
-2. Drizzle provider parses the connection string and detects Unix socket format
-3. `postgres.js` client connects via `/cloudsql/PROJECT:REGION:INSTANCE` socket
-4. Cloud SQL instance authenticates the service account via IAM
-5. Connection is established over encrypted Unix socket (no TCP/IP)
+1. Container starts; `startup.sh` fetches a token and runs `run-migrations.js`
+2. `pnpm start:prod` launches NestJS; `drizzle.provider.ts` creates the postgres.js pool
+3. On each new connection, the async `password` function calls the GCP metadata server:
+   `GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token`
+4. The fresh OAuth2 token is used as the PostgreSQL password
+5. Cloud SQL validates the token against the IAM user `chamuco-api-sa@chamuco-app-mn.iam`
 
 **Benefits:**
 
-- No passwords or secrets in environment variables (IAM handles auth)
-- Lower latency than TCP connection
-- Automatic reconnection if connection drops
-- Pool management via Drizzle provider (2-10 connections per instance)
+- No static secrets — IAM handles auth with auto-refreshed tokens
+- Lower latency than TCP (Unix socket)
+- Pool management via Drizzle provider (configurable via `DATABASE_POOL_MAX`)
 
 ### CI/CD Pipeline
 
 Full pipeline implemented in `.github/workflows/api.yml` (Issue #19).
 
-**Migration step** (runs before deployment):
+**Migrations do NOT run in GitHub Actions.** GitHub Actions has no access to the Cloud SQL private VPC. Migrations are applied by `apps/api/scripts/startup.sh` inside the container at boot, before NestJS starts. If migrations fail, the container exits with code 1 and Cloud Run keeps the previous revision live.
 
-```yaml
-- name: Run Database Migrations
-  if: github.ref == 'refs/heads/main'
-  run: |
-    # Download and start Cloud SQL Proxy
-    wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
-    chmod +x cloud_sql_proxy
-    ./cloud_sql_proxy chamuco-app-mn:us-central1:chamuco-postgres --port=5433 &
-    PROXY_PID=$!
-    sleep 5
-
-    # Run migrations
-    DATABASE_URL=postgresql://github-actions@chamuco-app-mn.iam@localhost:5433/chamuco_prod \
-      pnpm --filter api db:migrate
-
-    # Stop proxy
-    kill $PROXY_PID
 ```
-
-**Note:** The `github-actions` IAM service account is used for CI/CD operations and has `roles/cloudsql.client` and `roles/iam.serviceAccountUser` permissions.
+Container startup sequence:
+  startup.sh
+    └── get-iam-token.js  (fetches OAuth2 token with sqlservice.login scope)
+    └── run-migrations.js (applies pending SQL files via pg client + PGPASSWORD)
+    └── pnpm start:prod   (NestJS; drizzle.provider.ts fetches tokens dynamically)
+```
 
 ---
 

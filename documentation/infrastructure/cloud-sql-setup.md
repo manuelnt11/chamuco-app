@@ -626,25 +626,57 @@ gcloud run services update api \
   --add-cloudsql-instances=$PROJECT_ID:$REGION:$INSTANCE_NAME
 ```
 
-### Issue: "Authentication failed for user"
+### Issue: "Authentication failed for user" — initial connection
 
-**Cause:** IAM authentication not working.
+**Cause:** One or more IAM prerequisites missing.
 
-**Fix:**
+**Checklist (run all three):**
 
 ```bash
-# Verify Cloud SQL user exists
+# 1. Verify Cloud SQL IAM user exists
 gcloud sql users list --instance=$INSTANCE_NAME
+# Must show: chamuco-api-sa@PROJECT_ID.iam  TYPE=CLOUD_IAM_SERVICE_ACCOUNT
 
-# Verify IAM role
+# 2. Verify both IAM roles are granted (client + instanceUser)
 gcloud projects get-iam-policy $PROJECT_ID \
   --flatten="bindings[].members" \
-  --filter="bindings.role:roles/cloudsql.client"
+  --filter="bindings.members:chamuco-api-sa" \
+  --format="table(bindings.role)"
+# Must show: roles/cloudsql.client AND roles/cloudsql.instanceUser
 
-# Recreate user if missing
+# 3. Verify iam_authentication flag is on
+gcloud sql instances describe $INSTANCE_NAME \
+  --format="value(settings.databaseFlags)"
+# Must show: cloudsql.iam_authentication=on
+
+# Fix missing user
 gcloud sql users create chamuco-api-sa@$PROJECT_ID.iam \
   --instance=$INSTANCE_NAME \
   --type=CLOUD_IAM_SERVICE_ACCOUNT
+
+# Fix missing instanceUser role
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:chamuco-api-sa@$PROJECT_ID.iam.gserviceaccount.com \
+  --role=roles/cloudsql.instanceUser
+```
+
+### Issue: "Authentication failed for user" — intermittent (works then fails after ~1 hour)
+
+**Cause:** Static IAM token set at startup (`PGPASSWORD`) is being used as the PostgreSQL password. IAM tokens expire after ~1 hour; new pool connections opened after expiry fail.
+
+**Fix:** The `password` option in `drizzle.provider.ts` must be an async function that fetches a fresh token on each new connection — never a static env var. See root `CLAUDE.md` standing rule #8 and `apps/api/src/database/drizzle.provider.ts`.
+
+### Issue: "Authentication failed for user" — on container startup (migrations fail)
+
+**Cause:** `scripts/get-iam-token.js` is requesting the token with the wrong OAuth2 scope.
+
+- `sqlservice.admin` — for managing Cloud SQL instances (wrong for DB login)
+- `sqlservice.login` — required for IAM database authentication ✅
+
+**Fix:** Verify `apps/api/scripts/get-iam-token.js` uses:
+
+```js
+?scopes=https://www.googleapis.com/auth/sqlservice.login
 ```
 
 ### Issue: "Cannot connect to Cloud SQL proxy locally"
