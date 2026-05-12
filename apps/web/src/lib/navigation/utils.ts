@@ -15,13 +15,10 @@ export function isActiveRoute(pathname: string, itemPath: string): boolean {
   return pathname === itemPath || pathname.startsWith(itemPath + '/');
 }
 
-/**
- * Generates an accessible ARIA label for navigation items.
- *
- * @param label - The translated label for the navigation item
- * @param isActive - Whether the navigation item is currently active
- * @returns An ARIA label string
- */
-export function getNavItemAriaLabel(label: string, isActive: boolean): string {
-  return isActive ? `${label} (current page)` : label;
+export function getNavItemAriaLabel(label: string, isActive: boolean, badge?: number): string {
+  const base = isActive ? `${label} (current page)` : label;
+  if (badge && badge > 0) {
+    return `${base}, ${badge} pending invitation${badge === 1 ? '' : 's'}`;
+  }
+  return base;
 }

@@ -8,9 +8,14 @@ import { Button } from '@/components/ui/button';
 interface InvitationResponseButtonsProps {
   groupId: string;
   onSuccess: () => void;
+  showMessage?: boolean;
 }
 
-export function InvitationResponseButtons({ groupId, onSuccess }: InvitationResponseButtonsProps) {
+export function InvitationResponseButtons({
+  groupId,
+  onSuccess,
+  showMessage = true,
+}: InvitationResponseButtonsProps) {
   const { t } = useTranslation('groups');
   const [isAccepting, setIsAccepting] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
@@ -44,7 +49,9 @@ export function InvitationResponseButtons({ groupId, onSuccess }: InvitationResp
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <p className="text-sm text-muted-foreground">{t('members.invitation.received')}</p>
+      {showMessage && (
+        <p className="text-sm text-muted-foreground">{t('members.invitation.received')}</p>
+      )}
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={handleDecline} disabled={isBusy}>
           {isDeclining ? t('members.invitation.declining') : t('members.invitation.decline')}

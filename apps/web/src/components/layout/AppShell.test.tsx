@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { AppShell } from './AppShell';
@@ -20,6 +21,16 @@ vi.mock('@/components/header', () => ({
 vi.mock('@/components/navigation', () => ({
   MobileBottomNav: () => <nav data-testid="mobile-nav">Mobile Nav</nav>,
   DesktopSideNav: () => <nav data-testid="desktop-nav">Desktop Nav</nav>,
+}));
+
+vi.mock('@/store/group-invitations', () => ({
+  GroupInvitationsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useGroupInvitations: vi.fn(() => ({
+    invitations: [],
+    count: 0,
+    isLoading: false,
+    refresh: vi.fn(),
+  })),
 }));
 
 describe('AppShell', () => {

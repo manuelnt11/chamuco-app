@@ -24,6 +24,15 @@ vi.mock('@/lib/hooks/useScrollDirection', () => ({
   useScrollDirection: vi.fn(() => 'idle'),
 }));
 
+vi.mock('@/store/group-invitations', () => ({
+  useGroupInvitations: vi.fn(() => ({
+    invitations: [],
+    count: 0,
+    isLoading: false,
+    refresh: vi.fn(),
+  })),
+}));
+
 describe('MobileBottomNav', () => {
   it('renders as a nav element', () => {
     const { container } = render(<MobileBottomNav />);

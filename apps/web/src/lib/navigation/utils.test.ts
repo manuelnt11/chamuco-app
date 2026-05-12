@@ -77,4 +77,20 @@ describe('getNavItemAriaLabel', () => {
     expect(getNavItemAriaLabel('', true)).toBe(' (current page)');
     expect(getNavItemAriaLabel('', false)).toBe('');
   });
+
+  it('appends invitation count when badge is provided', () => {
+    expect(getNavItemAriaLabel('Groups', false, 3)).toBe('Groups, 3 pending invitations');
+    expect(getNavItemAriaLabel('Groups', true, 1)).toBe(
+      'Groups (current page), 1 pending invitation',
+    );
+  });
+
+  it('uses singular form for 1 invitation', () => {
+    expect(getNavItemAriaLabel('Groups', false, 1)).toBe('Groups, 1 pending invitation');
+  });
+
+  it('ignores badge when 0 or undefined', () => {
+    expect(getNavItemAriaLabel('Groups', false, 0)).toBe('Groups');
+    expect(getNavItemAriaLabel('Groups', false, undefined)).toBe('Groups');
+  });
 });

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/services/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { GroupCard } from '@/components/groups/GroupCard';
+import { InvitationsSection } from '@/components/groups/InvitationsSection';
 import type { Group } from '@/types/group';
 
 export default function GroupsPage() {
@@ -15,13 +16,17 @@ export default function GroupsPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (isAuthLoading) return;
+  const fetchGroups = () => {
     apiClient
       .get<Group[]>('/v1/groups')
       .then((res) => setGroups(res.data))
       .catch(() => setGroups([]))
       .finally(() => setIsLoading(false));
+  };
+
+  useEffect(() => {
+    if (isAuthLoading) return;
+    fetchGroups();
   }, [isAuthLoading]);
 
   return (
@@ -35,6 +40,8 @@ export default function GroupsPage() {
           {t('createGroup')}
         </Link>
       </div>
+
+      <InvitationsSection />
 
       {isLoading ? null : groups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">

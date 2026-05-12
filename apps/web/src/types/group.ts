@@ -35,3 +35,12 @@ export interface PendingGroupMember {
   status: GroupMemberStatus.REQUEST | GroupMemberStatus.INVITED;
   initiatedAt: string;
 }
+
+export interface GroupInvitation {
+  group: {
+    id: string;
+    name: string;
+    cover: ResolvedAsset;
+  };
+  initiatedAt: string;
+}

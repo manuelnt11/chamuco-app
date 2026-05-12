@@ -310,6 +310,10 @@
       "submit": "Crear grupo",
       "saveChanges": "Guardar cambios"
     },
+    "invitations": {
+      "title": "Invitaciones pendientes",
+      "titleWithCount": "Invitaciones pendientes ({{count}})"
+    },
     "detail": {
       "noGroups": "Aún no tienes grupos",
       "createFirst": "Crea tu primer grupo para empezar a organizar viajes"

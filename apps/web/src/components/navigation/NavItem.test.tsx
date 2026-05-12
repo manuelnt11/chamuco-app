@@ -184,6 +184,63 @@ describe('NavItem', () => {
     });
   });
 
+  describe('badge prop', () => {
+    it('renders badge with count when badge > 0', () => {
+      render(<NavItem item={mockItem} layout="sidebar" badge={3} />);
+      const badges = screen.getAllByText('3');
+      expect(badges.length).toBeGreaterThan(0);
+    });
+
+    it('renders 99+ when badge > 99', () => {
+      render(<NavItem item={mockItem} layout="sidebar" badge={150} />);
+      const badges = screen.getAllByText('99+');
+      expect(badges.length).toBeGreaterThan(0);
+    });
+
+    it('does not render badge when badge is 0', () => {
+      render(<NavItem item={mockItem} layout="sidebar" badge={0} />);
+      expect(screen.queryByText('0')).not.toBeInTheDocument();
+    });
+
+    it('does not render badge when badge is undefined', () => {
+      render(<NavItem item={mockItem} layout="sidebar" />);
+      // no badge span with bg-orange-500 should exist
+      const link = screen.getByRole('link');
+      expect(link.querySelector('.bg-orange-500')).toBeNull();
+    });
+
+    it('includes pending invitations count in aria-label', () => {
+      render(<NavItem item={mockItem} layout="sidebar" badge={2} />);
+      expect(screen.getByRole('link')).toHaveAttribute(
+        'aria-label',
+        'Trips, 2 pending invitations',
+      );
+    });
+
+    it('uses singular form for 1 invitation in aria-label', () => {
+      render(<NavItem item={mockItem} layout="sidebar" badge={1} />);
+      expect(screen.getByRole('link')).toHaveAttribute('aria-label', 'Trips, 1 pending invitation');
+    });
+
+    it('renders inline badge in sidebar expanded mode', () => {
+      render(<NavItem item={mockItem} layout="sidebar" showLabel={true} badge={5} />);
+      const badges = screen.getAllByText('5');
+      expect(badges.length).toBe(1); // only inline right badge (no icon badge when showLabel=true)
+    });
+
+    it('renders icon badge in sidebar collapsed mode', () => {
+      render(<NavItem item={mockItem} layout="sidebar" showLabel={false} badge={5} />);
+      const badges = screen.getAllByText('5');
+      expect(badges.length).toBe(1); // only icon badge (no right badge when showLabel=false)
+    });
+
+    it('renders icon badge in bottom-bar layout', () => {
+      render(<NavItem item={mockItem} layout="bottom-bar" badge={5} />);
+      const badges = screen.getAllByText('5');
+      expect(badges.length).toBe(1); // icon badge on corner, no right inline badge
+    });
+  });
+
   describe('different nav items', () => {
     it('renders groups item correctly', () => {
       const groupsItem: NavItemType = {
