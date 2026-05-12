@@ -18,7 +18,7 @@ const WEB_DIR = 'apps/web';
 const SRC_DIR = join(WEB_DIR, 'src');
 const LOCALES_DIR = join(WEB_DIR, 'src', 'locales');
 
-const KNOWN_NAMESPACES = ['auth', 'trips', 'groups', 'profile', 'errors', 'common', 'explore', 'feedback'];
+const KNOWN_NAMESPACES = ['auth', 'trips', 'groups', 'profile', 'errors', 'common', 'explore', 'feedback', 'legal'];
 const EXPLICIT_NS_PATTERN = new RegExp(`^(${KNOWN_NAMESPACES.join('|')})\\\.`);
 
 console.log(`${BLUE}🔍 Validating i18n keys...${NC}\n`);
@@ -34,6 +34,15 @@ const sourceFiles = execSync(`find ${SRC_DIR} -type f \\( -name "*.tsx" -o -name
   .filter((f) => f && !f.includes('.test.'));
 
 const usedKeys = new Set();
+// Keys matched via template literal prefix — any en.json key starting with these is considered used.
+const templatePrefixes = new Set();
+
+function qualifyKey(key, namespace) {
+  if (key.includes(':')) return key.replace(':', '.');
+  if (namespace === 'common' && EXPLICIT_NS_PATTERN.test(key)) return key;
+  if (key.includes('.') || key.length > 0) return `${namespace}.${key}`;
+  return null;
+}
 
 for (const file of sourceFiles) {
   const content = readFileSync(file, 'utf8');
@@ -55,8 +64,9 @@ for (const file of sourceFiles) {
     if (arrayNsMatch) namespace = arrayNsMatch[1];
   }
 
-  // Extract all t('key') calls, including explicit namespace prefix (e.g. 'common:actions.save')
-  for (const match of filteredContent.matchAll(/t\(['"]([a-zA-Z0-9._:-]+)['"]\)/g)) {
+  // Extract static t('key') and t('key', {...}) calls — drop the closing ) requirement so
+  // interpolated calls like t('key', { n }) are also captured.
+  for (const match of filteredContent.matchAll(/t\(['"]([a-zA-Z0-9._:-]+)['"]/g)) {
     const key = match[1];
     if (key.includes(':')) {
       // Explicit namespace prefix — normalise colon to dot: common:actions.save → common.actions.save
@@ -68,6 +78,15 @@ for (const file of sourceFiles) {
     } else if (key.includes('.')) {
       usedKeys.add(`${namespace}.${key}`);
     }
+  }
+
+  // Extract template literal t() calls: t(`prefix.${variable}`) — capture the static prefix before ${.
+  // Any en.json key whose dotted path starts with the qualified prefix is treated as used.
+  for (const match of filteredContent.matchAll(/t\(`([a-zA-Z0-9._:-]*)\$\{/g)) {
+    const rawPrefix = match[1];
+    if (!rawPrefix) continue;
+    const qualified = qualifyKey(rawPrefix, namespace);
+    if (qualified) templatePrefixes.add(qualified);
   }
 }
 
@@ -124,7 +143,10 @@ if (missingInEs.length > 0) {
 // Step 5: Unused keys (informational only)
 console.log(`${BLUE}Step 5: Checking for unused keys...${NC}`);
 
-const unusedKeys = [...enKeys].filter((k) => !usedKeys.has(k)).sort();
+const prefixList = [...templatePrefixes];
+const unusedKeys = [...enKeys]
+  .filter((k) => !usedKeys.has(k) && !prefixList.some((p) => k.startsWith(p)))
+  .sort();
 
 if (unusedKeys.length > 0) {
   console.log(
