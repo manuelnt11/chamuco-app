@@ -895,9 +895,12 @@ describe('GroupMembersService', () => {
       expect(result[0]?.initiatedAt).toBe(NOW.toISOString());
     });
 
-    it('filters out soft-deleted groups', async () => {
+    it('returns empty when groups query yields no results (simulates soft-delete filter)', async () => {
+      // NOTE: the mock bypasses Drizzle's WHERE clause, so this test verifies behaviour
+      // (invitation omitted when its group is absent from the result set) rather than
+      // the isNull(deletedAt) predicate itself. The predicate is covered by integration tests.
       mockGroupMembersFindMany.mockResolvedValue([invitedMembership]);
-      mockGroupsFindMany.mockResolvedValue([]); // soft-deleted groups excluded by isNull(deletedAt)
+      mockGroupsFindMany.mockResolvedValue([]);
       mockAssetsFindMany.mockResolvedValue([]);
 
       const result = await service.listMyInvitations(USER_ID);

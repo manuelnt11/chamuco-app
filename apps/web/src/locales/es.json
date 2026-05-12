@@ -311,7 +311,6 @@
       "saveChanges": "Guardar cambios"
     },
     "invitations": {
-      "title": "Invitaciones pendientes",
       "titleWithCount": "Invitaciones pendientes ({{count}})"
     },
     "detail": {

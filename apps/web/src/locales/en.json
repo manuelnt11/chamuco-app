@@ -311,7 +311,6 @@
       "saveChanges": "Save changes"
     },
     "invitations": {
-      "title": "Pending Invitations",
       "titleWithCount": "Pending Invitations ({{count}})"
     },
     "detail": {

@@ -32,6 +32,8 @@ export function GroupInvitationsProvider({ children }: { children: ReactNode }) 
     }
   }, []);
 
+  // TODO: once FCM is active, trigger refresh() from incoming group-invitation
+  // push notifications so the badge updates in real time without a page reload.
   useEffect(() => {
     if (authLoading) return;
 
