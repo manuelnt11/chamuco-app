@@ -25,9 +25,7 @@
       "trips": "Viajes",
       "groups": "Grupos",
       "explore": "Explorar",
-      "calendar": "Calendario",
       "profile": "Perfil",
-      "settings": "Configuración",
       "collapseSidebar": "Contraer barra lateral",
       "expandSidebar": "Expandir barra lateral"
     },
@@ -792,7 +790,6 @@
       "loadError": "Error al cargar el perfil",
       "retry": "Intentar de nuevo",
       "privateProfile": "Este perfil es privado",
-      "privateProfileDescription": "{{displayName}} ha configurado su perfil como privado.",
       "stats": {
         "heading": "Estadísticas de viaje",
         "tripsCompleted": "Viajes",

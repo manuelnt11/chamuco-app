@@ -160,7 +160,16 @@ When any of the following changes are made to the frontend codebase:
 
 1. **Missing keys** — Keys used in code (`t('key')`) but not defined in `en.json`
 2. **Translation parity** — Keys in `en.json` that don't exist in `es.json`
-3. **Unused keys** — Keys defined in translation files but not referenced in code (informational only)
+3. **Unused keys** — Keys defined in translation files but not referenced in code
+
+**Script limitations — known blind spots:**
+
+The script uses regex, not AST analysis. It will NOT detect keys used via:
+
+- **Template literals**: ``t(`namespace.${variable}`)`` — the script whitelists all keys under the static prefix (e.g. ``t(`members.role.${role}`)`` covers all `groups.members.role.*` keys). This means truly unused keys under a shared prefix will not be reported as orphaned.
+- Dynamic key construction via variables: `const key = condition ? 'a' : 'b'; t(key)` — never detected.
+
+When reviewing unused keys, keep this in mind: a key reported as "unused" is genuinely unused. A key **not** reported as unused may still be dead if it lives under a template-literal prefix.
 
 **Key conventions:**
 
@@ -174,7 +183,10 @@ When any of the following changes are made to the frontend codebase:
 
 - If keys are missing in `en.json`, add them to the appropriate namespace
 - If keys are missing in `es.json`, translate and add them (maintain parity with `en.json`)
-- If many unused keys are reported, it's informational — no action required unless keys are confirmed obsolete
+- If unused keys are reported, classify them before acting:
+  - **Pre-planned keys** (auth flows, trips page, groups features not yet built) — keep them; they are intentionally defined ahead of implementation
+  - **Dead keys** (key exists in JSON, but code uses a different key, or the feature was removed) — delete from both `en.json` and `es.json`
+  - **~100 pre-planned keys** currently exist across `auth`, `common.actions`, `common.status`, `common.time`, `common.validation`, `errors`, `explore`, `groups`, `profile`, and `trips` namespaces — this is expected and not a problem
 
 **The script exits with code 1 if any keys are missing**, blocking commits via pre-commit hooks if integrated. All i18n keys must be valid before merging.
 
