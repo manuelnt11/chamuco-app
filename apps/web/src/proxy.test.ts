@@ -1,4 +1,4 @@
-import { proxy } from './proxy';
+import proxy from './proxy';
 
 // vi.hoisted ensures mock functions exist before the vi.mock factory runs
 const { mockNext, mockRedirect } = vi.hoisted(() => ({
@@ -56,7 +56,7 @@ describe('proxy', () => {
   describe('/sign-in — auth but not registered (__Host-chamuco-auth only)', () => {
     it('redirects to /onboarding', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in', {
-        '__Host-chamuco-auth': '1',
+        'chamuco-auth': '1',
       });
       proxy(request);
       expect(mockRedirect).toHaveBeenCalledOnce();
@@ -67,7 +67,7 @@ describe('proxy', () => {
 
     it('does not call NextResponse.next()', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in', {
-        '__Host-chamuco-auth': '1',
+        'chamuco-auth': '1',
       });
       proxy(request);
       expect(mockNext).not.toHaveBeenCalled();
@@ -77,8 +77,8 @@ describe('proxy', () => {
   describe('/sign-in — fully authenticated (both cookies present)', () => {
     it('redirects to /', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in', {
-        '__Host-chamuco-auth': '1',
-        '__Host-chamuco-registered': '1',
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       proxy(request);
       expect(mockRedirect).toHaveBeenCalledOnce();
@@ -89,8 +89,8 @@ describe('proxy', () => {
 
     it('does not call NextResponse.next() when fully authenticated', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in', {
-        '__Host-chamuco-auth': '1',
-        '__Host-chamuco-registered': '1',
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       proxy(request);
       expect(mockNext).not.toHaveBeenCalled();
@@ -98,8 +98,8 @@ describe('proxy', () => {
 
     it('returns the result of NextResponse.redirect()', () => {
       const request = makeRequest('https://app.chamucotravel.com/sign-in', {
-        '__Host-chamuco-auth': '1',
-        '__Host-chamuco-registered': '1',
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       const result = proxy(request);
       expect(result).toEqual({ type: 'redirect' });
@@ -126,7 +126,7 @@ describe('proxy', () => {
   describe('/onboarding — auth but not registered (__Host-chamuco-auth only)', () => {
     it('calls NextResponse.next()', () => {
       const request = makeRequest('https://app.chamucotravel.com/onboarding', {
-        '__Host-chamuco-auth': '1',
+        'chamuco-auth': '1',
       });
       proxy(request);
       expect(mockNext).toHaveBeenCalledOnce();
@@ -135,7 +135,7 @@ describe('proxy', () => {
 
     it('returns the result of NextResponse.next()', () => {
       const request = makeRequest('https://app.chamucotravel.com/onboarding', {
-        '__Host-chamuco-auth': '1',
+        'chamuco-auth': '1',
       });
       const result = proxy(request);
       expect(result).toEqual({ type: 'next' });
@@ -145,8 +145,8 @@ describe('proxy', () => {
   describe('/onboarding — fully authenticated (both cookies present)', () => {
     it('redirects to /', () => {
       const request = makeRequest('https://app.chamucotravel.com/onboarding', {
-        '__Host-chamuco-auth': '1',
-        '__Host-chamuco-registered': '1',
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       proxy(request);
       expect(mockRedirect).toHaveBeenCalledOnce();
@@ -166,7 +166,7 @@ describe('proxy', () => {
 
     it('calls NextResponse.next() when authenticated but not registered', () => {
       const request = makeRequest(`https://app.chamucotravel.com${route}`, {
-        '__Host-chamuco-auth': '1',
+        'chamuco-auth': '1',
       });
       proxy(request);
       expect(mockNext).toHaveBeenCalledOnce();
@@ -175,8 +175,8 @@ describe('proxy', () => {
 
     it('calls NextResponse.next() when fully authenticated', () => {
       const request = makeRequest(`https://app.chamucotravel.com${route}`, {
-        '__Host-chamuco-auth': '1',
-        '__Host-chamuco-registered': '1',
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       proxy(request);
       expect(mockNext).toHaveBeenCalledOnce();
@@ -196,7 +196,7 @@ describe('proxy', () => {
 
     it('redirects auth-but-unregistered request to /onboarding', () => {
       const request = makeRequest('https://app.chamucotravel.com/', {
-        '__Host-chamuco-auth': '1',
+        'chamuco-auth': '1',
       });
       proxy(request);
       expect(mockRedirect).toHaveBeenCalledOnce();
@@ -207,8 +207,8 @@ describe('proxy', () => {
 
     it('calls NextResponse.next() when both cookies are present', () => {
       const request = makeRequest('https://app.chamucotravel.com/', {
-        '__Host-chamuco-auth': '1',
-        '__Host-chamuco-registered': '1',
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       proxy(request);
       expect(mockNext).toHaveBeenCalledOnce();
@@ -225,7 +225,7 @@ describe('proxy', () => {
 
     it('redirects auth-but-unregistered /trips request to /onboarding', () => {
       const request = makeRequest('https://app.chamucotravel.com/trips', {
-        '__Host-chamuco-auth': '1',
+        'chamuco-auth': '1',
       });
       proxy(request);
       expect(mockRedirect).toHaveBeenCalledWith(
@@ -235,8 +235,8 @@ describe('proxy', () => {
 
     it('calls NextResponse.next() for /trips when fully authenticated', () => {
       const request = makeRequest('https://app.chamucotravel.com/trips', {
-        '__Host-chamuco-auth': '1',
-        '__Host-chamuco-registered': '1',
+        'chamuco-auth': '1',
+        'chamuco-registered': '1',
       });
       proxy(request);
       expect(mockNext).toHaveBeenCalledOnce();

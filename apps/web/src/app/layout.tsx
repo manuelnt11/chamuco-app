@@ -1,12 +1,14 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { Plus_Jakarta_Sans } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 import { I18nProvider } from '@/components/I18nProvider';
 import { AppShell } from '@/components/layout';
 import { PreferencesSync } from '@/components/PreferencesSync';
+import { IosPwaPrompt } from '@/components/IosPwaPrompt';
 import { AuthProvider } from '@/store/auth';
 import { UserProvider } from '@/store/user';
 import { cn } from '@/lib/utils';
@@ -18,6 +20,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#38BDF8',
+};
 
 export const metadata: Metadata = {
   title: 'Chamuco Travel',
@@ -33,7 +42,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'Chamuco',
   },
 };
@@ -41,15 +50,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={cn('font-sans', plusJakartaSans.variable)}>
-      <head>
-        {/* Blocking script: apply saved sidebar width before React hydrates to prevent layout shift */}
-        <script
+      <body>
+        <Script
+          id="sidebar-width-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `try{if(localStorage.getItem('${SIDEBAR_STORAGE_KEY}')==='true'){document.documentElement.style.setProperty('--layout-sidebar-width','${SIDEBAR_COLLAPSED_WIDTH}')}}catch(_){}`,
           }}
         />
-      </head>
-      <body>
         <ServiceWorkerRegistration />
         <I18nProvider>
           <ThemeProvider
@@ -57,6 +65,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             defaultTheme="system"
             enableSystem
             storageKey="chamuco-theme"
+            scriptProps={{ async: true }}
           >
             <AuthProvider>
               <UserProvider>
@@ -64,6 +73,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <AppShell>{children}</AppShell>
               </UserProvider>
             </AuthProvider>
+            <IosPwaPrompt />
           </ThemeProvider>
         </I18nProvider>
       </body>

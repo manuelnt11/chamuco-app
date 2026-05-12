@@ -73,6 +73,13 @@
       "description": "Agrega tus nacionalidades y contactos de emergencia para acceder a todas las funciones.",
       "action": "Completar perfil",
       "dismiss": "Descartar"
+    },
+    "installPrompt": {
+      "title": "Instala Chamuco Travel",
+      "description": "Agrégala a tu pantalla de inicio para la mejor experiencia",
+      "instruction": "Toca <shareIcon /> y luego \"Añadir a la pantalla de inicio\"",
+      "install": "Instalar",
+      "dismiss": "Ahora no"
     }
   },
   "auth": {

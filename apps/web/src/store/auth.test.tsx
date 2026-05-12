@@ -372,7 +372,7 @@ describe('AuthProvider', () => {
     await waitFor(() =>
       expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('chamuco-auth=1')),
     );
-    expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Secure'));
+    expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('SameSite=Strict'));
     cookieSetter.mockRestore();
   });
 
@@ -385,7 +385,7 @@ describe('AuthProvider', () => {
     await waitFor(() =>
       expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Max-Age=0')),
     );
-    expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('Secure'));
+    expect(cookieSetter).toHaveBeenCalledWith(expect.stringContaining('SameSite=Strict'));
     cookieSetter.mockRestore();
   });
 
