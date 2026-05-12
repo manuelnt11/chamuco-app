@@ -224,15 +224,15 @@ Credentials are resolved from environment:
 | Local development      | `DATABASE_URL` connection string                                                                |
 | Cloud Run (production) | Unix socket `/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres` + IAM auth via `PGPASSWORD` |
 
-The production path is detected by `NODE_ENV === 'production' && K_SERVICE` (Cloud Run sets `K_SERVICE` automatically).
+The production path is detected by `NODE_ENV === 'production' && K_SERVICE` (Cloud Run sets `K_SERVICE` automatically). In production, the password is an async function that fetches a fresh OAuth2 token from the GCP metadata server on each new connection — tokens expire every ~1 hour so this must be dynamic.
 
 ### Environment variables
 
-| Variable            | Required        | Description                                                                                   |
-| ------------------- | --------------- | --------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`      | Local only      | Full PostgreSQL connection string (e.g., `postgresql://user:pass@localhost:5432/chamuco_dev`) |
-| `DATABASE_POOL_MAX` | Optional        | Max connections in the pool. Default: `10`                                                    |
-| `PGPASSWORD`        | Production only | IAM token for Cloud SQL authentication. Set by the Cloud Run startup script.                  |
+| Variable            | Required   | Description                                                                                   |
+| ------------------- | ---------- | --------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`      | Local only | Full PostgreSQL connection string (e.g., `postgresql://user:pass@localhost:5432/chamuco_dev`) |
+| `DATABASE_POOL_MAX` | Optional   | Max connections in the pool. Default: `10`                                                    |
+| `PGPASSWORD`        | Not used   | Removed. Token is now fetched dynamically from the GCP metadata server per connection.        |
 
 ---
 

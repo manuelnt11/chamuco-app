@@ -8,7 +8,7 @@ async function getIAMToken() {
   // In Cloud Run, we can get the token from the metadata server
   // Request token with Cloud SQL scope
   const metadataServerUrl =
-    'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token?scopes=https://www.googleapis.com/auth/sqlservice.admin';
+    'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token?scopes=https://www.googleapis.com/auth/sqlservice.login';
 
   try {
     const response = await fetch(metadataServerUrl, {

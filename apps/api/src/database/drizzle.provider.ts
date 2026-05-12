@@ -32,7 +32,15 @@ export const drizzleProvider = {
         host: '/cloudsql/chamuco-app-mn:us-central1:chamuco-postgres',
         database: 'chamuco_prod',
         user: 'chamuco-api-sa@chamuco-app-mn.iam',
-        password: process.env.PGPASSWORD || '', // IAM token set by startup script
+        // Fetched per connection — tokens expire every ~1h
+        password: async () => {
+          const res = await fetch(
+            'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+            { headers: { 'Metadata-Flavor': 'Google' } },
+          );
+          const data = (await res.json()) as { access_token: string };
+          return data.access_token;
+        },
         max: poolMax,
         idle_timeout: 20,
         connect_timeout: 10,
