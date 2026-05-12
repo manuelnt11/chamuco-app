@@ -1,30 +1,32 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import { COOKIE_CHAMUCO_AUTH_NAME, COOKIE_CHAMUCO_REGISTERED_NAME } from '@/lib/auth-cookies';
+
 /**
  * Route-level auth guards with three-state logic.
  *
  * Two cookies drive routing decisions:
- *   __Host-chamuco-auth        — set by AuthProvider when Firebase reports a signed-in user
- *   __Host-chamuco-registered  — set by sign-in and onboarding pages when Chamuco registration
- *                                is confirmed (GET /users/me → 200 or POST /auth/register → 201)
+ *   chamuco-auth        (dev) / __Host-chamuco-auth        (prod)
+ *   chamuco-registered  (dev) / __Host-chamuco-registered  (prod)
  *
- * Neither cookie is cryptographically verified here — they are used for routing only.
- * Real auth verification always happens server-side via Firebase Admin SDK.
+ * Set by AuthProvider when Firebase reports a signed-in user. Neither cookie
+ * is cryptographically verified here — they are used for routing only. Real
+ * auth verification always happens server-side via Firebase Admin SDK.
  *
  * Three states:
- *   unauthenticated     — no __Host-chamuco-auth                         → redirect to /sign-in
- *   auth + unregistered — __Host-chamuco-auth, no __Host-chamuco-registered → redirect to /onboarding
- *   auth + registered   — both cookies present       → allow through
+ *   unauthenticated     — no auth cookie                  → redirect to /sign-in
+ *   auth + unregistered — auth cookie, no registered cookie → redirect to /onboarding
+ *   auth + registered   — both cookies present            → allow through
  *
  * Route overrides:
  *   /sign-in    — unauthenticated → next(); auth+unregistered → /onboarding; auth+registered → /
  *   /onboarding — unauthenticated → /sign-in; auth+unregistered → next(); auth+registered → /
  *   all others  — unauthenticated → /sign-in; auth+unregistered → /onboarding; auth+registered → next()
  */
-export function proxy(request: NextRequest): NextResponse {
-  const isAuthenticated = request.cookies.has('__Host-chamuco-auth');
-  const isRegistered = request.cookies.has('__Host-chamuco-registered');
+export default function proxy(request: NextRequest): NextResponse {
+  const isAuthenticated = request.cookies.has(COOKIE_CHAMUCO_AUTH_NAME);
+  const isRegistered = request.cookies.has(COOKIE_CHAMUCO_REGISTERED_NAME);
   const { pathname } = request.nextUrl;
 
   if (pathname === '/sign-in') {

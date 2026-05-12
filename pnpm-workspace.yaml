@@ -22,6 +22,9 @@ catalog:
   eslint-plugin-prettier: ^5.5.5
   prettier: ^3.8.3
   typescript: ^6.0.3
+minimumReleaseAgeExclude:
+  - '@protobufjs/utf8@1.1.1'
+  - protobufjs@8.0.2
 overrides:
   cross-spawn: '>=6.0.6'
   glob: '>=10.5.0'
