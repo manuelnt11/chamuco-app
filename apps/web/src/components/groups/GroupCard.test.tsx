@@ -7,10 +7,6 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock('@chamuco/shared-utils', () => ({
-  getTwemojiUrl: (emoji: string) => `https://twemoji.example.com/${emoji}.svg`,
-}));
-
 vi.mock('next/link', () => ({
   default: ({
     href,
@@ -33,15 +29,7 @@ const emojiGroup: Group = {
   id: 'group-1',
   name: 'Mountain Crew',
   description: 'A hiking group',
-  cover: {
-    id: 'asset-1',
-    type: 'image',
-    source: 'emoji',
-    target: '🏔️',
-    isPublic: true,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    url: 'https://twemoji.example.com/🏔️.svg',
-  },
+  coverUrl: 'https://twemoji.example.com/🏔️.svg',
   visibility: GroupVisibility.PUBLIC,
   createdBy: 'user-1',
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -52,15 +40,7 @@ const imageGroup: Group = {
   ...emojiGroup,
   id: 'group-2',
   visibility: GroupVisibility.PRIVATE,
-  cover: {
-    id: 'asset-2',
-    type: 'image',
-    source: 'gcs',
-    target: 'group-covers/group-2/cover.jpg',
-    isPublic: true,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    url: 'https://storage.googleapis.com/bucket/group-covers/group-2/cover.jpg',
-  },
+  coverUrl: 'https://storage.googleapis.com/bucket/group-covers/group-2/cover.jpg',
 };
 
 describe('GroupCard', () => {
@@ -80,19 +60,10 @@ describe('GroupCard', () => {
       expect(screen.queryByText('A hiking group')).not.toBeInTheDocument();
     });
 
-    it('renders twemoji img for emoji cover', () => {
+    it('renders cover image', () => {
       render(<GroupCard group={emojiGroup} />);
       const img = screen.getByRole('img', { hidden: true });
       expect(img).toHaveAttribute('src', 'https://twemoji.example.com/🏔️.svg');
-    });
-
-    it('renders cover image for gcs cover', () => {
-      render(<GroupCard group={imageGroup} />);
-      const img = screen.getByRole('img', { hidden: true });
-      expect(img).toHaveAttribute(
-        'src',
-        'https://storage.googleapis.com/bucket/group-covers/group-2/cover.jpg',
-      );
     });
 
     it('renders public visibility badge', () => {

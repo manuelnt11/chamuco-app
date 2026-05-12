@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { getTwemojiUrl } from '@chamuco/shared-utils';
 import { GroupVisibility } from '@chamuco/shared-types';
 import type { Group } from '@/types/group';
 
@@ -19,16 +18,7 @@ export function GroupCard({ group }: GroupCardProps) {
       className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/50"
     >
       <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
-        {group.cover.source === 'emoji' ? (
-          <img
-            src={getTwemojiUrl(group.cover.target)}
-            alt={group.cover.target}
-            className="size-9"
-            aria-hidden="true"
-          />
-        ) : (
-          <img src={group.cover.url} alt="" className="size-full object-cover" />
-        )}
+        <img src={group.coverUrl} alt="" className="size-full object-cover" />
       </div>
 
       <div className="min-w-0 flex-1">

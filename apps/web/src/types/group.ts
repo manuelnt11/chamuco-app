@@ -3,14 +3,13 @@ import type {
   GroupMemberTier,
   GroupRole,
   GroupVisibility,
-  ResolvedAsset,
 } from '@chamuco/shared-types';
 
 export interface Group {
   id: string;
   name: string;
   description: string | null;
-  cover: ResolvedAsset;
+  coverUrl: string;
   visibility: GroupVisibility;
   createdBy: string;
   createdAt: string;
@@ -40,7 +39,7 @@ export interface GroupInvitation {
   group: {
     id: string;
     name: string;
-    cover: ResolvedAsset;
+    coverUrl: string;
   };
   initiatedAt: string;
 }

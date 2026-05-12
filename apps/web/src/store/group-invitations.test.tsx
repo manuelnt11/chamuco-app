@@ -44,15 +44,7 @@ const mockInvitation: GroupInvitation = {
   group: {
     id: 'group-uuid',
     name: 'Mountain Crew',
-    cover: {
-      id: 'asset-uuid',
-      type: 'image',
-      source: 'emoji',
-      target: '⛰️',
-      url: 'https://cdn.example.com/emoji.svg',
-      isPublic: true,
-      createdAt: '2026-01-01T00:00:00.000Z',
-    },
+    coverUrl: 'https://cdn.example.com/emoji.svg',
   },
   initiatedAt: '2026-01-01T00:00:00.000Z',
 };

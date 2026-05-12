@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 import { GroupVisibility } from '@chamuco/shared-types';
-import { ResolvedAssetDto } from '@/modules/assets/dto/resolved-asset.dto';
 
 export class GroupResponseDto {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
@@ -13,8 +12,11 @@ export class GroupResponseDto {
   @ApiProperty({ example: 'A group for mountain hiking enthusiasts.', nullable: true })
   description!: string | null;
 
-  @ApiProperty({ type: ResolvedAssetDto })
-  cover!: ResolvedAssetDto;
+  @ApiProperty({
+    description: 'Ready-to-use URL for the group cover image or emoji (Twemoji CDN).',
+    example: 'https://cdn.jsdelivr.net/npm/twemoji/2/svg/1f3d4.svg',
+  })
+  coverUrl!: string;
 
   @ApiProperty({ enum: GroupVisibility, example: GroupVisibility.PUBLIC })
   visibility!: GroupVisibility;

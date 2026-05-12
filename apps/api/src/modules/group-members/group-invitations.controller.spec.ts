@@ -31,15 +31,7 @@ const mockInvitationResponse: MyInvitationResponseDto = {
   group: {
     id: 'group-uuid',
     name: 'Mountain Crew',
-    cover: {
-      id: 'asset-uuid',
-      type: 'image',
-      source: 'emoji',
-      target: '⛰️',
-      url: 'https://cdn.jsdelivr.net/npm/twemoji/2/svg/26f0.svg',
-      isPublic: true,
-      createdAt: '2026-01-01T00:00:00.000Z',
-    },
+    coverUrl: 'https://cdn.jsdelivr.net/npm/twemoji/2/svg/26f0.svg',
   },
   initiatedAt: '2026-01-01T00:00:00.000Z',
 };
