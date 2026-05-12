@@ -3,6 +3,7 @@
 import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import { useSidebarCollapsed } from '@/lib/hooks/useSidebarCollapsed';
+import { useGroupInvitations } from '@/store/group-invitations';
 import { cn } from '@/lib/utils';
 import { NAV_ITEMS } from './navigation.config';
 import { NavItem } from './NavItem';
@@ -10,6 +11,7 @@ import { NavItem } from './NavItem';
 export function DesktopSideNav() {
   const { collapsed, toggle } = useSidebarCollapsed();
   const { t } = useTranslation();
+  const { count: invitationCount } = useGroupInvitations();
 
   const toggleLabel = collapsed ? t('navigation.expandSidebar') : t('navigation.collapseSidebar');
 
@@ -26,7 +28,13 @@ export function DesktopSideNav() {
     >
       <div className="flex flex-col gap-2 flex-1 p-2">
         {NAV_ITEMS.map((item) => (
-          <NavItem key={item.key} item={item} layout="sidebar" showLabel={!collapsed} />
+          <NavItem
+            key={item.key}
+            item={item}
+            layout="sidebar"
+            showLabel={!collapsed}
+            badge={item.key === 'groups' ? invitationCount : undefined}
+          />
         ))}
       </div>
 

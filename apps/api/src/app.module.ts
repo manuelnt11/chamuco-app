@@ -31,8 +31,10 @@ import * as path from 'path';
     UsersModule,
     AssetsModule,
     CloudStorageModule,
-    GroupsModule,
+    // GroupMembersModule must be registered before GroupsModule so that
+    // GET /v1/groups/invitations (static) takes priority over GET /v1/groups/:id (dynamic param).
     GroupMembersModule,
+    GroupsModule,
     UploadsModule,
     HealthModule,
     FeedbackModule,

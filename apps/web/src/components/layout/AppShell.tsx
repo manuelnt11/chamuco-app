@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Header } from '@/components/header';
 import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
 import { FeedbackButton } from '@/components/feedback/FeedbackButton';
+import { GroupInvitationsProvider } from '@/store/group-invitations';
 // TODO: re-enable once notifications/banners are fully designed
 // import { ProfileCompletionBanner } from '@/components/ProfileCompletionBanner';
 
@@ -29,7 +30,7 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   return (
-    <>
+    <GroupInvitationsProvider>
       <Header />
       <DesktopSideNav />
       <MobileBottomNav />
@@ -38,6 +39,6 @@ export function AppShell({ children }: AppShellProps) {
         {children}
       </main>
       <FeedbackButton />
-    </>
+    </GroupInvitationsProvider>
   );
 }

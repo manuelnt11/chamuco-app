@@ -47,6 +47,15 @@ vi.mock('@/lib/hooks/useSidebarCollapsed', () => ({
   useSidebarCollapsed: vi.fn(() => ({ collapsed: false, toggle: mockToggle })),
 }));
 
+vi.mock('@/store/group-invitations', () => ({
+  useGroupInvitations: vi.fn(() => ({
+    invitations: [],
+    count: 0,
+    isLoading: false,
+    refresh: vi.fn(),
+  })),
+}));
+
 describe('DesktopSideNav', () => {
   it('renders as a nav element', () => {
     const { container } = render(<DesktopSideNav />);

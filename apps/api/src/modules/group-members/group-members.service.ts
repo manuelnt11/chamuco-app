@@ -6,8 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { and, count, eq, inArray, isNull } from 'drizzle-orm';
-
 import { GroupMemberStatus, GroupMemberTier, GroupRole } from '@chamuco/shared-types';
+import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { users } from '@/modules/users/schema/users.schema';
 import { assets } from '@/modules/assets/schema/assets.schema';
@@ -20,6 +20,7 @@ import type { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import type { MemberResponseDto } from './dto/member-response.dto';
 import type { PendingItemResponseDto } from './dto/pending-item-response.dto';
 import type { MyMembershipResponseDto } from './dto/my-membership-response.dto';
+import type { MyInvitationResponseDto } from './dto/my-invitation-response.dto';
 
 const ADMIN_ROLES = [GroupRole.OWNER, GroupRole.ADMIN] as const;
 
@@ -399,6 +400,50 @@ export class GroupMembersService {
       status: membership.status as GroupMemberStatus,
       role: membership.role as GroupRole,
     };
+  }
+
+  async listMyInvitations(userId: string): Promise<MyInvitationResponseDto[]> {
+    const rows = await this.db.query.groupMembers.findMany({
+      where: and(
+        eq(groupMembers.userId, userId),
+        eq(groupMembers.status, GroupMemberStatus.INVITED),
+      ),
+    });
+
+    if (rows.length === 0) return [];
+
+    const groupIds = rows.map((r) => r.groupId);
+    const groupRows = await this.db.query.groups.findMany({
+      where: and(inArray(groups.id, groupIds), isNull(groups.deletedAt)),
+    });
+
+    const coverIds = groupRows.map((g) => g.cover).filter((id): id is string => id !== null);
+    const coverAssets =
+      coverIds.length > 0
+        ? await this.db.query.assets.findMany({ where: inArray(assets.id, coverIds) })
+        : [];
+    const assetMap = new Map(coverAssets.map((a) => [a.id, a]));
+
+    const groupMap = new Map(groupRows.map((g) => [g.id, g]));
+
+    return Promise.all(
+      rows
+        .filter((r) => groupMap.has(r.groupId))
+        .map(async (membership) => {
+          const group = groupMap.get(membership.groupId)!;
+          const coverRow = group.cover ? (assetMap.get(group.cover) ?? null) : null;
+          const resolvedCover = await this.assetResolver.resolve(
+            coverRow ? assetRowToAsset(coverRow) : null,
+          );
+          if (!resolvedCover)
+            throw new NotFoundException(`Cover asset not found for group ${group.id}`);
+
+          return {
+            group: { id: group.id, name: group.name, cover: resolvedCover },
+            initiatedAt: membership.initiatedAt.toISOString(),
+          };
+        }),
+    );
   }
 
   // ─── List endpoints ───────────────────────────────────────────────────────────

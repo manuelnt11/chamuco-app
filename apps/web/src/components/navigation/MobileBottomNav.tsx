@@ -2,12 +2,14 @@
 
 import { cn } from '@/lib/utils';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
+import { useGroupInvitations } from '@/store/group-invitations';
 import { NAV_ITEMS } from './navigation.config';
 import { NavItem } from './NavItem';
 
 export function MobileBottomNav() {
   const scrollDirection = useScrollDirection();
   const hidden = scrollDirection === 'down';
+  const { count: invitationCount } = useGroupInvitations();
 
   return (
     <nav
@@ -21,7 +23,11 @@ export function MobileBottomNav() {
     >
       {NAV_ITEMS.map((item) => (
         <div key={item.key} className="flex-1">
-          <NavItem item={item} layout="bottom-bar" />
+          <NavItem
+            item={item}
+            layout="bottom-bar"
+            badge={item.key === 'groups' ? invitationCount : undefined}
+          />
         </div>
       ))}
     </nav>

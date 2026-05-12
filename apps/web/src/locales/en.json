@@ -310,6 +310,9 @@
       "submit": "Create group",
       "saveChanges": "Save changes"
     },
+    "invitations": {
+      "titleWithCount": "Pending Invitations ({{count}})"
+    },
     "detail": {
       "noGroups": "You don't have any groups yet",
       "createFirst": "Create your first group to start organizing trips"

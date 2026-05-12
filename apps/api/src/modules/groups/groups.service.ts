@@ -1,11 +1,11 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 
-import type { Asset } from '@chamuco/shared-types';
 import { GroupMemberStatus, GroupRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
 import { PUBLIC_OBJECT_PREFIXES } from '@/modules/cloud-storage/cloud-storage.constants';
 import type { AuthenticatedUser } from '@/types/express';
@@ -141,7 +141,7 @@ export class GroupsService {
         if (!group.cover) throw new NotFoundException('Group cover asset not found');
         const coverRow = assetMap.get(group.cover);
         if (!coverRow) throw new NotFoundException('Group cover asset not found');
-        const resolvedCover = await this.assetResolver.resolve(this.toAsset(coverRow));
+        const resolvedCover = await this.assetResolver.resolve(assetRowToAsset(coverRow));
         if (!resolvedCover) throw new NotFoundException('Failed to resolve group cover');
         return {
           id: group.id,
@@ -277,7 +277,7 @@ export class GroupsService {
     const coverRow = await this.db.query.assets.findFirst({ where: eq(assets.id, group.cover) });
     if (!coverRow) throw new NotFoundException('Group cover asset not found');
 
-    const resolvedCover = await this.assetResolver.resolve(this.toAsset(coverRow));
+    const resolvedCover = await this.assetResolver.resolve(assetRowToAsset(coverRow));
     if (!resolvedCover) throw new NotFoundException('Failed to resolve group cover');
 
     return {
@@ -289,18 +289,6 @@ export class GroupsService {
       createdBy: group.createdBy,
       createdAt: group.createdAt.toISOString(),
       updatedAt: group.updatedAt.toISOString(),
-    };
-  }
-
-  private toAsset(row: typeof assets.$inferSelect): Asset {
-    return {
-      id: row.id,
-      type: row.type,
-      source: row.source,
-      target: row.target,
-      fileSize: row.fileSize ?? undefined,
-      isPublic: row.isPublic,
-      createdAt: row.createdAt.toISOString(),
     };
   }
 }

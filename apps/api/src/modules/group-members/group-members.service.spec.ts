@@ -75,6 +75,7 @@ describe('GroupMembersService', () => {
   let service: GroupMembersService;
 
   let mockGroupsFindFirst: jest.Mock;
+  let mockGroupsFindMany: jest.Mock;
   let mockGroupMembersFindFirst: jest.Mock;
   let mockGroupMembersFindMany: jest.Mock;
   let mockUsersFindFirst: jest.Mock;
@@ -100,6 +101,7 @@ describe('GroupMembersService', () => {
 
   beforeEach(async () => {
     mockGroupsFindFirst = jest.fn().mockResolvedValue(mockPublicGroup);
+    mockGroupsFindMany = jest.fn().mockResolvedValue([]);
     mockGroupMembersFindFirst = jest.fn().mockResolvedValue(ownerMembership);
     mockGroupMembersFindMany = jest.fn().mockResolvedValue([]);
     mockUsersFindFirst = jest.fn().mockResolvedValue(mockTargetUser);
@@ -146,7 +148,7 @@ describe('GroupMembersService', () => {
           provide: DRIZZLE_CLIENT,
           useValue: {
             query: {
-              groups: { findFirst: mockGroupsFindFirst },
+              groups: { findFirst: mockGroupsFindFirst, findMany: mockGroupsFindMany },
               groupMembers: {
                 findFirst: mockGroupMembersFindFirst,
                 findMany: mockGroupMembersFindMany,
@@ -833,6 +835,77 @@ describe('GroupMembersService', () => {
       expect(result).toHaveLength(2);
       expect(result.map((r) => r.status)).toContain(GroupMemberStatus.REQUEST);
       expect(result.map((r) => r.status)).toContain(GroupMemberStatus.INVITED);
+    });
+  });
+
+  // ─── listMyInvitations ───────────────────────────────────────────────────────
+
+  describe('listMyInvitations', () => {
+    const mockGroupRow = {
+      id: GROUP_ID,
+      name: 'Mountain Crew',
+      cover: 'asset-uuid',
+      visibility: GroupVisibility.PUBLIC,
+      createdBy: ADMIN_ID,
+      createdAt: NOW,
+      updatedAt: NOW,
+      deletedAt: null,
+    };
+
+    const mockCoverAsset = {
+      id: 'asset-uuid',
+      type: 'image',
+      source: 'emoji',
+      target: '⛰️',
+      fileSize: null,
+      isPublic: true,
+      createdAt: NOW,
+    };
+
+    const mockResolvedCover = {
+      id: 'asset-uuid',
+      type: 'image',
+      source: 'emoji',
+      target: '⛰️',
+      url: 'https://cdn.jsdelivr.net/npm/twemoji/2/svg/26f0.svg',
+      isPublic: true,
+      createdAt: NOW.toISOString(),
+    };
+
+    it('returns empty array when user has no pending invitations', async () => {
+      mockGroupMembersFindMany.mockResolvedValue([]);
+
+      const result = await service.listMyInvitations(USER_ID);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns invitation with group info and resolved cover', async () => {
+      mockGroupMembersFindMany.mockResolvedValue([invitedMembership]);
+      mockGroupsFindMany.mockResolvedValue([mockGroupRow]);
+      mockAssetsFindMany.mockResolvedValue([mockCoverAsset]);
+      mockAssetResolverResolve.mockResolvedValue(mockResolvedCover);
+
+      const result = await service.listMyInvitations(USER_ID);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.group.id).toBe(GROUP_ID);
+      expect(result[0]?.group.name).toBe('Mountain Crew');
+      expect(result[0]?.group.cover).toEqual(mockResolvedCover);
+      expect(result[0]?.initiatedAt).toBe(NOW.toISOString());
+    });
+
+    it('returns empty when groups query yields no results (simulates soft-delete filter)', async () => {
+      // NOTE: the mock bypasses Drizzle's WHERE clause, so this test verifies behaviour
+      // (invitation omitted when its group is absent from the result set) rather than
+      // the isNull(deletedAt) predicate itself. The predicate is covered by integration tests.
+      mockGroupMembersFindMany.mockResolvedValue([invitedMembership]);
+      mockGroupsFindMany.mockResolvedValue([]);
+      mockAssetsFindMany.mockResolvedValue([]);
+
+      const result = await service.listMyInvitations(USER_ID);
+
+      expect(result).toEqual([]);
     });
   });
 });

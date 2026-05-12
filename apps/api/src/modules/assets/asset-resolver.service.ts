@@ -11,6 +11,9 @@ import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.servi
 export class AssetResolverService {
   constructor(private readonly cloudStorage: CloudStorageService) {}
 
+  // TODO: add fallback so resolve() never returns null for a non-null asset —
+  // GCS signed-URL failures should surface a placeholder URL rather than
+  // propagating null to callers, which currently forces them to throw or guard.
   async resolve(asset: Asset | null): Promise<ResolvedAsset | null> {
     if (!asset) return null;
     return this.resolveOne(asset);

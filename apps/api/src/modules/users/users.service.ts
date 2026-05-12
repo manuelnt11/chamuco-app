@@ -18,7 +18,8 @@ import { userPreferences } from '@/modules/users/schema/user-preferences.schema'
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
 import { DocumentStatus, PassportStatus, ProfileVisibility } from '@chamuco/shared-types';
-import type { Asset, ResolvedAsset } from '@chamuco/shared-types';
+import type { ResolvedAsset } from '@chamuco/shared-types';
+import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { computeDocumentStatus } from '@/common/utils/document-status.util';
 import { computePassportStatus } from '@/common/utils/passport-status.util';
 import type { AuthenticatedUser } from '@/types/express';
@@ -680,19 +681,7 @@ export class UsersService {
     if (!avatarId) return null;
     const row = await this.db.query.assets.findFirst({ where: eq(assets.id, avatarId) });
     if (!row) return null;
-    return this.assetResolver.resolve(this.toAsset(row));
-  }
-
-  private toAsset(row: typeof assets.$inferSelect): Asset {
-    return {
-      id: row.id,
-      type: row.type,
-      source: row.source,
-      target: row.target,
-      fileSize: row.fileSize ?? undefined,
-      isPublic: row.isPublic,
-      createdAt: row.createdAt.toISOString(),
-    };
+    return this.assetResolver.resolve(assetRowToAsset(row));
   }
 
   private mapPreferencesResponse(
