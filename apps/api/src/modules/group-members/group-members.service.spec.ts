@@ -891,7 +891,7 @@ describe('GroupMembersService', () => {
       expect(result).toHaveLength(1);
       expect(result[0]?.group.id).toBe(GROUP_ID);
       expect(result[0]?.group.name).toBe('Mountain Crew');
-      expect(result[0]?.group.cover).toEqual(mockResolvedCover);
+      expect(result[0]?.group.coverUrl).toBe(mockResolvedCover.url);
       expect(result[0]?.initiatedAt).toBe(NOW.toISOString());
     });
 

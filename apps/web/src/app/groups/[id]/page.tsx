@@ -60,13 +60,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
       <div className="flex items-start gap-6 mb-6">
         <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted flex items-center justify-center">
-          {group.cover.source === 'emoji' ? (
-            <span className="text-3xl" role="img" aria-label={group.cover.target}>
-              {group.cover.target}
-            </span>
-          ) : (
-            <img src={group.cover.url} alt="" className="size-full object-cover" />
-          )}
+          <img src={group.coverUrl} alt="" className="size-full object-cover" />
         </div>
 
         <div className="flex-1 min-w-0">

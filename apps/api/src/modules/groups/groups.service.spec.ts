@@ -187,7 +187,7 @@ describe('GroupsService', () => {
       expect(result.id).toBe('group-uuid');
       expect(result.name).toBe('Mountain Crew');
       expect(result.visibility).toBe(GroupVisibility.PUBLIC);
-      expect(result.cover).toEqual(mockResolvedCover);
+      expect(result.coverUrl).toBe(mockResolvedCover.url);
       expect(result.createdBy).toBe('user-uuid');
     });
 
@@ -277,7 +277,7 @@ describe('GroupsService', () => {
       const result = await service.getGroup('user-uuid', 'group-uuid');
 
       expect(result.id).toBe('group-uuid');
-      expect(result.cover).toEqual(mockResolvedCover);
+      expect(result.coverUrl).toBe(mockResolvedCover.url);
     });
 
     it('throws NotFoundException when group is missing', async () => {

@@ -439,7 +439,7 @@ export class GroupMembersService {
             throw new NotFoundException(`Cover asset not found for group ${group.id}`);
 
           return {
-            group: { id: group.id, name: group.name, cover: resolvedCover },
+            group: { id: group.id, name: group.name, coverUrl: resolvedCover.url },
             initiatedAt: membership.initiatedAt.toISOString(),
           };
         }),

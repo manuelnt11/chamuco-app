@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ResolvedAsset } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
@@ -75,27 +74,10 @@ vi.mock('@/lib/avatar-emojis', () => ({
 
 import { GroupCoverEditor } from './GroupCoverEditor';
 
-const emojiCover: ResolvedAsset = {
-  id: 'asset-1',
-  type: 'image',
-  source: 'emoji',
-  target: '🏔️',
-  isPublic: true,
-  createdAt: '2026-01-01T00:00:00.000Z',
-  url: 'https://twemoji.example.com/🏔️.svg',
+const baseGroup = {
+  id: 'group-uuid',
+  coverUrl: 'https://twemoji.example.com/🏔️.svg',
 };
-
-const imageCover: ResolvedAsset = {
-  id: 'asset-2',
-  type: 'image',
-  source: 'gcs',
-  target: 'group-covers/group-uuid/cover.jpg',
-  isPublic: true,
-  createdAt: '2026-01-01T00:00:00.000Z',
-  url: 'https://storage.googleapis.com/bucket/group-covers/group-uuid/cover.jpg',
-};
-
-const baseGroup = { id: 'group-uuid', cover: emojiCover };
 
 function setup(groupOverride?: Partial<typeof baseGroup>) {
   const user = userEvent.setup();
@@ -113,19 +95,10 @@ beforeEach(() => {
 
 describe('GroupCoverEditor', () => {
   describe('rendering', () => {
-    it('renders twemoji img for emoji cover', () => {
+    it('renders cover image', () => {
       setup();
       const imgs = screen.getAllByRole('img', { hidden: true });
       expect(imgs[0]).toHaveAttribute('src', 'https://twemoji.example.com/🏔️.svg');
-    });
-
-    it('renders image for gcs cover', () => {
-      setup({ cover: imageCover });
-      const imgs = screen.getAllByRole('img', { hidden: true });
-      expect(imgs[0]).toHaveAttribute(
-        'src',
-        'https://storage.googleapis.com/bucket/group-covers/group-uuid/cover.jpg',
-      );
     });
 
     it('renders the edit button', () => {
@@ -156,7 +129,9 @@ describe('GroupCoverEditor', () => {
     });
 
     it('shows current cover inside dialog', async () => {
-      const { user } = setup({ cover: imageCover });
+      const { user } = setup({
+        coverUrl: 'https://storage.googleapis.com/bucket/group-covers/group-uuid/cover.jpg',
+      });
       await user.click(screen.getByText('cover.editButton'));
       expect(screen.getByText('cover.currentCover')).toBeInTheDocument();
     });

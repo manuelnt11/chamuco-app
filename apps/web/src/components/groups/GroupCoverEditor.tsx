@@ -4,7 +4,6 @@ import { useState, useRef, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getTwemojiUrl } from '@chamuco/shared-utils';
 import { UploadType } from '@chamuco/shared-types';
-import type { ResolvedAsset } from '@chamuco/shared-types';
 
 import {
   Dialog,
@@ -23,7 +22,7 @@ import { CropModal } from '@/components/ui/crop-modal';
 type Tab = 'photo' | 'emoji';
 
 interface GroupCoverEditorProps {
-  group: { id: string; cover: ResolvedAsset };
+  group: { id: string; coverUrl: string };
   onUpdate: () => void;
 }
 
@@ -94,16 +93,7 @@ export function GroupCoverEditor({ group, onUpdate }: GroupCoverEditorProps) {
   return (
     <div className="flex items-center gap-4">
       <div className="size-12 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
-        {group.cover.source === 'emoji' ? (
-          <img
-            src={getTwemojiUrl(group.cover.target)}
-            alt={group.cover.target}
-            className="size-8"
-            aria-hidden="true"
-          />
-        ) : (
-          <img src={group.cover.url} alt="" className="size-full object-cover" />
-        )}
+        <img src={group.coverUrl} alt="" className="size-full object-cover" />
       </div>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger className="text-sm font-medium underline-offset-2 hover:underline">
@@ -130,16 +120,7 @@ export function GroupCoverEditor({ group, onUpdate }: GroupCoverEditorProps) {
             <>
               <div className="mt-6 flex items-center gap-3">
                 <div className="size-12 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
-                  {group.cover.source === 'emoji' ? (
-                    <img
-                      src={getTwemojiUrl(group.cover.target)}
-                      alt={group.cover.target}
-                      className="size-8"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <img src={group.cover.url} alt="" className="size-full object-cover" />
-                  )}
+                  <img src={group.coverUrl} alt="" className="size-full object-cover" />
                 </div>
                 <span className="text-sm text-muted-foreground">{t('cover.currentCover')}</span>
               </div>

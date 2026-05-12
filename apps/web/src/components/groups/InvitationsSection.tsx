@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import { getTwemojiUrl } from '@chamuco/shared-utils';
 import { useGroupInvitations } from '@/store/group-invitations';
 import { InvitationResponseButtons } from '@/components/groups/members/InvitationResponseButtons';
 
@@ -26,16 +25,7 @@ export function InvitationsSection() {
             className="flex flex-wrap items-center gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-4 dark:border-orange-900/40 dark:bg-orange-950/20"
           >
             <div className="size-10 shrink-0 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
-              {group.cover.source === 'emoji' ? (
-                <img
-                  src={getTwemojiUrl(group.cover.target)}
-                  alt={group.cover.target}
-                  className="size-6"
-                  aria-hidden="true"
-                />
-              ) : (
-                <img src={group.cover.url} alt="" className="size-full object-cover" />
-              )}
+              <img src={group.coverUrl} alt="" className="size-full object-cover" />
             </div>
             <div className="min-w-50 flex-1">
               <p className="truncate font-semibold text-sm">{group.name}</p>
