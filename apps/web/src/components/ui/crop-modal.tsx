@@ -37,15 +37,98 @@ export function CropModal({
   const { t } = useTranslation('common');
   const resolvedOutputHeight = outputHeight ?? outputWidth;
   const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+
+  // Stable refs so the touch handler closure never goes stale
+  const latestCropRef = useRef<Crop | undefined>(undefined);
+  const pinchRef = useRef<{ startDist: number; startCrop: Crop } | null>(null);
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
     setImgSrc(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    function pinchDist(touches: TouchList) {
+      return Math.hypot(
+        touches[1]!.clientX - touches[0]!.clientX,
+        touches[1]!.clientY - touches[0]!.clientY,
+      );
+    }
+
+    function onTouchStart(e: TouchEvent) {
+      if (e.touches.length === 2 && latestCropRef.current) {
+        pinchRef.current = { startDist: pinchDist(e.touches), startCrop: latestCropRef.current };
+      }
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      if (e.touches.length !== 2 || !pinchRef.current) return;
+      e.preventDefault();
+
+      const scale = pinchDist(e.touches) / pinchRef.current.startDist;
+      const base = pinchRef.current.startCrop;
+
+      let bx: number, by: number, bw: number, bh: number;
+      if (base.unit === '%') {
+        bx = base.x;
+        by = base.y;
+        bw = base.width;
+        bh = base.height;
+      } else {
+        const imgW = imgRef.current?.clientWidth ?? 0;
+        const imgH = imgRef.current?.clientHeight ?? 0;
+        if (!imgW || !imgH) return;
+        bx = (base.x / imgW) * 100;
+        by = (base.y / imgH) * 100;
+        bw = (base.width / imgW) * 100;
+        bh = (base.height / imgH) * 100;
+      }
+
+      // Scale both dimensions uniformly — bh already encodes the visual aspect ratio
+      const minScale = Math.max(10 / bw, 10 / bh);
+      const maxScale = Math.min(100 / bw, 100 / bh);
+      const clampedScale = Math.max(minScale, Math.min(maxScale, scale));
+      const newWidth = bw * clampedScale;
+      const newHeight = bh * clampedScale;
+      const cx = bx + bw / 2;
+      const cy = by + bh / 2;
+
+      const newCrop: Crop = {
+        unit: '%',
+        width: newWidth,
+        height: newHeight,
+        x: Math.max(0, Math.min(100 - newWidth, cx - newWidth / 2)),
+        y: Math.max(0, Math.min(100 - newHeight, cy - newHeight / 2)),
+      };
+
+      latestCropRef.current = newCrop;
+      setCrop(newCrop);
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+      if (e.touches.length < 2) pinchRef.current = null;
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd);
+    el.addEventListener('touchcancel', onTouchEnd);
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, []); // stable: all mutable state accessed via refs
 
   function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
     const { naturalWidth, naturalHeight } = e.currentTarget;
@@ -54,6 +137,7 @@ export function CropModal({
       naturalWidth,
       naturalHeight,
     );
+    latestCropRef.current = initial;
     setCrop(initial);
   }
 
@@ -99,11 +183,18 @@ export function CropModal({
     <div className="mt-4 flex flex-col gap-4">
       <p className="text-lg font-semibold leading-none tracking-tight">{title}</p>
 
-      <div className="overflow-hidden rounded-lg bg-muted">
+      <div
+        ref={containerRef}
+        data-testid="crop-container"
+        className="overflow-hidden rounded-lg bg-muted"
+      >
         {imgSrc && (
           <ReactCrop
             crop={crop}
-            onChange={(c) => setCrop(c)}
+            onChange={(c) => {
+              latestCropRef.current = c;
+              setCrop(c);
+            }}
             onComplete={(c) => setCompletedCrop(c)}
             aspect={aspect}
             circularCrop={circular}

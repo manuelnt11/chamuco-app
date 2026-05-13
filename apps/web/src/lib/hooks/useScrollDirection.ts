@@ -19,9 +19,22 @@ export function useScrollDirection(): ScrollDirection {
     lastScrollY.current = window.scrollY;
 
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const delta = currentScrollY - lastScrollY.current;
+      const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const currentScrollY = Math.min(Math.max(0, window.scrollY), maxScrollY);
 
+      if (currentScrollY === 0) {
+        setDirection('up');
+        lastScrollY.current = 0;
+        return;
+      }
+
+      if (maxScrollY > 0 && currentScrollY >= maxScrollY) {
+        setDirection('down');
+        lastScrollY.current = maxScrollY;
+        return;
+      }
+
+      const delta = currentScrollY - lastScrollY.current;
       if (Math.abs(delta) < SCROLL_THRESHOLD) return;
 
       setDirection(delta > 0 ? 'down' : 'up');

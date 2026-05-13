@@ -64,13 +64,13 @@ describe('AppShell', () => {
     it('main has correct padding for header clearance', () => {
       render(<AppShell>Content</AppShell>);
       const main = screen.getByRole('main');
-      expect(main).toHaveClass('pt-header');
+      expect(main).toHaveClass('pt-header-safe');
     });
 
     it('main has mobile bottom padding', () => {
       render(<AppShell>Content</AppShell>);
       const main = screen.getByRole('main');
-      expect(main).toHaveClass('pb-header', 'md:pb-0');
+      expect(main).toHaveClass('pb-nav-safe', 'md:pb-0');
     });
 
     it('main has desktop left padding for sidebar', () => {
@@ -175,7 +175,7 @@ describe('AppShell', () => {
     it('main does not have nav padding classes on auth pages', () => {
       render(<AppShell>Content</AppShell>);
       const main = screen.getByRole('main');
-      expect(main).not.toHaveClass('pt-header');
+      expect(main).not.toHaveClass('pt-header-safe');
       expect(main).not.toHaveClass('md:pl-sidebar');
     });
   });

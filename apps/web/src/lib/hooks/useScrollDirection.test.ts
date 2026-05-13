@@ -4,7 +4,17 @@ import { useScrollDirection } from './useScrollDirection';
 
 describe('useScrollDirection', () => {
   beforeEach(() => {
-    Object.defineProperty(window, 'scrollY', { writable: true, value: 0 });
+    Object.defineProperty(window, 'scrollY', { writable: true, configurable: true, value: 0 });
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      writable: true,
+      configurable: true,
+      value: 2000,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 800,
+    });
   });
 
   afterEach(() => {
@@ -52,6 +62,84 @@ describe('useScrollDirection', () => {
     });
 
     expect(result.current).toBe('idle');
+  });
+
+  it('forces up when scrollY is exactly 0', () => {
+    const { result } = renderHook(() => useScrollDirection());
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { writable: true, value: 100 });
+      window.dispatchEvent(new window.Event('scroll'));
+    });
+
+    expect(result.current).toBe('down');
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { writable: true, value: 0 });
+      window.dispatchEvent(new window.Event('scroll'));
+    });
+
+    expect(result.current).toBe('up');
+  });
+
+  it('forces up on iOS overscroll (negative scrollY)', () => {
+    const { result } = renderHook(() => useScrollDirection());
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { writable: true, value: 100 });
+      window.dispatchEvent(new window.Event('scroll'));
+    });
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { writable: true, value: -20 });
+      window.dispatchEvent(new window.Event('scroll'));
+    });
+
+    expect(result.current).toBe('up');
+  });
+
+  it('forces down when scrollY reaches the bottom of the page', () => {
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      writable: true,
+      configurable: true,
+      value: 1000,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 600,
+    });
+
+    const { result } = renderHook(() => useScrollDirection());
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { writable: true, value: 400 });
+      window.dispatchEvent(new window.Event('scroll'));
+    });
+
+    expect(result.current).toBe('down');
+  });
+
+  it('forces down on iOS overscroll past bottom (scrollY > maxScrollY)', () => {
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      writable: true,
+      configurable: true,
+      value: 1000,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 600,
+    });
+
+    const { result } = renderHook(() => useScrollDirection());
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { writable: true, value: 450 });
+      window.dispatchEvent(new window.Event('scroll'));
+    });
+
+    expect(result.current).toBe('down');
   });
 
   it('removes scroll listener on unmount', () => {

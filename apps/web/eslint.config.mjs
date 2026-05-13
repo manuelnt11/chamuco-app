@@ -56,6 +56,9 @@ export default [
         AbortSignal: 'readonly',
         DOMException: 'readonly',
         RequestInit: 'readonly',
+        Touch: 'readonly',
+        TouchEvent: 'readonly',
+        TouchList: 'readonly',
         // Test globals (Vitest)
         describe: 'readonly',
         it: 'readonly',

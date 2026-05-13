@@ -35,7 +35,7 @@ export function AppShell({ children }: AppShellProps) {
       <DesktopSideNav />
       <MobileBottomNav />
       {/* <div className="md:pl-sidebar"><ProfileCompletionBanner /></div> */}
-      <main className="relative pt-header pb-header md:pb-0 md:pl-sidebar min-h-screen">
+      <main className="relative pt-header-safe pb-nav-safe md:pb-0 md:pl-sidebar min-h-screen">
         {children}
       </main>
       <FeedbackButton />
