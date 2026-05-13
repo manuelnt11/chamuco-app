@@ -49,7 +49,7 @@ describe('MobileBottomNav', () => {
   it('has correct height', () => {
     const { container } = render(<MobileBottomNav />);
     const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('h-header');
+    expect(nav).toHaveClass('h-nav-safe');
   });
 
   it('is hidden on desktop', () => {
