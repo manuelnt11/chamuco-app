@@ -14,12 +14,20 @@ const SCROLL_THRESHOLD = 8; // px of scroll before direction change is registere
 export function useScrollDirection(): ScrollDirection {
   const [direction, setDirection] = useState<ScrollDirection>('idle');
   const lastScrollY = useRef(0);
+  const maxScrollYRef = useRef(0);
 
   useEffect(() => {
-    lastScrollY.current = window.scrollY;
+    const updateMax = () => {
+      maxScrollYRef.current = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
+    };
+    updateMax();
+    lastScrollY.current = Math.min(Math.max(0, window.scrollY), maxScrollYRef.current);
 
     const handleScroll = () => {
-      const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const maxScrollY = maxScrollYRef.current;
       const currentScrollY = Math.min(Math.max(0, window.scrollY), maxScrollY);
 
       if (currentScrollY === 0) {
@@ -41,8 +49,12 @@ export function useScrollDirection(): ScrollDirection {
       lastScrollY.current = currentScrollY;
     };
 
+    window.addEventListener('resize', updateMax, { passive: true });
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('resize', updateMax);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return direction;

@@ -15,15 +15,18 @@ vi.mock('react-image-crop', () => ({
   default: ({
     children,
     onChange,
+    crop,
     circularCrop,
   }: {
     children: ReactNode;
     onChange: (crop: { unit: string; x: number; y: number; width: number; height: number }) => void;
+    crop?: { unit: string; x: number; y: number; width: number; height: number };
     circularCrop?: boolean;
   }) => (
     <div
       data-testid="react-crop"
       data-circular={circularCrop ? 'true' : 'false'}
+      data-crop-width={crop?.width}
       onClick={() => onChange({ unit: 'px', x: 10, y: 10, width: 100, height: 100 })}
     >
       {children}
@@ -167,6 +170,123 @@ describe('CropModal', () => {
       await user.click(screen.getByText('Use photo'));
 
       expect(mocks.mockOnConfirm).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('pinch-to-zoom', () => {
+    function makeTouchEvent(type: string, touches: { clientX: number; clientY: number }[]) {
+      const event = new Event(type, { cancelable: true, bubbles: true });
+      Object.defineProperty(event, 'touches', { value: touches });
+      return event;
+    }
+
+    function loadImage() {
+      const img = screen.getByRole('img');
+      act(() => {
+        Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
+        Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
+        img.dispatchEvent(new Event('load'));
+      });
+    }
+
+    it('pinch-out expands the crop', () => {
+      setup();
+      loadImage();
+
+      const container = screen.getByTestId('crop-container');
+      const reactCrop = screen.getByTestId('react-crop');
+
+      // Initial crop: makeAspectCrop called with { unit: '%', width: 90 } → mock returns width: 90
+      expect(reactCrop).toHaveAttribute('data-crop-width', '90');
+
+      act(() => {
+        // Two fingers 100px apart
+        container.dispatchEvent(
+          makeTouchEvent('touchstart', [
+            { clientX: 100, clientY: 100 },
+            { clientX: 200, clientY: 100 },
+          ]),
+        );
+      });
+
+      act(() => {
+        // Two fingers 200px apart → scale = 2
+        container.dispatchEvent(
+          makeTouchEvent('touchmove', [
+            { clientX: 50, clientY: 100 },
+            { clientX: 250, clientY: 100 },
+          ]),
+        );
+      });
+
+      // maxScale = min(100/90, 100/90) ≈ 1.11 → clamped → newWidth = 90 * (100/90) = 100
+      expect(reactCrop).toHaveAttribute('data-crop-width', '100');
+    });
+
+    it('pinch-in shrinks the crop', () => {
+      setup();
+      loadImage();
+
+      const container = screen.getByTestId('crop-container');
+      const reactCrop = screen.getByTestId('react-crop');
+
+      act(() => {
+        // Two fingers 200px apart
+        container.dispatchEvent(
+          makeTouchEvent('touchstart', [
+            { clientX: 100, clientY: 100 },
+            { clientX: 300, clientY: 100 },
+          ]),
+        );
+      });
+
+      act(() => {
+        // Two fingers 100px apart → scale = 0.5
+        container.dispatchEvent(
+          makeTouchEvent('touchmove', [
+            { clientX: 150, clientY: 100 },
+            { clientX: 250, clientY: 100 },
+          ]),
+        );
+      });
+
+      // clampedScale = 0.5 → newWidth = 90 * 0.5 = 45
+      expect(reactCrop).toHaveAttribute('data-crop-width', '45');
+    });
+
+    it('touchcancel clears pinch state — subsequent touchmove is ignored', () => {
+      setup();
+      loadImage();
+
+      const container = screen.getByTestId('crop-container');
+      const reactCrop = screen.getByTestId('react-crop');
+
+      act(() => {
+        container.dispatchEvent(
+          makeTouchEvent('touchstart', [
+            { clientX: 100, clientY: 100 },
+            { clientX: 200, clientY: 100 },
+          ]),
+        );
+      });
+
+      act(() => {
+        // Cancel clears pinchRef
+        container.dispatchEvent(makeTouchEvent('touchcancel', []));
+      });
+
+      act(() => {
+        // This touchmove should be a no-op (pinchRef is null)
+        container.dispatchEvent(
+          makeTouchEvent('touchmove', [
+            { clientX: 50, clientY: 100 },
+            { clientX: 250, clientY: 100 },
+          ]),
+        );
+      });
+
+      // Crop unchanged from initial 90%
+      expect(reactCrop).toHaveAttribute('data-crop-width', '90');
     });
   });
 

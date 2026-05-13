@@ -150,4 +150,40 @@ describe('useScrollDirection', () => {
 
     expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
   });
+
+  it('removes resize listener on unmount', () => {
+    const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+    const { unmount } = renderHook(() => useScrollDirection());
+
+    unmount();
+
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
+  });
+
+  it('updates maxScrollY when the window is resized', () => {
+    const { result } = renderHook(() => useScrollDirection());
+
+    // Shrink the viewport so maxScrollY increases
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      writable: true,
+      configurable: true,
+      value: 3000,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 500,
+    });
+    act(() => {
+      window.dispatchEvent(new window.Event('resize'));
+    });
+
+    // Scroll to new bottom (2500) — should force 'down'
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { writable: true, value: 2500 });
+      window.dispatchEvent(new window.Event('scroll'));
+    });
+
+    expect(result.current).toBe('down');
+  });
 });

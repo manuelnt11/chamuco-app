@@ -77,7 +77,8 @@
   --layout-sidebar-width: 10rem;  /* w-40 / 160px */
   /* iOS PWA safe area: header extends under notch, nav extends under home indicator (half inset) */
   --layout-header-safe: calc(var(--layout-header-height) + env(safe-area-inset-top, 0px));
-  --layout-nav-safe: calc(var(--layout-header-height) + env(safe-area-inset-bottom, 0px) / 2);
+  --layout-nav-inset: calc(env(safe-area-inset-bottom, 0px) / 2);
+  --layout-nav-safe: calc(var(--layout-header-height) + var(--layout-nav-inset));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -201,7 +202,7 @@
 }
 
 @utility pb-nav-safe {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) / 2);
+  padding-bottom: var(--layout-nav-inset);
 }
 
 @utility pt-safe {
