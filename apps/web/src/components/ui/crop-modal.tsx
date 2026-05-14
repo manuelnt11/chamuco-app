@@ -41,6 +41,7 @@ export function CropModal({
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [isPending, setIsPending] = useState(false);
 
   // Stable refs so the touch handler closure never goes stale
   const latestCropRef = useRef<Crop | undefined>(undefined);
@@ -144,13 +145,17 @@ export function CropModal({
   function handleConfirm() {
     const img = imgRef.current;
     const activeCrop = completedCrop ?? crop;
-    if (!img || !activeCrop) return;
+    if (!img || !activeCrop || isPending) return;
+    setIsPending(true);
 
     const canvas = document.createElement('canvas');
     canvas.width = outputWidth;
     canvas.height = resolvedOutputHeight;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      setIsPending(false);
+      return;
+    }
 
     let sx: number, sy: number, sw: number, sh: number;
 
@@ -172,6 +177,7 @@ export function CropModal({
 
     canvas.toBlob(
       (blob) => {
+        setIsPending(false);
         if (blob) onConfirm(blob);
       },
       'image/jpeg',
@@ -239,7 +245,7 @@ export function CropModal({
         <button
           type="button"
           onClick={handleConfirm}
-          disabled={isConfirming || !crop}
+          disabled={isConfirming || isPending || !crop}
           className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         >
           {confirmLabel}

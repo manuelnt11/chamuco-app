@@ -171,6 +171,56 @@ describe('CropModal', () => {
 
       expect(mocks.mockOnConfirm).not.toHaveBeenCalled();
     });
+
+    it('disables confirm button while toBlob is in progress', async () => {
+      let resolveBlob!: (blob: Blob | null) => void;
+      HTMLCanvasElement.prototype.toBlob = vi
+        .fn()
+        .mockImplementation((cb: (blob: Blob | null) => void) => {
+          resolveBlob = cb;
+        });
+
+      const { user } = setup();
+
+      const img = screen.getByRole('img');
+      act(() => {
+        Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
+        Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
+        img.dispatchEvent(new Event('load'));
+      });
+
+      await user.click(screen.getByText('Use photo'));
+      expect(screen.getByText('Use photo')).toBeDisabled();
+
+      act(() => resolveBlob(new Blob(['jpeg-data'], { type: 'image/jpeg' })));
+      expect(screen.getByText('Use photo')).not.toBeDisabled();
+    });
+
+    it('prevents double-tap: only calls onConfirm once when clicked twice rapidly', async () => {
+      let resolveBlob!: (blob: Blob | null) => void;
+      HTMLCanvasElement.prototype.toBlob = vi
+        .fn()
+        .mockImplementation((cb: (blob: Blob | null) => void) => {
+          resolveBlob = cb;
+        });
+
+      const { user } = setup();
+
+      const img = screen.getByRole('img');
+      act(() => {
+        Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
+        Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
+        img.dispatchEvent(new Event('load'));
+      });
+
+      await user.click(screen.getByText('Use photo'));
+      // Second click is ignored because button is disabled (isPending)
+      await user.click(screen.getByText('Use photo'));
+
+      act(() => resolveBlob(new Blob(['jpeg-data'], { type: 'image/jpeg' })));
+
+      expect(mocks.mockOnConfirm).toHaveBeenCalledOnce();
+    });
   });
 
   describe('pinch-to-zoom', () => {
