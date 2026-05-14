@@ -14,7 +14,7 @@ export function MobileBottomNav() {
   return (
     <nav
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-40 h-nav-safe pb-nav-safe bg-card border-t border-border flex md:hidden',
+        'fixed bottom-0 left-0 right-0 z-40 h-nav-safe pb-nav-inset bg-card border-t border-border flex md:hidden',
         'transition-transform duration-300',
         hidden ? 'translate-y-full' : 'translate-y-0',
       )}

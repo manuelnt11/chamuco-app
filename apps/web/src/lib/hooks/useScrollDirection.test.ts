@@ -15,10 +15,19 @@ describe('useScrollDirection', () => {
       configurable: true,
       value: 800,
     });
+    vi.stubGlobal(
+      'ResizeObserver',
+      class MockResizeObserver {
+        observe = vi.fn();
+        disconnect = vi.fn();
+        constructor(_cb: ResizeObserverCallback) {}
+      },
+    );
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('returns idle before any scroll', () => {
@@ -142,6 +151,24 @@ describe('useScrollDirection', () => {
     expect(result.current).toBe('down');
   });
 
+  it('returns down when scrolling down with maxScrollY at 0 (content not yet loaded)', () => {
+    // Page hasn't loaded dynamic content yet — scrollHeight equals innerHeight
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      writable: true,
+      configurable: true,
+      value: 800,
+    });
+
+    const { result } = renderHook(() => useScrollDirection());
+
+    act(() => {
+      Object.defineProperty(window, 'scrollY', { writable: true, value: 100 });
+      window.dispatchEvent(new window.Event('scroll'));
+    });
+
+    expect(result.current).toBe('down');
+  });
+
   it('removes scroll listener on unmount', () => {
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
     const { unmount } = renderHook(() => useScrollDirection());
@@ -158,6 +185,23 @@ describe('useScrollDirection', () => {
     unmount();
 
     expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
+  });
+
+  it('disconnects ResizeObserver on unmount', () => {
+    const disconnectSpy = vi.fn();
+    vi.stubGlobal(
+      'ResizeObserver',
+      class MockResizeObserver {
+        observe = vi.fn();
+        disconnect = disconnectSpy;
+        constructor(_cb: ResizeObserverCallback) {}
+      },
+    );
+
+    const { unmount } = renderHook(() => useScrollDirection());
+    unmount();
+
+    expect(disconnectSpy).toHaveBeenCalledOnce();
   });
 
   it('updates maxScrollY when the window is resized', () => {

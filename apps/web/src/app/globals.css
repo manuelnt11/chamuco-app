@@ -201,8 +201,14 @@
   height: var(--layout-nav-safe);
 }
 
-@utility pb-nav-safe {
+/* Internal padding inside the nav bar — pushes items above the home indicator */
+@utility pb-nav-inset {
   padding-bottom: var(--layout-nav-inset);
+}
+
+/* Bottom padding for page content — clears the full fixed nav bar height */
+@utility pb-nav-safe {
+  padding-bottom: var(--layout-nav-safe);
 }
 
 @utility pt-safe {

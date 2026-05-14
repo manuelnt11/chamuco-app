@@ -59,6 +59,9 @@ export default [
         Touch: 'readonly',
         TouchEvent: 'readonly',
         TouchList: 'readonly',
+        ResizeObserver: 'readonly',
+        ResizeObserverCallback: 'readonly',
+        ResizeObserverEntry: 'readonly',
         // Test globals (Vitest)
         describe: 'readonly',
         it: 'readonly',
