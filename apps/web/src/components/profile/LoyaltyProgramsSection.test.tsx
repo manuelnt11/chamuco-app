@@ -215,14 +215,14 @@ describe('LoyaltyProgramsSection', () => {
   describe('editing a program', () => {
     it('shows inline edit form when Edit is clicked', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByDisplayValue('LifeMiles')).toBeInTheDocument();
     });
 
     it('pre-fills edit form with existing values', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveValue('LifeMiles');
       expect(screen.getByLabelText('loyaltyPrograms.memberId')).toHaveValue('LM123');
@@ -230,7 +230,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('calls PATCH on save', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       const nameInput = screen.getByLabelText('loyaltyPrograms.programName');
       await user.clear(nameInput);
@@ -247,7 +247,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('shows success toast after update', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), ' ');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
@@ -258,7 +258,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('cancels edit form when Cancel is clicked', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.cancel' }));
       expect(screen.queryByDisplayValue('LifeMiles')).not.toBeInTheDocument();
@@ -267,7 +267,7 @@ describe('LoyaltyProgramsSection', () => {
     it('shows error toast when update fails', async () => {
       mocks.mockPatch.mockRejectedValue(new Error('network error'));
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), ' ');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
@@ -278,7 +278,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('edits memberId field in edit form', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       const memberIdInput = screen.getByLabelText('loyaltyPrograms.memberId');
       await user.clear(memberIdInput);
@@ -295,7 +295,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('edits notes field in edit form', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       const notesInput = screen.getByLabelText('loyaltyPrograms.notes');
       await user.clear(notesInput);
@@ -314,14 +314,14 @@ describe('LoyaltyProgramsSection', () => {
   describe('null notes handling', () => {
     it('pre-fills notes as empty string when existing program has null notes', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[1]!); // prog-2 has notes: null
       expect(screen.getByLabelText('loyaltyPrograms.notes')).toHaveValue('');
     });
 
     it('sends null for notes when notes field is cleared in edit form', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.clear(screen.getByLabelText('loyaltyPrograms.notes'));
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
@@ -353,7 +353,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('sets maxLength 100 on programName input in edit form', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
         'maxLength',
@@ -365,19 +365,17 @@ describe('LoyaltyProgramsSection', () => {
   describe('deleting a program', () => {
     it('requires a second click to confirm delete', async () => {
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
       expect(mocks.mockDelete).not.toHaveBeenCalled();
-      expect(
-        screen.getByRole('button', { name: 'loyaltyPrograms.deleteConfirm' }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'actions.deleteConfirm' })).toBeInTheDocument();
     });
 
     it('calls DELETE after confirmation click', async () => {
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockDelete).toHaveBeenCalledWith('/v1/users/me/loyalty-programs/prog-1'),
       );
@@ -385,17 +383,17 @@ describe('LoyaltyProgramsSection', () => {
 
     it('calls onRefresh after delete', async () => {
       const { user, onRefresh } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
 
     it('shows success toast after delete', async () => {
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastSuccess).toHaveBeenCalledWith('loyaltyPrograms.deleteSuccess'),
       );
@@ -404,9 +402,9 @@ describe('LoyaltyProgramsSection', () => {
     it('shows error toast when delete fails', async () => {
       mocks.mockDelete.mockRejectedValue(new Error('network error'));
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'loyaltyPrograms.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
       );

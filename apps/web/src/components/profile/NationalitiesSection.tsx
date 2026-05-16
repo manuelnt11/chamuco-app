@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCountryDataList, getEmojiFlag, type TCountryCode } from 'countries-list';
 import { CaretDownIcon, GlobeIcon, IdentificationCardIcon } from '@phosphor-icons/react';
@@ -8,6 +8,7 @@ import { PassportStatus } from '@chamuco/shared-types';
 import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 
 import { Button } from '@/components/ui/button';
+import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CountryCombobox } from '@/components/ui/country-combobox';
@@ -260,8 +261,6 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
   const [addErrors, setAddErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [editErrors, setEditErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [isSaving, setIsSaving] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
   const isEditDirty =
     editingId !== null &&
     (editForm.nationalIdNumber !== initialEditForm.nationalIdNumber ||
@@ -270,13 +269,6 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
       editForm.passportExpiryDate !== initialEditForm.passportExpiryDate ||
       editForm.isPrimary !== initialEditForm.isPrimary);
   const isAddDirty = addForm.countryCode !== '';
-
-  useEffect(() => {
-    if (!confirmDeleteId) return;
-    const reset = () => setConfirmDeleteId(null);
-    document.addEventListener('mousedown', reset);
-    return () => document.removeEventListener('mousedown', reset);
-  }, [confirmDeleteId]);
 
   function validate(form: FormState, setErrors: (e: FormErrors) => void): boolean {
     const errors: FormErrors = {
@@ -348,7 +340,6 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     setInitialEditForm(form);
     setEditErrors(EMPTY_ERRORS);
     setIsAdding(false);
-    setConfirmDeleteId(null);
     setExpandedNatId(null);
   }
 
@@ -363,7 +354,6 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     setAddForm(makeEmptyForm(data.length === 0));
     setAddErrors(EMPTY_ERRORS);
     setEditingId(null);
-    setConfirmDeleteId(null);
   }
 
   function cancelAdd() {
@@ -413,15 +403,10 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
   }
 
   async function handleDelete(id: string) {
-    if (confirmDeleteId !== id) {
-      setConfirmDeleteId(id);
-      return;
-    }
     setIsSaving(true);
     try {
       await apiClient.delete(`/v1/users/me/nationalities/${id}`);
       toast.success(t('nationalities.deleteSuccess'));
-      setConfirmDeleteId(null);
       onRefresh();
     } catch (err: unknown) {
       const status =
@@ -507,31 +492,12 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
                     </p>
                   )}
                 </div>
-                <div className="ml-4 flex shrink-0 gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => startEdit(nat)}
-                    disabled={isSaving}
-                  >
-                    {t('nationalities.edit')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={confirmDeleteId === nat.id ? 'destructive' : 'outline'}
-                    onMouseDown={(e) => {
-                      if (confirmDeleteId === nat.id) e.stopPropagation();
-                    }}
-                    onClick={() => handleDelete(nat.id)}
-                    disabled={isSaving}
-                  >
-                    {confirmDeleteId === nat.id
-                      ? t('nationalities.deleteConfirm')
-                      : t('nationalities.delete')}
-                  </Button>
-                </div>
+                <EditDeleteActions
+                  onEdit={() => startEdit(nat)}
+                  onDelete={() => handleDelete(nat.id)}
+                  disabled={isSaving}
+                  className="ml-4"
+                />
               </div>
 
               {nat.passportStatus !== PassportStatus.OMITTED && (

@@ -62,6 +62,8 @@ export default [
         ResizeObserver: 'readonly',
         ResizeObserverCallback: 'readonly',
         ResizeObserverEntry: 'readonly',
+        MouseEvent: 'readonly',
+        Node: 'readonly',
         // Test globals (Vitest)
         describe: 'readonly',
         it: 'readonly',

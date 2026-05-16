@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
 import { getCountryDataList } from 'countries-list';
 
 import { Button } from '@/components/ui/button';
+import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobox';
@@ -216,8 +217,6 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
   const [addErrors, setAddErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [editErrors, setEditErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [isSaving, setIsSaving] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
   const isEditDirty =
     editingId !== null &&
     (editForm.fullName !== initialEditForm.fullName ||
@@ -229,13 +228,6 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
     addForm.fullName.trim() !== '' ||
     addForm.phoneLocalNumber.trim() !== '' ||
     addForm.relationship.trim() !== '';
-
-  useEffect(() => {
-    if (!confirmDeleteId) return;
-    const reset = () => setConfirmDeleteId(null);
-    document.addEventListener('mousedown', reset);
-    return () => document.removeEventListener('mousedown', reset);
-  }, [confirmDeleteId]);
 
   function validate(form: FormState, setErrors: (e: FormErrors) => void): boolean {
     const errors: FormErrors = { fullName: null, phone: null, relationship: null };
@@ -286,7 +278,6 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
     setInitialEditForm(form);
     setEditErrors(EMPTY_ERRORS);
     setIsAdding(false);
-    setConfirmDeleteId(null);
   }
 
   function cancelEdit() {
@@ -300,7 +291,6 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
     setAddForm(makeEmptyForm(contacts.length === 0));
     setAddErrors(EMPTY_ERRORS);
     setEditingId(null);
-    setConfirmDeleteId(null);
   }
 
   function cancelAdd() {
@@ -372,15 +362,10 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
   }
 
   async function handleDelete(id: string) {
-    if (confirmDeleteId !== id) {
-      setConfirmDeleteId(id);
-      return;
-    }
     setIsSaving(true);
     try {
       await apiClient.delete(`/v1/users/me/emergency-contacts/${id}`);
       toast.success(t('emergencyContacts.deleteSuccess'));
-      setConfirmDeleteId(null);
       onRefresh();
     } catch {
       toast.error(t('emergencyContacts.saveError'));
@@ -432,31 +417,12 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
                   {contact.phoneCountryCode} {contact.phoneLocalNumber}
                 </p>
               </div>
-              <div className="ml-4 flex shrink-0 gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => startEdit(contact)}
-                  disabled={isSaving}
-                >
-                  {t('emergencyContacts.edit')}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={confirmDeleteId === contact.id ? 'destructive' : 'outline'}
-                  onMouseDown={(e) => {
-                    if (confirmDeleteId === contact.id) e.stopPropagation();
-                  }}
-                  onClick={() => handleDelete(contact.id)}
-                  disabled={isSaving}
-                >
-                  {confirmDeleteId === contact.id
-                    ? t('emergencyContacts.deleteConfirm')
-                    : t('emergencyContacts.delete')}
-                </Button>
-              </div>
+              <EditDeleteActions
+                onEdit={() => startEdit(contact)}
+                onDelete={() => handleDelete(contact.id)}
+                disabled={isSaving}
+                className="ml-4"
+              />
             </li>
           ),
         )}

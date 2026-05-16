@@ -12,6 +12,7 @@ import {
 } from '@chamuco/shared-types';
 
 import { Button } from '@/components/ui/button';
+import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -302,19 +303,10 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
   const [addErrors, setAddErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [editErrors, setEditErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [isSaving, setIsSaving] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
   useEffect(() => {
     void fetchVisas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nationalityId]);
-
-  useEffect(() => {
-    if (!confirmDeleteId) return;
-    const reset = () => setConfirmDeleteId(null);
-    document.addEventListener('mousedown', reset);
-    return () => document.removeEventListener('mousedown', reset);
-  }, [confirmDeleteId]);
 
   async function fetchVisas() {
     setIsLoading(true);
@@ -434,7 +426,6 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
     setInitialEditForm(form);
     setEditErrors(EMPTY_ERRORS);
     setIsAdding(false);
-    setConfirmDeleteId(null);
   }
 
   function cancelEdit() {
@@ -448,7 +439,6 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
     setAddForm(makeEmptyForm());
     setAddErrors(EMPTY_ERRORS);
     setEditingId(null);
-    setConfirmDeleteId(null);
   }
 
   function cancelAdd() {
@@ -501,15 +491,10 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
   }
 
   async function handleDelete(id: string) {
-    if (confirmDeleteId !== id) {
-      setConfirmDeleteId(id);
-      return;
-    }
     setIsSaving(true);
     try {
       await apiClient.delete(`/v1/users/me/nationalities/${nationalityId}/visas/${id}`);
       toast.success(t('nationalities.visas.deleteSuccess'));
-      setConfirmDeleteId(null);
       void fetchVisas();
     } catch {
       toast.error(t('nationalities.visas.deleteError'));
@@ -583,31 +568,12 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
                 </div>
                 {visa.notes && <p className="mt-0.5 text-xs text-muted-foreground">{visa.notes}</p>}
               </div>
-              <div className="ml-3 flex shrink-0 gap-1.5">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => startEdit(visa)}
-                  disabled={isSaving}
-                >
-                  {t('nationalities.visas.edit')}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={confirmDeleteId === visa.id ? 'destructive' : 'outline'}
-                  onMouseDown={(e) => {
-                    if (confirmDeleteId === visa.id) e.stopPropagation();
-                  }}
-                  onClick={() => handleDelete(visa.id)}
-                  disabled={isSaving}
-                >
-                  {confirmDeleteId === visa.id
-                    ? t('nationalities.visas.deleteConfirm')
-                    : t('nationalities.visas.delete')}
-                </Button>
-              </div>
+              <EditDeleteActions
+                onEdit={() => startEdit(visa)}
+                onDelete={() => handleDelete(visa.id)}
+                disabled={isSaving}
+                className="ml-3"
+              />
             </li>
           ),
         )}

@@ -403,15 +403,15 @@ describe('EtasSubsection', () => {
   describe('editing an ETA', () => {
     it('shows edit form when Edit clicked', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       expect(screen.getByLabelText('nationalities.etas.authorizationNumber')).toBeInTheDocument();
     });
 
     it('shows passportNumber as read-only in edit form', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       expect(
         screen.queryByRole('textbox', { name: 'nationalities.etas.passportNumber' }),
       ).not.toBeInTheDocument();
@@ -421,8 +421,8 @@ describe('EtasSubsection', () => {
 
     it('pre-fills authorization number in edit form', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       expect(screen.getByLabelText('nationalities.etas.authorizationNumber')).toHaveValue(
         'A1B2C3D4E5',
       );
@@ -430,8 +430,8 @@ describe('EtasSubsection', () => {
 
     it('auto-uppercases authorization number in edit form', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
       await user.type(authInput, 'new-auth');
@@ -440,8 +440,8 @@ describe('EtasSubsection', () => {
 
     it('shows auth format error on edit when authorization contains spaces', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
       await user.type(authInput, 'BAD AUTH');
@@ -452,8 +452,8 @@ describe('EtasSubsection', () => {
 
     it('calls PATCH with updated authorization number', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
       await user.type(authInput, 'NEWAUTH123');
@@ -468,8 +468,8 @@ describe('EtasSubsection', () => {
 
     it('shows success toast after update', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
       await user.type(authInput, 'NEWAUTH123');
@@ -482,8 +482,8 @@ describe('EtasSubsection', () => {
     it('shows error toast when update fails', async () => {
       mocks.mockPatch.mockRejectedValue(new Error('network'));
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
       await user.type(authInput, 'NEWAUTH123');
@@ -495,8 +495,8 @@ describe('EtasSubsection', () => {
 
     it('cancels edit when Cancel clicked', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.cancel' }));
       expect(
         screen.queryByLabelText('nationalities.etas.authorizationNumber'),
@@ -505,8 +505,8 @@ describe('EtasSubsection', () => {
 
     it('shows entries required error in edit form when entries is cleared', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), '');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.entriesRequired')).toBeInTheDocument();
@@ -515,8 +515,8 @@ describe('EtasSubsection', () => {
 
     it('shows expiry required error in edit form when expiry date is cleared', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.clear(screen.getByLabelText('nationalities.etas.expiryDate'));
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.expiryRequired')).toBeInTheDocument();
@@ -525,8 +525,8 @@ describe('EtasSubsection', () => {
 
     it('shows type required error in edit form when eta type is cleared', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), '');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.typeRequired')).toBeInTheDocument();
@@ -551,19 +551,17 @@ describe('EtasSubsection', () => {
   describe('deleting an ETA', () => {
     it('requires second click to confirm delete', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.delete' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.delete' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.delete' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
       expect(mocks.mockDelete).not.toHaveBeenCalled();
-      expect(
-        screen.getByRole('button', { name: 'nationalities.etas.deleteConfirm' }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'actions.deleteConfirm' })).toBeInTheDocument();
     });
 
     it('calls DELETE after confirmation', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.delete' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.delete' })[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.etas.deleteConfirm' }));
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.delete' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockDelete).toHaveBeenCalledWith(
           `/v1/users/me/nationalities/${NATIONALITY_ID}/etas/eta-1`,
@@ -573,9 +571,9 @@ describe('EtasSubsection', () => {
 
     it('shows success toast after delete', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.delete' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.delete' })[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.etas.deleteConfirm' }));
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.delete' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.etas.deleteSuccess'),
       );
@@ -584,9 +582,9 @@ describe('EtasSubsection', () => {
     it('shows error toast when delete fails', async () => {
       mocks.mockDelete.mockRejectedValue(new Error('network'));
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.etas.delete' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.etas.delete' })[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.etas.deleteConfirm' }));
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.delete' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.etas.deleteError'),
       );

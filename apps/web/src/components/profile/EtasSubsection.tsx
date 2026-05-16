@@ -7,6 +7,7 @@ import { DocumentStatus, EtaType, VisaEntries } from '@chamuco/shared-types';
 import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 
 import { Button } from '@/components/ui/button';
+import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -262,19 +263,10 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
   const [addErrors, setAddErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [editErrors, setEditErrors] = useState<FormErrors>(EMPTY_ERRORS);
   const [isSaving, setIsSaving] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
   useEffect(() => {
     void fetchEtas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nationalityId]);
-
-  useEffect(() => {
-    if (!confirmDeleteId) return;
-    const reset = () => setConfirmDeleteId(null);
-    document.addEventListener('mousedown', reset);
-    return () => document.removeEventListener('mousedown', reset);
-  }, [confirmDeleteId]);
 
   async function fetchEtas() {
     setIsLoading(true);
@@ -383,7 +375,6 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
     setInitialEditForm(form);
     setEditErrors(EMPTY_ERRORS);
     setIsAdding(false);
-    setConfirmDeleteId(null);
   }
 
   function cancelEdit() {
@@ -397,7 +388,6 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
     setAddForm(makeEmptyForm());
     setAddErrors(EMPTY_ERRORS);
     setEditingId(null);
-    setConfirmDeleteId(null);
   }
 
   function cancelAdd() {
@@ -457,15 +447,10 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
   }
 
   async function handleDelete(id: string) {
-    if (confirmDeleteId !== id) {
-      setConfirmDeleteId(id);
-      return;
-    }
     setIsSaving(true);
     try {
       await apiClient.delete(`/v1/users/me/nationalities/${nationalityId}/etas/${id}`);
       toast.success(t('nationalities.etas.deleteSuccess'));
-      setConfirmDeleteId(null);
       void fetchEtas();
     } catch {
       toast.error(t('nationalities.etas.deleteError'));
@@ -536,31 +521,12 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
                 </div>
                 {eta.notes && <p className="mt-0.5 text-xs text-muted-foreground">{eta.notes}</p>}
               </div>
-              <div className="ml-3 flex shrink-0 gap-1.5">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => startEdit(eta)}
-                  disabled={isSaving}
-                >
-                  {t('nationalities.etas.edit')}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={confirmDeleteId === eta.id ? 'destructive' : 'outline'}
-                  onMouseDown={(e) => {
-                    if (confirmDeleteId === eta.id) e.stopPropagation();
-                  }}
-                  onClick={() => handleDelete(eta.id)}
-                  disabled={isSaving}
-                >
-                  {confirmDeleteId === eta.id
-                    ? t('nationalities.etas.deleteConfirm')
-                    : t('nationalities.etas.delete')}
-                </Button>
-              </div>
+              <EditDeleteActions
+                onEdit={() => startEdit(eta)}
+                onDelete={() => handleDelete(eta.id)}
+                disabled={isSaving}
+                className="ml-3"
+              />
             </li>
           ),
         )}

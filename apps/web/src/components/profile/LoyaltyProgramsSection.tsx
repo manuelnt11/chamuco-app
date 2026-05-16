@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
+import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoyaltyProgramCombobox } from '@/components/ui/loyalty-program-combobox';
@@ -112,21 +113,12 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
   const [initialEditForm, setInitialEditForm] = useState<FormState>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
   const isEditDirty =
     editingId !== null &&
     (editForm.programName !== initialEditForm.programName ||
       editForm.memberId !== initialEditForm.memberId ||
       editForm.notes !== initialEditForm.notes);
   const isAddDirty = addForm.programName.trim() !== '' || addForm.memberId.trim() !== '';
-
-  useEffect(() => {
-    if (!confirmDeleteId) return;
-    const reset = () => setConfirmDeleteId(null);
-    document.addEventListener('mousedown', reset);
-    return () => document.removeEventListener('mousedown', reset);
-  }, [confirmDeleteId]);
 
   function startEdit(program: LoyaltyProgramDto) {
     setEditingId(program.id);
@@ -138,7 +130,6 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     setEditForm(form);
     setInitialEditForm(form);
     setIsAdding(false);
-    setConfirmDeleteId(null);
   }
 
   function cancelEdit() {
@@ -150,7 +141,6 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     setIsAdding(true);
     setAddForm(EMPTY_FORM);
     setEditingId(null);
-    setConfirmDeleteId(null);
   }
 
   function cancelAdd() {
@@ -201,15 +191,10 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
   }
 
   async function handleDelete(id: string) {
-    if (confirmDeleteId !== id) {
-      setConfirmDeleteId(id);
-      return;
-    }
     setIsSaving(true);
     try {
       await apiClient.delete(`/v1/users/me/loyalty-programs/${id}`);
       toast.success(t('loyaltyPrograms.deleteSuccess'));
-      setConfirmDeleteId(null);
       onRefresh();
     } catch {
       toast.error(t('loyaltyPrograms.saveError'));
@@ -255,31 +240,12 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
                   <p className="mt-1 text-xs text-muted-foreground">{program.notes}</p>
                 )}
               </div>
-              <div className="ml-4 flex shrink-0 gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => startEdit(program)}
-                  disabled={isSaving}
-                >
-                  {t('loyaltyPrograms.edit')}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={confirmDeleteId === program.id ? 'destructive' : 'outline'}
-                  onMouseDown={(e) => {
-                    if (confirmDeleteId === program.id) e.stopPropagation();
-                  }}
-                  onClick={() => handleDelete(program.id)}
-                  disabled={isSaving}
-                >
-                  {confirmDeleteId === program.id
-                    ? t('loyaltyPrograms.deleteConfirm')
-                    : t('loyaltyPrograms.delete')}
-                </Button>
-              </div>
+              <EditDeleteActions
+                onEdit={() => startEdit(program)}
+                onDelete={() => handleDelete(program.id)}
+                disabled={isSaving}
+                className="ml-4"
+              />
             </li>
           ),
         )}
