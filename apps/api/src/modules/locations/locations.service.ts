@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CityResultDto } from '@/modules/locations/dto/city-search-response.dto';
 
 interface GeonamesResponse {
-  geonames?: Array<{ name: string; adminName1?: string }>;
+  geonames?: Array<{ name: string; adminName1?: string; population?: number }>;
 }
 
 @Injectable()
@@ -15,7 +15,7 @@ export class LocationsService {
     url.searchParams.set('country', country);
     url.searchParams.set('featureClass', 'P');
     url.searchParams.set('orderby', 'population');
-    url.searchParams.set('maxRows', '15');
+    url.searchParams.set('maxRows', '10');
     url.searchParams.set('username', process.env.GEONAMES_USERNAME!);
 
     try {
@@ -27,7 +27,9 @@ export class LocationsService {
         return [];
       }
       const data = (await res.json()) as GeonamesResponse;
-      return (data.geonames ?? []).map((g) => ({ name: g.name, region: g.adminName1 ?? '' }));
+      return (data.geonames ?? [])
+        .filter((g) => g.population)
+        .map((g) => ({ name: g.name, region: g.adminName1 ?? '' }));
     } catch (err) {
       this.logger.error('GeoNames API error', err instanceof Error ? err.message : String(err));
       return [];

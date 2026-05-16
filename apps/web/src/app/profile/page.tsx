@@ -38,10 +38,10 @@ const VALID_TABS = [
   'basic',
   'personal',
   'nationalities',
-  'preferences',
   'loyalty',
   'health',
   'emergency',
+  'preferences',
 ] as const;
 
 type Tab = (typeof VALID_TABS)[number];
@@ -75,11 +75,11 @@ const DEFAULT_HEALTH_DATA: HealthData = {
 interface ProfileData {
   userProfile: BasicInfoProfile;
   personalDetails: PersonalDetailsProfile;
-  preferences: PreferencesData;
   loyaltyPrograms: LoyaltyProgramDto[];
   health: HealthData;
   emergencyContacts: EmergencyContactDto[];
   nationalities: NationalityDto[];
+  preferences: PreferencesData;
 }
 
 export default function ProfilePage() {
@@ -149,10 +149,6 @@ export default function ProfilePage() {
           profileRes.status === 'fulfilled'
             ? (profileRes.value.data as PersonalDetailsProfile)
             : DEFAULT_PERSONAL_DETAILS,
-        preferences:
-          prefRes.status === 'fulfilled'
-            ? (prefRes.value.data as PreferencesData)
-            : { language: AppLanguage.ES, currency: AppCurrency.COP, theme: AppTheme.SYSTEM },
         loyaltyPrograms:
           loyaltyRes.status === 'fulfilled' ? (loyaltyRes.value.data as LoyaltyProgramDto[]) : [],
         health:
@@ -167,6 +163,10 @@ export default function ProfilePage() {
           nationalitiesRes.status === 'fulfilled'
             ? (nationalitiesRes.value.data as NationalityDto[])
             : [],
+        preferences:
+          prefRes.status === 'fulfilled'
+            ? (prefRes.value.data as PreferencesData)
+            : { language: AppLanguage.ES, currency: AppCurrency.COP, theme: AppTheme.SYSTEM },
       });
     } catch {
       if (!loadedOnce.current) {
@@ -219,10 +219,10 @@ export default function ProfilePage() {
     { key: 'basic', label: t('tabs.basicInfo') },
     { key: 'personal', label: t('tabs.personalDetails') },
     { key: 'nationalities', label: t('tabs.nationalities') },
-    { key: 'preferences', label: t('tabs.preferences') },
     { key: 'loyalty', label: t('tabs.loyaltyPrograms') },
     { key: 'health', label: t('tabs.health') },
     { key: 'emergency', label: t('tabs.emergencyContacts') },
+    { key: 'preferences', label: t('tabs.preferences') },
   ];
 
   const tabKeys = tabs.map((tab) => tab.key);
@@ -261,7 +261,7 @@ export default function ProfilePage() {
           role="tablist"
           aria-label={t('title')}
           onScroll={handleTablistScroll}
-          className="flex gap-1 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-1 overflow-x-auto border-b border-border scrollbar-none [&::-webkit-scrollbar]:hidden"
         >
           {tabs.map(({ key, label }) => (
             <button
@@ -319,14 +319,6 @@ export default function ProfilePage() {
         <NationalitiesSection data={data.nationalities} onRefresh={loadData} />
       </div>
       <div
-        id="panel-preferences"
-        role="tabpanel"
-        aria-labelledby="tab-preferences"
-        hidden={activeTab !== 'preferences'}
-      >
-        <PreferencesSection preferences={data.preferences} onRefresh={loadData} />
-      </div>
-      <div
         id="panel-loyalty"
         role="tabpanel"
         aria-labelledby="tab-loyalty"
@@ -349,6 +341,14 @@ export default function ProfilePage() {
         hidden={activeTab !== 'emergency'}
       >
         <EmergencyContactsSection contacts={data.emergencyContacts} onRefresh={loadData} />
+      </div>
+      <div
+        id="panel-preferences"
+        role="tabpanel"
+        aria-labelledby="tab-preferences"
+        hidden={activeTab !== 'preferences'}
+      >
+        <PreferencesSection preferences={data.preferences} onRefresh={loadData} />
       </div>
     </div>
   );
