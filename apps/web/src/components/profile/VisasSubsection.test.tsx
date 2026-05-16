@@ -396,15 +396,15 @@ describe('VisasSubsection', () => {
   describe('editing a visa', () => {
     it('shows edit form when Edit clicked', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       expect(screen.getByLabelText('nationalities.visas.visaType')).toBeInTheDocument();
     });
 
     it('shows coverageType as read-only text on edit', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       expect(
         screen.queryByRole('combobox', { name: 'nationalities.visas.coverageType' }),
       ).not.toBeInTheDocument();
@@ -413,8 +413,8 @@ describe('VisasSubsection', () => {
 
     it('calls PATCH with updated visa type', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
@@ -427,8 +427,8 @@ describe('VisasSubsection', () => {
 
     it('shows success toast after update', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
@@ -439,8 +439,8 @@ describe('VisasSubsection', () => {
     it('shows error toast when update fails', async () => {
       mocks.mockPatch.mockRejectedValue(new Error('network'));
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
@@ -450,16 +450,16 @@ describe('VisasSubsection', () => {
 
     it('cancels edit when Cancel clicked', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.cancel' }));
       expect(screen.queryByLabelText('nationalities.visas.visaType')).not.toBeInTheDocument();
     });
 
     it('shows entries required error in edit form when entries is cleared', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), '');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.entriesRequired')).toBeInTheDocument();
@@ -468,8 +468,8 @@ describe('VisasSubsection', () => {
 
     it('shows expiry required error in edit form when expiry date is cleared', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.clear(screen.getByLabelText('nationalities.visas.expiryDate'));
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.expiryRequired')).toBeInTheDocument();
@@ -478,8 +478,8 @@ describe('VisasSubsection', () => {
 
     it('shows type required error in edit form when visa type is cleared', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.edit' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.edit' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), '');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.typeRequired')).toBeInTheDocument();
@@ -504,19 +504,17 @@ describe('VisasSubsection', () => {
   describe('deleting a visa', () => {
     it('requires second click to confirm delete', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.delete' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.delete' })[0]!);
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.delete' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
       expect(mocks.mockDelete).not.toHaveBeenCalled();
-      expect(
-        screen.getByRole('button', { name: 'nationalities.visas.deleteConfirm' }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'actions.deleteConfirm' })).toBeInTheDocument();
     });
 
     it('calls DELETE after confirmation', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.delete' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.delete' })[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.visas.deleteConfirm' }));
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.delete' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockDelete).toHaveBeenCalledWith(
           `/v1/users/me/nationalities/${NATIONALITY_ID}/visas/visa-1`,
@@ -526,9 +524,9 @@ describe('VisasSubsection', () => {
 
     it('shows success toast after delete', async () => {
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.delete' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.delete' })[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.visas.deleteConfirm' }));
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.delete' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.visas.deleteSuccess'),
       );
@@ -537,9 +535,9 @@ describe('VisasSubsection', () => {
     it('shows error toast when delete fails', async () => {
       mocks.mockDelete.mockRejectedValue(new Error('network'));
       const { user } = setup();
-      await waitFor(() => screen.getAllByRole('button', { name: 'nationalities.visas.delete' }));
-      await user.click(screen.getAllByRole('button', { name: 'nationalities.visas.delete' })[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.visas.deleteConfirm' }));
+      await waitFor(() => screen.getAllByRole('button', { name: 'actions.delete' }));
+      await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.visas.deleteError'),
       );

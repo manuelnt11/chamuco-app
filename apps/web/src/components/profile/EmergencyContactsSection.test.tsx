@@ -347,14 +347,14 @@ describe('EmergencyContactsSection', () => {
   describe('editing a contact', () => {
     it('shows inline edit form when Edit is clicked', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByDisplayValue('MARÍA GARCÍA')).toBeInTheDocument();
     });
 
     it('pre-fills edit form with existing values', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByLabelText('emergencyContacts.fullName')).toHaveValue('MARÍA GARCÍA');
       expect(screen.getByLabelText('emergencyContacts.relationship')).toHaveValue('MOTHER');
@@ -363,7 +363,7 @@ describe('EmergencyContactsSection', () => {
 
     it('calls PATCH on save', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       const nameInput = screen.getByLabelText('emergencyContacts.fullName');
       await user.clear(nameInput);
@@ -382,7 +382,7 @@ describe('EmergencyContactsSection', () => {
 
     it('shows success toast after update', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), ' ');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
@@ -393,7 +393,7 @@ describe('EmergencyContactsSection', () => {
 
     it('calls onRefresh after update', async () => {
       const { user, onRefresh } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), ' ');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
@@ -402,7 +402,7 @@ describe('EmergencyContactsSection', () => {
 
     it('cancels edit form when Cancel is clicked', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.cancel' }));
       expect(screen.queryByDisplayValue('MARÍA GARCÍA')).not.toBeInTheDocument();
@@ -411,7 +411,7 @@ describe('EmergencyContactsSection', () => {
     it('shows error toast when update fails', async () => {
       mocks.mockPatch.mockRejectedValue(new Error('network error'));
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), ' ');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
@@ -422,7 +422,7 @@ describe('EmergencyContactsSection', () => {
 
     it('sends isPrimary: false when checkbox is unchecked on edit', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('checkbox', { name: 'emergencyContacts.isPrimary' }));
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
@@ -439,22 +439,20 @@ describe('EmergencyContactsSection', () => {
     it('requires a second click to confirm delete', async () => {
       const { user } = setup();
       const deleteButtons = screen.getAllByRole('button', {
-        name: 'emergencyContacts.delete',
+        name: 'actions.delete',
       });
       await user.click(deleteButtons[0]!);
       expect(mocks.mockDelete).not.toHaveBeenCalled();
-      expect(
-        screen.getByRole('button', { name: 'emergencyContacts.deleteConfirm' }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'actions.deleteConfirm' })).toBeInTheDocument();
     });
 
     it('calls DELETE after confirmation click', async () => {
       const { user } = setup();
       const deleteButtons = screen.getAllByRole('button', {
-        name: 'emergencyContacts.delete',
+        name: 'actions.delete',
       });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockDelete).toHaveBeenCalledWith('/v1/users/me/emergency-contacts/contact-1'),
       );
@@ -463,20 +461,20 @@ describe('EmergencyContactsSection', () => {
     it('calls onRefresh after delete', async () => {
       const { user, onRefresh } = setup();
       const deleteButtons = screen.getAllByRole('button', {
-        name: 'emergencyContacts.delete',
+        name: 'actions.delete',
       });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
 
     it('shows success toast after delete', async () => {
       const { user } = setup();
       const deleteButtons = screen.getAllByRole('button', {
-        name: 'emergencyContacts.delete',
+        name: 'actions.delete',
       });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastSuccess).toHaveBeenCalledWith('emergencyContacts.deleteSuccess'),
       );
@@ -486,10 +484,10 @@ describe('EmergencyContactsSection', () => {
       mocks.mockDelete.mockRejectedValue(new Error('network error'));
       const { user } = setup();
       const deleteButtons = screen.getAllByRole('button', {
-        name: 'emergencyContacts.delete',
+        name: 'actions.delete',
       });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('emergencyContacts.saveError'),
       );
@@ -517,7 +515,7 @@ describe('EmergencyContactsSection', () => {
 
     it('sets maxLength 100 on fullName input in edit form', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByLabelText('emergencyContacts.fullName')).toHaveAttribute(
         'maxLength',
@@ -527,7 +525,7 @@ describe('EmergencyContactsSection', () => {
 
     it('sets maxLength 50 on relationship input in edit form', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'emergencyContacts.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByLabelText('emergencyContacts.relationship')).toHaveAttribute(
         'maxLength',

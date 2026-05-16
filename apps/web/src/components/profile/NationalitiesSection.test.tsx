@@ -477,14 +477,14 @@ describe('NationalitiesSection', () => {
   describe('editing a nationality', () => {
     it('shows inline edit form when Edit is clicked', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByLabelText('nationalities.nationalIdNumber')).toBeInTheDocument();
     });
 
     it('shows country as read-only text, not a combobox, in edit mode', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.queryByTestId('edit-nat-1-country')).not.toBeInTheDocument();
       expect(screen.getByText('Colombia')).toBeInTheDocument();
@@ -492,7 +492,7 @@ describe('NationalitiesSection', () => {
 
     it('pre-fills edit form with existing values', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByLabelText('nationalities.nationalIdNumber')).toHaveValue('1234567890');
       expect(screen.getByLabelText('nationalities.passportNumber')).toHaveValue('AB123456');
@@ -501,7 +501,7 @@ describe('NationalitiesSection', () => {
 
     it('calls PATCH on save', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       const idInput = screen.getByLabelText('nationalities.nationalIdNumber');
       await user.clear(idInput);
@@ -520,7 +520,7 @@ describe('NationalitiesSection', () => {
 
     it('shows success toast after update', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -531,7 +531,7 @@ describe('NationalitiesSection', () => {
 
     it('calls onRefresh after update', async () => {
       const { user, onRefresh } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -540,7 +540,7 @@ describe('NationalitiesSection', () => {
 
     it('cancels edit form when Cancel is clicked', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'nationalities.cancel' }));
       expect(screen.queryByLabelText('nationalities.nationalIdNumber')).not.toBeInTheDocument();
@@ -549,7 +549,7 @@ describe('NationalitiesSection', () => {
     it('shows error toast when update fails', async () => {
       mocks.mockPatch.mockRejectedValue(new Error('network error'));
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       await user.click(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -562,19 +562,17 @@ describe('NationalitiesSection', () => {
   describe('deleting a nationality', () => {
     it('requires a second click to confirm delete', async () => {
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'nationalities.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
       expect(mocks.mockDelete).not.toHaveBeenCalled();
-      expect(
-        screen.getByRole('button', { name: 'nationalities.deleteConfirm' }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'actions.deleteConfirm' })).toBeInTheDocument();
     });
 
     it('calls DELETE after confirmation click', async () => {
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'nationalities.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockDelete).toHaveBeenCalledWith('/v1/users/me/nationalities/nat-1'),
       );
@@ -582,17 +580,17 @@ describe('NationalitiesSection', () => {
 
     it('calls onRefresh after delete', async () => {
       const { user, onRefresh } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'nationalities.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
 
     it('shows success toast after delete', async () => {
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'nationalities.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.deleteSuccess'),
       );
@@ -602,9 +600,9 @@ describe('NationalitiesSection', () => {
       const error = { response: { status: 400 } };
       mocks.mockDelete.mockRejectedValue(error);
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'nationalities.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.deletePrimaryError'),
       );
@@ -613,9 +611,9 @@ describe('NationalitiesSection', () => {
     it('shows generic deleteError toast on non-400 error', async () => {
       mocks.mockDelete.mockRejectedValue(new Error('network error'));
       const { user } = setup();
-      const deleteButtons = screen.getAllByRole('button', { name: 'nationalities.delete' });
+      const deleteButtons = screen.getAllByRole('button', { name: 'actions.delete' });
       await user.click(deleteButtons[0]!);
-      await user.click(screen.getByRole('button', { name: 'nationalities.deleteConfirm' }));
+      await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
         expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.deleteError'),
       );
@@ -690,7 +688,7 @@ describe('NationalitiesSection', () => {
       const { user } = setup();
       await user.click(screen.getByRole('button', { name: 'nationalities.documentsToggle' }));
       expect(screen.getByTestId('visas-nat-1')).toBeInTheDocument();
-      const editButtons = screen.getAllByRole('button', { name: 'nationalities.edit' });
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.queryByTestId('visas-nat-1')).not.toBeInTheDocument();
     });

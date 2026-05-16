@@ -25,7 +25,10 @@ describe('LocationsService', () => {
     it('should return transformed city results', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ geonames: [{ name: 'Medellín', adminName1: 'Antioquia' }] }),
+        json: () =>
+          Promise.resolve({
+            geonames: [{ name: 'Medellín', adminName1: 'Antioquia', population: 2569000 }],
+          }),
       });
 
       const result = await service.searchCities('Med', 'CO');
@@ -45,7 +48,7 @@ describe('LocationsService', () => {
       expect(calledUrl).toContain('username=testuser');
       expect(calledUrl).toContain('featureClass=P');
       expect(calledUrl).toContain('orderby=population');
-      expect(calledUrl).toContain('maxRows=15');
+      expect(calledUrl).toContain('maxRows=10');
     });
 
     it('should return [] on non-ok GeoNames response', async () => {
@@ -67,7 +70,7 @@ describe('LocationsService', () => {
     it('should default region to empty string when adminName1 is absent', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ geonames: [{ name: 'Tokyo' }] }),
+        json: () => Promise.resolve({ geonames: [{ name: 'Tokyo', population: 9273000 }] }),
       });
 
       const result = await service.searchCities('Tok', 'JP');
