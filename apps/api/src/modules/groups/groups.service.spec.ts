@@ -736,6 +736,24 @@ describe('GroupsService', () => {
       expect(result.data[0]?.membershipStatus).toBe('pending');
     });
 
+    it.each([GroupMemberStatus.REMOVED, GroupMemberStatus.LEFT, GroupMemberStatus.REJECTED])(
+      'returns membershipStatus "none" when user has a %s row',
+      async (status) => {
+        const staleMember = { groupId: 'group-uuid-2', userId: 'user-uuid', status };
+        mockGroupMembersFindMany
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([staleMember]);
+        mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+        mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]);
+        mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
+
+        const result = await service.searchGroups('user-uuid', baseQuery);
+
+        expect(result.data[0]?.membershipStatus).toBe('none');
+      },
+    );
+
     it('returns correct memberCount based on active members', async () => {
       const memberRow1 = { groupId: 'group-uuid-2' };
       const memberRow2 = { groupId: 'group-uuid-2' };

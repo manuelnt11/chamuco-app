@@ -241,7 +241,12 @@ export class GroupsService {
 
         const rawStatus = membershipStatusMap.get(group.id);
         let membershipStatus: MembershipStatus;
-        if (!rawStatus) {
+        if (
+          !rawStatus ||
+          rawStatus === GroupMemberStatus.REMOVED ||
+          rawStatus === GroupMemberStatus.LEFT ||
+          rawStatus === GroupMemberStatus.REJECTED
+        ) {
           membershipStatus = 'none';
         } else if (
           rawStatus === GroupMemberStatus.REQUEST ||

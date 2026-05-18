@@ -48,7 +48,7 @@ export default function ExploreGroupsPage() {
         aria-label={t('search.placeholder')}
       />
 
-      {isLoading && <p className="text-sm text-muted-foreground">{t('search.loading')}</p>}
+      {isSearchLoading && <p className="text-sm text-muted-foreground">{t('search.loading')}</p>}
 
       {isEmpty && !isLoading && (
         <p className="text-sm text-muted-foreground">{t('search.empty')}</p>
