@@ -2,14 +2,14 @@
 
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
 import { getCountryDataList } from 'countries-list';
 
 import { Button } from '@/components/ui/button';
 import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobox';
+import { getCallingCode } from '@/components/ui/country-combobox';
+import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import { SaveButton } from '@/components/ui/save-button';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
@@ -127,35 +127,17 @@ function ContactForm({
 
       <div className="space-y-1.5">
         <Label id={`${idPrefix}-phone-label`}>{t('emergencyContacts.phoneNumber')}</Label>
-        <div className="flex gap-2">
-          <div className="w-40 shrink-0">
-            <Label htmlFor={`${idPrefix}-phoneCountry`} className="sr-only">
-              {t('emergencyContacts.phoneNumber')}
-            </Label>
-            <CountryCombobox
-              value={form.phoneCountryIso}
-              onChange={handleCountryChange}
-              displayMode="phone"
-              aria-labelledby={`${idPrefix}-phone-label`}
-              aria-invalid={errors.phone !== null}
-              data-testid={`${idPrefix}-phone-country`}
-            />
-          </div>
-          <div className="flex-1">
-            <Label htmlFor={`${idPrefix}-phoneLocalNumber`} className="sr-only">
-              {t('emergencyContacts.phoneNumber')}
-            </Label>
-            <Input
-              id={`${idPrefix}-phoneLocalNumber`}
-              type="tel"
-              value={form.phoneLocalNumber}
-              onChange={(e) => onChange({ phoneLocalNumber: e.target.value })}
-              aria-invalid={errors.phone !== null}
-              disabled={isSaving}
-            />
-          </div>
-        </div>
-        <FieldMessage error={errors.phone} />
+        <PhoneInput
+          countryIso={form.phoneCountryIso}
+          localNumber={form.phoneLocalNumber}
+          onCountryChange={handleCountryChange}
+          onNumberChange={(v) => onChange({ phoneLocalNumber: v })}
+          error={errors.phone}
+          disabled={isSaving}
+          labelId={`${idPrefix}-phone-label`}
+          numberLabel={t('emergencyContacts.phoneNumber')}
+          countryTestId={`${idPrefix}-phone-country`}
+        />
       </div>
 
       <div className="space-y-1.5">
@@ -242,10 +224,10 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
       hasError = true;
     }
 
-    if (!form.phoneLocalNumber.trim()) {
+    if (!cleanPhoneNumber(form.phoneLocalNumber)) {
       errors.phone = t('emergencyContacts.errors.phoneRequired');
       hasError = true;
-    } else if (!isValidPhoneNumber(form.phoneLocalNumber, form.phoneCountryIso as CountryCode)) {
+    } else if (!isPhoneValid(form.phoneLocalNumber, form.phoneCountryIso)) {
       errors.phone = t('emergencyContacts.errors.invalidPhone');
       hasError = true;
     }
@@ -314,7 +296,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
         id: globalThis.crypto.randomUUID(),
         fullName: normalized.fullName,
         phoneCountryCode: normalized.phoneCountryCode,
-        phoneLocalNumber: normalized.phoneLocalNumber.trim(),
+        phoneLocalNumber: cleanPhoneNumber(normalized.phoneLocalNumber),
         relationship: normalized.relationship,
         isPrimary: normalized.isPrimary,
       });
@@ -345,7 +327,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
       await apiClient.patch(`/v1/users/me/emergency-contacts/${editingId}`, {
         fullName: normalized.fullName,
         phoneCountryCode: normalized.phoneCountryCode,
-        phoneLocalNumber: normalized.phoneLocalNumber.trim(),
+        phoneLocalNumber: cleanPhoneNumber(normalized.phoneLocalNumber),
         relationship: normalized.relationship,
         isPrimary: normalized.isPrimary,
       });

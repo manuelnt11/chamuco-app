@@ -183,6 +183,25 @@ describe('EmergencyContactsSection', () => {
       );
     });
 
+    it('strips internal spaces from phone number before POST', async () => {
+      const { user } = setup([]);
+      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
+      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '300 987 6543');
+      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/emergency-contacts', {
+          id: 'test-uuid-1234',
+          fullName: 'ANA LÓPEZ',
+          phoneCountryCode: '+57',
+          phoneLocalNumber: '3009876543',
+          relationship: 'SISTER',
+          isPrimary: true,
+        }),
+      );
+    });
+
     it('defaults isPrimary to true when list is empty', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
@@ -372,6 +391,25 @@ describe('EmergencyContactsSection', () => {
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/emergency-contacts/contact-1', {
           fullName: 'MARÍA LÓPEZ',
+          phoneCountryCode: '+57',
+          phoneLocalNumber: '3001234567',
+          relationship: 'MOTHER',
+          isPrimary: true,
+        }),
+      );
+    });
+
+    it('strips internal spaces from phone before PATCH', async () => {
+      const { user } = setup();
+      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
+      await user.click(editButtons[0]!);
+      const phoneInput = screen.getByLabelText('emergencyContacts.phoneNumber');
+      await user.clear(phoneInput);
+      await user.type(phoneInput, '300 123 4567');
+      await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/emergency-contacts/contact-1', {
+          fullName: 'MARÍA GARCÍA',
           phoneCountryCode: '+57',
           phoneLocalNumber: '3001234567',
           relationship: 'MOTHER',
