@@ -321,7 +321,20 @@
     },
     "detail": {
       "noGroups": "Aún no tienes grupos",
-      "createFirst": "Crea tu primer grupo para empezar a organizar viajes"
+      "createFirst": "Crea tu primer grupo para empezar a organizar viajes",
+      "view": "Ver"
+    },
+    "search": {
+      "pageTitle": "Descubrir Grupos",
+      "searchGroups": "Buscar Grupos",
+      "placeholder": "Buscar grupos...",
+      "empty": "Busca grupos públicos para unirte",
+      "loading": "Buscando...",
+      "noResults": "No se encontraron grupos para \"{{query}}\"",
+      "resultCount": "{{count}} grupo encontrado",
+      "resultCount_other": "{{count}} grupos encontrados",
+      "memberCount": "{{count}} miembro",
+      "memberCount_other": "{{count}} miembros"
     },
     "settings": {
       "title": "Configuración del grupo",
@@ -813,6 +826,7 @@
     "subtitle": "Descubre nuevos destinos y grupos de viaje",
     "discoverTrips": "Descubrir Viajes",
     "discoverGroups": "Descubrir Grupos",
+    "discoverGroupsSubtitle": "Busca y únete a grupos de viaje públicos",
     "popularDestinations": "Destinos Populares",
     "featuredTrips": "Viajes Destacados"
   },

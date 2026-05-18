@@ -43,3 +43,15 @@ export interface GroupInvitation {
   };
   initiatedAt: string;
 }
+
+export type MembershipStatus = 'none' | 'pending' | 'active';
+
+export interface GroupSearchResult extends Group {
+  memberCount: number;
+  membershipStatus: MembershipStatus;
+}
+
+export interface GroupSearchResponse {
+  data: GroupSearchResult[];
+  total: number;
+}

@@ -321,7 +321,20 @@
     },
     "detail": {
       "noGroups": "You don't have any groups yet",
-      "createFirst": "Create your first group to start organizing trips"
+      "createFirst": "Create your first group to start organizing trips",
+      "view": "View"
+    },
+    "search": {
+      "pageTitle": "Discover Groups",
+      "searchGroups": "Search Groups",
+      "placeholder": "Search groups...",
+      "empty": "Search for public groups to join",
+      "loading": "Searching...",
+      "noResults": "No groups found for \"{{query}}\"",
+      "resultCount": "{{count}} group found",
+      "resultCount_other": "{{count}} groups found",
+      "memberCount": "{{count}} member",
+      "memberCount_other": "{{count}} members"
     },
     "settings": {
       "title": "Group settings",
@@ -813,6 +826,7 @@
     "subtitle": "Discover new destinations and travel groups",
     "discoverTrips": "Discover Trips",
     "discoverGroups": "Discover Groups",
+    "discoverGroupsSubtitle": "Search and join public travel groups",
     "popularDestinations": "Popular Destinations",
     "featuredTrips": "Featured Trips"
   },

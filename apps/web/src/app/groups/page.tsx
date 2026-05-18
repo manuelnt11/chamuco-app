@@ -33,12 +33,20 @@ export default function GroupsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">{t('title')}</h1>
-        <Link
-          href="/groups/new"
-          className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          {t('createGroup')}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/explore/groups"
+            className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+          >
+            {t('search.searchGroups')}
+          </Link>
+          <Link
+            href="/groups/new"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            {t('createGroup')}
+          </Link>
+        </div>
       </div>
 
       <InvitationsSection />
