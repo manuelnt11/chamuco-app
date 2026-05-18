@@ -167,6 +167,18 @@ describe('CreateNationalityDto', () => {
       expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(true);
     });
 
+    it('accepts today as passportIssueDate', async () => {
+      const today = new Date().toISOString().split('T')[0]!;
+      const dto = plainToInstance(CreateNationalityDto, {
+        ...validBase,
+        ...validPassport,
+        passportIssueDate: today,
+        passportExpiryDate: '2099-01-01',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(false);
+    });
+
     it('rejects passportExpiryDate in non-ISO format', async () => {
       const dto = plainToInstance(CreateNationalityDto, {
         ...validBase,
@@ -329,6 +341,17 @@ describe('UpdateNationalityDto', () => {
       });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(true);
+    });
+
+    it('accepts today as passportIssueDate', async () => {
+      const today = new Date().toISOString().split('T')[0]!;
+      const dto = plainToInstance(UpdateNationalityDto, {
+        ...validPassport,
+        passportIssueDate: today,
+        passportExpiryDate: '2099-01-01',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(false);
     });
   });
 });

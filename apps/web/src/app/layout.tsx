@@ -75,8 +75,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <AppShell>{children}</AppShell>
                 </UserProvider>
               </AuthProvider>
+              <IosPwaPrompt />
             </ToastProvider>
-            <IosPwaPrompt />
           </ThemeProvider>
         </I18nProvider>
       </body>

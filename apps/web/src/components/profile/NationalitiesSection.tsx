@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type SubmitEvent } from 'react';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getCountryDataList, getEmojiFlag, type TCountryCode } from 'countries-list';
 import { CaretDownIcon, GlobeIcon, IdentificationCardIcon } from '@phosphor-icons/react';
@@ -383,16 +384,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
       setAddErrors(EMPTY_ERRORS);
       onRefresh();
     } catch (err: unknown) {
-      const status =
-        err &&
-        typeof err === 'object' &&
-        'response' in err &&
-        err.response &&
-        typeof err.response === 'object' &&
-        'status' in err.response
-          ? (err.response as { status: number }).status
-          : null;
-      if (status === 409) {
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
         toast.error(t('nationalities.duplicateError'));
       } else {
         toast.error(t('nationalities.saveError'));
