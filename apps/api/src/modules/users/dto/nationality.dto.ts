@@ -109,7 +109,8 @@ export class CreateNationalityDto {
 
   @ApiProperty({
     example: '2020-01-15',
-    description: 'Passport issue date (YYYY-MM-DD). Required when any passport field is provided.',
+    description:
+      'Passport issue date (YYYY-MM-DD). Required when any passport field is provided. Cannot be a future date.',
     required: false,
   })
   @ValidateIf(anyPassportFieldPresent)
@@ -177,7 +178,8 @@ export class UpdateNationalityDto {
 
   @ApiProperty({
     example: '2020-01-15',
-    description: 'Passport issue date (YYYY-MM-DD). Required when any passport field is provided.',
+    description:
+      'Passport issue date (YYYY-MM-DD). Required when any passport field is provided. Cannot be a future date.',
     required: false,
   })
   @ValidateIf(anyPassportFieldPresent)

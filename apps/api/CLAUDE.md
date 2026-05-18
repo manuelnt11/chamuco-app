@@ -71,21 +71,3 @@ All user-generated media uploads follow the signed URL pattern — never proxy f
 4. Add the accepted MIME types to `ACCEPTED_TYPES` in `apps/web/src/components/ui/file-upload-button.tsx`
 
 **Runtime requirement:** `GOOGLE_CLOUD_STORAGE_BUCKET` env var must be set. Validated at startup by `environment.schema.ts`. For e2e tests, `test-bucket` is injected via `test/setup-env.ts`.
-
-### 5. JSONB arrays — never persist null values
-
-When writing objects into JSONB array columns (e.g. `loyalty_programs`, any future JSONB array field), strip all keys whose value is `null` or `undefined` before saving. PostgreSQL stores `null` verbatim, wasting space and complicating reads with unnecessary null checks.
-
-**Pattern — strip before insert or merge:**
-
-```typescript
-// Strip nulls before pushing a new entry
-const entry = Object.fromEntries(Object.entries(dto).filter(([, v]) => v != null));
-loyaltyPrograms: [...programs, entry];
-
-// Strip nulls after merging a patch
-const merged = { ...existing, ...patch };
-const entry = Object.fromEntries(Object.entries(merged).filter(([, v]) => v != null));
-```
-
-**Applies to:** every service method that writes objects into a JSONB array column. When a nullable field is absent (e.g. `notes` not provided), omit the key entirely — do not write `{ notes: null }`.

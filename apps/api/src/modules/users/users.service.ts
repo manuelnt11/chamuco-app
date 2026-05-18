@@ -579,11 +579,9 @@ export class UsersService {
       throw new ConflictException('Loyalty program with this name and member ID already exists');
     }
 
-    const entry = Object.fromEntries(Object.entries(dto).filter(([, v]) => v != null));
-
     const [saved] = await this.db
       .update(userProfiles)
-      .set({ loyaltyPrograms: [...programs, entry] })
+      .set({ loyaltyPrograms: [...programs, dto] })
       .where(eq(userProfiles.userId, userId))
       .returning();
 
@@ -609,11 +607,10 @@ export class UsersService {
 
     const updated = programs.map((p: LoyaltyProgramDto, i: number) => {
       if (i !== index) return p;
-      const merged = {
+      return {
         ...p,
         ...Object.fromEntries(Object.entries(dto).filter(([, v]) => v !== undefined)),
-      };
-      return Object.fromEntries(Object.entries(merged).filter(([, v]) => v != null));
+      } as LoyaltyProgramDto;
     });
 
     const [saved] = await this.db

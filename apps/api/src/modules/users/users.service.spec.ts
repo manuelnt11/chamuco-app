@@ -1728,7 +1728,7 @@ describe('UsersService', () => {
       id: 'prog-new-uuid',
       programName: 'Delta SkyMiles',
       memberId: 'DL999',
-      notes: 'Gold status',
+      notes: null,
     };
 
     it('appends the new program and returns it', async () => {
@@ -1741,29 +1741,6 @@ describe('UsersService', () => {
         expect.objectContaining({ loyaltyPrograms: [newProgram] }),
       );
       expect(result).toEqual(newProgram);
-    });
-
-    it('strips null fields before saving (notes: null is omitted)', async () => {
-      const dto = {
-        id: 'prog-new-uuid',
-        programName: 'Delta SkyMiles',
-        memberId: 'DL999',
-        notes: null,
-      };
-      const stripped = { id: 'prog-new-uuid', programName: 'Delta SkyMiles', memberId: 'DL999' };
-      mockProfileFindFirst.mockResolvedValue({ ...mockHealthProfile, loyaltyPrograms: [] });
-      mockReturning.mockResolvedValue([{ ...mockHealthProfile, loyaltyPrograms: [stripped] }]);
-
-      await service.addLoyaltyProgram('user-uuid', dto);
-
-      expect(mockSet).toHaveBeenCalledWith(
-        expect.objectContaining({ loyaltyPrograms: [stripped] }),
-      );
-      expect(mockSet).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          loyaltyPrograms: expect.arrayContaining([expect.objectContaining({ notes: null })]),
-        }),
-      );
     });
 
     it('appends to existing programs without removing them', async () => {
@@ -1869,26 +1846,6 @@ describe('UsersService', () => {
         expect.objectContaining({
           loyaltyPrograms: expect.arrayContaining([expect.objectContaining({ id: 'prog-other' })]),
         }),
-      );
-    });
-
-    it('strips null fields from the merged entry (clearing notes removes the key)', async () => {
-      const withNotes = { ...existingProgram, notes: 'Gold' };
-      mockProfileFindFirst.mockResolvedValue({
-        ...mockHealthProfile,
-        loyaltyPrograms: [withNotes],
-      });
-      const stripped = {
-        id: existingProgram.id,
-        programName: existingProgram.programName,
-        memberId: existingProgram.memberId,
-      };
-      mockReturning.mockResolvedValue([{ ...mockHealthProfile, loyaltyPrograms: [stripped] }]);
-
-      await service.updateLoyaltyProgram('user-uuid', 'prog-uuid', { notes: null });
-
-      expect(mockSet).toHaveBeenCalledWith(
-        expect.objectContaining({ loyaltyPrograms: [stripped] }),
       );
     });
 
