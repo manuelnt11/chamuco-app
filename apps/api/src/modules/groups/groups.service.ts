@@ -1,7 +1,12 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, ilike, inArray, isNull, notInArray } from 'drizzle-orm';
+import { and, count, eq, ilike, inArray, isNull, notInArray } from 'drizzle-orm';
 
-import { GroupMemberStatus, GroupRole, GroupVisibility } from '@chamuco/shared-types';
+import {
+  GroupMemberStatus,
+  GroupRole,
+  GroupVisibility,
+  MembershipStatus,
+} from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
@@ -16,7 +21,7 @@ import type { CreateGroupDto } from './dto/create-group.dto';
 import type { UpdateGroupDto } from './dto/update-group.dto';
 import type { GroupResponseDto } from './dto/group-response.dto';
 import type { SearchGroupsQueryDto } from './dto/search-groups-query.dto';
-import type { GroupSearchResponseDto, MembershipStatus } from './dto/group-search-result.dto';
+import type { GroupSearchResponseDto } from './dto/group-search-result.dto';
 
 @Injectable()
 export class GroupsService {
@@ -181,11 +186,8 @@ export class GroupsService {
     );
 
     // Count total matching groups
-    const allMatches = await this.db.query.groups.findMany({
-      where: conditions,
-      columns: { id: true },
-    });
-    const total = allMatches.length;
+    const countResult = await this.db.select({ total: count() }).from(groups).where(conditions);
+    const total = countResult[0]?.total ?? 0;
 
     if (total === 0) return { data: [], total: 0 };
 

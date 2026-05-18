@@ -65,6 +65,14 @@ describe('ExploreGroupsPage', () => {
     expect(screen.getByText('search.empty')).toBeInTheDocument();
   });
 
+  it('shows loading state while user session is loading', () => {
+    mocks.mockUseUser.mockReturnValue({ appUser: null, isLoading: true });
+
+    render(<ExploreGroupsPage />);
+
+    expect(screen.queryByTestId('discovery-card')).not.toBeInTheDocument();
+  });
+
   it('shows loading state while fetching', async () => {
     mocks.mockUseGroupSearch.mockReturnValue({ results: [], total: 0, isLoading: true });
 

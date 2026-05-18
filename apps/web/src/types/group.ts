@@ -3,6 +3,7 @@ import type {
   GroupMemberTier,
   GroupRole,
   GroupVisibility,
+  MembershipStatus,
 } from '@chamuco/shared-types';
 
 export interface Group {
@@ -44,7 +45,7 @@ export interface GroupInvitation {
   initiatedAt: string;
 }
 
-export type MembershipStatus = 'none' | 'pending' | 'active';
+export type { MembershipStatus };
 
 export interface GroupSearchResult extends Group {
   memberCount: number;

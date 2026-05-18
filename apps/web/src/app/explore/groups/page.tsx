@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { GroupDiscoveryCard } from '@/components/groups/GroupDiscoveryCard';
@@ -10,13 +10,18 @@ import type { MembershipStatus, GroupSearchResult } from '@/types/group';
 
 export default function ExploreGroupsPage() {
   const { t } = useTranslation('groups');
-  const { appUser } = useUser();
+  const { appUser, isLoading: isUserLoading } = useUser();
   const [query, setQuery] = useState('');
 
-  const { results: fetchedResults, total, isLoading } = useGroupSearch(query);
+  const { results: fetchedResults, total, isLoading: isSearchLoading } = useGroupSearch(query);
+  const isLoading = isSearchLoading || isUserLoading;
 
   // Track local status overrides after join/withdraw actions
   const [statusOverrides, setStatusOverrides] = useState<Map<string, MembershipStatus>>(new Map());
+
+  useEffect(() => {
+    setStatusOverrides(new Map());
+  }, [query]);
 
   const handleStatusChange = (groupId: string, newStatus: MembershipStatus) => {
     setStatusOverrides((prev) => new Map(prev).set(groupId, newStatus));

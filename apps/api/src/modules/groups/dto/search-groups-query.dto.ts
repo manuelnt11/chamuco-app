@@ -1,15 +1,17 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SearchGroupsQueryDto {
   @ApiPropertyOptional({
     description: 'Name filter (case-insensitive, partial match)',
     example: 'mountain',
+    minLength: 1,
     maxLength: 100,
   })
   @IsOptional()
   @IsString()
+  @MinLength(1)
   @MaxLength(100)
   q?: string;
 

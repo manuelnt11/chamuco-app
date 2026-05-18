@@ -93,6 +93,9 @@ describe('GroupsService', () => {
   let mockInsertValues: jest.Mock;
   let mockDeleteWhere: jest.Mock;
   let mockTransaction: jest.Mock;
+  let mockGroupsSelectWhere: jest.Mock;
+  let mockGroupsSelectFrom: jest.Mock;
+  let mockGroupsSelect: jest.Mock;
   let mockAssetResolverResolve: jest.Mock;
   let mockCloudStorageDelete: jest.Mock;
   let mockCloudStorageMakePublic: jest.Mock;
@@ -107,6 +110,9 @@ describe('GroupsService', () => {
     mockReturning = jest.fn();
     mockInsertReturning = jest.fn();
     mockDeleteWhere = jest.fn().mockResolvedValue(undefined);
+    mockGroupsSelectWhere = jest.fn().mockResolvedValue([{ total: 0 }]);
+    mockGroupsSelectFrom = jest.fn().mockReturnValue({ where: mockGroupsSelectWhere });
+    mockGroupsSelect = jest.fn().mockReturnValue({ from: mockGroupsSelectFrom });
     mockAssetResolverResolve = jest.fn().mockResolvedValue(mockResolvedCover);
     mockCloudStorageDelete = jest.fn().mockResolvedValue(undefined);
     mockCloudStorageMakePublic = jest.fn().mockResolvedValue(undefined);
@@ -132,6 +138,7 @@ describe('GroupsService', () => {
                 findMany: mockGroupMembersFindMany,
               },
             },
+            select: mockGroupsSelect,
             update: mockUpdate,
             insert: mockInsert,
             delete: mockDelete,
@@ -646,10 +653,8 @@ describe('GroupsService', () => {
     });
 
     it('returns empty result when no public groups match', async () => {
-      // Call 1: user active memberships (none)
       mockGroupMembersFindMany.mockResolvedValueOnce([]);
-      // Count query: no matches
-      mockGroupsFindMany.mockResolvedValueOnce([]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 0 }]);
 
       const result = await service.searchGroups('user-uuid', baseQuery);
 
@@ -662,9 +667,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([]) // active memberships
         .mockResolvedValueOnce([]) // active member counts
         .mockResolvedValueOnce([]); // user membership status
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }]) // count
-        .mockResolvedValueOnce([mockGroupRow2]); // data
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]); // data
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
 
       const result = await service.searchGroups('user-uuid', baseQuery);
@@ -680,9 +684,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([mockActiveMember]) // active memberships → exclude group-uuid
         .mockResolvedValueOnce([]) // active member counts
         .mockResolvedValueOnce([]); // user membership status
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }]) // count (group-uuid already excluded by DB query)
-        .mockResolvedValueOnce([mockGroupRow2]); // data
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]); // data
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
 
       const result = await service.searchGroups('user-uuid', baseQuery);
@@ -695,9 +698,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([]) // active memberships
         .mockResolvedValueOnce([]) // active member counts
         .mockResolvedValueOnce([]); // user membership status → none
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }])
-        .mockResolvedValueOnce([mockGroupRow2]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]);
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
 
       const result = await service.searchGroups('user-uuid', baseQuery);
@@ -710,9 +712,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([]) // active memberships
         .mockResolvedValueOnce([]) // active member counts
         .mockResolvedValueOnce([mockRequestMember]); // user membership status → REQUEST
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }])
-        .mockResolvedValueOnce([mockGroupRow2]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]);
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
 
       const result = await service.searchGroups('user-uuid', baseQuery);
@@ -726,9 +727,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([invitedMember]);
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }])
-        .mockResolvedValueOnce([mockGroupRow2]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]);
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
 
       const result = await service.searchGroups('user-uuid', baseQuery);
@@ -743,9 +743,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([]) // active memberships
         .mockResolvedValueOnce([memberRow1, memberRow2]) // active member counts → 2
         .mockResolvedValueOnce([]); // user membership status
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }])
-        .mockResolvedValueOnce([mockGroupRow2]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]);
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
 
       const result = await service.searchGroups('user-uuid', baseQuery);
@@ -758,9 +757,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]) // no active members
         .mockResolvedValueOnce([]);
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }])
-        .mockResolvedValueOnce([mockGroupRow2]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]);
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
 
       const result = await service.searchGroups('user-uuid', baseQuery);
@@ -774,9 +772,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid' }, { id: 'group-uuid-2' }]) // total: 2
-        .mockResolvedValueOnce([mockGroupRow2]); // offset=1 → second group only
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 2 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]); // offset=1 → second group only
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
 
       const result = await service.searchGroups('user-uuid', paginatedQuery);
@@ -788,9 +785,8 @@ describe('GroupsService', () => {
     it('returns empty data array when page is beyond total', async () => {
       const farQuery: SearchGroupsQueryDto = { limit: 20, offset: 100 };
       mockGroupMembersFindMany.mockResolvedValueOnce([]);
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }]) // total: 1
-        .mockResolvedValueOnce([]); // offset=100 → no results
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([]); // offset=100 → no results
 
       const result = await service.searchGroups('user-uuid', farQuery);
 
@@ -803,9 +799,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }])
-        .mockResolvedValueOnce([mockGroupRow2]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]);
       mockAssetsFindMany.mockResolvedValue([]); // no asset found
 
       await expect(service.searchGroups('user-uuid', baseQuery)).rejects.toThrow(NotFoundException);
@@ -816,9 +811,8 @@ describe('GroupsService', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
-      mockGroupsFindMany
-        .mockResolvedValueOnce([{ id: 'group-uuid-2' }])
-        .mockResolvedValueOnce([mockGroupRow2]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow2]);
       mockAssetsFindMany.mockResolvedValue([mockCoverAssetRow2]);
       mockAssetResolverResolve.mockResolvedValue(null);
 
@@ -827,11 +821,8 @@ describe('GroupsService', () => {
 
     it('uses default limit 20 and offset 0 when not provided', async () => {
       const queryWithDefaults: SearchGroupsQueryDto = {};
-      mockGroupMembersFindMany
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
-      mockGroupsFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+      mockGroupMembersFindMany.mockResolvedValueOnce([]);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 0 }]);
 
       const result = await service.searchGroups('user-uuid', queryWithDefaults);
 

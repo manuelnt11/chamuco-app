@@ -524,7 +524,10 @@ export class GroupMembersService {
 
   // ─── Private helpers ──────────────────────────────────────────────────────────
 
-  private async findMemberOrThrow(groupId: string, userId: string) {
+  private async findMemberOrThrow(
+    groupId: string,
+    userId: string,
+  ): Promise<typeof groupMembers.$inferSelect> {
     const membership = await this.db.query.groupMembers.findFirst({
       where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)),
     });
@@ -532,7 +535,7 @@ export class GroupMembersService {
     return membership;
   }
 
-  private async assertGroupExists(groupId: string) {
+  private async assertGroupExists(groupId: string): Promise<typeof groups.$inferSelect> {
     const group = await this.db.query.groups.findFirst({
       where: and(eq(groups.id, groupId), isNull(groups.deletedAt)),
     });

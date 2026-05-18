@@ -5,7 +5,6 @@ import type { ReactNode } from 'react';
 import type { GroupSearchResult } from '@/types/group';
 
 const mocks = vi.hoisted(() => ({
-  mockJoinRequestButton: vi.fn(),
   mockOnStatusChange: vi.fn(),
 }));
 
