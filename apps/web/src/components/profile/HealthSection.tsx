@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, type FormEvent } from 'react';
+import { useState, useMemo, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Input } from '@/components/ui/input';
@@ -244,7 +244,7 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
     return !hasError;
   }
 
-  async function handleSave(e: FormEvent) {
+  async function handleSave(e: SubmitEvent) {
     e.preventDefault();
 
     if (!validateArrays()) return;

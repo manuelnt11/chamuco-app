@@ -476,6 +476,7 @@
       "updateSuccess": "Program updated",
       "deleteSuccess": "Program deleted",
       "saveError": "Failed to save",
+      "duplicateError": "You already have this program with the same member ID.",
       "categories": {
         "airline": "Airline",
         "hotel": "Hotel",
@@ -657,13 +658,15 @@
       "updateSuccess": "Nationality updated.",
       "deleteSuccess": "Nationality removed.",
       "saveError": "Could not save. Please try again.",
+      "duplicateError": "You already have a nationality for that country.",
       "deleteError": "Could not delete. Please try again.",
       "deletePrimaryError": "Cannot delete the primary nationality while others exist.",
       "errors": {
         "nationalIdFormat": "National ID may only contain uppercase letters, numbers, and hyphens.",
         "passportIncomplete": "Provide all three passport fields or leave them all empty.",
         "passportFormat": "Passport number may only contain uppercase letters, numbers, and hyphens.",
-        "expiryBeforeIssue": "Expiry date must be after issue date."
+        "expiryBeforeIssue": "Expiry date must be after issue date.",
+        "issueDateFuture": "Passport issue date cannot be in the future."
       },
       "documentStatus": {
         "ACTIVE": "Active",

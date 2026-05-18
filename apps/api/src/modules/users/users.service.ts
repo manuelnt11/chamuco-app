@@ -568,6 +568,17 @@ export class UsersService {
   async addLoyaltyProgram(userId: string, dto: LoyaltyProgramDto): Promise<LoyaltyProgramDto> {
     const { programs } = await this.fetchLoyaltyPrograms(userId);
 
+    const nameNorm = dto.programName.trim().toLowerCase();
+    const memberNorm = dto.memberId.trim().toLowerCase();
+    const duplicate = programs.some(
+      (p) =>
+        p.programName.trim().toLowerCase() === nameNorm &&
+        p.memberId.trim().toLowerCase() === memberNorm,
+    );
+    if (duplicate) {
+      throw new ConflictException('Loyalty program with this name and member ID already exists');
+    }
+
     const [saved] = await this.db
       .update(userProfiles)
       .set({ loyaltyPrograms: [...programs, dto] })
@@ -594,11 +605,13 @@ export class UsersService {
       throw new NotFoundException('Loyalty program not found');
     }
 
-    const updated = programs.map((p: LoyaltyProgramDto, i: number) =>
-      i === index
-        ? { ...p, ...Object.fromEntries(Object.entries(dto).filter(([, v]) => v !== undefined)) }
-        : p,
-    );
+    const updated = programs.map((p: LoyaltyProgramDto, i: number) => {
+      if (i !== index) return p;
+      return {
+        ...p,
+        ...Object.fromEntries(Object.entries(dto).filter(([, v]) => v !== undefined)),
+      } as LoyaltyProgramDto;
+    });
 
     const [saved] = await this.db
       .update(userProfiles)

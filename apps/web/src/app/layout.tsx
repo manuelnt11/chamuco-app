@@ -11,6 +11,7 @@ import { PreferencesSync } from '@/components/PreferencesSync';
 import { IosPwaPrompt } from '@/components/IosPwaPrompt';
 import { AuthProvider } from '@/store/auth';
 import { UserProvider } from '@/store/user';
+import { ToastProvider } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import { SIDEBAR_STORAGE_KEY, SIDEBAR_COLLAPSED_WIDTH } from '@/lib/sidebar-constants';
 
@@ -67,13 +68,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             storageKey="chamuco-theme"
             scriptProps={{ async: true }}
           >
-            <AuthProvider>
-              <UserProvider>
-                <PreferencesSync />
-                <AppShell>{children}</AppShell>
-              </UserProvider>
-            </AuthProvider>
-            <IosPwaPrompt />
+            <ToastProvider>
+              <AuthProvider>
+                <UserProvider>
+                  <PreferencesSync />
+                  <AppShell>{children}</AppShell>
+                </UserProvider>
+              </AuthProvider>
+              <IosPwaPrompt />
+            </ToastProvider>
           </ThemeProvider>
         </I18nProvider>
       </body>

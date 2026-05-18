@@ -12,6 +12,7 @@ import {
 import { PassportStatus } from '@chamuco/shared-types';
 import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 import { IsDateAfter } from './date-after.validator';
+import { IsNotFutureDate } from './not-future-date.validator';
 
 // Condition: any passport field present in the payload
 const anyPassportFieldPresent = (o: {
@@ -108,12 +109,14 @@ export class CreateNationalityDto {
 
   @ApiProperty({
     example: '2020-01-15',
-    description: 'Passport issue date (YYYY-MM-DD). Required when any passport field is provided.',
+    description:
+      'Passport issue date (YYYY-MM-DD). Required when any passport field is provided. Cannot be a future date.',
     required: false,
   })
   @ValidateIf(anyPassportFieldPresent)
   @IsDefined({ message: 'passportIssueDate is required when any passport field is provided' })
   @IsDateString({}, { message: 'passportIssueDate must be a valid ISO 8601 date (YYYY-MM-DD)' })
+  @IsNotFutureDate({ message: 'passportIssueDate must not be a future date' })
   passportIssueDate?: string;
 
   @ApiProperty({
@@ -175,12 +178,14 @@ export class UpdateNationalityDto {
 
   @ApiProperty({
     example: '2020-01-15',
-    description: 'Passport issue date (YYYY-MM-DD). Required when any passport field is provided.',
+    description:
+      'Passport issue date (YYYY-MM-DD). Required when any passport field is provided. Cannot be a future date.',
     required: false,
   })
   @ValidateIf(anyPassportFieldPresent)
   @IsDefined({ message: 'passportIssueDate is required when any passport field is provided' })
   @IsDateString({}, { message: 'passportIssueDate must be a valid ISO 8601 date (YYYY-MM-DD)' })
+  @IsNotFutureDate({ message: 'passportIssueDate must not be a future date' })
   passportIssueDate?: string;
 
   @ApiProperty({

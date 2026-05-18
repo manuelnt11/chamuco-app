@@ -1744,12 +1744,7 @@ describe('UsersService', () => {
     });
 
     it('appends to existing programs without removing them', async () => {
-      const existing = {
-        id: 'prog-existing',
-        programName: 'LifeMiles',
-        memberId: 'LM1',
-        notes: null,
-      };
+      const existing = { id: 'prog-existing', programName: 'LifeMiles', memberId: 'LM1' };
       mockProfileFindFirst.mockResolvedValue({
         ...mockHealthProfile,
         loyaltyPrograms: [existing],
@@ -1762,6 +1757,35 @@ describe('UsersService', () => {
 
       expect(mockSet).toHaveBeenCalledWith(
         expect.objectContaining({ loyaltyPrograms: [existing, newProgram] }),
+      );
+    });
+
+    it('throws ConflictException when programName+memberId already exists (exact match)', async () => {
+      const duplicate = { ...newProgram, id: 'prog-other-uuid' };
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [duplicate],
+      });
+
+      await expect(service.addLoyaltyProgram('user-uuid', newProgram)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('throws ConflictException when programName+memberId match case-insensitively', async () => {
+      const existing = {
+        ...newProgram,
+        id: 'prog-other-uuid',
+        programName: 'delta skymiles',
+        memberId: 'dl999',
+      };
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [existing],
+      });
+
+      await expect(service.addLoyaltyProgram('user-uuid', newProgram)).rejects.toThrow(
+        ConflictException,
       );
     });
 

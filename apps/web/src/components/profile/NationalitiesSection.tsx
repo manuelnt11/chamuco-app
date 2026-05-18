@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getCountryDataList, getEmojiFlag, type TCountryCode } from 'countries-list';
 import { CaretDownIcon, GlobeIcon, IdentificationCardIcon } from '@phosphor-icons/react';
@@ -93,7 +94,7 @@ interface NationalityFormProps {
   isDirty: boolean;
   readOnlyCountry?: boolean;
   onChange: (patch: Partial<FormState>) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent) => void;
   onCancel: () => void;
   saveLabel: string;
 }
@@ -299,9 +300,15 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
       if (!DOCUMENT_ID_FORMAT_REGEX.test(form.passportNumber.trim())) {
         errors.passportNumber = t('nationalities.errors.passportFormat');
         hasError = true;
-      } else if (form.passportExpiryDate <= form.passportIssueDate) {
-        errors.passportDates = t('nationalities.errors.expiryBeforeIssue');
-        hasError = true;
+      } else {
+        const today = new Date().toISOString().split('T')[0] as string;
+        if (form.passportIssueDate > today) {
+          errors.passportDates = t('nationalities.errors.issueDateFuture');
+          hasError = true;
+        } else if (form.passportExpiryDate <= form.passportIssueDate) {
+          errors.passportDates = t('nationalities.errors.expiryBeforeIssue');
+          hasError = true;
+        }
       }
     }
 
@@ -362,7 +369,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     setAddErrors(EMPTY_ERRORS);
   }
 
-  async function handleAdd(e: FormEvent) {
+  async function handleAdd(e: SubmitEvent) {
     e.preventDefault();
     if (!validate(addForm, setAddErrors)) return;
     setIsSaving(true);
@@ -376,14 +383,18 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
       setAddForm(makeEmptyForm());
       setAddErrors(EMPTY_ERRORS);
       onRefresh();
-    } catch {
-      toast.error(t('nationalities.saveError'));
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        toast.error(t('nationalities.duplicateError'));
+      } else {
+        toast.error(t('nationalities.saveError'));
+      }
     } finally {
       setIsSaving(false);
     }
   }
 
-  async function handleUpdate(e: FormEvent) {
+  async function handleUpdate(e: SubmitEvent) {
     e.preventDefault();
     if (!editingId) return;
     if (!validate(editForm, setEditErrors)) return;

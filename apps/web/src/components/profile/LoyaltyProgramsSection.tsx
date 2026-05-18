@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ interface ProgramFormProps {
   onChangeProgramName: (v: string) => void;
   onChangeMemberId: (v: string) => void;
   onChangeNotes: (v: string) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent) => void;
   onCancel: () => void;
   saveLabel: string;
 }
@@ -148,8 +148,17 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     setAddForm(EMPTY_FORM);
   }
 
-  async function handleAdd(e: FormEvent) {
+  async function handleAdd(e: SubmitEvent) {
     e.preventDefault();
+    const nameNorm = addForm.programName.trim().toLowerCase();
+    const memberNorm = addForm.memberId.trim().toLowerCase();
+    const isDuplicate = programs.some(
+      (p) => p.programName.toLowerCase() === nameNorm && p.memberId.toLowerCase() === memberNorm,
+    );
+    if (isDuplicate) {
+      toast.error(t('loyaltyPrograms.duplicateError'));
+      return;
+    }
     setIsSaving(true);
     try {
       await apiClient.post('/v1/users/me/loyalty-programs', {
@@ -169,7 +178,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     }
   }
 
-  async function handleUpdate(e: FormEvent) {
+  async function handleUpdate(e: SubmitEvent) {
     e.preventDefault();
     if (!editingId) return;
     setIsSaving(true);

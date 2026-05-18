@@ -476,6 +476,7 @@
       "updateSuccess": "Programa actualizado",
       "deleteSuccess": "Programa eliminado",
       "saveError": "Error al guardar",
+      "duplicateError": "Ya tienes este programa con el mismo número de socio.",
       "categories": {
         "airline": "Aerolínea",
         "hotel": "Hotel",
@@ -657,13 +658,15 @@
       "updateSuccess": "Nacionalidad actualizada.",
       "deleteSuccess": "Nacionalidad eliminada.",
       "saveError": "No se pudo guardar. Intenta de nuevo.",
+      "duplicateError": "Ya tienes una nacionalidad registrada para ese país.",
       "deleteError": "No se pudo eliminar. Intenta de nuevo.",
       "deletePrimaryError": "No se puede eliminar la nacionalidad principal mientras existan otras.",
       "errors": {
         "nationalIdFormat": "El número de identificación solo puede contener letras mayúsculas, números y guiones.",
         "passportIncomplete": "Completa los tres campos del pasaporte o déjalos todos vacíos.",
         "passportFormat": "El número de pasaporte solo puede contener letras mayúsculas, números y guiones.",
-        "expiryBeforeIssue": "La fecha de vencimiento debe ser posterior a la fecha de expedición."
+        "expiryBeforeIssue": "La fecha de vencimiento debe ser posterior a la fecha de expedición.",
+        "issueDateFuture": "La fecha de expedición del pasaporte no puede ser futura."
       },
       "documentStatus": {
         "ACTIVE": "Activo",

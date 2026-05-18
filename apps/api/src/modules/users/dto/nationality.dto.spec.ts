@@ -14,6 +14,8 @@ const validPassport = {
   passportExpiryDate: '2030-01-15',
 };
 
+const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
 describe('CreateNationalityDto', () => {
   it('accepts a valid nationality without passport data', async () => {
     const dto = plainToInstance(CreateNationalityDto, validBase);
@@ -152,6 +154,29 @@ describe('CreateNationalityDto', () => {
       });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(true);
+    });
+
+    it('rejects a future passportIssueDate', async () => {
+      const dto = plainToInstance(CreateNationalityDto, {
+        ...validBase,
+        ...validPassport,
+        passportIssueDate: tomorrow,
+        passportExpiryDate: '2099-01-01',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(true);
+    });
+
+    it('accepts today as passportIssueDate', async () => {
+      const today = new Date().toISOString().split('T')[0]!;
+      const dto = plainToInstance(CreateNationalityDto, {
+        ...validBase,
+        ...validPassport,
+        passportIssueDate: today,
+        passportExpiryDate: '2099-01-01',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(false);
     });
 
     it('rejects passportExpiryDate in non-ISO format', async () => {
@@ -306,6 +331,27 @@ describe('UpdateNationalityDto', () => {
       });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'passportNumber')).toBe(false);
+    });
+
+    it('rejects a future passportIssueDate', async () => {
+      const dto = plainToInstance(UpdateNationalityDto, {
+        ...validPassport,
+        passportIssueDate: tomorrow,
+        passportExpiryDate: '2099-01-01',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(true);
+    });
+
+    it('accepts today as passportIssueDate', async () => {
+      const today = new Date().toISOString().split('T')[0]!;
+      const dto = plainToInstance(UpdateNationalityDto, {
+        ...validPassport,
+        passportIssueDate: today,
+        passportExpiryDate: '2099-01-01',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(false);
     });
   });
 });

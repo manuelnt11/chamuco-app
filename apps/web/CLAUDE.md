@@ -227,3 +227,25 @@ import { FileUploadButton, UploadType } from '@/components/ui/file-upload-button
 - `upload.retry` — retry button label
 - `upload.errorDefault` — user-facing error message
 - `upload.progressLabel` — ARIA label for the progress bar (`Upload progress: {{progress}}%`)
+
+### 4. React event types — use the React 19 replacements, not FormEvent
+
+`FormEvent` and `FormEventHandler` are **deprecated** in React 19 (`@deprecated FormEvent doesn't actually exist`). Use the specific React event types instead.
+
+| Deprecated                          | Replacement                           |
+| ----------------------------------- | ------------------------------------- |
+| `FormEvent<HTMLFormElement>`        | `SubmitEvent<HTMLFormElement>`        |
+| `FormEventHandler<HTMLFormElement>` | `SubmitEventHandler<HTMLFormElement>` |
+
+```tsx
+// ✅ Correct — React 19 SubmitEvent
+import { type SubmitEvent } from 'react';
+async function handleSave(e: SubmitEvent<HTMLFormElement>) { e.preventDefault(); }
+onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
+
+// ❌ Wrong — FormEvent is deprecated in React 19
+import { type FormEvent } from 'react';
+async function handleSave(e: FormEvent<HTMLFormElement>) { ... }
+```
+
+React's `SubmitEvent<T>` extends `SyntheticEvent<T, NativeSubmitEvent>` and is what `onSubmit` prop now expects (`SubmitEventHandler<T>`). Import from `'react'`, not from `lib.dom.d.ts`.
