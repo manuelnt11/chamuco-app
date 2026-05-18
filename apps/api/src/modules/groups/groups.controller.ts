@@ -9,11 +9,13 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
   ApiBadRequestResponse,
@@ -27,6 +29,8 @@ import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupResponseDto } from './dto/group-response.dto';
+import { SearchGroupsQueryDto } from './dto/search-groups-query.dto';
+import { GroupSearchResponseDto } from './dto/group-search-result.dto';
 
 @ApiTags('groups')
 @ApiBearerAuth()
@@ -61,6 +65,40 @@ export class GroupsController {
   @ApiResponse({ status: 200, type: [GroupResponseDto] })
   async listMyGroups(@CurrentUser() user: AuthenticatedUser): Promise<GroupResponseDto[]> {
     return this.groupsService.listMyGroups(user.id);
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: 'Discover public groups',
+    description:
+      'Returns a paginated list of PUBLIC groups matching the optional name filter. ' +
+      'Excludes groups the authenticated user already belongs to as an active member.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Name filter (case-insensitive, partial match)',
+    example: 'mountain',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Results per page (1–50, default 20)',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Number of results to skip (default 0)',
+  })
+  @ApiResponse({ status: 200, type: GroupSearchResponseDto })
+  @ApiBadRequestResponse({ description: 'Validation error in query params.' })
+  async searchGroups(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: SearchGroupsQueryDto,
+  ): Promise<GroupSearchResponseDto> {
+    return this.groupsService.searchGroups(user.id, query);
   }
 
   @Get(':id')
