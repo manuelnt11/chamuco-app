@@ -14,9 +14,15 @@ import { FieldMessage } from '@/components/ui/field-message';
 // Utilities
 // ---------------------------------------------------------------------------
 
+// Strips only whitespace — not dashes or parentheses. Use /\D/g for full digit extraction.
 export function cleanPhoneNumber(value: string): string {
   return value.replace(/\s+/g, '');
 }
+
+// Sorted longest-first so +1868 (TT) matches before +1 (US/CA).
+const PHONE_PREFIXES = getCountryDataList()
+  .map((c) => ({ iso2: c.iso2, prefix: `+${c.phone[0]}` }))
+  .sort((a, b) => b.prefix.length - a.prefix.length);
 
 export function isPhoneValid(localNumber: string, countryIso: string): boolean {
   return isValidPhoneNumber(cleanPhoneNumber(localNumber), countryIso as CountryCode);
@@ -28,12 +34,7 @@ export function parsePastedPhoneNumber(
   const text = pasted.trim();
   if (!text.startsWith('+')) return null;
 
-  // Sort longest prefix first so +1868 matches before +1
-  const prefixes = getCountryDataList()
-    .map((c) => ({ iso2: c.iso2, prefix: `+${c.phone[0]}` }))
-    .sort((a, b) => b.prefix.length - a.prefix.length);
-
-  for (const { iso2, prefix } of prefixes) {
+  for (const { iso2, prefix } of PHONE_PREFIXES) {
     if (text.startsWith(prefix)) {
       const nationalNumber = text.slice(prefix.length).replace(/\D/g, '');
       if (nationalNumber.length > 0) return { iso2, nationalNumber };
@@ -111,6 +112,7 @@ export function PhoneInput({
             onChange={(e) => onNumberChange(e.target.value)}
             onPaste={handlePaste}
             placeholder={placeholder}
+            autoComplete="tel-national"
             aria-invalid={error != null}
             aria-labelledby={!numberLabel ? labelId : undefined}
             disabled={disabled}

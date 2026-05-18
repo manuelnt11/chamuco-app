@@ -153,11 +153,7 @@
       },
       "phone": {
         "label": "Phone number",
-        "countryCode": "Country code",
-        "number": "Local number",
-        "countryPlaceholder": "Country",
-        "search": "Search countries…",
-        "noResults": "No countries found."
+        "number": "Local number"
       },
       "homeCountry": {
         "label": "Home country",
