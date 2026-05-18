@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getEmojiFlag, type TCountryCode } from 'countries-list';
 import { DocumentStatus, EtaType, VisaEntries } from '@chamuco/shared-types';
@@ -92,7 +92,7 @@ interface EtaFormProps {
   isDirty: boolean;
   isEdit?: boolean;
   onChange: (patch: Partial<FormState>) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent) => void;
   onCancel: () => void;
   saveLabel: string;
 }
@@ -396,7 +396,7 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
     setAddErrors(EMPTY_ERRORS);
   }
 
-  async function handleAdd(e: FormEvent) {
+  async function handleAdd(e: SubmitEvent) {
     e.preventDefault();
     if (!validate(addForm, setAddErrors)) return;
     setIsSaving(true);
@@ -421,7 +421,7 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
     }
   }
 
-  async function handleUpdate(e: FormEvent) {
+  async function handleUpdate(e: SubmitEvent) {
     e.preventDefault();
     if (!editingId) return;
     if (!validateEdit(editForm, setEditErrors)) return;

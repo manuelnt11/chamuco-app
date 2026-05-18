@@ -1728,7 +1728,7 @@ describe('UsersService', () => {
       id: 'prog-new-uuid',
       programName: 'Delta SkyMiles',
       memberId: 'DL999',
-      notes: null,
+      notes: 'Gold status',
     };
 
     it('appends the new program and returns it', async () => {
@@ -1743,13 +1743,31 @@ describe('UsersService', () => {
       expect(result).toEqual(newProgram);
     });
 
-    it('appends to existing programs without removing them', async () => {
-      const existing = {
-        id: 'prog-existing',
-        programName: 'LifeMiles',
-        memberId: 'LM1',
+    it('strips null fields before saving (notes: null is omitted)', async () => {
+      const dto = {
+        id: 'prog-new-uuid',
+        programName: 'Delta SkyMiles',
+        memberId: 'DL999',
         notes: null,
       };
+      const stripped = { id: 'prog-new-uuid', programName: 'Delta SkyMiles', memberId: 'DL999' };
+      mockProfileFindFirst.mockResolvedValue({ ...mockHealthProfile, loyaltyPrograms: [] });
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, loyaltyPrograms: [stripped] }]);
+
+      await service.addLoyaltyProgram('user-uuid', dto);
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ loyaltyPrograms: [stripped] }),
+      );
+      expect(mockSet).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          loyaltyPrograms: expect.arrayContaining([expect.objectContaining({ notes: null })]),
+        }),
+      );
+    });
+
+    it('appends to existing programs without removing them', async () => {
+      const existing = { id: 'prog-existing', programName: 'LifeMiles', memberId: 'LM1' };
       mockProfileFindFirst.mockResolvedValue({
         ...mockHealthProfile,
         loyaltyPrograms: [existing],
@@ -1762,6 +1780,35 @@ describe('UsersService', () => {
 
       expect(mockSet).toHaveBeenCalledWith(
         expect.objectContaining({ loyaltyPrograms: [existing, newProgram] }),
+      );
+    });
+
+    it('throws ConflictException when programName+memberId already exists (exact match)', async () => {
+      const duplicate = { ...newProgram, id: 'prog-other-uuid' };
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [duplicate],
+      });
+
+      await expect(service.addLoyaltyProgram('user-uuid', newProgram)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('throws ConflictException when programName+memberId match case-insensitively', async () => {
+      const existing = {
+        ...newProgram,
+        id: 'prog-other-uuid',
+        programName: 'delta skymiles',
+        memberId: 'dl999',
+      };
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [existing],
+      });
+
+      await expect(service.addLoyaltyProgram('user-uuid', newProgram)).rejects.toThrow(
+        ConflictException,
       );
     });
 
@@ -1822,6 +1869,26 @@ describe('UsersService', () => {
         expect.objectContaining({
           loyaltyPrograms: expect.arrayContaining([expect.objectContaining({ id: 'prog-other' })]),
         }),
+      );
+    });
+
+    it('strips null fields from the merged entry (clearing notes removes the key)', async () => {
+      const withNotes = { ...existingProgram, notes: 'Gold' };
+      mockProfileFindFirst.mockResolvedValue({
+        ...mockHealthProfile,
+        loyaltyPrograms: [withNotes],
+      });
+      const stripped = {
+        id: existingProgram.id,
+        programName: existingProgram.programName,
+        memberId: existingProgram.memberId,
+      };
+      mockReturning.mockResolvedValue([{ ...mockHealthProfile, loyaltyPrograms: [stripped] }]);
+
+      await service.updateLoyaltyProgram('user-uuid', 'prog-uuid', { notes: null });
+
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ loyaltyPrograms: [stripped] }),
       );
     });
 

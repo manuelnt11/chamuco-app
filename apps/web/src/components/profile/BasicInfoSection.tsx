@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProfileVisibility } from '@chamuco/shared-types';
 
@@ -51,7 +51,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
     timezone !== user.timezone ||
     visibility !== user.profileVisibility;
 
-  async function handleSave(e: FormEvent) {
+  async function handleSave(e: SubmitEvent) {
     e.preventDefault();
     const trimmedName = displayName.trim();
     if (!trimmedName || trimmedName.length > 100) {

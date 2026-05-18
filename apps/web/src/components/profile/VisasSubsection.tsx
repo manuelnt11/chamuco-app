@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getEmojiFlag, type TCountryCode } from 'countries-list';
 import {
@@ -100,7 +100,7 @@ interface VisaFormProps {
   isDirty: boolean;
   isEdit?: boolean;
   onChange: (patch: Partial<FormState>) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent) => void;
   onCancel: () => void;
   saveLabel: string;
 }
@@ -447,7 +447,7 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
     setAddErrors(EMPTY_ERRORS);
   }
 
-  async function handleAdd(e: FormEvent) {
+  async function handleAdd(e: SubmitEvent) {
     e.preventDefault();
     if (!validate(addForm, setAddErrors)) return;
     setIsSaving(true);
@@ -468,7 +468,7 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
     }
   }
 
-  async function handleUpdate(e: FormEvent) {
+  async function handleUpdate(e: SubmitEvent) {
     e.preventDefault();
     if (!editingId) return;
     if (!validateEdit(editForm, setEditErrors)) return;

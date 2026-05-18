@@ -261,6 +261,15 @@ export default function ProfilePage() {
           role="tablist"
           aria-label={t('title')}
           onScroll={handleTablistScroll}
+          style={
+            showScrollHint
+              ? {
+                  WebkitMaskImage:
+                    'linear-gradient(to right, black calc(100% - 3rem), transparent 100%)',
+                  maskImage: 'linear-gradient(to right, black calc(100% - 3rem), transparent 100%)',
+                }
+              : undefined
+          }
           className="flex gap-1 overflow-x-auto border-b border-border scrollbar-none [&::-webkit-scrollbar]:hidden"
         >
           {tabs.map(({ key, label }) => (
@@ -287,9 +296,6 @@ export default function ProfilePage() {
             </button>
           ))}
         </div>
-        {showScrollHint && (
-          <div className="pointer-events-none absolute right-0 top-0 h-[calc(100%-1px)] w-12 bg-linear-to-r from-transparent to-background" />
-        )}
       </div>
 
       <div

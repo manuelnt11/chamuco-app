@@ -26,7 +26,7 @@ export function InviteMemberModal({ groupId, onSuccess }: InviteMemberModalProps
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!username.trim()) return;
 

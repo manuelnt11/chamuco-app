@@ -14,6 +14,8 @@ const validPassport = {
   passportExpiryDate: '2030-01-15',
 };
 
+const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
 describe('CreateNationalityDto', () => {
   it('accepts a valid nationality without passport data', async () => {
     const dto = plainToInstance(CreateNationalityDto, validBase);
@@ -149,6 +151,17 @@ describe('CreateNationalityDto', () => {
         ...validBase,
         ...validPassport,
         passportIssueDate: '15/01/2020',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(true);
+    });
+
+    it('rejects a future passportIssueDate', async () => {
+      const dto = plainToInstance(CreateNationalityDto, {
+        ...validBase,
+        ...validPassport,
+        passportIssueDate: tomorrow,
+        passportExpiryDate: '2099-01-01',
       });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(true);
@@ -306,6 +319,16 @@ describe('UpdateNationalityDto', () => {
       });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'passportNumber')).toBe(false);
+    });
+
+    it('rejects a future passportIssueDate', async () => {
+      const dto = plainToInstance(UpdateNationalityDto, {
+        ...validPassport,
+        passportIssueDate: tomorrow,
+        passportExpiryDate: '2099-01-01',
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'passportIssueDate')).toBe(true);
     });
   });
 });

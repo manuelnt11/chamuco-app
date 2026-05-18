@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
 import { getCountryDataList } from 'countries-list';
@@ -85,7 +85,7 @@ interface ContactFormProps {
   isSaving: boolean;
   isDirty: boolean;
   onChange: (patch: Partial<FormState>) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent) => void;
   onCancel: () => void;
   saveLabel: string;
 }
@@ -299,7 +299,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
     setAddErrors(EMPTY_ERRORS);
   }
 
-  async function handleAdd(e: FormEvent) {
+  async function handleAdd(e: SubmitEvent) {
     e.preventDefault();
     const normalized = {
       ...addForm,
@@ -330,7 +330,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
     }
   }
 
-  async function handleUpdate(e: FormEvent) {
+  async function handleUpdate(e: SubmitEvent) {
     e.preventDefault();
     if (!editingId) return;
     const normalized = {

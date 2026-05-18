@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
 import { getCountryDataList } from 'countries-list';
@@ -89,7 +89,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
     (homeCity.trim() || null) !== profile.homeCity ||
     email.trim() !== profile.email;
 
-  async function handleSave(e: FormEvent) {
+  async function handleSave(e: SubmitEvent) {
     e.preventDefault();
 
     const normalizedFirst = normalizeName(firstName);
