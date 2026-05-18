@@ -480,7 +480,7 @@ describe('OnboardingPage', () => {
     async function renderFormWithAvailableUsername(
       authOverrides: Partial<AuthContextValue> = {},
       username = 'newuser',
-      step2: { firstName?: string; lastName?: string } = {},
+      step2: { firstName?: string; lastName?: string; phone?: string } = {},
     ) {
       vi.mocked(useAuth).mockReturnValue(makeAuth(authOverrides));
       mockGetByUrl(); // /username-available → { available: true }
@@ -517,7 +517,7 @@ describe('OnboardingPage', () => {
       await user.type(screen.getByTestId('dob-day-input'), '15');
       await user.type(screen.getByTestId('dob-month-input'), '6');
       await user.type(screen.getByTestId('dob-year-input'), '1990');
-      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+      await user.type(screen.getByTestId('phone-number-input'), step2.phone ?? '3001234567');
 
       // Step 2 → Step 3
       await user.click(screen.getByTestId('next-btn'));
@@ -699,6 +699,27 @@ describe('OnboardingPage', () => {
           phoneLocalNumber: '3001234567',
           email: 'test@example.com',
         }),
+      );
+    });
+
+    it('strips internal spaces from phone number before registration POST', async () => {
+      mocks.mockApiPost.mockResolvedValue({ status: 201 });
+      const user = await renderFormWithAvailableUsername(
+        { currentUser: makeUser({ displayName: 'Test User' }) },
+        'newuser',
+        { phone: '300 123 4567' },
+      );
+
+      await user.click(screen.getByTestId('submit-btn'));
+
+      await waitFor(() =>
+        expect(mocks.mockApiPost).toHaveBeenCalledWith(
+          '/v1/auth/register',
+          expect.objectContaining({
+            phoneCountryCode: '+57',
+            phoneLocalNumber: '3001234567',
+          }),
+        ),
       );
     });
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Trans, useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
-import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
+import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import type { TFunction } from 'i18next';
 import { useTheme } from 'next-themes';
 import { getCountryData, type TCountryCode } from 'countries-list';
@@ -133,7 +133,7 @@ function validateStep2(
   else if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || !isValidCalendarDay(d, m, y))
     errors.dob = t('onboarding.validation.invalidDob');
   else if (computeAge(d, m, y) < 16) errors.dob = t('onboarding.validation.minAge');
-  if (!isValidPhoneNumber(phoneNumber, phoneCountry as CountryCode))
+  if (!isPhoneValid(phoneNumber, phoneCountry))
     errors.phone = t('onboarding.validation.invalidPhone');
   const trimmedEmail = email.trim();
   if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail))
@@ -347,7 +347,7 @@ export default function OnboardingPage() {
         homeCountry,
         homeCity: homeCity.trim() || undefined,
         phoneCountryCode: getCallingCode(phoneCountry),
-        phoneLocalNumber: phoneNumber,
+        phoneLocalNumber: cleanPhoneNumber(phoneNumber),
         email: email.trim() || null,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
@@ -788,28 +788,17 @@ function Step2({
 
       <div className="flex flex-col gap-1.5">
         <Label id="phone-country-label">{t('onboarding.phone.label')}</Label>
-        <div className="grid grid-cols-[auto_1fr] gap-2">
-          <CountryCombobox
-            value={phoneCountry}
-            onChange={onPhoneCountryChange}
-            displayMode="phone"
-            placeholder={t('onboarding.phone.countryPlaceholder')}
-            searchPlaceholder={t('onboarding.phone.search')}
-            noResultsText={t('onboarding.phone.noResults')}
-            aria-invalid={!!stepErrors.phone}
-            aria-labelledby="phone-country-label"
-            data-testid="phone-code-input"
-          />
-          <Input
-            type="tel"
-            value={phoneNumber}
-            onChange={(e) => onPhoneNumberChange(e.target.value)}
-            placeholder={t('onboarding.phone.number')}
-            aria-invalid={!!stepErrors.phone}
-            data-testid="phone-number-input"
-          />
-        </div>
-        <FieldMessage error={stepErrors.phone} className="text-xs" />
+        <PhoneInput
+          countryIso={phoneCountry}
+          localNumber={phoneNumber}
+          onCountryChange={onPhoneCountryChange}
+          onNumberChange={onPhoneNumberChange}
+          error={stepErrors.phone ?? null}
+          labelId="phone-country-label"
+          inputTestId="phone-number-input"
+          countryTestId="phone-code-input"
+          placeholder={t('onboarding.phone.number')}
+        />
       </div>
     </div>
   );

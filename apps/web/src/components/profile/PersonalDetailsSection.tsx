@@ -2,7 +2,6 @@
 
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
 import { getCountryDataList } from 'countries-list';
 
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { SaveButton } from '@/components/ui/save-button';
 import { CountryCombobox, getCallingCode } from '@/components/ui/country-combobox';
 import { CityCombobox } from '@/components/ui/city-combobox';
+import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
 import { apiClient } from '@/services/api-client';
@@ -145,7 +145,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
       setDobError(null);
     }
 
-    if (!isValidPhoneNumber(phoneLocalNumber, phoneCountryIso as CountryCode)) {
+    if (!isPhoneValid(phoneLocalNumber, phoneCountryIso)) {
       setPhoneError(t('personalDetails.errors.invalidPhone'));
       hasError = true;
     } else {
@@ -179,7 +179,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
         lastName: normalizedLast,
         dateOfBirth: { day, month, year, yearVisible },
         phoneCountryCode: getCallingCode(phoneCountryIso),
-        phoneLocalNumber,
+        phoneLocalNumber: cleanPhoneNumber(phoneLocalNumber),
         birthCountry: birthCountry || null,
         birthCity: birthCity.trim() || null,
         homeCountry,
@@ -313,39 +313,18 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
 
       <div className="space-y-1.5">
         <Label id="phone-label">{t('personalDetails.phone')}</Label>
-        <div className="flex gap-2">
-          <div className="w-40 shrink-0">
-            <Label htmlFor="phoneCountry" className="sr-only">
-              {t('personalDetails.phoneCountry')}
-            </Label>
-            <CountryCombobox
-              value={phoneCountryIso}
-              onChange={setPhoneCountryIso}
-              displayMode="phone"
-              placeholder={t('personalDetails.phoneCountryPlaceholder')}
-              searchPlaceholder={t('personalDetails.phoneCountrySearch')}
-              noResultsText={t('personalDetails.phoneCountryNoResults')}
-              aria-labelledby="phone-label"
-              aria-invalid={phoneError !== null}
-              data-testid="phone-country"
-            />
-          </div>
-          <div className="flex-1">
-            <Label htmlFor="phoneLocalNumber" className="sr-only">
-              {t('personalDetails.phoneNumber')}
-            </Label>
-            <Input
-              id="phoneLocalNumber"
-              type="tel"
-              value={phoneLocalNumber}
-              onChange={(e) => setPhoneLocalNumber(e.target.value)}
-              placeholder={t('personalDetails.phoneNumberPlaceholder')}
-              aria-invalid={phoneError !== null}
-              disabled={isSaving}
-            />
-          </div>
-        </div>
-        <FieldMessage error={phoneError} />
+        <PhoneInput
+          countryIso={phoneCountryIso}
+          localNumber={phoneLocalNumber}
+          onCountryChange={setPhoneCountryIso}
+          onNumberChange={setPhoneLocalNumber}
+          error={phoneError}
+          disabled={isSaving}
+          labelId="phone-label"
+          numberLabel={t('personalDetails.phoneNumber')}
+          countryTestId="phone-country"
+          placeholder={t('personalDetails.phoneNumberPlaceholder')}
+        />
       </div>
 
       <div className="space-y-1.5">
