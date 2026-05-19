@@ -31,6 +31,7 @@ minimumReleaseAgeExclude:
   - pg-pool@3.14.0
   - pg-protocol@1.14.0
   - pg@8.21.0
+  - '@types/node@25.9.0'
 overrides:
   cross-spawn: '>=6.0.6'
   glob: '>=10.5.0'

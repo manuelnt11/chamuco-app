@@ -62,7 +62,7 @@ describe('GroupCard', () => {
 
     it('renders cover image', () => {
       render(<GroupCard group={emojiGroup} />);
-      const img = screen.getByRole('img', { hidden: true });
+      const img = screen.getByTestId('group-cover');
       expect(img).toHaveAttribute('src', 'https://twemoji.example.com/🏔️.svg');
     });
 

@@ -30,7 +30,11 @@ export function PublicProfileHeader({
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
         <p className="text-sm text-muted-foreground">@{username}</p>
-        {bio && <p className="mt-2 text-sm text-foreground/80">{bio}</p>}
+        {bio && (
+          <p data-testid="bio" className="mt-2 text-sm text-foreground/80">
+            {bio}
+          </p>
+        )}
       </div>
     </div>
   );

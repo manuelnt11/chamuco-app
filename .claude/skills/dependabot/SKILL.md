@@ -152,12 +152,12 @@ EOF
 
 Fill in the "Packages updated" and "Breaking changes fixed" sections with the actual data collected during the run.
 
-## Step 9 — Close the individual Dependabot PRs
+## Step 9 — Comment on the individual Dependabot PRs
 
-For each Dependabot PR found in Step 1, close it with a comment pointing to the consolidation PR:
+For each Dependabot PR found in Step 1, leave a comment pointing to the consolidation PR. Do NOT close them — Dependabot closes them automatically once the consolidated PR is merged.
 
 ```bash
-gh pr close <PR_NUMBER> --comment "Consolidated into #<CONSOLIDATION_PR_NUMBER> — closing this individual update."
+gh pr comment <PR_NUMBER> --body "Change consolidated into #<CONSOLIDATION_PR_NUMBER>."
 ```
 
 ## Step 10 — Output a summary

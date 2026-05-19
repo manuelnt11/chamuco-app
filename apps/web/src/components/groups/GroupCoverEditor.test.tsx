@@ -97,8 +97,8 @@ describe('GroupCoverEditor', () => {
   describe('rendering', () => {
     it('renders cover image', () => {
       setup();
-      const imgs = screen.getAllByRole('img', { hidden: true });
-      expect(imgs[0]).toHaveAttribute('src', 'https://twemoji.example.com/🏔️.svg');
+      const img = screen.getByTestId('group-cover');
+      expect(img).toHaveAttribute('src', 'https://twemoji.example.com/🏔️.svg');
     });
 
     it('renders the edit button', () => {
