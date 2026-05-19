@@ -70,7 +70,7 @@
     "sharp": "^0.34.5",
     "tailwindcss": "^4.3.0",
     "typescript": "catalog:",
-    "vite": "^8.0.9",
+    "vite": "^8.0.13",
     "vitest": "^4.1.6"
   }
 }
