@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { plainToInstance } from 'class-transformer';
 import {
   AppCurrency,
   AppLanguage,
@@ -111,6 +112,11 @@ describe('UsersService', () => {
   let mockAssetResolverResolve: jest.Mock;
   let mockCloudStorageDelete: jest.Mock;
   let mockCloudStorageMakePublic: jest.Mock;
+  let mockUsersFindMany: jest.Mock;
+  let mockAssetsFindMany: jest.Mock;
+  let mockSelectWhere: jest.Mock;
+  let mockSelectFrom: jest.Mock;
+  let mockSelect: jest.Mock;
 
   beforeEach(async () => {
     mockFindFirst = jest.fn();
@@ -129,6 +135,11 @@ describe('UsersService', () => {
     mockAssetResolverResolve = jest.fn().mockResolvedValue(null);
     mockCloudStorageDelete = jest.fn().mockResolvedValue(undefined);
     mockCloudStorageMakePublic = jest.fn().mockResolvedValue(undefined);
+    mockUsersFindMany = jest.fn().mockResolvedValue([]);
+    mockAssetsFindMany = jest.fn().mockResolvedValue([]);
+    mockSelectWhere = jest.fn().mockResolvedValue([{ total: 0 }]);
+    mockSelectFrom = jest.fn().mockReturnValue({ where: mockSelectWhere });
+    mockSelect = jest.fn().mockReturnValue({ from: mockSelectFrom });
 
     const mockWhere = jest.fn().mockReturnValue({ returning: mockReturning });
     mockSet = jest.fn().mockReturnValue({ where: mockWhere });
@@ -144,8 +155,8 @@ describe('UsersService', () => {
           provide: DRIZZLE_CLIENT,
           useValue: {
             query: {
-              users: { findFirst: mockFindFirst },
-              assets: { findFirst: mockAssetsFindFirst },
+              users: { findFirst: mockFindFirst, findMany: mockUsersFindMany },
+              assets: { findFirst: mockAssetsFindFirst, findMany: mockAssetsFindMany },
               userProfiles: { findFirst: mockProfileFindFirst },
               userPreferences: { findFirst: mockPrefFindFirst },
               userNationalities: {
@@ -164,6 +175,7 @@ describe('UsersService', () => {
             update: mockUpdate,
             insert: mockInsert,
             delete: mockDelete,
+            select: mockSelect,
             transaction: (mockTransaction = jest
               .fn()
               .mockImplementation(async (callback: (trx: unknown) => Promise<unknown>) =>
@@ -2379,6 +2391,140 @@ describe('UsersService', () => {
 
       // only one update call: the nationality update itself
       expect(mockSet).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('searchUsers', () => {
+    const mockUserRow = {
+      id: 'user-b',
+      username: 'janedoe',
+      displayName: 'Jane Doe',
+      avatar: null,
+      authProvider: AuthProvider.GOOGLE,
+      firebaseUid: 'firebase-uid-b',
+      timezone: 'UTC',
+      platformRole: PlatformRole.USER,
+      profileVisibility: ProfileVisibility.PRIVATE,
+      agencyId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastActiveAt: new Date(),
+    };
+
+    it('returns empty when q is not provided', async () => {
+      const result = await service.searchUsers('user-uuid', {});
+      expect(result).toEqual({ data: [], total: 0 });
+      expect(mockSelectWhere).not.toHaveBeenCalled();
+    });
+
+    it('returns empty when q is just @ with nothing after', async () => {
+      const result = await service.searchUsers('user-uuid', { q: '@' });
+      expect(result).toEqual({ data: [], total: 0 });
+    });
+
+    it('returns empty when total is 0', async () => {
+      mockSelectWhere.mockResolvedValueOnce([{ total: 0 }]);
+      const result = await service.searchUsers('user-uuid', { q: 'jane' });
+      expect(result).toEqual({ data: [], total: 0 });
+    });
+
+    it('returns matched users without avatars', async () => {
+      mockSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockUsersFindMany.mockResolvedValueOnce([mockUserRow]);
+
+      const result = await service.searchUsers('user-uuid', { q: 'jane' });
+
+      expect(result.total).toBe(1);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]).toEqual({
+        id: 'user-b',
+        username: 'janedoe',
+        displayName: 'Jane Doe',
+        avatar: null,
+      });
+    });
+
+    it('resolves avatar assets for matched users', async () => {
+      const mockAvatarRow = {
+        id: 'asset-uuid',
+        source: 'emoji',
+        target: '😀',
+        isPublic: true,
+        createdAt: new Date(),
+      };
+      const resolvedAvatar = {
+        source: 'emoji',
+        url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji/assets/svg/1f600.svg',
+      };
+      mockSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockUsersFindMany.mockResolvedValueOnce([{ ...mockUserRow, avatar: 'asset-uuid' }]);
+      mockAssetsFindMany.mockResolvedValueOnce([mockAvatarRow]);
+      mockAssetResolverResolve.mockResolvedValueOnce(resolvedAvatar);
+
+      const result = await service.searchUsers('user-uuid', { q: 'jane' });
+
+      expect(mockAssetResolverResolve).toHaveBeenCalled();
+      expect(result.data[0]!.avatar).toEqual(resolvedAvatar);
+    });
+
+    it('@-prefix mode searches only by username prefix', async () => {
+      mockSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockUsersFindMany.mockResolvedValueOnce([mockUserRow]);
+
+      await service.searchUsers('user-uuid', { q: '@jane' });
+
+      // query should succeed (@ stripped → 'jane' prefix match on username)
+      expect(mockSelectWhere).toHaveBeenCalled();
+    });
+
+    it('respects the limit parameter', async () => {
+      mockSelectWhere.mockResolvedValueOnce([{ total: 5 }]);
+      mockUsersFindMany.mockResolvedValueOnce([mockUserRow]);
+
+      await service.searchUsers('user-uuid', { q: 'j', limit: 3 });
+
+      expect(mockUsersFindMany).toHaveBeenCalledWith(expect.objectContaining({ limit: 3 }));
+    });
+  });
+
+  describe('SearchUsersQueryDto', () => {
+    it('transforms string limit to number via @Type', async () => {
+      const { SearchUsersQueryDto } = await import('./dto/search-users-query.dto');
+      const dto = plainToInstance(SearchUsersQueryDto, { q: 'jane', limit: '5' });
+      expect(dto.limit).toBe(5);
+      expect(typeof dto.limit).toBe('number');
+    });
+
+    it('uses default limit of 10 when not provided', async () => {
+      const { SearchUsersQueryDto } = await import('./dto/search-users-query.dto');
+      const dto = plainToInstance(SearchUsersQueryDto, { q: 'jane' });
+      expect(dto.limit).toBe(10);
+    });
+  });
+
+  describe('UserSearchResultDto / UserSearchResponseDto', () => {
+    it('UserSearchResultDto can be instantiated', async () => {
+      const { UserSearchResultDto } = await import('./dto/user-search-result.dto');
+      const dto = new UserSearchResultDto();
+      dto.id = 'uuid';
+      dto.username = 'janedoe';
+      dto.displayName = 'Jane Doe';
+      dto.avatar = null;
+      expect(dto.username).toBe('janedoe');
+    });
+
+    it('UserSearchResponseDto can be instantiated', async () => {
+      const { UserSearchResponseDto, UserSearchResultDto } =
+        await import('./dto/user-search-result.dto');
+      const result = new UserSearchResultDto();
+      result.id = 'u1';
+      result.username = 'janedoe';
+      result.displayName = 'Jane Doe';
+      result.avatar = null;
+      const dto = new UserSearchResponseDto();
+      dto.data = [result];
+      dto.total = 1;
+      expect(dto.total).toBe(1);
     });
   });
 });

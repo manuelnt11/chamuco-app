@@ -235,12 +235,27 @@
       "invite": {
         "button": "Invite member",
         "title": "Invite a member",
-        "usernamePlaceholder": "e.g. john_doe",
+        "usernamePlaceholder": "Search by name or @username",
         "submit": "Send invitation",
         "sending": "Sending...",
         "cancel": "Cancel",
         "success": "Invitation sent",
-        "error": "Failed to send invitation"
+        "error": "Failed to send invitation",
+        "noResults": "No users found",
+        "removeUser": "Remove {{username}}",
+        "alreadyExcluded": "This user is already a member or has a pending invitation",
+        "maxUsers": "You can invite up to 20 users at once",
+        "done": "Done",
+        "results": {
+          "title": "Invitation results"
+        },
+        "result": {
+          "INVITED": "Invited successfully",
+          "ALREADY_MEMBER": "Already a member",
+          "ALREADY_INVITED": "Already invited",
+          "HAS_PENDING_REQUEST": "Has a pending join request",
+          "NOT_FOUND": "User not found"
+        }
       },
       "joinRequest": {
         "button": "Request to join",

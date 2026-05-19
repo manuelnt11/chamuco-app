@@ -130,6 +130,7 @@ describe('UsersController', () => {
   let mockGetPublicProfile: jest.Mock;
   let mockGetMe: jest.Mock;
   let mockUpdateAvatar: jest.Mock;
+  let mockSearchUsers: jest.Mock;
 
   const mockPublicProfileResponse: PublicProfileResponseDto = {
     username: 'john_doe',
@@ -236,6 +237,7 @@ describe('UsersController', () => {
     mockGetPublicProfile = jest.fn().mockResolvedValue(mockPublicProfileResponse);
     mockGetMe = jest.fn().mockResolvedValue(mockUser);
     mockUpdateAvatar = jest.fn().mockResolvedValue(mockUser);
+    mockSearchUsers = jest.fn().mockResolvedValue({ data: [], total: 0 });
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -275,6 +277,7 @@ describe('UsersController', () => {
             updateEta: mockUpdateEta,
             deleteEta: mockDeleteEta,
             getPublicProfile: mockGetPublicProfile,
+            searchUsers: mockSearchUsers,
           },
         },
       ],
@@ -898,6 +901,39 @@ describe('UsersController', () => {
       mockGetPublicProfile.mockRejectedValue(new NotFoundException());
 
       await expect(controller.getPublicProfile('unknown')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('GET /v1/users/search', () => {
+    const mockSearchResponse = {
+      data: [{ id: 'user-b', username: 'janedoe', displayName: 'Jane Doe', avatar: null }],
+      total: 1,
+    };
+
+    it('delegates to usersService.searchUsers with user id and query', async () => {
+      mockSearchUsers.mockResolvedValue(mockSearchResponse);
+      const query = { q: 'jane', limit: 10 };
+
+      const result = await controller.searchUsers(mockAuthUser, query);
+
+      expect(mockSearchUsers).toHaveBeenCalledWith(mockAuthUser.id, query);
+      expect(result).toEqual(mockSearchResponse);
+    });
+
+    it('returns empty result when no users match', async () => {
+      mockSearchUsers.mockResolvedValue({ data: [], total: 0 });
+
+      const result = await controller.searchUsers(mockAuthUser, { q: 'zzz' });
+
+      expect(result).toEqual({ data: [], total: 0 });
+    });
+
+    it('passes groupId to the service when provided', async () => {
+      const query = { q: 'jane', groupId: 'group-uuid' };
+
+      await controller.searchUsers(mockAuthUser, query);
+
+      expect(mockSearchUsers).toHaveBeenCalledWith(mockAuthUser.id, query);
     });
   });
 });

@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq, ne } from 'drizzle-orm';
+import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
@@ -44,6 +44,8 @@ import type { UserResponseDto } from './dto/user-response.dto';
 import type { UsernameAvailabilityDto } from './dto/username-availability.dto';
 import type { CreateVisaDto, UpdateVisaDto, VisaResponseDto } from './dto/visa.dto';
 import type { CreateEtaDto, EtaResponseDto, UpdateEtaDto } from './dto/eta.dto';
+import type { SearchUsersQueryDto } from './dto/search-users-query.dto';
+import type { UserSearchResponseDto, UserSearchResultDto } from './dto/user-search-result.dto';
 
 @Injectable()
 export class UsersService {
@@ -68,6 +70,59 @@ export class UsersService {
       where: eq(users.username, username),
     });
     return { available: !existing, username };
+  }
+
+  async searchUsers(
+    requestingUserId: string,
+    dto: SearchUsersQueryDto,
+  ): Promise<UserSearchResponseDto> {
+    const { q, limit = 10 } = dto;
+
+    if (!q) return { data: [], total: 0 };
+
+    let searchCondition;
+    if (q.startsWith('@')) {
+      const stripped = q.slice(1);
+      if (!stripped) return { data: [], total: 0 };
+      searchCondition = ilike(users.username, `${stripped}%`);
+    } else {
+      searchCondition = or(ilike(users.username, `${q}%`), ilike(users.displayName, `%${q}%`));
+    }
+
+    const conditions = and(searchCondition, ne(users.id, requestingUserId));
+
+    const countResult = await this.db.select({ total: count() }).from(users).where(conditions);
+    const total = countResult[0]?.total ?? 0;
+
+    if (total === 0) return { data: [], total: 0 };
+
+    const rows = await this.db.query.users.findMany({
+      where: conditions,
+      limit,
+      orderBy: (t, { asc }) => [asc(t.username)],
+    });
+
+    const avatarIds = rows.map((r) => r.avatar).filter((id): id is string => id !== null);
+    const avatarAssets =
+      avatarIds.length > 0
+        ? await this.db.query.assets.findMany({ where: inArray(assets.id, avatarIds) })
+        : [];
+    const avatarMap = new Map(
+      await Promise.all(
+        avatarAssets.map(
+          async (a) => [a.id, await this.assetResolver.resolve(assetRowToAsset(a))] as const,
+        ),
+      ),
+    );
+
+    const data: UserSearchResultDto[] = rows.map((row) => ({
+      id: row.id,
+      username: row.username,
+      displayName: row.displayName,
+      avatar: row.avatar ? (avatarMap.get(row.avatar) ?? null) : null,
+    }));
+
+    return { data, total };
   }
 
   async updateMe(existingUser: AuthenticatedUser, dto: UpdateUserDto): Promise<UserResponseDto> {

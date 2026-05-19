@@ -1,18 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class CreateInvitationDto {
   @ApiProperty({
-    description: 'Username of the user to invite (without @)',
-    example: 'juan_viajero',
+    description: 'Usernames to invite (without @). 1–20 per request.',
+    example: ['juan_viajero', 'maria_explorer'],
+    type: [String],
     minLength: 3,
     maxLength: 30,
   })
-  @IsString()
-  @MinLength(3)
-  @MaxLength(30)
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  @MinLength(3, { each: true })
+  @MaxLength(30, { each: true })
   @Matches(/^[a-z0-9_-]+$/, {
-    message: 'username must contain only lowercase letters, digits, underscores, and dashes',
+    each: true,
+    message: 'each username must contain only lowercase letters, digits, underscores, and dashes',
   })
-  targetUsername!: string;
+  usernames!: string[];
 }
