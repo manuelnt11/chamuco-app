@@ -244,6 +244,7 @@
         "noResults": "No users found",
         "removeUser": "Remove {{username}}",
         "alreadyExcluded": "This user is already a member or has a pending invitation",
+        "maxUsers": "You can invite up to 20 users at once",
         "done": "Done",
         "results": {
           "title": "Invitation results"

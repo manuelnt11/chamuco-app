@@ -142,21 +142,36 @@ export class GroupMembersService {
   ): Promise<BulkInvitationResponseDto> {
     await this.assertGroupAdmin(groupId, adminUserId);
 
+    const targetUsers = await this.db.query.users.findMany({
+      where: inArray(users.username, dto.usernames),
+    });
+    const userByUsername = new Map(targetUsers.map((u) => [u.username, u]));
+
+    const existingMemberships =
+      targetUsers.length > 0
+        ? await this.db.query.groupMembers.findMany({
+            where: and(
+              eq(groupMembers.groupId, groupId),
+              inArray(
+                groupMembers.userId,
+                targetUsers.map((u) => u.id),
+              ),
+            ),
+          })
+        : [];
+    const membershipByUserId = new Map(existingMemberships.map((m) => [m.userId, m]));
+
     const results: InvitationResultDto[] = [];
 
     for (const username of dto.usernames) {
-      const targetUser = await this.db.query.users.findFirst({
-        where: eq(users.username, username),
-      });
+      const targetUser = userByUsername.get(username);
 
       if (!targetUser) {
         results.push({ username, status: 'NOT_FOUND' });
         continue;
       }
 
-      const existing = await this.db.query.groupMembers.findFirst({
-        where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUser.id)),
-      });
+      const existing = membershipByUserId.get(targetUser.id);
 
       if (existing) {
         if (existing.status === GroupMemberStatus.ACTIVE) {

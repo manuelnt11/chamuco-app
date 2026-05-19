@@ -344,11 +344,13 @@ describe('GroupMembersService', () => {
 
   describe('sendInvitations', () => {
     const dto: CreateInvitationDto = { usernames: ['target_user'] };
+    const targetMembership = (status: GroupMemberStatus, role = GroupRole.MEMBER) =>
+      makeMembership(TARGET_ID, status, role);
 
     it('inserts new INVITED membership and returns INVITED status', async () => {
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerMembership) // admin check
-        .mockResolvedValueOnce(undefined); // no existing membership
+      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership); // admin check
+      mockUsersFindMany.mockResolvedValueOnce([mockTargetUser]);
+      mockGroupMembersFindMany.mockResolvedValueOnce([]); // no existing membership
 
       const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
 
@@ -368,8 +370,9 @@ describe('GroupMembersService', () => {
     });
 
     it('returns NOT_FOUND when target user does not exist', async () => {
-      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership);
-      mockUsersFindFirst.mockResolvedValue(undefined);
+      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership); // admin check
+      mockUsersFindMany.mockResolvedValueOnce([]); // user not found
+      mockGroupMembersFindMany.mockResolvedValueOnce([]); // no memberships (no users)
 
       const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
 
@@ -378,9 +381,9 @@ describe('GroupMembersService', () => {
     });
 
     it('returns ALREADY_MEMBER when target is already ACTIVE', async () => {
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerMembership)
-        .mockResolvedValueOnce(activeMembership);
+      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership); // admin check
+      mockUsersFindMany.mockResolvedValueOnce([mockTargetUser]);
+      mockGroupMembersFindMany.mockResolvedValueOnce([targetMembership(GroupMemberStatus.ACTIVE)]);
 
       const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
 
@@ -390,9 +393,9 @@ describe('GroupMembersService', () => {
     });
 
     it('returns ALREADY_INVITED when target already has INVITED status', async () => {
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerMembership)
-        .mockResolvedValueOnce(invitedMembership);
+      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership); // admin check
+      mockUsersFindMany.mockResolvedValueOnce([mockTargetUser]);
+      mockGroupMembersFindMany.mockResolvedValueOnce([targetMembership(GroupMemberStatus.INVITED)]);
 
       const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
 
@@ -402,9 +405,9 @@ describe('GroupMembersService', () => {
     });
 
     it('returns HAS_PENDING_REQUEST when target has a pending join request', async () => {
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerMembership)
-        .mockResolvedValueOnce(requestMembership);
+      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership); // admin check
+      mockUsersFindMany.mockResolvedValueOnce([mockTargetUser]);
+      mockGroupMembersFindMany.mockResolvedValueOnce([targetMembership(GroupMemberStatus.REQUEST)]);
 
       const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
 
@@ -414,10 +417,11 @@ describe('GroupMembersService', () => {
     });
 
     it('re-invites after REJECTED, resets role to MEMBER, returns INVITED', async () => {
-      const formerAdmin = makeMembership(USER_ID, GroupMemberStatus.REJECTED, GroupRole.ADMIN);
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerMembership)
-        .mockResolvedValueOnce(formerAdmin);
+      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership); // admin check
+      mockUsersFindMany.mockResolvedValueOnce([mockTargetUser]);
+      mockGroupMembersFindMany.mockResolvedValueOnce([
+        targetMembership(GroupMemberStatus.REJECTED, GroupRole.ADMIN),
+      ]);
 
       const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
 
@@ -435,15 +439,12 @@ describe('GroupMembersService', () => {
       const userB = { ...mockTargetUser, id: 'id-b', username: 'user_b' };
       const userC = { ...mockTargetUser, id: 'id-c', username: 'user_c' };
 
-      mockGroupMembersFindFirst
-        .mockResolvedValueOnce(ownerMembership) // admin check
-        .mockResolvedValueOnce(undefined) // user_a: no existing
-        .mockResolvedValueOnce(activeMembership) // user_b: already ACTIVE
-        .mockResolvedValueOnce(undefined); // user_c: no existing
-      mockUsersFindFirst
-        .mockResolvedValueOnce(userA)
-        .mockResolvedValueOnce(userB)
-        .mockResolvedValueOnce(userC);
+      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership); // admin check
+      mockUsersFindMany.mockResolvedValueOnce([userA, userB, userC]);
+      // userB is already an active member
+      mockGroupMembersFindMany.mockResolvedValueOnce([
+        makeMembership('id-b', GroupMemberStatus.ACTIVE),
+      ]);
 
       const result = await service.sendInvitations(GROUP_ID, multiDto, ADMIN_ID);
 

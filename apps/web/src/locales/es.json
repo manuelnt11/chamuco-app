@@ -244,6 +244,7 @@
         "noResults": "No se encontraron usuarios",
         "removeUser": "Eliminar {{username}}",
         "alreadyExcluded": "Este usuario ya es miembro o tiene una invitación pendiente",
+        "maxUsers": "Puedes invitar hasta 20 usuarios a la vez",
         "done": "Listo",
         "results": {
           "title": "Resultados de invitación"

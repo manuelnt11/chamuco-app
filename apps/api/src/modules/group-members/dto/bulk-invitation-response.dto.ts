@@ -16,6 +16,7 @@ export class InvitationResultDto {
 
   @ApiProperty({
     enum: INVITATION_RESULT_STATUSES,
+    enumName: 'InvitationResultStatus',
     example: 'INVITED',
     description:
       'INVITED — sent successfully. ' +

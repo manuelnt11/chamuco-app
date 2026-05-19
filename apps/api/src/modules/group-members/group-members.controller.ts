@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiConflictResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -113,6 +114,7 @@ export class GroupMembersController {
       'Returns a per-user result for each username in the request.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
+  @ApiBody({ type: CreateInvitationDto })
   @ApiResponse({
     status: 200,
     type: BulkInvitationResponseDto,

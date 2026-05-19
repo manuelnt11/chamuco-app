@@ -60,12 +60,17 @@ export function InviteMemberModal({ groupId, onSuccess, excludedIds }: InviteMem
       setSelectionError(t('members.invite.alreadyExcluded'));
       return;
     }
+    if (selectedUsers.length >= 20) {
+      setSelectionError(t('members.invite.maxUsers'));
+      return;
+    }
     setSelectionError(null);
     setSelectedUsers((prev) => (prev.some((u) => u.id === user.id) ? prev : [...prev, user]));
   }
 
   function removeUser(id: string) {
     setSelectedUsers((prev) => prev.filter((u) => u.id !== id));
+    setSelectionError(null);
   }
 
   const handleSubmit = async (e: React.SubmitEvent) => {

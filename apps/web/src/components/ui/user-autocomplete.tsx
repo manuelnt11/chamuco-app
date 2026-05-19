@@ -35,7 +35,7 @@ function UserAutocomplete({
   const { results, isLoading } = useUserSearch(value);
 
   const showDropdown =
-    open && value.length >= 1 && (isLoading || results.length > 0 || (!isLoading && value !== '@'));
+    open && value.length >= 1 && (isLoading || results.length > 0 || value !== '@');
   const showEmpty =
     open && value.length >= 1 && value !== '@' && !isLoading && results.length === 0;
 
@@ -87,7 +87,7 @@ function UserAutocomplete({
         className={cn(className)}
       />
 
-      {(showDropdown || showEmpty) && (
+      {showDropdown && (
         <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
           {isLoading ? (
             <div className="flex items-center justify-center p-3">
