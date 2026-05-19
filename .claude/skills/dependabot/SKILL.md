@@ -1,156 +1,176 @@
 ---
 name: dependabot
-description: Review a Dependabot PR — assess safety, identify breaking changes, fix what's needed, and commit
+description: Consolidate all open Dependabot PRs into a single branch, install, fix issues, and open one PR
 ---
 
-You are running `/dependabot` for the Chamuco App project. Your job is to review a Dependabot PR, determine if it is safe to merge as-is, and if not, fix whatever is blocking it and commit the fixes.
+You are running `/dependabot` for the Chamuco App project. Your job is to find every open Dependabot PR, merge all their package changes into a single consolidation branch, run the full install + quality gates, fix whatever breaks, and open one PR.
 
-## Step 1 — Ask for the PR
-
-Ask the user: **"Which Dependabot PR do you want to review? (provide the PR number)"**
-
-Wait for the answer before proceeding.
-
-## Step 2 — Fetch PR details
+## Step 1 — Find all open Dependabot PRs
 
 ```bash
-gh pr view <PR_NUMBER> --json title,body,headRefName,baseRefName,files,labels,url
+gh pr list --author "app/dependabot" --state open --json number,title,headRefName,url --limit 100
 ```
 
-Also get the raw diff to inspect exactly what changed:
+If there are no open Dependabot PRs, tell the user and stop.
+
+List them clearly for the user: number, title, and URL.
+
+## Step 2 — Create the consolidation branch
+
+Branch off the current `main`:
 
 ```bash
-gh pr diff <PR_NUMBER>
+git fetch origin main
+git checkout -b deps/consolidate-dependabot origin/main
 ```
 
-Note:
+## Step 3 — Cherry-pick or merge each Dependabot branch
 
-- Which package(s) changed (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`)
-- The package name, previous version, and new version
-- Whether it is a `patch`, `minor`, or `major` bump (use semver)
+For each PR found in Step 1, fetch its branch and cherry-pick or merge the commits into the consolidation branch.
 
-## Step 3 — Fetch the changelog / release notes
-
-For each upgraded package:
-
-1. Try the GitHub releases page via `gh` or `gh api`:
-
-   ```bash
-   gh api repos/<owner>/<repo>/releases --jq '[.[] | {tag: .tag_name, body: .body}] | .[0:5]'
-   ```
-
-2. If that fails, search npm for the changelog URL:
-
-   ```bash
-   npm info <package-name> homepage repository.url
-   ```
-
-3. Use `WebFetch` on the changelog or release notes URL to read what changed between old and new version.
-
-Focus on:
-
-- **Breaking changes** (API removals, behavior changes, config format changes)
-- **Security fixes** (CVE IDs, advisories)
-- **Deprecations** that affect code in this repo
-
-## Step 4 — Checkout the PR branch
+Preferred approach — merge each branch in turn (handles lockfile conflicts better than cherry-pick):
 
 ```bash
-gh pr checkout <PR_NUMBER>
+git fetch origin <headRefName>
+git merge origin/<headRefName> --no-edit -m "chore(deps): merge dependabot/<headRefName>"
 ```
 
-## Step 5 — Run the test suite
+If a merge produces a conflict (most likely in `pnpm-lock.yaml` or `pnpm-workspace.yaml`):
 
-Run tests for the affected package(s) only:
+1. Accept the **incoming** version for `package.json` changes (take the higher version).
+2. For `pnpm-lock.yaml` — do NOT attempt to manually resolve it. Mark it for regeneration in Step 4 instead: delete the conflicting hunks and leave the file in a state that `pnpm install` will regenerate cleanly.
+3. Stage the resolved files and continue:
 
 ```bash
-# If api dependencies changed:
-pnpm --filter api test 2>&1 | tail -n 80
-
-# If web dependencies changed:
-pnpm --filter web test 2>&1 | tail -n 80
-
-# If shared/root dependencies changed:
-pnpm test 2>&1 | tail -n 80
+git add <resolved-files>
+git merge --continue --no-edit
 ```
 
-Also run type-check:
+After all branches are merged, note which packages were bumped and to what version.
+
+## Step 4 — Install and regenerate the lockfile
 
 ```bash
-pnpm --filter api typecheck 2>&1 | tail -n 60
-pnpm --filter web typecheck 2>&1 | tail -n 60
+pnpm install
 ```
 
-## Step 6 — Assess safety
+This regenerates `pnpm-lock.yaml` cleanly from all the merged `package.json` changes.
 
-Classify the PR into one of three categories:
+If `pnpm install` fails due to peer dependency conflicts:
 
-### ✅ SAFE — merge as-is
+- Read the error carefully.
+- Check if any two Dependabot PRs bumped conflicting peer versions.
+- Resolve by choosing the version that satisfies the most peers, updating `pnpm-workspace.yaml` catalog entry if the package is cataloged.
+- Re-run `pnpm install` until it succeeds.
 
-- Patch bump with no breaking changes
-- Tests pass
-- No API or config changes in the changelog
-
-### ⚠️ NEEDS FIXES — fix before merging
-
-- Minor or major bump with breaking changes
-- Tests fail or type errors appear
-- Config format changed
-- Deprecated APIs used in the codebase
-
-### 🚫 BLOCK — do not merge
-
-- Major bump that would require significant refactoring not worth doing now
-- Known regression or security issue introduced (rare — usually dependabot avoids these)
-- Incompatible with another dependency (peer conflicts)
-
-## Step 7 — If NEEDS FIXES: identify and apply changes
-
-Search the codebase for usage of changed APIs:
+## Step 5 — Run the full quality suite
 
 ```bash
-# Search for imports/usages of the package
-grep -r "<package-name>" apps/ packages/ --include="*.ts" --include="*.tsx" -l
+pnpm --filter api typecheck 2>&1 | tail -n 80
+pnpm --filter web typecheck 2>&1 | tail -n 80
+pnpm --filter api test 2>&1 | tail -n 100
+pnpm --filter web test 2>&1 | tail -n 100
 ```
 
-Read the affected files, apply the required migration changes, then run tests again to confirm they pass.
+Also lint to catch any auto-fixable issues early:
 
-Follow all standing rules from CLAUDE.md:
-
-- No relative imports — use path aliases
-- No `any` or `unknown` without justification
-- Every changed file must be correctly formatted (`prettier`)
-
-## Step 8 — Commit the fixes (only if NEEDS FIXES)
-
-If you made code changes to fix breaking changes or failing tests, commit them on the PR branch following the standard commit process from CLAUDE.md:
-
-1. Stage the specific files changed (never `git add -A` blindly)
-2. Write a concise commit message:
-   - Subject: `fix(deps): adapt to <package>@<new-version> breaking changes`
-   - Body only if the "why" is not obvious
-3. The pre-commit hook will run lint, tests, and coverage — do not skip it
-
-## Step 9 — Output a clear verdict
-
-End with a structured summary:
-
-```
-## Dependabot PR #<number> — <package>@<old> → <new>
-
-**Verdict:** ✅ SAFE / ⚠️ NEEDS FIXES / 🚫 BLOCK
-
-**Bump type:** patch / minor / major
-
-**Breaking changes found:** yes/no — <brief description if yes>
-
-**Security fixes:** yes/no — <CVE or advisory if yes>
-
-**Tests:** ✅ passed / ❌ failed — <summary>
-
-**Action taken:** merged as-is / fixed <N files> and committed / blocked — reason: <reason>
-
-**Next step:** <what the user should do now>
+```bash
+pnpm --filter api lint 2>&1 | tail -n 80
+pnpm --filter web lint 2>&1 | tail -n 80
 ```
 
-Keep the verdict crisp. Don't pad with details the user doesn't need.
+## Step 6 — Fix any failures
+
+For each type error, test failure, or lint error:
+
+1. Identify which package bump caused it (check the changelog / release notes for that package using `npm info <pkg> homepage` and `WebFetch` on the changelog URL).
+2. Apply the required migration to the affected source files.
+3. Follow all CLAUDE.md standing rules:
+   - No relative imports — use path aliases
+   - No `any` / `unknown` without a `@ts-expect-error` comment
+   - No hardcoded UI strings — use `t()` references
+4. Re-run the relevant test/typecheck command to confirm the fix.
+
+Keep fixing until all type checks and tests pass.
+
+## Step 7 — Commit everything
+
+Stage the updated files (package manifests, lockfile, and any source fixes):
+
+```bash
+git add pnpm-lock.yaml pnpm-workspace.yaml
+# Add each package.json that changed:
+git add apps/api/package.json apps/web/package.json packages/*/package.json
+# Add any source files fixed in Step 6:
+git add <fixed-source-files>
+```
+
+Write the commit following conventional commits:
+
+- Subject: `chore(deps): consolidate dependabot updates (<N> packages)`
+- Body: list every bumped package as `- <package>: <old> → <new>`
+- If source fixes were required, add: `Fixes: <brief description>`
+
+The pre-commit hook will run lint, tests, and coverage — do not skip it.
+
+## Step 8 — Push and open the PR
+
+```bash
+git push -u origin deps/consolidate-dependabot
+```
+
+Then create the PR:
+
+```bash
+gh pr create \
+  --title "chore(deps): consolidate dependabot updates" \
+  --body "$(cat <<'EOF'
+## Summary
+
+Consolidates all open Dependabot PRs into a single update branch.
+
+### Packages updated
+
+<!-- list each bump: - package: old → new -->
+
+### Breaking changes fixed
+
+<!-- list files changed and why, or "none" -->
+
+## Test plan
+
+- [ ] `pnpm --filter api typecheck` passes
+- [ ] `pnpm --filter web typecheck` passes
+- [ ] `pnpm --filter api test` passes
+- [ ] `pnpm --filter web test` passes
+- [ ] `pnpm install` produces a clean lockfile
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+Fill in the "Packages updated" and "Breaking changes fixed" sections with the actual data collected during the run.
+
+## Step 9 — Close the individual Dependabot PRs
+
+For each Dependabot PR found in Step 1, close it with a comment pointing to the consolidation PR:
+
+```bash
+gh pr close <PR_NUMBER> --comment "Consolidated into #<CONSOLIDATION_PR_NUMBER> — closing this individual update."
+```
+
+## Step 10 — Output a summary
+
+End with a structured report:
+
+```
+## Dependabot Consolidation
+
+**PRs merged:** <N> — list each one
+**Packages bumped:** list each package: old → new
+**Breaking changes fixed:** <N files changed, or "none">
+**Tests:** ✅ all pass / ❌ <summary of failures>
+**Consolidation PR:** <URL>
+**Individual PRs closed:** <list>
+```
