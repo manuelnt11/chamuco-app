@@ -1,10 +1,11 @@
 'use client';
 
-import { type SyntheticEvent, useEffect, useId, useRef, useState } from 'react';
+import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Trans, useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
+import { DateOfBirthField } from '@/components/ui/date-of-birth-field';
 import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import type { TFunction } from 'i18next';
 import { useTheme } from 'next-themes';
@@ -34,6 +35,7 @@ import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
 // ---------------------------------------------------------------------------
 
 const USERNAME_RE = /^[a-z0-9_-]{3,30}$/;
+const CURRENT_YEAR = new Date().getFullYear();
 const TOTAL_STEPS = 3;
 const STEP_KEYS = ['step1', 'step2', 'step3'] as const;
 
@@ -668,7 +670,6 @@ function Step2({
   onEmailChange,
   t,
 }: Step2Props) {
-  const dobId = useId();
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
@@ -714,42 +715,22 @@ function Step2({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`${dobId}-day`}>{t('onboarding.dateOfBirth.label')}</Label>
-        <div className="grid grid-cols-3 gap-2">
-          <Input
-            id={`${dobId}-day`}
-            type="number"
-            min={1}
-            max={31}
-            placeholder={t('onboarding.dateOfBirth.day')}
-            value={dobDay}
-            onChange={(e) => onDobDayChange(e.target.value)}
-            aria-invalid={!!stepErrors.dob}
-            data-testid="dob-day-input"
-          />
-          <Input
-            id={`${dobId}-month`}
-            type="number"
-            min={1}
-            max={12}
-            placeholder={t('onboarding.dateOfBirth.month')}
-            value={dobMonth}
-            onChange={(e) => onDobMonthChange(e.target.value)}
-            aria-invalid={!!stepErrors.dob}
-            data-testid="dob-month-input"
-          />
-          <Input
-            id={`${dobId}-year`}
-            type="number"
-            min={1900}
-            placeholder={t('onboarding.dateOfBirth.year')}
-            value={dobYear}
-            onChange={(e) => onDobYearChange(e.target.value)}
-            aria-invalid={!!stepErrors.dob}
-            data-testid="dob-year-input"
-          />
-        </div>
-        <FieldMessage error={stepErrors.dob} className="text-xs" />
+        <DateOfBirthField
+          day={dobDay}
+          month={dobMonth}
+          year={dobYear}
+          onDayChange={onDobDayChange}
+          onMonthChange={onDobMonthChange}
+          onYearChange={onDobYearChange}
+          error={stepErrors.dob}
+          toYear={CURRENT_YEAR - 16}
+          groupLabel={t('onboarding.dateOfBirth.label')}
+          dayLabel={t('onboarding.dateOfBirth.day')}
+          monthLabel={t('onboarding.dateOfBirth.month')}
+          yearLabel={t('onboarding.dateOfBirth.year')}
+          calendarAriaLabel={t('onboarding.dateOfBirth.pickerOpen')}
+          fieldMessageClassName="text-xs"
+        />
       </div>
 
       <label htmlFor="year-visible-checkbox" className="flex cursor-pointer items-center gap-2">

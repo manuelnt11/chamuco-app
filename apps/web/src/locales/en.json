@@ -149,7 +149,8 @@
         "day": "Day",
         "month": "Month",
         "year": "Year",
-        "yearVisibleLabel": "Show birth year on my public profile"
+        "yearVisibleLabel": "Show birth year on my public profile",
+        "pickerOpen": "Open date picker"
       },
       "phone": {
         "label": "Phone number",
@@ -473,7 +474,8 @@
       },
       "email": "Email",
       "emailPlaceholder": "your@email.com",
-      "emailHint": "Email address for trip alerts and platform notifications."
+      "emailHint": "Email address for trip alerts and platform notifications.",
+      "dobPickerOpen": "Open date picker"
     },
     "loyaltyPrograms": {
       "heading": "Loyalty Programs",

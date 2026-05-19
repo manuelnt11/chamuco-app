@@ -303,12 +303,12 @@ describe('PersonalDetailsSection', () => {
       );
     });
 
-    it('disables button while saving', async () => {
+    it('disables save button while saving', async () => {
       mocks.mockPatch.mockImplementation(() => new Promise(() => {}));
       const { user } = setup();
       await user.type(screen.getByLabelText('personalDetails.firstName'), ' Carlos');
       await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
-      expect(screen.getByRole('button')).toBeDisabled();
+      expect(screen.getByRole('button', { name: /personalDetails\.save/ })).toBeDisabled();
     });
 
     it('converts yearVisible toggle in payload', async () => {
