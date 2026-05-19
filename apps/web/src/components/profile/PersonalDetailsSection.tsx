@@ -4,6 +4,7 @@ import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCountryDataList } from 'countries-list';
 
+import { DateOfBirthField } from '@/components/ui/date-of-birth-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SaveButton } from '@/components/ui/save-button';
@@ -234,55 +235,22 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
       </div>
 
       <div className="space-y-1.5">
-        <Label id="dob-label">{t('personalDetails.dateOfBirth')}</Label>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="space-y-1">
-            <Label htmlFor="dobDay" className="text-xs text-muted-foreground">
-              {t('personalDetails.day')}
-            </Label>
-            <Input
-              id="dobDay"
-              type="number"
-              min={1}
-              max={31}
-              value={dobDay}
-              onChange={(e) => setDobDay(e.target.value)}
-              aria-invalid={dobError !== null}
-              disabled={isSaving}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="dobMonth" className="text-xs text-muted-foreground">
-              {t('personalDetails.month')}
-            </Label>
-            <Input
-              id="dobMonth"
-              type="number"
-              min={1}
-              max={12}
-              value={dobMonth}
-              onChange={(e) => setDobMonth(e.target.value)}
-              aria-invalid={dobError !== null}
-              disabled={isSaving}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="dobYear" className="text-xs text-muted-foreground">
-              {t('personalDetails.year')}
-            </Label>
-            <Input
-              id="dobYear"
-              type="number"
-              min={1900}
-              max={CURRENT_YEAR - 15}
-              value={dobYear}
-              onChange={(e) => setDobYear(e.target.value)}
-              aria-invalid={dobError !== null}
-              disabled={isSaving}
-            />
-          </div>
-        </div>
-        <FieldMessage error={dobError} />
+        <Label>{t('personalDetails.dateOfBirth')}</Label>
+        <DateOfBirthField
+          day={dobDay}
+          month={dobMonth}
+          year={dobYear}
+          onDayChange={setDobDay}
+          onMonthChange={setDobMonth}
+          onYearChange={setDobYear}
+          error={dobError}
+          disabled={isSaving}
+          toYear={CURRENT_YEAR - 15}
+          dayLabel={t('personalDetails.day')}
+          monthLabel={t('personalDetails.month')}
+          yearLabel={t('personalDetails.year')}
+          calendarAriaLabel={t('personalDetails.dobPickerOpen')}
+        />
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"

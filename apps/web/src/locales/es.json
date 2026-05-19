@@ -149,7 +149,8 @@
         "day": "Día",
         "month": "Mes",
         "year": "Año",
-        "yearVisibleLabel": "Mostrar año de nacimiento en mi perfil público"
+        "yearVisibleLabel": "Mostrar año de nacimiento en mi perfil público",
+        "pickerOpen": "Abrir selector de fecha"
       },
       "phone": {
         "label": "Número de teléfono",
@@ -473,7 +474,8 @@
       },
       "email": "Correo",
       "emailPlaceholder": "tu@correo.com",
-      "emailHint": "Dirección de correo para alertas de viaje y notificaciones de la plataforma."
+      "emailHint": "Dirección de correo para alertas de viaje y notificaciones de la plataforma.",
+      "dobPickerOpen": "Abrir selector de fecha"
     },
     "loyaltyPrograms": {
       "heading": "Programas de Fidelidad",
