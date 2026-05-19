@@ -210,6 +210,7 @@ export function CropModal({
               ref={imgRef}
               src={imgSrc}
               alt=""
+              data-testid="crop-image"
               onLoad={onImageLoad}
               className="block w-full max-h-72 object-contain"
             />

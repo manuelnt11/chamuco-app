@@ -36,7 +36,7 @@ describe('PublicProfileHeader', () => {
 
   it('does not render bio element when bio is null', () => {
     render(<PublicProfileHeader {...baseProps} bio={null} />);
-    expect(screen.queryByRole('paragraph')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('bio')).not.toBeInTheDocument();
   });
 
   it('renders Avatar when avatar is provided', () => {

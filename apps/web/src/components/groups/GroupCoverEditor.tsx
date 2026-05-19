@@ -93,7 +93,12 @@ export function GroupCoverEditor({ group, onUpdate }: GroupCoverEditorProps) {
   return (
     <div className="flex items-center gap-4">
       <div className="size-12 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
-        <img src={group.coverUrl} alt="" className="size-full object-cover" />
+        <img
+          data-testid="group-cover"
+          src={group.coverUrl}
+          alt=""
+          className="size-full object-cover"
+        />
       </div>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger className="text-sm font-medium underline-offset-2 hover:underline">

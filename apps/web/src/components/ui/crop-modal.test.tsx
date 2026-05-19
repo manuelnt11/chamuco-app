@@ -138,7 +138,7 @@ describe('CropModal', () => {
     it('calls onConfirm with a Blob after clicking confirm', async () => {
       const { user } = setup();
 
-      const img = screen.getByRole('img');
+      const img = screen.getByTestId('crop-image');
       act(() => {
         Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
         Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
@@ -160,7 +160,7 @@ describe('CropModal', () => {
 
       const { user } = setup();
 
-      const img = screen.getByRole('img');
+      const img = screen.getByTestId('crop-image');
       act(() => {
         Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
         Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
@@ -182,7 +182,7 @@ describe('CropModal', () => {
 
       const { user } = setup();
 
-      const img = screen.getByRole('img');
+      const img = screen.getByTestId('crop-image');
       act(() => {
         Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
         Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
@@ -206,7 +206,7 @@ describe('CropModal', () => {
 
       const { user } = setup();
 
-      const img = screen.getByRole('img');
+      const img = screen.getByTestId('crop-image');
       act(() => {
         Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
         Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
@@ -231,7 +231,7 @@ describe('CropModal', () => {
     }
 
     function loadImage() {
-      const img = screen.getByRole('img');
+      const img = screen.getByTestId('crop-image');
       act(() => {
         Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
         Object.defineProperty(img, 'naturalHeight', { value: 400, configurable: true });
