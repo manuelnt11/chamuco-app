@@ -37,6 +37,7 @@ const defaultProps: DateOfBirthFieldProps = {
   onDayChange: vi.fn(),
   onMonthChange: vi.fn(),
   onYearChange: vi.fn(),
+  groupLabel: 'Date of Birth',
   dayLabel: 'Day',
   monthLabel: 'Month',
   yearLabel: 'Year',
@@ -216,6 +217,13 @@ describe('DateOfBirthField', () => {
     it('passes className to field message', () => {
       setup({ error: 'Error', fieldMessageClassName: 'text-xs' });
       expect(screen.getByRole('alert')).toHaveClass('text-xs');
+    });
+  });
+
+  describe('groupLabel', () => {
+    it('renders fieldset with legend for the group label', () => {
+      setup({ groupLabel: 'Date of Birth' });
+      expect(screen.getByRole('group', { name: 'Date of Birth' })).toBeInTheDocument();
     });
   });
 });

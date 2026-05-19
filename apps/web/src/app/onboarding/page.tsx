@@ -715,7 +715,6 @@ function Step2({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label>{t('onboarding.dateOfBirth.label')}</Label>
         <DateOfBirthField
           day={dobDay}
           month={dobMonth}
@@ -725,6 +724,7 @@ function Step2({
           onYearChange={onDobYearChange}
           error={stepErrors.dob}
           toYear={CURRENT_YEAR - 16}
+          groupLabel={t('onboarding.dateOfBirth.label')}
           dayLabel={t('onboarding.dateOfBirth.day')}
           monthLabel={t('onboarding.dateOfBirth.month')}
           yearLabel={t('onboarding.dateOfBirth.year')}

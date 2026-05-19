@@ -235,7 +235,6 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
       </div>
 
       <div className="space-y-1.5">
-        <Label>{t('personalDetails.dateOfBirth')}</Label>
         <DateOfBirthField
           day={dobDay}
           month={dobMonth}
@@ -246,6 +245,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
           error={dobError}
           disabled={isSaving}
           toYear={CURRENT_YEAR - 15}
+          groupLabel={t('personalDetails.dateOfBirth')}
           dayLabel={t('personalDetails.day')}
           monthLabel={t('personalDetails.month')}
           yearLabel={t('personalDetails.year')}

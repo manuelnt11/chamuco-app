@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef } from 'react';
+import { type ChangeEvent, useId, useRef } from 'react';
 import { CalendarBlankIcon } from '@phosphor-icons/react';
 
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ export interface DateOfBirthFieldProps {
   error?: string | null;
   disabled?: boolean;
   toYear?: number;
+  groupLabel: string;
   dayLabel: string;
   monthLabel: string;
   yearLabel: string;
@@ -37,6 +38,7 @@ export function DateOfBirthField({
   error = null,
   disabled = false,
   toYear = CURRENT_YEAR - 15,
+  groupLabel,
   dayLabel,
   monthLabel,
   yearLabel,
@@ -62,7 +64,7 @@ export function DateOfBirthField({
     }
   }
 
-  function handleHiddenChange(e: { target: HTMLInputElement }) {
+  function handleHiddenChange(e: ChangeEvent<HTMLInputElement>) {
     if (!e.target.value) return;
     const [yStr, mStr, dStr] = e.target.value.split('-');
     onDayChange(String(Number(dStr)));
@@ -70,10 +72,11 @@ export function DateOfBirthField({
     onYearChange(String(Number(yStr)));
   }
 
-  const hasError = error !== null && error !== undefined;
+  const hasError = error != null;
 
   return (
-    <div>
+    <fieldset className="m-0 min-w-0 border-0 p-0">
+      <legend className="mb-1.5 text-sm font-medium leading-none select-none">{groupLabel}</legend>
       <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2">
         <div className="space-y-1">
           <Label htmlFor={`${uid}-day`} className="text-xs text-muted-foreground">
@@ -153,6 +156,6 @@ export function DateOfBirthField({
       </div>
 
       <FieldMessage error={error} className={fieldMessageClassName} />
-    </div>
+    </fieldset>
   );
 }
