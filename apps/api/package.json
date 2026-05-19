@@ -40,7 +40,7 @@
     "drizzle-orm": "^0.45.2",
     "firebase-admin": "^13.10.0",
     "nestjs-i18n": "^10.8.4",
-    "pg": "^8.20.0",
+    "pg": "^8.21.0",
     "postgres": "^3.4.8",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
