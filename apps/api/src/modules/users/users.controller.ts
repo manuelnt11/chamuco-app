@@ -45,6 +45,8 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UsernameAvailabilityDto } from './dto/username-availability.dto';
 import { CreateVisaDto, UpdateVisaDto, VisaResponseDto } from './dto/visa.dto';
 import { CreateEtaDto, EtaResponseDto, UpdateEtaDto } from './dto/eta.dto';
+import { SearchUsersQueryDto } from './dto/search-users-query.dto';
+import { UserSearchResponseDto } from './dto/user-search-result.dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -612,6 +614,38 @@ export class UsersController {
     @Param('id') id: string,
   ): Promise<void> {
     return this.usersService.deleteEta(user.id, nationalityId, id);
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: 'Search users by username or display name',
+    description:
+      'Returns users matching the search query. ' +
+      'Prefix the query with @ to search by username only (prefix match). ' +
+      'Without @, searches both username (prefix match) and display name (partial match). ' +
+      'The requesting user is always excluded from results.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search query. Prefix with @ to search by username only.',
+    example: '@john',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of results to return (1–20, default 10)',
+    example: 10,
+  })
+  @ApiResponse({ status: 200, type: UserSearchResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation error in query params' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  searchUsers(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: SearchUsersQueryDto,
+  ): Promise<UserSearchResponseDto> {
+    return this.usersService.searchUsers(user.id, query);
   }
 
   @Get(':username/profile')

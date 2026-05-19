@@ -26,6 +26,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { GroupMembersService } from './group-members.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { BulkInvitationResponseDto } from './dto/bulk-invitation-response.dto';
 import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import { MemberResponseDto } from './dto/member-response.dto';
 import { MyMembershipResponseDto } from './dto/my-membership-response.dto';
@@ -104,25 +105,27 @@ export class GroupMembersController {
   // ─── Invitations ──────────────────────────────────────────────────────────────
 
   @Post('invitations')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Send an invitation',
-    description: 'Sends a membership invitation to a user by @username. Admin only.',
+    summary: 'Send invitations',
+    description:
+      'Sends membership invitations to one or more users by @username. Admin only. ' +
+      'Returns a per-user result for each username in the request.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
-  @ApiResponse({ status: 204, description: 'Invitation sent.' })
+  @ApiResponse({
+    status: 200,
+    type: BulkInvitationResponseDto,
+    description: 'Per-user invitation results.',
+  })
   @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Caller is not a group admin.' })
-  @ApiConflictResponse({
-    description: 'User is already a member, has a pending invitation, or a pending join request.',
-  })
-  @ApiNotFoundResponse({ description: 'Group or target user not found.' })
-  async sendInvitation(
+  async sendInvitations(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateInvitationDto,
-  ): Promise<void> {
-    return this.groupMembersService.sendInvitation(id, dto, user.id);
+  ): Promise<BulkInvitationResponseDto> {
+    return this.groupMembersService.sendInvitations(id, dto, user.id);
   }
 
   @Patch('invitations/accept')

@@ -11,6 +11,7 @@ interface MemberListProps {
   members: GroupMember[];
   currentUserRole: GroupRole | null;
   onInviteSuccess: () => void;
+  excludedIds?: string[];
 }
 
 const ADMIN_ROLES: GroupRole[] = [GroupRole.OWNER, GroupRole.ADMIN];
@@ -20,6 +21,7 @@ export function MemberList({
   members,
   currentUserRole,
   onInviteSuccess,
+  excludedIds,
 }: MemberListProps) {
   const { t } = useTranslation('groups');
   const isAdmin = currentUserRole !== null && ADMIN_ROLES.includes(currentUserRole);
@@ -30,7 +32,13 @@ export function MemberList({
         <p className="text-sm font-semibold">
           {t('members.title')} ({members.length})
         </p>
-        {isAdmin && <InviteMemberModal groupId={groupId} onSuccess={onInviteSuccess} />}
+        {isAdmin && (
+          <InviteMemberModal
+            groupId={groupId}
+            onSuccess={onInviteSuccess}
+            excludedIds={excludedIds}
+          />
+        )}
       </div>
 
       {members.length === 0 ? (

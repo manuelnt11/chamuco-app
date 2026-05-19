@@ -340,84 +340,120 @@ describe('GroupMembersService', () => {
     });
   });
 
-  // ─── sendInvitation ──────────────────────────────────────────────────────────
+  // ─── sendInvitations ─────────────────────────────────────────────────────────
 
-  describe('sendInvitation', () => {
-    const dto: CreateInvitationDto = { targetUsername: 'target_user' };
+  describe('sendInvitations', () => {
+    const dto: CreateInvitationDto = { usernames: ['target_user'] };
 
-    it('inserts new INVITED membership when no existing record', async () => {
+    it('inserts new INVITED membership and returns INVITED status', async () => {
       mockGroupMembersFindFirst
         .mockResolvedValueOnce(ownerMembership) // admin check
         .mockResolvedValueOnce(undefined); // no existing membership
 
-      await service.sendInvitation(GROUP_ID, dto, ADMIN_ID);
+      const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
 
       expect(mockInsert).toHaveBeenCalled();
       expect(mockInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({ status: GroupMemberStatus.INVITED }),
       );
+      expect(result).toEqual({ results: [{ username: 'target_user', status: 'INVITED' }] });
     });
 
     it('throws ForbiddenException when caller is not an admin', async () => {
       mockGroupMembersFindFirst.mockResolvedValueOnce(undefined); // no admin membership
 
-      await expect(service.sendInvitation(GROUP_ID, dto, USER_ID)).rejects.toThrow(
+      await expect(service.sendInvitations(GROUP_ID, dto, USER_ID)).rejects.toThrow(
         ForbiddenException,
       );
     });
 
-    it('throws NotFoundException when target user does not exist', async () => {
+    it('returns NOT_FOUND when target user does not exist', async () => {
       mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership);
       mockUsersFindFirst.mockResolvedValue(undefined);
 
-      await expect(service.sendInvitation(GROUP_ID, dto, ADMIN_ID)).rejects.toThrow(
-        NotFoundException,
-      );
+      const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
+
+      expect(result).toEqual({ results: [{ username: 'target_user', status: 'NOT_FOUND' }] });
+      expect(mockInsert).not.toHaveBeenCalled();
     });
 
-    it('throws ConflictException when target is already ACTIVE', async () => {
+    it('returns ALREADY_MEMBER when target is already ACTIVE', async () => {
       mockGroupMembersFindFirst
         .mockResolvedValueOnce(ownerMembership)
         .mockResolvedValueOnce(activeMembership);
 
-      await expect(service.sendInvitation(GROUP_ID, dto, ADMIN_ID)).rejects.toThrow(
-        ConflictException,
-      );
+      const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
+
+      expect(result).toEqual({
+        results: [{ username: 'target_user', status: 'ALREADY_MEMBER' }],
+      });
     });
 
-    it('throws ConflictException when target already has INVITED status', async () => {
+    it('returns ALREADY_INVITED when target already has INVITED status', async () => {
       mockGroupMembersFindFirst
         .mockResolvedValueOnce(ownerMembership)
         .mockResolvedValueOnce(invitedMembership);
 
-      await expect(service.sendInvitation(GROUP_ID, dto, ADMIN_ID)).rejects.toThrow(
-        ConflictException,
-      );
+      const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
+
+      expect(result).toEqual({
+        results: [{ username: 'target_user', status: 'ALREADY_INVITED' }],
+      });
     });
 
-    it('throws ConflictException when target already has REQUEST status', async () => {
+    it('returns HAS_PENDING_REQUEST when target has a pending join request', async () => {
       mockGroupMembersFindFirst
         .mockResolvedValueOnce(ownerMembership)
         .mockResolvedValueOnce(requestMembership);
 
-      await expect(service.sendInvitation(GROUP_ID, dto, ADMIN_ID)).rejects.toThrow(
-        ConflictException,
-      );
+      const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
+
+      expect(result).toEqual({
+        results: [{ username: 'target_user', status: 'HAS_PENDING_REQUEST' }],
+      });
     });
 
-    it('updates row when re-inviting after REJECTED and resets role to MEMBER', async () => {
+    it('re-invites after REJECTED, resets role to MEMBER, returns INVITED', async () => {
       const formerAdmin = makeMembership(USER_ID, GroupMemberStatus.REJECTED, GroupRole.ADMIN);
       mockGroupMembersFindFirst
         .mockResolvedValueOnce(ownerMembership)
         .mockResolvedValueOnce(formerAdmin);
 
-      await service.sendInvitation(GROUP_ID, dto, ADMIN_ID);
+      const result = await service.sendInvitations(GROUP_ID, dto, ADMIN_ID);
 
       expect(mockUpdate).toHaveBeenCalled();
       expect(mockUpdateSet).toHaveBeenCalledWith(
         expect.objectContaining({ status: GroupMemberStatus.INVITED, role: GroupRole.MEMBER }),
       );
       expect(mockInsert).not.toHaveBeenCalled();
+      expect(result).toEqual({ results: [{ username: 'target_user', status: 'INVITED' }] });
+    });
+
+    it('handles multiple usernames and returns per-user results', async () => {
+      const multiDto: CreateInvitationDto = { usernames: ['user_a', 'user_b', 'user_c'] };
+      const userA = { ...mockTargetUser, id: 'id-a', username: 'user_a' };
+      const userB = { ...mockTargetUser, id: 'id-b', username: 'user_b' };
+      const userC = { ...mockTargetUser, id: 'id-c', username: 'user_c' };
+
+      mockGroupMembersFindFirst
+        .mockResolvedValueOnce(ownerMembership) // admin check
+        .mockResolvedValueOnce(undefined) // user_a: no existing
+        .mockResolvedValueOnce(activeMembership) // user_b: already ACTIVE
+        .mockResolvedValueOnce(undefined); // user_c: no existing
+      mockUsersFindFirst
+        .mockResolvedValueOnce(userA)
+        .mockResolvedValueOnce(userB)
+        .mockResolvedValueOnce(userC);
+
+      const result = await service.sendInvitations(GROUP_ID, multiDto, ADMIN_ID);
+
+      expect(result).toEqual({
+        results: [
+          { username: 'user_a', status: 'INVITED' },
+          { username: 'user_b', status: 'ALREADY_MEMBER' },
+          { username: 'user_c', status: 'INVITED' },
+        ],
+      });
     });
   });
 

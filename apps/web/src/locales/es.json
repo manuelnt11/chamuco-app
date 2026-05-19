@@ -235,12 +235,26 @@
       "invite": {
         "button": "Invitar miembro",
         "title": "Invitar un miembro",
-        "usernamePlaceholder": "p.ej. juan_doe",
+        "usernamePlaceholder": "Busca por nombre o @usuario",
         "submit": "Enviar invitación",
         "sending": "Enviando...",
         "cancel": "Cancelar",
         "success": "Invitación enviada",
-        "error": "Error al enviar la invitación"
+        "error": "Error al enviar la invitación",
+        "noResults": "No se encontraron usuarios",
+        "removeUser": "Eliminar {{username}}",
+        "alreadyExcluded": "Este usuario ya es miembro o tiene una invitación pendiente",
+        "done": "Listo",
+        "results": {
+          "title": "Resultados de invitación"
+        },
+        "result": {
+          "INVITED": "Invitado exitosamente",
+          "ALREADY_MEMBER": "Ya es miembro",
+          "ALREADY_INVITED": "Ya tiene invitación pendiente",
+          "HAS_PENDING_REQUEST": "Tiene una solicitud de unión pendiente",
+          "NOT_FOUND": "Usuario no encontrado"
+        }
       },
       "joinRequest": {
         "button": "Solicitar unirse",

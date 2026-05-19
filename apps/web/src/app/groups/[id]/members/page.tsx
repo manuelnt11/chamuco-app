@@ -29,7 +29,7 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
   const { id } = use(params);
   const { t } = useTranslation('groups');
   const { isLoading: isAuthLoading } = useAuth();
-  const { appUser } = useUser();
+  const { appUser, isLoading: isUserLoading } = useUser();
 
   const [pageState, setPageState] = useState<PageState>('loading');
   const [group, setGroup] = useState<Group | null>(null);
@@ -80,10 +80,10 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
   };
 
   useEffect(() => {
-    if (isAuthLoading) return;
+    if (isAuthLoading || isUserLoading) return;
     void loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isAuthLoading]);
+  }, [id, isAuthLoading, isUserLoading]);
 
   if (pageState === 'loading') return null;
 
@@ -145,6 +145,7 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
             members={members}
             currentUserRole={currentUserRole}
             onInviteSuccess={() => void loadData()}
+            excludedIds={[...members.map((m) => m.userId), ...pending.map((p) => p.userId)]}
           />
         </>
       )}

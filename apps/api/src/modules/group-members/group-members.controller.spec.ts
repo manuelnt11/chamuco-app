@@ -10,6 +10,7 @@ import {
 import { GroupMembersController } from './group-members.controller';
 import { GroupMembersService } from './group-members.service';
 import type { CreateInvitationDto } from './dto/create-invitation.dto';
+import type { BulkInvitationResponseDto } from './dto/bulk-invitation-response.dto';
 import type { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import type { MemberResponseDto } from './dto/member-response.dto';
 import type { PendingItemResponseDto } from './dto/pending-item-response.dto';
@@ -59,7 +60,7 @@ const mockPendingResponse: PendingItemResponseDto = {
 let mockSubmitJoinRequest: jest.Mock;
 let mockAcceptJoinRequest: jest.Mock;
 let mockRejectJoinRequest: jest.Mock;
-let mockSendInvitation: jest.Mock;
+let mockSendInvitations: jest.Mock;
 let mockAcceptInvitation: jest.Mock;
 let mockDeclineInvitation: jest.Mock;
 let mockRevokeInvitation: jest.Mock;
@@ -75,7 +76,7 @@ describe('GroupMembersController', () => {
     mockSubmitJoinRequest = jest.fn().mockResolvedValue(undefined);
     mockAcceptJoinRequest = jest.fn().mockResolvedValue(undefined);
     mockRejectJoinRequest = jest.fn().mockResolvedValue(undefined);
-    mockSendInvitation = jest.fn().mockResolvedValue(undefined);
+    mockSendInvitations = jest.fn().mockResolvedValue({ results: [] } as BulkInvitationResponseDto);
     mockAcceptInvitation = jest.fn().mockResolvedValue(undefined);
     mockDeclineInvitation = jest.fn().mockResolvedValue(undefined);
     mockRevokeInvitation = jest.fn().mockResolvedValue(undefined);
@@ -93,7 +94,7 @@ describe('GroupMembersController', () => {
             submitJoinRequest: mockSubmitJoinRequest,
             acceptJoinRequest: mockAcceptJoinRequest,
             rejectJoinRequest: mockRejectJoinRequest,
-            sendInvitation: mockSendInvitation,
+            sendInvitations: mockSendInvitations,
             acceptInvitation: mockAcceptInvitation,
             declineInvitation: mockDeclineInvitation,
             revokeInvitation: mockRevokeInvitation,
@@ -142,12 +143,17 @@ describe('GroupMembersController', () => {
   });
 
   describe('POST /v1/groups/:id/invitations', () => {
-    it('delegates to GroupMembersService.sendInvitation', async () => {
-      const dto: CreateInvitationDto = { targetUsername: 'target_user' };
+    it('delegates to GroupMembersService.sendInvitations and returns result', async () => {
+      const dto: CreateInvitationDto = { usernames: ['target_user'] };
+      const mockResult: BulkInvitationResponseDto = {
+        results: [{ username: 'target_user', status: 'INVITED' }],
+      };
+      mockSendInvitations.mockResolvedValueOnce(mockResult);
 
-      await controller.sendInvitation(mockAuthUser, 'group-uuid', dto);
+      const result = await controller.sendInvitations(mockAuthUser, 'group-uuid', dto);
 
-      expect(mockSendInvitation).toHaveBeenCalledWith('group-uuid', dto, mockAuthUser.id);
+      expect(mockSendInvitations).toHaveBeenCalledWith('group-uuid', dto, mockAuthUser.id);
+      expect(result).toEqual(mockResult);
     });
   });
 

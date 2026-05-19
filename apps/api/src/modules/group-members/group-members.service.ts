@@ -21,6 +21,10 @@ import type { MemberResponseDto } from './dto/member-response.dto';
 import type { PendingItemResponseDto } from './dto/pending-item-response.dto';
 import type { MyMembershipResponseDto } from './dto/my-membership-response.dto';
 import type { MyInvitationResponseDto } from './dto/my-invitation-response.dto';
+import type {
+  BulkInvitationResponseDto,
+  InvitationResultDto,
+} from './dto/bulk-invitation-response.dto';
 
 const ADMIN_ROLES = [GroupRole.OWNER, GroupRole.ADMIN] as const;
 
@@ -131,53 +135,68 @@ export class GroupMembersService {
 
   // ─── Invitation ──────────────────────────────────────────────────────────────
 
-  async sendInvitation(
+  async sendInvitations(
     groupId: string,
     dto: CreateInvitationDto,
     adminUserId: string,
-  ): Promise<void> {
+  ): Promise<BulkInvitationResponseDto> {
     await this.assertGroupAdmin(groupId, adminUserId);
 
-    const targetUser = await this.db.query.users.findFirst({
-      where: eq(users.username, dto.targetUsername),
-    });
-    if (!targetUser) throw new NotFoundException(`User @${dto.targetUsername} not found`);
+    const results: InvitationResultDto[] = [];
 
-    const existing = await this.db.query.groupMembers.findFirst({
-      where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUser.id)),
-    });
+    for (const username of dto.usernames) {
+      const targetUser = await this.db.query.users.findFirst({
+        where: eq(users.username, username),
+      });
 
-    if (existing) {
-      if (
-        existing.status === GroupMemberStatus.ACTIVE ||
-        existing.status === GroupMemberStatus.INVITED ||
-        existing.status === GroupMemberStatus.REQUEST
-      ) {
-        throw new ConflictException(
-          'User is already an active member, has a pending invitation, or a pending join request',
-        );
+      if (!targetUser) {
+        results.push({ username, status: 'NOT_FOUND' });
+        continue;
       }
-      // Re-invite after REJECTED / REMOVED / LEFT — always reset to MEMBER role
-      await this.db
-        .update(groupMembers)
-        .set({
+
+      const existing = await this.db.query.groupMembers.findFirst({
+        where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUser.id)),
+      });
+
+      if (existing) {
+        if (existing.status === GroupMemberStatus.ACTIVE) {
+          results.push({ username, status: 'ALREADY_MEMBER' });
+          continue;
+        }
+        if (existing.status === GroupMemberStatus.INVITED) {
+          results.push({ username, status: 'ALREADY_INVITED' });
+          continue;
+        }
+        if (existing.status === GroupMemberStatus.REQUEST) {
+          results.push({ username, status: 'HAS_PENDING_REQUEST' });
+          continue;
+        }
+        // REJECTED / REMOVED / LEFT — re-invite, reset to MEMBER role
+        await this.db
+          .update(groupMembers)
+          .set({
+            status: GroupMemberStatus.INVITED,
+            role: GroupRole.MEMBER,
+            initiatedBy: adminUserId,
+            initiatedAt: new Date(),
+            respondedAt: null,
+            decidedBy: null,
+          })
+          .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUser.id)));
+      } else {
+        await this.db.insert(groupMembers).values({
+          groupId,
+          userId: targetUser.id,
           status: GroupMemberStatus.INVITED,
           role: GroupRole.MEMBER,
           initiatedBy: adminUserId,
-          initiatedAt: new Date(),
-          respondedAt: null,
-          decidedBy: null,
-        })
-        .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUser.id)));
-    } else {
-      await this.db.insert(groupMembers).values({
-        groupId,
-        userId: targetUser.id,
-        status: GroupMemberStatus.INVITED,
-        role: GroupRole.MEMBER,
-        initiatedBy: adminUserId,
-      });
+        });
+      }
+
+      results.push({ username, status: 'INVITED' });
     }
+
+    return { results };
   }
 
   async acceptInvitation(groupId: string, requestingUserId: string): Promise<void> {
