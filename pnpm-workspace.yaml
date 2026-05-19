@@ -26,6 +26,11 @@ minimumReleaseAgeExclude:
   - '@protobufjs/utf8@1.1.1'
   - protobufjs@8.0.2
   - brace-expansion@5.0.6
+  - pg-cloudflare@1.4.0
+  - pg-connection-string@2.13.0
+  - pg-pool@3.14.0
+  - pg-protocol@1.14.0
+  - pg@8.21.0
 overrides:
   cross-spawn: '>=6.0.6'
   glob: '>=10.5.0'
