@@ -498,7 +498,7 @@ Shared `devDependencies` that appear in more than one package are versioned exac
 
 **Rule:** When adding a new `devDependency` that already exists in another package, or upgrading a shared tool, always update `pnpm-workspace.yaml` — never add a duplicate pinned version to an individual `package.json`.
 
-Currently cataloged packages: `@types/node`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `eslint`, `eslint-config-prettier`, `eslint-plugin-i18next`, `eslint-plugin-prettier`, `prettier`, `typescript`.
+Currently cataloged packages: `@types/node`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `@vitest/coverage-v8`, `eslint`, `eslint-config-prettier`, `eslint-plugin-i18next`, `eslint-plugin-prettier`, `prettier`, `typescript`, `vitest`.
 
 See [`documentation/architecture/monorepo-structure.md`](documentation/architecture/monorepo-structure.md) — "pnpm Catalog" section for the full spec.
 

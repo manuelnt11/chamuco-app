@@ -15,6 +15,9 @@ catalogs:
     '@typescript-eslint/parser':
       specifier: ^8.59.3
       version: 8.59.3
+    '@vitest/coverage-v8':
+      specifier: ^4.1.6
+      version: 4.1.6
     eslint:
       specifier: ^10.4.0
       version: 10.4.0
@@ -33,6 +36,9 @@ catalogs:
     typescript:
       specifier: ^6.0.3
       version: 6.0.3
+    vitest:
+      specifier: ^4.1.6
+      version: 4.1.6
 
 overrides:
   cross-spawn: '>=6.0.6'
@@ -346,7 +352,7 @@ importers:
         specifier: ^6.0.1
         version: 6.0.2(vite@8.0.13(@types/node@25.9.0)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.47.1)(tsx@4.22.1)(yaml@2.9.0))
       '@vitest/coverage-v8':
-        specifier: ^4.1.6
+        specifier: 'catalog:'
         version: 4.1.6(vitest@4.1.6)
       '@vitest/ui':
         specifier: ^4.1.6
@@ -400,14 +406,20 @@ importers:
         specifier: ^8.0.13
         version: 8.0.13(@types/node@25.9.0)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.47.1)(tsx@4.22.1)(yaml@2.9.0)
       vitest:
-        specifier: ^4.1.6
+        specifier: 'catalog:'
         version: 4.1.6(@opentelemetry/api@1.9.1)(@types/node@25.9.0)(@vitest/coverage-v8@4.1.6)(@vitest/ui@4.1.6)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@25.9.0)(typescript@6.0.3))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.47.1)(tsx@4.22.1)(yaml@2.9.0))
 
   packages/shared-types:
     devDependencies:
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 4.1.6(vitest@4.1.6)
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.6(@opentelemetry/api@1.9.1)(@types/node@25.9.0)(@vitest/coverage-v8@4.1.6)(@vitest/ui@4.1.6)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@25.9.0)(typescript@6.0.3))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.47.1)(tsx@4.22.1)(yaml@2.9.0))
 
   packages/shared-utils:
     devDependencies:
