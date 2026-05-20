@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ComponentProps } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -24,11 +24,11 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('@/components/ui/input', () => ({
-  Input: (props: React.ComponentProps<'input'>) => <input {...props} />,
+  Input: (props: ComponentProps<'input'>) => <input {...props} />,
 }));
 
 vi.mock('@/components/ui/textarea', () => ({
-  Textarea: (props: React.ComponentProps<'textarea'>) => <textarea {...props} />,
+  Textarea: (props: ComponentProps<'textarea'>) => <textarea {...props} />,
 }));
 
 vi.mock('@/components/ui/spinner', () => ({
@@ -36,13 +36,11 @@ vi.mock('@/components/ui/spinner', () => ({
 }));
 
 vi.mock('@/components/ui/button', () => ({
-  Button: (props: React.ComponentProps<'button'>) => <button {...props} />,
+  Button: (props: ComponentProps<'button'>) => <button {...props} />,
 }));
 
 vi.mock('@/components/ui/label', () => ({
-  Label: ({ children, ...props }: React.ComponentProps<'label'>) => (
-    <label {...props}>{children}</label>
-  ),
+  Label: ({ children, ...props }: ComponentProps<'label'>) => <label {...props}>{children}</label>,
 }));
 
 import { HealthSection } from './HealthSection';

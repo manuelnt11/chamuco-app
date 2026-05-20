@@ -1,4 +1,4 @@
-import React from 'react';
+import { createElement } from 'react';
 import { renderHook } from '@testing-library/react';
 
 // Break the firebase import chain triggered by @/store/user → @/hooks/useAuth → @/store/auth → @/lib/firebase
@@ -26,7 +26,7 @@ describe('useUser', () => {
   it('returns context value when inside UserProvider', () => {
     const { result } = renderHook(() => useUser(), {
       wrapper: ({ children }) =>
-        React.createElement(UserContext.Provider, { value: mockContextValue }, children),
+        createElement(UserContext.Provider, { value: mockContextValue }, children),
     });
 
     expect(result.current).toBe(mockContextValue);

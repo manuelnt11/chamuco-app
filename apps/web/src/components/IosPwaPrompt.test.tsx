@@ -115,6 +115,27 @@ describe('IosPwaPrompt', () => {
     });
   });
 
+  describe('desktop suppression', () => {
+    it('does not show on desktop even when beforeinstallprompt fires', () => {
+      setUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      );
+      render(<IosPwaPrompt />);
+      const calls = (window.addEventListener as ReturnType<typeof vi.fn>).mock.calls;
+      const hasListener = calls.some((args: unknown[]) => args[0] === 'beforeinstallprompt');
+      expect(hasListener).toBe(false);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('does not show on desktop Safari', () => {
+      setUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+      );
+      render(<IosPwaPrompt />);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Android / beforeinstallprompt', () => {
     it('does not show before beforeinstallprompt fires', () => {
       render(<IosPwaPrompt />);

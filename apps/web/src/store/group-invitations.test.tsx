@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import type { User } from 'firebase/auth';
 import type { AuthContextValue } from '@/store/auth';
@@ -36,7 +36,7 @@ function makeFirebaseUser(overrides: Partial<User> = {}): User {
   return { uid: 'uid-123', displayName: 'Test', email: 'test@example.com', ...overrides } as User;
 }
 
-function wrapper({ children }: { children: React.ReactNode }) {
+function wrapper({ children }: { children: ReactNode }) {
   return <GroupInvitationsProvider>{children}</GroupInvitationsProvider>;
 }
 

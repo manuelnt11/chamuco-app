@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ComponentProps } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -7,7 +7,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('@/components/ui/input', () => ({
-  Input: (props: React.ComponentProps<'input'>) => <input {...props} />,
+  Input: (props: ComponentProps<'input'>) => <input {...props} />,
 }));
 
 import { LoyaltyProgramCombobox } from './loyalty-program-combobox';

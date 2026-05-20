@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { type ComponentProps, type ComponentPropsWithoutRef } from 'react';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { XIcon } from '@phosphor-icons/react';
 
@@ -14,7 +14,7 @@ const DialogTrigger = DialogPrimitive.Trigger;
 function DialogBackdrop({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Backdrop>) {
+}: ComponentPropsWithoutRef<typeof DialogPrimitive.Backdrop>) {
   return (
     <DialogPrimitive.Backdrop
       className={cn(
@@ -31,7 +31,7 @@ function DialogPopup({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Popup>) {
+}: ComponentPropsWithoutRef<typeof DialogPrimitive.Popup>) {
   return (
     <DialogPrimitive.Portal>
       <DialogBackdrop />
@@ -53,13 +53,13 @@ function DialogPopup({
   );
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
+function DialogHeader({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div data-slot="dialog-header" className={cn('flex flex-col gap-1.5', className)} {...props} />
   );
 }
 
-function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
+function DialogFooter({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-footer"
@@ -72,7 +72,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
 function DialogTitle({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>) {
+}: ComponentPropsWithoutRef<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
       className={cn('text-lg font-semibold leading-none tracking-tight', className)}
@@ -84,7 +84,7 @@ function DialogTitle({
 function DialogDescription({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>) {
+}: ComponentPropsWithoutRef<typeof DialogPrimitive.Description>) {
   return (
     <DialogPrimitive.Description
       className={cn('text-sm text-muted-foreground', className)}
@@ -97,7 +97,7 @@ function DialogClose({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>) {
+}: ComponentPropsWithoutRef<typeof DialogPrimitive.Close>) {
   return (
     <DialogPrimitive.Close
       className={cn(

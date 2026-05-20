@@ -1,12 +1,12 @@
-import React from 'react';
+import { type ComponentProps, type ReactNode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('@base-ui/react/avatar', () => ({
   Avatar: {
-    Root: ({ children, ...props }: React.ComponentProps<'div'>) => <div {...props}>{children}</div>,
-    Image: ({ src, alt }: React.ComponentProps<'img'>) => <img src={src} alt={alt} />,
-    Fallback: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+    Root: ({ children, ...props }: ComponentProps<'div'>) => <div {...props}>{children}</div>,
+    Image: ({ src, alt }: ComponentProps<'img'>) => <img src={src} alt={alt} />,
+    Fallback: ({ children }: { children: ReactNode }) => <span>{children}</span>,
   },
 }));
 

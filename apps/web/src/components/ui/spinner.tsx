@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { type ComponentPropsWithoutRef } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ const spinnerVariants = cva('animate-spin text-muted-foreground', {
 });
 
 export interface SpinnerProps
-  extends React.ComponentPropsWithoutRef<'svg'>, VariantProps<typeof spinnerVariants> {
+  extends ComponentPropsWithoutRef<'svg'>, VariantProps<typeof spinnerVariants> {
   label?: string;
 }
 

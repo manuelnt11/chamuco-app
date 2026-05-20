@@ -228,6 +228,29 @@ import { FileUploadButton, UploadType } from '@/components/ui/file-upload-button
 - `upload.errorDefault` — user-facing error message
 - `upload.progressLabel` — ARIA label for the progress bar (`Upload progress: {{progress}}%`)
 
+### 5. React imports — always use named imports
+
+Next.js uses the automatic JSX transform. **Never use `import React from 'react'` or `import * as React from 'react'`** — neither is needed for JSX and both pull in the entire module as a namespace.
+
+**Rules:**
+
+- Import only the specific APIs you need: `useState`, `useRef`, `type ComponentProps`, etc.
+- Use `import type` (or the `type` modifier per-import) for type-only imports.
+- Never reference `React.X` — always destructure the name you need.
+
+```tsx
+// ✅ Correct
+import { useState, type ComponentProps, type ReactNode } from 'react';
+import { type ComponentPropsWithoutRef } from 'react';
+
+// ❌ Wrong — never use these patterns
+import React from 'react';
+import * as React from 'react';
+// and never use React.useState, React.ComponentProps, React.ReactNode, etc.
+```
+
+**Exception:** `React.createElement` must be replaced with the named `createElement` import.
+
 ### 4. React event types — use the React 19 replacements, not FormEvent
 
 `FormEvent` and `FormEventHandler` are **deprecated** in React 19 (`@deprecated FormEvent doesn't actually exist`). Use the specific React event types instead.

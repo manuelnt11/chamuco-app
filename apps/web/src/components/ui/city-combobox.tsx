@@ -28,13 +28,15 @@ function CityCombobox({
 }: CityComboboxProps) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
-  const { results, isLoading } = useCitySearch(country, query);
+  const [userHasTyped, setUserHasTyped] = useState(false);
+  const { results, isLoading } = useCitySearch(country, userHasTyped ? query : '');
 
   useEffect(() => {
     setQuery(value);
   }, [value]);
 
   function handleChange(raw: string) {
+    setUserHasTyped(true);
     const upper = raw.toUpperCase();
     setQuery(upper);
     if (upper === '') onChange('');

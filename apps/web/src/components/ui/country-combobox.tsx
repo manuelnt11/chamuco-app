@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { getCountryDataList, getEmojiFlag, type ICountryData } from 'countries-list';
 import { CaretUpDownIcon, CheckIcon } from '@phosphor-icons/react';
 
@@ -58,7 +58,7 @@ function CountryCombobox({
   'aria-labelledby': ariaLabelledBy,
   'data-testid': testId,
 }: CountryComboboxProps) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const selected = value ? ALL_COUNTRIES.find((c) => c.iso2 === value) : undefined;
 
   const triggerLabel = selected

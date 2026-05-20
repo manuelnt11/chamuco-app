@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { User } from 'firebase/auth';
 import { ProfileVisibility } from '@chamuco/shared-types';
@@ -18,7 +17,7 @@ vi.mock('@/services/api-client', () => ({
   apiClient: { get: mocks.mockApiGet },
 }));
 
-import { useContext } from 'react';
+import { useContext, type ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserContext, UserProvider } from './user';
 
@@ -47,7 +46,7 @@ function makeFirebaseUser(overrides: Partial<User> = {}): User {
   } as User;
 }
 
-function wrapper({ children }: { children: React.ReactNode }) {
+function wrapper({ children }: { children: ReactNode }) {
   return <UserProvider>{children}</UserProvider>;
 }
 
