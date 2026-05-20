@@ -10,13 +10,15 @@
  */
 
 export * from '@/modules/assets/schema/assets.schema';
-export * from '@/modules/users/schema/users.schema';
+export * from '@/modules/groups/schema/group-member-stats.schema';
+export * from '@/modules/groups/schema/group-members.schema';
+export * from '@/modules/groups/schema/groups.schema';
+export * from '@/modules/notifications/schema/notification-deliveries.schema';
+export * from '@/modules/notifications/schema/notifications.schema';
+export * from '@/modules/users/schema/support-admin-audit-log.schema';
+export * from '@/modules/users/schema/user-etas.schema';
+export * from '@/modules/users/schema/user-nationalities.schema';
 export * from '@/modules/users/schema/user-preferences.schema';
 export * from '@/modules/users/schema/user-profiles.schema';
-export * from '@/modules/users/schema/user-nationalities.schema';
 export * from '@/modules/users/schema/user-visas.schema';
-export * from '@/modules/users/schema/user-etas.schema';
-export * from '@/modules/users/schema/support-admin-audit-log.schema';
-export * from '@/modules/groups/schema/groups.schema';
-export * from '@/modules/groups/schema/group-members.schema';
-export * from '@/modules/groups/schema/group-member-stats.schema';
+export * from '@/modules/users/schema/users.schema';

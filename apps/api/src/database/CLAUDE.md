@@ -136,8 +136,13 @@ groups
 | `visa_status`              | `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                                                                             | `user_visas.visa_status`                     |
 | `eta_type`                 | `TOURIST`, `TRANSIT`                                                                                             | `user_etas.eta_type`                         |
 | `eta_status`               | `ACTIVE`, `EXPIRING_SOON`, `EXPIRED`                                                                             | `user_etas.eta_status`                       |
+| `notification_type`        | 10 values — see `NotificationType` in shared-types                                                               | `notifications.type`                         |
+| `notification_channel`     | `PUSH`, `EMAIL`, `SMS`                                                                                           | `notification_deliveries.channel`            |
+| `delivery_status`          | `PENDING`, `SENT`, `FAILED`                                                                                      | `notification_deliveries.status`             |
 
 All enum values are sourced from `@chamuco/shared-types` — never hardcode them in schema files.
+
+**PG enum / TS enum sync:** PG enums list values explicitly in the schema file (e.g., `pgEnum('notification_type', [NotificationType.X, ...])`). Drizzle does not auto-read the TS enum at generate time — it only sees the array you pass. If a value is added to a shared-types enum, the corresponding `pgEnum(...)` call and a new migration (`ALTER TYPE ... ADD VALUE`) must be updated manually in the same PR.
 
 ---
 
