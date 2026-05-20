@@ -5,7 +5,6 @@ import { DeliveryStatus, NotificationChannel } from '@chamuco/shared-types';
 import { notifications } from '@/modules/notifications/schema/notifications.schema';
 
 export const notificationChannelEnum = pgEnum('notification_channel', [
-  NotificationChannel.IN_APP,
   NotificationChannel.PUSH,
   NotificationChannel.EMAIL,
   NotificationChannel.SMS,

@@ -1,5 +1,5 @@
 {
-  "id": "d89e6316-396a-40aa-90e1-b33fef6d17cf",
+  "id": "7f57e40c-c745-4dc1-b7a5-554ddf3cfabd",
   "prevId": "6a8047de-9bf8-4505-9b74-760a3649a540",
   "version": "7",
   "dialect": "postgresql",
@@ -64,8 +64,242 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.users": {
-      "name": "users",
+    "public.group_member_stats": {
+      "name": "group_member_stats",
+      "schema": "",
+      "columns": {
+        "group_id": {
+          "name": "group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tier": {
+          "name": "tier",
+          "type": "group_member_tier",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NEWCOMER'"
+        },
+        "group_trips_completed": {
+          "name": "group_trips_completed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "joined_at": {
+          "name": "joined_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active_streak": {
+          "name": "active_streak",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "group_member_stats_group_id_groups_id_fk": {
+          "name": "group_member_stats_group_id_groups_id_fk",
+          "tableFrom": "group_member_stats",
+          "tableTo": "groups",
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "group_member_stats_user_id_users_id_fk": {
+          "name": "group_member_stats_user_id_users_id_fk",
+          "tableFrom": "group_member_stats",
+          "tableTo": "users",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "group_member_stats_group_id_user_id_pk": {
+          "name": "group_member_stats_group_id_user_id_pk",
+          "columns": ["group_id", "user_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.group_members": {
+      "name": "group_members",
+      "schema": "",
+      "columns": {
+        "group_id": {
+          "name": "group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "group_member_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "group_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'MEMBER'"
+        },
+        "initiated_at": {
+          "name": "initiated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "responded_at": {
+          "name": "responded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "initiated_by": {
+          "name": "initiated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "decided_by": {
+          "name": "decided_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_group_members_user_id_status": {
+          "name": "idx_group_members_user_id_status",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_group_members_group_id_status": {
+          "name": "idx_group_members_group_id_status",
+          "columns": [
+            {
+              "expression": "group_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "group_members_group_id_groups_id_fk": {
+          "name": "group_members_group_id_groups_id_fk",
+          "tableFrom": "group_members",
+          "tableTo": "groups",
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "group_members_user_id_users_id_fk": {
+          "name": "group_members_user_id_users_id_fk",
+          "tableFrom": "group_members",
+          "tableTo": "users",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "group_members_initiated_by_users_id_fk": {
+          "name": "group_members_initiated_by_users_id_fk",
+          "tableFrom": "group_members",
+          "tableTo": "users",
+          "columnsFrom": ["initiated_by"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "group_members_decided_by_users_id_fk": {
+          "name": "group_members_decided_by_users_id_fk",
+          "tableFrom": "group_members",
+          "tableTo": "users",
+          "columnsFrom": ["decided_by"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "group_members_group_id_user_id_pk": {
+          "name": "group_members_group_id_user_id_pk",
+          "columns": ["group_id", "user_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.groups": {
+      "name": "groups",
       "schema": "",
       "columns": {
         "id": {
@@ -75,63 +309,126 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "username": {
-          "name": "username",
-          "type": "varchar(30)",
+        "name": {
+          "name": "name",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
         },
-        "display_name": {
-          "name": "display_name",
+        "description": {
+          "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "avatar": {
-          "name": "avatar",
+        "cover": {
+          "name": "cover",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "auth_provider": {
-          "name": "auth_provider",
-          "type": "auth_provider",
+        "visibility": {
+          "name": "visibility",
+          "type": "group_visibility",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
-        "firebase_uid": {
-          "name": "firebase_uid",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "timezone": {
-          "name": "timezone",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'UTC'"
-        },
-        "platform_role": {
-          "name": "platform_role",
-          "type": "platform_role",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'USER'"
-        },
-        "profile_visibility": {
-          "name": "profile_visibility",
-          "type": "profile_visibility",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'PRIVATE'"
-        },
-        "agency_id": {
-          "name": "agency_id",
+        "created_by": {
+          "name": "created_by",
           "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "groups_cover_assets_id_fk": {
+          "name": "groups_cover_assets_id_fk",
+          "tableFrom": "groups",
+          "tableTo": "assets",
+          "columnsFrom": ["cover"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "groups_created_by_users_id_fk": {
+          "name": "groups_created_by_users_id_fk",
+          "tableFrom": "groups",
+          "tableTo": "users",
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notification_deliveries": {
+      "name": "notification_deliveries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "notification_id": {
+          "name": "notification_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channel": {
+          "name": "channel",
+          "type": "notification_channel",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "delivery_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -148,45 +445,506 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "notification_deliveries_notification_id_notifications_id_fk": {
+          "name": "notification_deliveries_notification_id_notifications_id_fk",
+          "tableFrom": "notification_deliveries",
+          "tableTo": "notifications",
+          "columnsFrom": ["notification_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notifications": {
+      "name": "notifications",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
-        "last_active_at": {
-          "name": "last_active_at",
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "notification_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "read_at": {
+          "name": "read_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_notifications_user_id_created_at": {
+          "name": "idx_notifications_user_id_created_at",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
-        "users_avatar_assets_id_fk": {
-          "name": "users_avatar_assets_id_fk",
-          "tableFrom": "users",
-          "tableTo": "assets",
-          "columnsFrom": ["avatar"],
+        "notifications_user_id_users_id_fk": {
+          "name": "notifications_user_id_users_id_fk",
+          "tableFrom": "notifications",
+          "tableTo": "users",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.support_admin_audit_log": {
+      "name": "support_admin_audit_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "admin_user_id": {
+          "name": "admin_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_table": {
+          "name": "target_table",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_id": {
+          "name": "target_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "before_state": {
+          "name": "before_state",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "after_state": {
+          "name": "after_state",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "performed_at": {
+          "name": "performed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "support_admin_audit_log_admin_user_id_idx": {
+          "name": "support_admin_audit_log_admin_user_id_idx",
+          "columns": [
+            {
+              "expression": "admin_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "support_admin_audit_log_performed_at_idx": {
+          "name": "support_admin_audit_log_performed_at_idx",
+          "columns": [
+            {
+              "expression": "performed_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "support_admin_audit_log_admin_user_id_users_id_fk": {
+          "name": "support_admin_audit_log_admin_user_id_users_id_fk",
+          "tableFrom": "support_admin_audit_log",
+          "tableTo": "users",
+          "columnsFrom": ["admin_user_id"],
           "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "nullsNotDistinct": false,
-          "columns": ["username"]
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_etas": {
+      "name": "user_etas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
-        "users_firebase_uid_unique": {
-          "name": "users_firebase_uid_unique",
+        "user_nationality_id": {
+          "name": "user_nationality_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "passport_number": {
+          "name": "passport_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destination_country": {
+          "name": "destination_country",
+          "type": "char(2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "authorization_number": {
+          "name": "authorization_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eta_type": {
+          "name": "eta_type",
+          "type": "eta_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entries": {
+          "name": "entries",
+          "type": "visa_entries",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expiry_date": {
+          "name": "expiry_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eta_status": {
+          "name": "eta_status",
+          "type": "eta_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "user_etas_user_nationality_id_idx": {
+          "name": "user_etas_user_nationality_id_idx",
+          "columns": [
+            {
+              "expression": "user_nationality_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "user_etas_eta_status_idx": {
+          "name": "user_etas_eta_status_idx",
+          "columns": [
+            {
+              "expression": "eta_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "user_etas_passport_number_idx": {
+          "name": "user_etas_passport_number_idx",
+          "columns": [
+            {
+              "expression": "passport_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "user_etas_user_nationality_id_user_nationalities_id_fk": {
+          "name": "user_etas_user_nationality_id_user_nationalities_id_fk",
+          "tableFrom": "user_etas",
+          "tableTo": "user_nationalities",
+          "columnsFrom": ["user_nationality_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_nationalities": {
+      "name": "user_nationalities",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "char(2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_primary": {
+          "name": "is_primary",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "national_id_number": {
+          "name": "national_id_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "passport_number": {
+          "name": "passport_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "passport_issue_date": {
+          "name": "passport_issue_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "passport_expiry_date": {
+          "name": "passport_expiry_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "passport_status": {
+          "name": "passport_status",
+          "type": "passport_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "user_nationalities_user_id_idx": {
+          "name": "user_nationalities_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "user_nationalities_one_primary_per_user": {
+          "name": "user_nationalities_one_primary_per_user",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"user_nationalities\".\"is_primary\" = true",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "user_nationalities_user_id_users_id_fk": {
+          "name": "user_nationalities_user_id_users_id_fk",
+          "tableFrom": "user_nationalities",
+          "tableTo": "users",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_nationalities_user_id_country_code_unique": {
+          "name": "user_nationalities_user_id_country_code_unique",
           "nullsNotDistinct": false,
-          "columns": ["firebase_uid"]
+          "columns": ["user_id", "country_code"]
         }
       },
       "policies": {},
       "checkConstraints": {
-        "users_username_format": {
-          "name": "users_username_format",
-          "value": "\"users\".\"username\" ~ '^[a-z0-9_-]{3,30}$'"
+        "passport_data_consistency": {
+          "name": "passport_data_consistency",
+          "value": "(\"user_nationalities\".\"passport_status\" = 'OMITTED'\n        AND \"user_nationalities\".\"passport_number\" IS NULL\n        AND \"user_nationalities\".\"passport_issue_date\" IS NULL\n        AND \"user_nationalities\".\"passport_expiry_date\" IS NULL)\n      OR\n      (\"user_nationalities\".\"passport_status\" <> 'OMITTED'\n        AND \"user_nationalities\".\"passport_number\" IS NOT NULL\n        AND \"user_nationalities\".\"passport_issue_date\" IS NOT NULL\n        AND \"user_nationalities\".\"passport_expiry_date\" IS NOT NULL)"
+        },
+        "national_id_number_format": {
+          "name": "national_id_number_format",
+          "value": "\"user_nationalities\".\"national_id_number\" IS NULL OR \"user_nationalities\".\"national_id_number\" ~ '^[A-Z0-9]([A-Z0-9-]*[A-Z0-9])?$'"
+        },
+        "passport_number_format": {
+          "name": "passport_number_format",
+          "value": "\"user_nationalities\".\"passport_number\" IS NULL OR \"user_nationalities\".\"passport_number\" ~ '^[A-Z0-9]([A-Z0-9-]*[A-Z0-9])?$'"
         }
       },
       "isRLSEnabled": false
@@ -436,143 +1194,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.user_nationalities": {
-      "name": "user_nationalities",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "country_code": {
-          "name": "country_code",
-          "type": "char(2)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_primary": {
-          "name": "is_primary",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "national_id_number": {
-          "name": "national_id_number",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "passport_number": {
-          "name": "passport_number",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "passport_issue_date": {
-          "name": "passport_issue_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "passport_expiry_date": {
-          "name": "passport_expiry_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "passport_status": {
-          "name": "passport_status",
-          "type": "passport_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "user_nationalities_user_id_idx": {
-          "name": "user_nationalities_user_id_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "user_nationalities_one_primary_per_user": {
-          "name": "user_nationalities_one_primary_per_user",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "\"user_nationalities\".\"is_primary\" = true",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "user_nationalities_user_id_users_id_fk": {
-          "name": "user_nationalities_user_id_users_id_fk",
-          "tableFrom": "user_nationalities",
-          "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "user_nationalities_user_id_country_code_unique": {
-          "name": "user_nationalities_user_id_country_code_unique",
-          "nullsNotDistinct": false,
-          "columns": ["user_id", "country_code"]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "passport_data_consistency": {
-          "name": "passport_data_consistency",
-          "value": "(\"user_nationalities\".\"passport_status\" = 'OMITTED'\n        AND \"user_nationalities\".\"passport_number\" IS NULL\n        AND \"user_nationalities\".\"passport_issue_date\" IS NULL\n        AND \"user_nationalities\".\"passport_expiry_date\" IS NULL)\n      OR\n      (\"user_nationalities\".\"passport_status\" <> 'OMITTED'\n        AND \"user_nationalities\".\"passport_number\" IS NOT NULL\n        AND \"user_nationalities\".\"passport_issue_date\" IS NOT NULL\n        AND \"user_nationalities\".\"passport_expiry_date\" IS NOT NULL)"
-        },
-        "national_id_number_format": {
-          "name": "national_id_number_format",
-          "value": "\"user_nationalities\".\"national_id_number\" IS NULL OR \"user_nationalities\".\"national_id_number\" ~ '^[A-Z0-9]([A-Z0-9-]*[A-Z0-9])?$'"
-        },
-        "passport_number_format": {
-          "name": "passport_number_format",
-          "value": "\"user_nationalities\".\"passport_number\" IS NULL OR \"user_nationalities\".\"passport_number\" ~ '^[A-Z0-9]([A-Z0-9-]*[A-Z0-9])?$'"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.user_visas": {
       "name": "user_visas",
       "schema": "",
@@ -712,8 +1333,8 @@
       },
       "isRLSEnabled": false
     },
-    "public.user_etas": {
-      "name": "user_etas",
+    "public.users": {
+      "name": "users",
       "schema": "",
       "columns": {
         "id": {
@@ -723,60 +1344,63 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "user_nationality_id": {
-          "name": "user_nationality_id",
+        "username": {
+          "name": "username",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avatar": {
+          "name": "avatar",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "passport_number": {
-          "name": "passport_number",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "destination_country": {
-          "name": "destination_country",
-          "type": "char(2)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "authorization_number": {
-          "name": "authorization_number",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "eta_type": {
-          "name": "eta_type",
-          "type": "eta_type",
+        "auth_provider": {
+          "name": "auth_provider",
+          "type": "auth_provider",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
-        "entries": {
-          "name": "entries",
-          "type": "visa_entries",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "expiry_date": {
-          "name": "expiry_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "eta_status": {
-          "name": "eta_status",
-          "type": "eta_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "notes": {
-          "name": "notes",
+        "firebase_uid": {
+          "name": "firebase_uid",
           "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'UTC'"
+        },
+        "platform_role": {
+          "name": "platform_role",
+          "type": "platform_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'USER'"
+        },
+        "profile_visibility": {
+          "name": "profile_visibility",
+          "type": "profile_visibility",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PRIVATE'"
+        },
+        "agency_id": {
+          "name": "agency_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -793,671 +1417,47 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        }
-      },
-      "indexes": {
-        "user_etas_user_nationality_id_idx": {
-          "name": "user_etas_user_nationality_id_idx",
-          "columns": [
-            {
-              "expression": "user_nationality_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         },
-        "user_etas_eta_status_idx": {
-          "name": "user_etas_eta_status_idx",
-          "columns": [
-            {
-              "expression": "eta_status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "user_etas_passport_number_idx": {
-          "name": "user_etas_passport_number_idx",
-          "columns": [
-            {
-              "expression": "passport_number",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "user_etas_user_nationality_id_user_nationalities_id_fk": {
-          "name": "user_etas_user_nationality_id_user_nationalities_id_fk",
-          "tableFrom": "user_etas",
-          "tableTo": "user_nationalities",
-          "columnsFrom": ["user_nationality_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.support_admin_audit_log": {
-      "name": "support_admin_audit_log",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "admin_user_id": {
-          "name": "admin_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "action": {
-          "name": "action",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "target_table": {
-          "name": "target_table",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "target_id": {
-          "name": "target_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "before_state": {
-          "name": "before_state",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "after_state": {
-          "name": "after_state",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "performed_at": {
-          "name": "performed_at",
+        "last_active_at": {
+          "name": "last_active_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        }
-      },
-      "indexes": {
-        "support_admin_audit_log_admin_user_id_idx": {
-          "name": "support_admin_audit_log_admin_user_id_idx",
-          "columns": [
-            {
-              "expression": "admin_user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "support_admin_audit_log_performed_at_idx": {
-          "name": "support_admin_audit_log_performed_at_idx",
-          "columns": [
-            {
-              "expression": "performed_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "support_admin_audit_log_admin_user_id_users_id_fk": {
-          "name": "support_admin_audit_log_admin_user_id_users_id_fk",
-          "tableFrom": "support_admin_audit_log",
-          "tableTo": "users",
-          "columnsFrom": ["admin_user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.groups": {
-      "name": "groups",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cover": {
-          "name": "cover",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "visibility": {
-          "name": "visibility",
-          "type": "group_visibility",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "groups_cover_assets_id_fk": {
-          "name": "groups_cover_assets_id_fk",
-          "tableFrom": "groups",
+        "users_avatar_assets_id_fk": {
+          "name": "users_avatar_assets_id_fk",
+          "tableFrom": "users",
           "tableTo": "assets",
-          "columnsFrom": ["cover"],
-          "columnsTo": ["id"],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "groups_created_by_users_id_fk": {
-          "name": "groups_created_by_users_id_fk",
-          "tableFrom": "groups",
-          "tableTo": "users",
-          "columnsFrom": ["created_by"],
+          "columnsFrom": ["avatar"],
           "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "users_username_unique": {
+          "name": "users_username_unique",
+          "nullsNotDistinct": false,
+          "columns": ["username"]
+        },
+        "users_firebase_uid_unique": {
+          "name": "users_firebase_uid_unique",
+          "nullsNotDistinct": false,
+          "columns": ["firebase_uid"]
+        }
+      },
       "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.group_members": {
-      "name": "group_members",
-      "schema": "",
-      "columns": {
-        "group_id": {
-          "name": "group_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "group_member_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role": {
-          "name": "role",
-          "type": "group_role",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'MEMBER'"
-        },
-        "initiated_at": {
-          "name": "initiated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "responded_at": {
-          "name": "responded_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "initiated_by": {
-          "name": "initiated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "decided_by": {
-          "name": "decided_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
+      "checkConstraints": {
+        "users_username_format": {
+          "name": "users_username_format",
+          "value": "\"users\".\"username\" ~ '^[a-z0-9_-]{3,30}$'"
         }
       },
-      "indexes": {
-        "idx_group_members_user_id_status": {
-          "name": "idx_group_members_user_id_status",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_group_members_group_id_status": {
-          "name": "idx_group_members_group_id_status",
-          "columns": [
-            {
-              "expression": "group_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "group_members_group_id_groups_id_fk": {
-          "name": "group_members_group_id_groups_id_fk",
-          "tableFrom": "group_members",
-          "tableTo": "groups",
-          "columnsFrom": ["group_id"],
-          "columnsTo": ["id"],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "group_members_user_id_users_id_fk": {
-          "name": "group_members_user_id_users_id_fk",
-          "tableFrom": "group_members",
-          "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "group_members_initiated_by_users_id_fk": {
-          "name": "group_members_initiated_by_users_id_fk",
-          "tableFrom": "group_members",
-          "tableTo": "users",
-          "columnsFrom": ["initiated_by"],
-          "columnsTo": ["id"],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "group_members_decided_by_users_id_fk": {
-          "name": "group_members_decided_by_users_id_fk",
-          "tableFrom": "group_members",
-          "tableTo": "users",
-          "columnsFrom": ["decided_by"],
-          "columnsTo": ["id"],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "group_members_group_id_user_id_pk": {
-          "name": "group_members_group_id_user_id_pk",
-          "columns": ["group_id", "user_id"]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.group_member_stats": {
-      "name": "group_member_stats",
-      "schema": "",
-      "columns": {
-        "group_id": {
-          "name": "group_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "tier": {
-          "name": "tier",
-          "type": "group_member_tier",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'NEWCOMER'"
-        },
-        "group_trips_completed": {
-          "name": "group_trips_completed",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "joined_at": {
-          "name": "joined_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "active_streak": {
-          "name": "active_streak",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "group_member_stats_group_id_groups_id_fk": {
-          "name": "group_member_stats_group_id_groups_id_fk",
-          "tableFrom": "group_member_stats",
-          "tableTo": "groups",
-          "columnsFrom": ["group_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "group_member_stats_user_id_users_id_fk": {
-          "name": "group_member_stats_user_id_users_id_fk",
-          "tableFrom": "group_member_stats",
-          "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "group_member_stats_group_id_user_id_pk": {
-          "name": "group_member_stats_group_id_user_id_pk",
-          "columns": ["group_id", "user_id"]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.notifications": {
-      "name": "notifications",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "notification_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "body": {
-          "name": "body",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "data": {
-          "name": "data",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "read_at": {
-          "name": "read_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "idx_notifications_user_id_created_at": {
-          "name": "idx_notifications_user_id_created_at",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "notifications_user_id_users_id_fk": {
-          "name": "notifications_user_id_users_id_fk",
-          "tableFrom": "notifications",
-          "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.notification_deliveries": {
-      "name": "notification_deliveries",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "notification_id": {
-          "name": "notification_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "channel": {
-          "name": "channel",
-          "type": "notification_channel",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "delivery_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'PENDING'"
-        },
-        "sent_at": {
-          "name": "sent_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "error": {
-          "name": "error",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "notification_deliveries_notification_id_notifications_id_fk": {
-          "name": "notification_deliveries_notification_id_notifications_id_fk",
-          "tableFrom": "notification_deliveries",
-          "tableTo": "notifications",
-          "columnsFrom": ["notification_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
       "isRLSEnabled": false
     }
   },
@@ -1472,20 +1472,66 @@
       "schema": "public",
       "values": ["image", "video", "file", "link", "text"]
     },
-    "public.auth_provider": {
-      "name": "auth_provider",
+    "public.group_member_tier": {
+      "name": "group_member_tier",
       "schema": "public",
-      "values": ["GOOGLE", "FACEBOOK"]
+      "values": ["NEWCOMER", "NOVICE", "EXPLORER", "VETERAN"]
     },
-    "public.platform_role": {
-      "name": "platform_role",
+    "public.group_member_status": {
+      "name": "group_member_status",
       "schema": "public",
-      "values": ["USER", "SUPPORT_ADMIN"]
+      "values": ["REQUEST", "INVITED", "ACTIVE", "REJECTED", "REMOVED", "LEFT"]
     },
-    "public.profile_visibility": {
-      "name": "profile_visibility",
+    "public.group_role": {
+      "name": "group_role",
       "schema": "public",
-      "values": ["PRIVATE", "CONNECTIONS_ONLY", "MEMBERS_ONLY", "PUBLIC"]
+      "values": ["OWNER", "ADMIN", "MEMBER"]
+    },
+    "public.group_visibility": {
+      "name": "group_visibility",
+      "schema": "public",
+      "values": ["PUBLIC", "PRIVATE"]
+    },
+    "public.delivery_status": {
+      "name": "delivery_status",
+      "schema": "public",
+      "values": ["PENDING", "SENT", "FAILED"]
+    },
+    "public.notification_channel": {
+      "name": "notification_channel",
+      "schema": "public",
+      "values": ["PUSH", "EMAIL", "SMS"]
+    },
+    "public.notification_type": {
+      "name": "notification_type",
+      "schema": "public",
+      "values": [
+        "GROUP_INVITATION",
+        "GROUP_JOIN_ACCEPTED",
+        "GROUP_ANNOUNCEMENT",
+        "TRIP_INVITATION",
+        "TRIP_ANNOUNCEMENT",
+        "TRIP_KEY_DATE_REMINDER",
+        "TRIP_COMPLETED",
+        "PASSPORT_EXPIRING_SOON",
+        "PASSPORT_EXPIRED",
+        "ACHIEVEMENT_UNLOCKED"
+      ]
+    },
+    "public.eta_status": {
+      "name": "eta_status",
+      "schema": "public",
+      "values": ["ACTIVE", "EXPIRING_SOON", "EXPIRED"]
+    },
+    "public.eta_type": {
+      "name": "eta_type",
+      "schema": "public",
+      "values": ["TOURIST", "TRANSIT"]
+    },
+    "public.passport_status": {
+      "name": "passport_status",
+      "schema": "public",
+      "values": ["OMITTED", "ACTIVE", "EXPIRING_SOON", "EXPIRED"]
     },
     "public.app_currency": {
       "name": "app_currency",
@@ -1595,11 +1641,6 @@
         "OTHER"
       ]
     },
-    "public.passport_status": {
-      "name": "passport_status",
-      "schema": "public",
-      "values": ["OMITTED", "ACTIVE", "EXPIRING_SOON", "EXPIRED"]
-    },
     "public.visa_coverage_type": {
       "name": "visa_coverage_type",
       "schema": "public",
@@ -1625,61 +1666,20 @@
       "schema": "public",
       "values": ["SCHENGEN", "GCC", "CARICOM", "EAC", "CAN", "MERCOSUR", "ECOWAS"]
     },
-    "public.eta_status": {
-      "name": "eta_status",
+    "public.auth_provider": {
+      "name": "auth_provider",
       "schema": "public",
-      "values": ["ACTIVE", "EXPIRING_SOON", "EXPIRED"]
+      "values": ["GOOGLE", "FACEBOOK"]
     },
-    "public.eta_type": {
-      "name": "eta_type",
+    "public.platform_role": {
+      "name": "platform_role",
       "schema": "public",
-      "values": ["TOURIST", "TRANSIT"]
+      "values": ["USER", "SUPPORT_ADMIN"]
     },
-    "public.group_visibility": {
-      "name": "group_visibility",
+    "public.profile_visibility": {
+      "name": "profile_visibility",
       "schema": "public",
-      "values": ["PUBLIC", "PRIVATE"]
-    },
-    "public.group_member_status": {
-      "name": "group_member_status",
-      "schema": "public",
-      "values": ["REQUEST", "INVITED", "ACTIVE", "REJECTED", "REMOVED", "LEFT"]
-    },
-    "public.group_role": {
-      "name": "group_role",
-      "schema": "public",
-      "values": ["OWNER", "ADMIN", "MEMBER"]
-    },
-    "public.group_member_tier": {
-      "name": "group_member_tier",
-      "schema": "public",
-      "values": ["NEWCOMER", "NOVICE", "EXPLORER", "VETERAN"]
-    },
-    "public.notification_type": {
-      "name": "notification_type",
-      "schema": "public",
-      "values": [
-        "GROUP_INVITATION",
-        "GROUP_JOIN_ACCEPTED",
-        "GROUP_ANNOUNCEMENT",
-        "TRIP_INVITATION",
-        "TRIP_ANNOUNCEMENT",
-        "TRIP_KEY_DATE_REMINDER",
-        "TRIP_COMPLETED",
-        "PASSPORT_EXPIRING_SOON",
-        "PASSPORT_EXPIRED",
-        "ACHIEVEMENT_UNLOCKED"
-      ]
-    },
-    "public.delivery_status": {
-      "name": "delivery_status",
-      "schema": "public",
-      "values": ["PENDING", "SENT", "FAILED"]
-    },
-    "public.notification_channel": {
-      "name": "notification_channel",
-      "schema": "public",
-      "values": ["IN_APP", "PUSH", "EMAIL", "SMS"]
+      "values": ["PRIVATE", "CONNECTIONS_ONLY", "MEMBERS_ONLY", "PUBLIC"]
     }
   },
   "schemas": {},

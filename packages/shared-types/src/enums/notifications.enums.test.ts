@@ -31,15 +31,14 @@ describe('NotificationType', () => {
 
 describe('NotificationChannel', () => {
   it('has all required values', () => {
-    expect(NotificationChannel.IN_APP).toBe('IN_APP');
     expect(NotificationChannel.PUSH).toBe('PUSH');
     expect(NotificationChannel.EMAIL).toBe('EMAIL');
     expect(NotificationChannel.SMS).toBe('SMS');
   });
 
-  it('has exactly 4 members', () => {
+  it('has exactly 3 members', () => {
     const values = Object.values(NotificationChannel);
-    expect(values).toHaveLength(4);
+    expect(values).toHaveLength(3);
   });
 
   it('is exported from the enums barrel', () => {
