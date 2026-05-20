@@ -314,7 +314,6 @@ export class GroupsService {
         );
       if ((row?.total ?? 0) > 0) {
         throw new BadRequestException({
-          statusCode: 400,
           error: 'GROUP_CANNOT_BE_MADE_PUBLIC',
           message: 'Group cannot be made public while it has non-owner members.',
         });

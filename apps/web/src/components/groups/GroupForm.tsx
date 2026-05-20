@@ -229,11 +229,13 @@ export function GroupForm({
                       ? t('visibility.public_desc')
                       : t('visibility.private_desc')}
                   </p>
-                  {v === GroupVisibility.PRIVATE && visibility === GroupVisibility.PRIVATE && (
-                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                      {t('visibility.private_irreversible_hint')}
-                    </p>
-                  )}
+                  {mode === 'create' &&
+                    v === GroupVisibility.PRIVATE &&
+                    visibility === GroupVisibility.PRIVATE && (
+                      <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                        {t('visibility.private_irreversible_hint')}
+                      </p>
+                    )}
                 </div>
               </label>
             );

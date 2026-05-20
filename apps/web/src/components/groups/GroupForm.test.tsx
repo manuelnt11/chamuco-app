@@ -386,7 +386,7 @@ describe('GroupForm', () => {
       expect(mocks.mockPatch).not.toHaveBeenCalled();
     });
 
-    it('submits after confirming PUBLIC → PRIVATE change', async () => {
+    it('submits after confirming PUBLIC → PRIVATE change and closes dialog', async () => {
       const { user } = setupEdit({ visibility: GroupVisibility.PUBLIC });
       await user.click(screen.getByDisplayValue(GroupVisibility.PRIVATE));
       await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
@@ -399,6 +399,7 @@ describe('GroupForm', () => {
           '/v1/groups/group-uuid',
           expect.objectContaining({ visibility: GroupVisibility.PRIVATE }),
         );
+        expect(screen.queryByTestId('confirm-dialog')).not.toBeInTheDocument();
       });
     });
 
@@ -452,6 +453,11 @@ describe('GroupForm', () => {
 
     it('does not show irreversible hint when PUBLIC is selected', () => {
       setupCreate();
+      expect(screen.queryByText('visibility.private_irreversible_hint')).not.toBeInTheDocument();
+    });
+
+    it('does not show irreversible hint in edit mode even when PRIVATE is selected', () => {
+      setupEdit({ visibility: GroupVisibility.PRIVATE });
       expect(screen.queryByText('visibility.private_irreversible_hint')).not.toBeInTheDocument();
     });
   });

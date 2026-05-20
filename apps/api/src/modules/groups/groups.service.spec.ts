@@ -577,7 +577,8 @@ describe('GroupsService', () => {
       const dto: UpdateGroupDto = { visibility: GroupVisibility.PUBLIC };
       const result = await service.updateGroup(mockUser, 'group-uuid', dto);
 
-      expect(result).toBeDefined();
+      expect(result.id).toBe('group-uuid');
+      expect(result.visibility).toBe(GroupVisibility.PUBLIC);
     });
   });
 
