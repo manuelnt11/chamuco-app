@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   AuthProvider,
@@ -546,6 +546,38 @@ describe('GroupsService', () => {
       await service.updateGroup(mockUser, 'group-uuid', gcsUpdateDto);
 
       expect(mockCloudStorageMakePublic).toHaveBeenCalledWith('group-covers/group-uuid/cover.jpg');
+    });
+
+    it('throws BadRequestException with GROUP_CANNOT_BE_MADE_PUBLIC when PRIVATE group has non-owner members', async () => {
+      const privateGroup = { ...mockGroupRow, visibility: GroupVisibility.PRIVATE };
+      mockGroupsFindFirst.mockResolvedValueOnce(privateGroup);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 2 }]);
+
+      const dto: UpdateGroupDto = { visibility: GroupVisibility.PUBLIC };
+
+      let thrownError: unknown;
+      try {
+        await service.updateGroup(mockUser, 'group-uuid', dto);
+      } catch (e) {
+        thrownError = e;
+      }
+
+      expect(thrownError).toBeInstanceOf(BadRequestException);
+      expect((thrownError as BadRequestException).getResponse()).toMatchObject({
+        error: 'GROUP_CANNOT_BE_MADE_PUBLIC',
+      });
+    });
+
+    it('allows PRIVATE → PUBLIC when group has no non-owner members', async () => {
+      const privateGroup = { ...mockGroupRow, visibility: GroupVisibility.PRIVATE };
+      mockGroupsFindFirst.mockResolvedValueOnce(privateGroup).mockResolvedValueOnce(mockGroupRow);
+      mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 0 }]);
+      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+
+      const dto: UpdateGroupDto = { visibility: GroupVisibility.PUBLIC };
+      const result = await service.updateGroup(mockUser, 'group-uuid', dto);
+
+      expect(result).toBeDefined();
     });
   });
 

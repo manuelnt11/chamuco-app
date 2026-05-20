@@ -310,7 +310,12 @@
       "public": "Público",
       "public_desc": "Cualquiera puede encontrarlo y solicitar unirse",
       "private": "Privado",
-      "private_desc": "Solo personas invitadas pueden unirse"
+      "private_desc": "Solo personas invitadas pueden unirse",
+      "private_irreversible_hint": "Una vez que el grupo tenga miembros, no podrá volver a ser público.",
+      "public_disabled_tooltip": "Los grupos con miembros no pueden hacerse públicos.",
+      "makePrivateWarning": "Este cambio es irreversible una vez que el grupo tenga miembros. No podrás volver a hacerlo público.",
+      "makePrivateConfirmTitle": "¿Hacer el grupo privado?",
+      "makePrivateConfirm": "Hacer privado"
     },
     "cover": {
       "label": "Portada",
@@ -364,7 +369,8 @@
       "forbidden": "No tienes permiso para hacer eso",
       "deleteFailed": "Error al eliminar el grupo",
       "createFailed": "Error al crear el grupo",
-      "saveFailed": "Error al guardar los cambios"
+      "saveFailed": "Error al guardar los cambios",
+      "cannotMakePublic": "Los grupos con miembros no pueden hacerse públicos."
     }
   },
   "profile": {

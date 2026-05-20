@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GroupVisibility, UploadType } from '@chamuco/shared-types';
@@ -104,7 +105,7 @@ function setupCreate() {
   return { user };
 }
 
-function setupEdit() {
+function setupEdit(options?: { visibility?: GroupVisibility; hasNonOwnerMembers?: boolean }) {
   const user = userEvent.setup();
   render(
     <GroupForm
@@ -113,8 +114,9 @@ function setupEdit() {
       initialValues={{
         name: 'Mountain Crew',
         description: 'Hikers group',
-        visibility: GroupVisibility.PUBLIC,
+        visibility: options?.visibility ?? GroupVisibility.PUBLIC,
       }}
+      hasNonOwnerMembers={options?.hasNonOwnerMembers}
       onSuccess={mocks.mockOnSuccess}
     />,
   );
@@ -337,19 +339,120 @@ describe('GroupForm', () => {
       expect(mocks.mockOnSuccess).toHaveBeenCalledWith(mockGroup);
     });
 
-    it('changes visibility via radio', async () => {
-      const { user } = setupEdit();
-      await user.click(screen.getByDisplayValue(GroupVisibility.PRIVATE));
+    it('changes visibility via radio (PRIVATE → PUBLIC)', async () => {
+      const { user } = setupEdit({
+        visibility: GroupVisibility.PRIVATE,
+        hasNonOwnerMembers: false,
+      });
+      await user.click(screen.getByDisplayValue(GroupVisibility.PUBLIC));
       await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
 
       await waitFor(() => {
         expect(mocks.mockPatch).toHaveBeenCalledWith(
           '/v1/groups/group-uuid',
           expect.objectContaining({
-            visibility: GroupVisibility.PRIVATE,
+            visibility: GroupVisibility.PUBLIC,
           }),
         );
       });
+    });
+  });
+
+  describe('visibility restrictions (edit mode)', () => {
+    it('disables PUBLIC option when group is PRIVATE with non-owner members', () => {
+      setupEdit({ visibility: GroupVisibility.PRIVATE, hasNonOwnerMembers: true });
+      const publicRadio = screen.getByDisplayValue(GroupVisibility.PUBLIC);
+      expect(publicRadio).toBeDisabled();
+    });
+
+    it('does not disable PUBLIC option when group is PRIVATE with no non-owner members', () => {
+      setupEdit({ visibility: GroupVisibility.PRIVATE, hasNonOwnerMembers: false });
+      const publicRadio = screen.getByDisplayValue(GroupVisibility.PUBLIC);
+      expect(publicRadio).not.toBeDisabled();
+    });
+
+    it('does not disable PUBLIC option when group is already PUBLIC', () => {
+      setupEdit({ visibility: GroupVisibility.PUBLIC, hasNonOwnerMembers: true });
+      const publicRadio = screen.getByDisplayValue(GroupVisibility.PUBLIC);
+      expect(publicRadio).not.toBeDisabled();
+    });
+
+    it('shows confirmation dialog when switching PUBLIC → PRIVATE before submit', async () => {
+      const { user } = setupEdit({ visibility: GroupVisibility.PUBLIC });
+      await user.click(screen.getByDisplayValue(GroupVisibility.PRIVATE));
+      await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
+
+      expect(screen.getByTestId('confirm-dialog')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('submits after confirming PUBLIC → PRIVATE change', async () => {
+      const { user } = setupEdit({ visibility: GroupVisibility.PUBLIC });
+      await user.click(screen.getByDisplayValue(GroupVisibility.PRIVATE));
+      await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
+
+      await waitFor(() => expect(screen.getByTestId('confirm-dialog')).toBeInTheDocument());
+      await user.click(screen.getByTestId('confirm-make-private'));
+
+      await waitFor(() => {
+        expect(mocks.mockPatch).toHaveBeenCalledWith(
+          '/v1/groups/group-uuid',
+          expect.objectContaining({ visibility: GroupVisibility.PRIVATE }),
+        );
+      });
+    });
+
+    it('does not submit when cancelling the PUBLIC → PRIVATE confirmation', async () => {
+      const { user } = setupEdit({ visibility: GroupVisibility.PUBLIC });
+      await user.click(screen.getByDisplayValue(GroupVisibility.PRIVATE));
+      await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
+
+      await waitFor(() => expect(screen.getByTestId('confirm-dialog')).toBeInTheDocument());
+      await user.click(screen.getByRole('button', { name: 'actions.cancel' }));
+
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
+    });
+
+    it('does not show dialog when changing to PRIVATE from already-PRIVATE group (no transition)', async () => {
+      const { user } = setupEdit({
+        visibility: GroupVisibility.PRIVATE,
+        hasNonOwnerMembers: false,
+      });
+      await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
+
+      expect(screen.queryByTestId('confirm-dialog')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(mocks.mockPatch).toHaveBeenCalled();
+      });
+    });
+
+    it('shows cannotMakePublic toast on GROUP_CANNOT_BE_MADE_PUBLIC API error', async () => {
+      const err = { response: { status: 400, data: { error: 'GROUP_CANNOT_BE_MADE_PUBLIC' } } };
+      mocks.mockPatch.mockRejectedValue(err);
+      mocks.mockIsAxiosError.mockReturnValue(true);
+
+      const { user } = setupEdit({
+        visibility: GroupVisibility.PRIVATE,
+        hasNonOwnerMembers: false,
+      });
+      await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
+
+      await waitFor(() => {
+        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.cannotMakePublic');
+      });
+    });
+  });
+
+  describe('visibility hint (create mode)', () => {
+    it('shows irreversible hint when PRIVATE is selected', async () => {
+      const { user } = setupCreate();
+      await user.click(screen.getByDisplayValue(GroupVisibility.PRIVATE));
+      expect(screen.getByText('visibility.private_irreversible_hint')).toBeInTheDocument();
+    });
+
+    it('does not show irreversible hint when PUBLIC is selected', () => {
+      setupCreate();
+      expect(screen.queryByText('visibility.private_irreversible_hint')).not.toBeInTheDocument();
     });
   });
 });
