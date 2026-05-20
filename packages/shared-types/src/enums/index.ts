@@ -22,3 +22,5 @@ export * from './group-role.enum';
 export * from './group-visibility.enum';
 export * from './upload-type.enum';
 export * from './visa-zone.enum';
+export * from './notification-type.enum';
+export * from './notification-channel.enum';
