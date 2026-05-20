@@ -310,7 +310,12 @@
       "public": "Public",
       "public_desc": "Anyone can find and request to join",
       "private": "Private",
-      "private_desc": "Only invited people can join"
+      "private_desc": "Only invited people can join",
+      "private_irreversible_hint": "Once the group has members, it cannot be made public again.",
+      "public_disabled_tooltip": "Groups with members cannot be made public.",
+      "makePrivateWarning": "This change is irreversible once the group has members. You will not be able to make the group public again.",
+      "makePrivateConfirmTitle": "Make group private?",
+      "makePrivateConfirm": "Make private"
     },
     "cover": {
       "label": "Cover",
@@ -364,7 +369,8 @@
       "forbidden": "You don't have permission to do that",
       "deleteFailed": "Failed to delete group",
       "createFailed": "Failed to create group",
-      "saveFailed": "Failed to save changes"
+      "saveFailed": "Failed to save changes",
+      "cannotMakePublic": "Groups with members cannot be made public."
     }
   },
   "profile": {

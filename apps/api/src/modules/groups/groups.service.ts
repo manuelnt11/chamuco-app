@@ -1,5 +1,11 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, count, eq, ilike, inArray, isNull, notInArray } from 'drizzle-orm';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { and, count, eq, ilike, inArray, isNull, ne, notInArray } from 'drizzle-orm';
 
 import {
   GroupMemberStatus,
@@ -294,6 +300,25 @@ export class GroupsService {
       ),
     });
     if (!membership) throw new ForbiddenException('Only group admins can update this group');
+
+    if (dto.visibility === GroupVisibility.PUBLIC && group.visibility === GroupVisibility.PRIVATE) {
+      const [row] = await this.db
+        .select({ total: count() })
+        .from(groupMembers)
+        .where(
+          and(
+            eq(groupMembers.groupId, id),
+            eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+            ne(groupMembers.role, GroupRole.OWNER),
+          ),
+        );
+      if ((row?.total ?? 0) > 0) {
+        throw new BadRequestException({
+          error: 'GROUP_CANNOT_BE_MADE_PUBLIC',
+          message: 'Group cannot be made public while it has non-owner members.',
+        });
+      }
+    }
 
     const patch: Partial<typeof groups.$inferInsert> = {};
     if (dto.name !== undefined) patch.name = dto.name;

@@ -120,7 +120,10 @@ export class GroupsController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 200, type: GroupResponseDto })
-  @ApiBadRequestResponse({ description: 'Validation error in request body.' })
+  @ApiBadRequestResponse({
+    description:
+      'Validation error in request body, or GROUP_CANNOT_BE_MADE_PUBLIC: group has non-owner members and cannot be switched to PUBLIC.',
+  })
   @ApiForbiddenResponse({ description: 'Only the group owner can update this group.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async updateGroup(

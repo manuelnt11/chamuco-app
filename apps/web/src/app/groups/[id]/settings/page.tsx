@@ -6,12 +6,14 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 
+import { GroupRole } from '@chamuco/shared-types';
+
 import { apiClient } from '@/services/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/toast';
 import { GroupCoverEditor } from '@/components/groups/GroupCoverEditor';
 import { GroupForm } from '@/components/groups/GroupForm';
-import type { Group } from '@/types/group';
+import type { Group, GroupMember } from '@/types/group';
 
 interface GroupSettingsPageProps {
   params: Promise<{ id: string }>;
@@ -22,15 +24,21 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   const { t } = useTranslation('groups');
   const router = useRouter();
   const [group, setGroup] = useState<Group | null>(null);
+  const [hasNonOwnerMembers, setHasNonOwnerMembers] = useState(false);
   const { isLoading: isAuthLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchGroup = useCallback(() => {
     if (isAuthLoading) return;
-    apiClient
-      .get<Group>(`/v1/groups/${id}`)
-      .then((res) => setGroup(res.data))
+    Promise.all([
+      apiClient.get<Group>(`/v1/groups/${id}`),
+      apiClient.get<GroupMember[]>(`/v1/groups/${id}/members`),
+    ])
+      .then(([groupRes, membersRes]) => {
+        setGroup(groupRes.data);
+        setHasNonOwnerMembers(membersRes.data.some((m) => m.role !== GroupRole.OWNER));
+      })
       .catch(() => router.replace('/groups'))
       .finally(() => setIsLoading(false));
   }, [id, router, isAuthLoading]);
@@ -80,6 +88,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
           description: group.description,
           visibility: group.visibility,
         }}
+        hasNonOwnerMembers={hasNonOwnerMembers}
         onSuccess={() => router.push(`/groups/${group.id}`)}
       />
 
