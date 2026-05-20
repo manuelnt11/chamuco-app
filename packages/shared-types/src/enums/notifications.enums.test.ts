@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { NotificationType } from './notification-type.enum';
 import { NotificationChannel } from './notification-channel.enum';
+import { DeliveryStatus } from './delivery-status.enum';
 import * as barrel from './index';
 
 describe('NotificationType', () => {
@@ -44,5 +45,23 @@ describe('NotificationChannel', () => {
   it('is exported from the enums barrel', () => {
     expect(barrel.NotificationChannel).toBeDefined();
     expect(barrel.NotificationChannel.PUSH).toBe('PUSH');
+  });
+});
+
+describe('DeliveryStatus', () => {
+  it('has all required values', () => {
+    expect(DeliveryStatus.PENDING).toBe('PENDING');
+    expect(DeliveryStatus.SENT).toBe('SENT');
+    expect(DeliveryStatus.FAILED).toBe('FAILED');
+  });
+
+  it('has exactly 3 members', () => {
+    const values = Object.values(DeliveryStatus);
+    expect(values).toHaveLength(3);
+  });
+
+  it('is exported from the enums barrel', () => {
+    expect(barrel.DeliveryStatus).toBeDefined();
+    expect(barrel.DeliveryStatus.PENDING).toBe('PENDING');
   });
 });
