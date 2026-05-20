@@ -197,7 +197,7 @@ export function GroupForm({
 
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium">{t('visibility.label')}</legend>
-          {[GroupVisibility.PUBLIC, GroupVisibility.PRIVATE].map((v) => {
+          {[GroupVisibility.PUBLIC, GroupVisibility.PRIVATE].map((v: GroupVisibility) => {
             const isDisabled = isSaving || (v === GroupVisibility.PUBLIC && isPublicDisabled);
             return (
               <label
