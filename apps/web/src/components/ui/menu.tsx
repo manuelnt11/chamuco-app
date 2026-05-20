@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { type ComponentProps, type ComponentPropsWithoutRef } from 'react';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 
 import { cn } from '@/lib/utils';
@@ -8,10 +8,7 @@ import { cn } from '@/lib/utils';
 const MenuRoot = MenuPrimitive.Root;
 const MenuTrigger = MenuPrimitive.Trigger;
 
-function MenuPopup({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof MenuPrimitive.Popup>) {
+function MenuPopup({ className, ...props }: ComponentPropsWithoutRef<typeof MenuPrimitive.Popup>) {
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.Positioner align="end" sideOffset={8}>
@@ -30,10 +27,7 @@ function MenuPopup({
   );
 }
 
-function MenuItem({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof MenuPrimitive.Item>) {
+function MenuItem({ className, ...props }: ComponentPropsWithoutRef<typeof MenuPrimitive.Item>) {
   return (
     <MenuPrimitive.Item
       className={cn(
@@ -47,11 +41,11 @@ function MenuItem({
   );
 }
 
-function MenuSeparator({ className, ...props }: React.ComponentProps<'hr'>) {
+function MenuSeparator({ className, ...props }: ComponentProps<'hr'>) {
   return <hr role="separator" className={cn('my-1 h-px bg-border', className)} {...props} />;
 }
 
-function MenuLabel({ className, ...props }: React.ComponentProps<'div'>) {
+function MenuLabel({ className, ...props }: ComponentProps<'div'>) {
   return <div className={cn('px-3 py-2 text-xs text-muted-foreground', className)} {...props} />;
 }
 

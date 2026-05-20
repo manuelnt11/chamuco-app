@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ComponentProps, type ReactNode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { User } from 'firebase/auth';
@@ -41,24 +41,24 @@ vi.mock('react-i18next', () => ({
 
 // Menu primitives use portals — stub them so assertions work in jsdom
 vi.mock('@/components/ui/menu', () => ({
-  MenuRoot: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  MenuTrigger: ({ children, ...props }: React.ComponentProps<'button'>) => (
+  MenuRoot: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  MenuTrigger: ({ children, ...props }: ComponentProps<'button'>) => (
     <button {...props}>{children}</button>
   ),
-  MenuPopup: ({ children }: { children: React.ReactNode }) => (
+  MenuPopup: ({ children }: { children: ReactNode }) => (
     <div data-testid="menu-popup">{children}</div>
   ),
   MenuItem: ({
     children,
     onClick,
     className,
-  }: React.ComponentProps<'div'> & { onClick?: () => void }) => (
+  }: ComponentProps<'div'> & { onClick?: () => void }) => (
     <div role="menuitem" onClick={onClick} className={className}>
       {children}
     </div>
   ),
   MenuSeparator: () => <hr />,
-  MenuLabel: ({ children }: { children: React.ReactNode }) => (
+  MenuLabel: ({ children }: { children: ReactNode }) => (
     <div data-testid="menu-label">{children}</div>
   ),
 }));

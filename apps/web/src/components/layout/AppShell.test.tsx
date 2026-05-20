@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { AppShell } from './AppShell';
@@ -24,7 +24,7 @@ vi.mock('@/components/navigation', () => ({
 }));
 
 vi.mock('@/store/group-invitations', () => ({
-  GroupInvitationsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  GroupInvitationsProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
   useGroupInvitations: vi.fn(() => ({
     invitations: [],
     count: 0,

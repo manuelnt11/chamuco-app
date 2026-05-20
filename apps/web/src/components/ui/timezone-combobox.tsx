@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { CaretUpDownIcon, CheckIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
@@ -39,7 +39,7 @@ export function TimezoneCombobox({
   'aria-invalid': ariaInvalid,
   'aria-labelledby': ariaLabelledBy,
 }: TimezoneComboboxProps) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   const triggerLabel = value ? formatTimezoneLabel(value) : placeholder;
 

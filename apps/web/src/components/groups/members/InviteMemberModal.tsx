@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserPlusIcon } from '@phosphor-icons/react';
 import { apiClient } from '@/services/api-client';
@@ -73,7 +73,7 @@ export function InviteMemberModal({ groupId, onSuccess, excludedIds }: InviteMem
     setSelectionError(null);
   }
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
     if (selectedUsers.length === 0) return;
 

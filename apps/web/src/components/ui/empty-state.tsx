@@ -1,12 +1,12 @@
-import * as React from 'react';
+import { type ComponentProps, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-export interface EmptyStateProps extends Omit<React.ComponentProps<'div'>, 'title'> {
-  icon?: React.ReactNode;
-  title: React.ReactNode;
-  description?: React.ReactNode;
-  action?: React.ReactNode;
+export interface EmptyStateProps extends Omit<ComponentProps<'div'>, 'title'> {
+  icon?: ReactNode;
+  title: ReactNode;
+  description?: ReactNode;
+  action?: ReactNode;
 }
 
 function EmptyState({ className, icon, title, description, action, ...props }: EmptyStateProps) {

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { type ComponentPropsWithoutRef } from 'react';
 import {
   Command as CommandPrimitive,
   CommandEmpty,
@@ -14,7 +14,7 @@ import { MagnifyingGlassIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
 
-function Command({ className, ...props }: React.ComponentPropsWithoutRef<typeof CommandPrimitive>) {
+function Command({ className, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive>) {
   return (
     <CommandPrimitive
       className={cn(
@@ -26,10 +26,7 @@ function Command({ className, ...props }: React.ComponentPropsWithoutRef<typeof 
   );
 }
 
-function CommandSearch({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof CommandInput>) {
+function CommandSearch({ className, ...props }: ComponentPropsWithoutRef<typeof CommandInput>) {
   return (
     <div className="flex items-center border-b border-border px-3" cmdk-input-wrapper="">
       <MagnifyingGlassIcon className="mr-2 size-4 shrink-0 text-muted-foreground" />
@@ -44,7 +41,7 @@ function CommandSearch({
   );
 }
 
-function CommandItems({ className, ...props }: React.ComponentPropsWithoutRef<typeof CommandList>) {
+function CommandItems({ className, ...props }: ComponentPropsWithoutRef<typeof CommandList>) {
   return (
     <CommandList
       className={cn('max-h-64 overflow-y-auto overflow-x-hidden', className)}
@@ -53,10 +50,7 @@ function CommandItems({ className, ...props }: React.ComponentPropsWithoutRef<ty
   );
 }
 
-function CommandNoResults({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof CommandEmpty>) {
+function CommandNoResults({ className, ...props }: ComponentPropsWithoutRef<typeof CommandEmpty>) {
   return (
     <CommandEmpty
       className={cn('py-6 text-center text-sm text-muted-foreground', className)}
@@ -68,7 +62,7 @@ function CommandNoResults({
 function CommandGroupSection({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandGroup>) {
+}: ComponentPropsWithoutRef<typeof CommandGroup>) {
   return (
     <CommandGroup
       className={cn(
@@ -80,10 +74,7 @@ function CommandGroupSection({
   );
 }
 
-function CommandOption({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof CommandItem>) {
+function CommandOption({ className, ...props }: ComponentPropsWithoutRef<typeof CommandItem>) {
   return (
     <CommandItem
       className={cn(

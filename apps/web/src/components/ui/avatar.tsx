@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { Avatar as AvatarPrimitive } from '@base-ui/react/avatar';
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -22,7 +22,7 @@ const avatarVariants = cva(
 
 export interface AvatarProps
   extends
-    React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>,
+    ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>,
     VariantProps<typeof avatarVariants> {
   src?: string;
   /**
@@ -31,7 +31,7 @@ export interface AvatarProps
    * For standalone avatars (e.g. in a list), pass the user's full name.
    */
   alt?: string;
-  fallback?: React.ReactNode;
+  fallback?: ReactNode;
 }
 
 function Avatar({ className, size, src, alt, fallback, ...props }: AvatarProps) {

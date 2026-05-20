@@ -1,8 +1,8 @@
-import React from 'react';
+import { type ComponentProps } from 'react';
 import { render, screen } from '@testing-library/react';
 
 vi.mock('@/components/ui/button', () => ({
-  Button: (props: React.ComponentProps<'button'>) => <button {...props} />,
+  Button: (props: ComponentProps<'button'>) => <button {...props} />,
 }));
 
 vi.mock('@/components/ui/spinner', () => ({

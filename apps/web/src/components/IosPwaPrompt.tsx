@@ -21,6 +21,14 @@ function isIosSafari(): boolean {
   return isIos && isSafari;
 }
 
+function isMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  if ('userAgentData' in navigator) {
+    return (navigator as { userAgentData?: { mobile: boolean } }).userAgentData?.mobile ?? false;
+  }
+  return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
 function isInStandaloneMode(): boolean {
   if (typeof window === 'undefined') return false;
   return (
@@ -43,6 +51,7 @@ export function IosPwaPrompt() {
 
   useEffect(() => {
     if (isInStandaloneMode()) return;
+    if (!isMobileDevice()) return;
     if (!shouldShow()) return;
 
     if (isIosSafari()) {

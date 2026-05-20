@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { type ComponentPropsWithoutRef } from 'react';
 import { Toast as ToastPrimitive } from '@base-ui/react/toast';
 import { cva } from 'class-variance-authority';
 import { CheckCircleIcon, InfoIcon, WarningIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
@@ -15,7 +15,7 @@ export const toastManager = ToastPrimitive.createToastManager();
 function ToastProvider({
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof ToastPrimitive.Provider>) {
+}: ComponentPropsWithoutRef<typeof ToastPrimitive.Provider>) {
   return (
     <ToastPrimitive.Provider toastManager={toastManager} {...props}>
       {children}

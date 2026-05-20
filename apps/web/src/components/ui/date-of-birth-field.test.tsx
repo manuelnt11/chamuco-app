@@ -1,17 +1,17 @@
-import React from 'react';
+import { type ComponentProps } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('@/components/ui/button', () => ({
-  Button: (props: React.ComponentProps<'button'>) => <button {...props} />,
+  Button: (props: ComponentProps<'button'>) => <button {...props} />,
 }));
 
 vi.mock('@/components/ui/input', () => ({
-  Input: (props: React.ComponentProps<'input'>) => <input {...props} />,
+  Input: (props: ComponentProps<'input'>) => <input {...props} />,
 }));
 
 vi.mock('@/components/ui/label', () => ({
-  Label: (props: React.ComponentProps<'label'>) => <label {...props} />,
+  Label: (props: ComponentProps<'label'>) => <label {...props} />,
 }));
 
 vi.mock('@/components/ui/field-message', () => ({

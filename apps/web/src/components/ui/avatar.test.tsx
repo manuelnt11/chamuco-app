@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ComponentProps, type ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 
@@ -6,11 +6,11 @@ import { describe, it, expect } from 'vitest';
 // Stub the primitives so the <img> is always rendered for prop assertions.
 vi.mock('@base-ui/react/avatar', () => ({
   Avatar: {
-    Root: ({ children, ...props }: React.ComponentProps<'div'>) => <div {...props}>{children}</div>,
-    Image: ({ src, alt, className, referrerPolicy }: React.ComponentProps<'img'>) => (
+    Root: ({ children, ...props }: ComponentProps<'div'>) => <div {...props}>{children}</div>,
+    Image: ({ src, alt, className, referrerPolicy }: ComponentProps<'img'>) => (
       <img src={src} alt={alt} className={className} referrerPolicy={referrerPolicy} />
     ),
-    Fallback: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+    Fallback: ({ children }: { children: ReactNode }) => <span>{children}</span>,
   },
 }));
 
