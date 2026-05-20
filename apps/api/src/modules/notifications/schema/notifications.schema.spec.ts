@@ -40,15 +40,16 @@ describe('notifications schema', () => {
     expect(fk.onDelete).toBe('cascade');
   });
 
-  it('has index on (user_id, created_at)', () => {
+  it('has index on (user_id, created_at DESC)', () => {
     const config = getTableConfig(notifications);
-    const index = config.indexes.find(
+    const idx = config.indexes.find(
       (i) => i.config.name === 'idx_notifications_user_id_created_at',
     );
-    expect(index).toBeDefined();
-    const indexColumnNames = index!.config.columns.map((c) => ('name' in c ? c.name : ''));
-    expect(indexColumnNames).toContain('user_id');
-    expect(indexColumnNames).toContain('created_at');
+    expect(idx).toBeDefined();
+    // 2 columns: user_id (plain column) + desc(created_at) (SQL expression)
+    expect(idx!.config.columns).toHaveLength(2);
+    const firstCol = idx!.config.columns[0];
+    expect('name' in firstCol! ? firstCol.name : '').toBe('user_id');
   });
 
   it('has nullable data and read_at columns', () => {

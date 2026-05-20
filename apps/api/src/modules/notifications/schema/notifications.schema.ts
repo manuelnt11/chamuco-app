@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { desc, relations } from 'drizzle-orm';
 import { index, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 import { NotificationType } from '@chamuco/shared-types';
@@ -31,7 +31,7 @@ export const notifications = pgTable(
     readAt: timestamp('read_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('idx_notifications_user_id_created_at').on(t.userId, t.createdAt)],
+  (t) => [index('idx_notifications_user_id_created_at').on(t.userId, desc(t.createdAt))],
 );
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({

@@ -1,5 +1,5 @@
 {
-  "id": "7f57e40c-c745-4dc1-b7a5-554ddf3cfabd",
+  "id": "05b08286-aed8-4204-81da-6648e507349f",
   "prevId": "6a8047de-9bf8-4505-9b74-760a3649a540",
   "version": "7",
   "dialect": "postgresql",
@@ -447,7 +447,23 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_notification_deliveries_status": {
+          "name": "idx_notification_deliveries_status",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "notification_deliveries_notification_id_notifications_id_fk": {
           "name": "notification_deliveries_notification_id_notifications_id_fk",
@@ -532,9 +548,9 @@
               "nulls": "last"
             },
             {
-              "expression": "created_at",
-              "isExpression": false,
+              "expression": "\"created_at\" desc",
               "asc": true,
+              "isExpression": true,
               "nulls": "last"
             }
           ],
