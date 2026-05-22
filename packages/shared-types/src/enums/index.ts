@@ -20,6 +20,7 @@ export * from './phobia-type.enum';
 export * from './physical-limitation-type.enum';
 export * from './platform-role.enum';
 export * from './profile-visibility.enum';
+export * from './transient-message-type.enum';
 export * from './upload-type.enum';
 export * from './visa-coverage-type.enum';
 export * from './visa-entries.enum';
