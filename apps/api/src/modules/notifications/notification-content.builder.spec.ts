@@ -2,89 +2,57 @@ import { NotificationType } from '@chamuco/shared-types';
 import { buildNotificationContent } from './notification-content.builder';
 
 describe('buildNotificationContent()', () => {
-  it('PASSPORT_EXPIRING_SOON — uses countryCode from payload', () => {
+  it('covers all NotificationType values without throwing', () => {
+    for (const type of Object.values(NotificationType)) {
+      expect(() => buildNotificationContent(type, {})).not.toThrow();
+    }
+  });
+
+  it('derives i18n keys from the notification type', () => {
+    const result = buildNotificationContent(NotificationType.PASSPORT_EXPIRING_SOON, {});
+    expect(result.titleKey).toBe('notifications.passportExpiringSoon.title');
+    expect(result.bodyKey).toBe('notifications.passportExpiringSoon.body');
+  });
+
+  it('includes string payload values as args', () => {
     const result = buildNotificationContent(NotificationType.PASSPORT_EXPIRING_SOON, {
       countryCode: 'MX',
     });
-    expect(result.title).toBe('Passport Expiring Soon');
-    expect(result.body).toContain('MX');
+    expect(result.args['countryCode']).toBe('MX');
   });
 
-  it('PASSPORT_EXPIRING_SOON — falls back when countryCode missing', () => {
-    const result = buildNotificationContent(NotificationType.PASSPORT_EXPIRING_SOON, {});
-    expect(result.body).toContain('your country');
-  });
-
-  it('PASSPORT_EXPIRED — uses countryCode from payload', () => {
-    const result = buildNotificationContent(NotificationType.PASSPORT_EXPIRED, {
-      countryCode: 'CO',
+  it('includes number payload values as args', () => {
+    const result = buildNotificationContent(NotificationType.ACHIEVEMENT_UNLOCKED, {
+      points: 100,
     });
-    expect(result.title).toBe('Passport Expired');
-    expect(result.body).toContain('CO');
+    expect(result.args['points']).toBe(100);
   });
 
-  it('PASSPORT_EXPIRED — falls back when countryCode missing', () => {
-    const result = buildNotificationContent(NotificationType.PASSPORT_EXPIRED, {});
-    expect(result.body).toContain('your country');
+  it('strips non-string/non-number payload values from args', () => {
+    const result = buildNotificationContent(NotificationType.GROUP_ANNOUNCEMENT, {
+      meta: { nested: true },
+      flag: true,
+      label: 'hello',
+    });
+    expect(result.args).toEqual({ label: 'hello' });
   });
 
-  it('GROUP_INVITATION — returns title and body', () => {
-    const result = buildNotificationContent(NotificationType.GROUP_INVITATION, {});
-    expect(result.title).toBe('Group Invitation');
-    expect(result.body).toBeTruthy();
+  it('returns empty args when payload is empty', () => {
+    const result = buildNotificationContent(NotificationType.TRIP_COMPLETED, {});
+    expect(result.args).toEqual({});
   });
 
-  it('GROUP_JOIN_ACCEPTED — returns title and body', () => {
-    const result = buildNotificationContent(NotificationType.GROUP_JOIN_ACCEPTED, {});
-    expect(result.title).toBe('Join Request Accepted');
-    expect(result.body).toBeTruthy();
-  });
-
-  it('GROUP_ANNOUNCEMENT — returns title and body', () => {
-    const result = buildNotificationContent(NotificationType.GROUP_ANNOUNCEMENT, {});
-    expect(result.title).toBe('New Group Announcement');
-    expect(result.body).toBeTruthy();
-  });
-
-  it('TRIP_INVITATION — returns title and body', () => {
-    const result = buildNotificationContent(NotificationType.TRIP_INVITATION, {});
-    expect(result.title).toBe('Trip Invitation');
-    expect(result.body).toBeTruthy();
-  });
-
-  it('TRIP_ANNOUNCEMENT — returns title and body', () => {
-    const result = buildNotificationContent(NotificationType.TRIP_ANNOUNCEMENT, {});
-    expect(result.title).toBe('New Trip Announcement');
-    expect(result.body).toBeTruthy();
-  });
-
-  it('TRIP_KEY_DATE_REMINDER — uses description from payload', () => {
+  it('passes description arg for TRIP_KEY_DATE_REMINDER', () => {
     const result = buildNotificationContent(NotificationType.TRIP_KEY_DATE_REMINDER, {
       description: 'Flight day',
     });
-    expect(result.body).toContain('Flight day');
+    expect(result.args['description']).toBe('Flight day');
   });
 
-  it('TRIP_KEY_DATE_REMINDER — falls back when description missing', () => {
-    const result = buildNotificationContent(NotificationType.TRIP_KEY_DATE_REMINDER, {});
-    expect(result.body).toContain('a key trip date');
-  });
-
-  it('TRIP_COMPLETED — returns title and body', () => {
-    const result = buildNotificationContent(NotificationType.TRIP_COMPLETED, {});
-    expect(result.title).toBe('Trip Completed');
-    expect(result.body).toBeTruthy();
-  });
-
-  it('ACHIEVEMENT_UNLOCKED — uses achievementName from payload', () => {
+  it('passes achievementName arg for ACHIEVEMENT_UNLOCKED', () => {
     const result = buildNotificationContent(NotificationType.ACHIEVEMENT_UNLOCKED, {
       achievementName: 'World Traveler',
     });
-    expect(result.body).toContain('World Traveler');
-  });
-
-  it('ACHIEVEMENT_UNLOCKED — falls back when achievementName missing', () => {
-    const result = buildNotificationContent(NotificationType.ACHIEVEMENT_UNLOCKED, {});
-    expect(result.body).toContain('new achievement');
+    expect(result.args['achievementName']).toBe('World Traveler');
   });
 });

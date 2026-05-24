@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq, isNull, lt } from 'drizzle-orm';
 import {
   DeliveryStatus,
@@ -7,6 +7,7 @@ import {
   PassportStatus,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
+import { I18nService, SupportedLanguage } from '@/i18n/i18n.service';
 import { notifications } from '@/modules/notifications/schema/notifications.schema';
 import { notificationDeliveries } from '@/modules/notifications/schema/notification-deliveries.schema';
 import { buildNotificationContent } from './notification-content.builder';
@@ -23,6 +24,7 @@ export class NotificationsService {
 
   constructor(
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
+    private readonly i18n: I18nService,
     @Inject(PUSH_STRATEGY) push: NotificationChannelStrategy,
     @Inject(EMAIL_STRATEGY) email: NotificationChannelStrategy,
     @Inject(SMS_STRATEGY) sms: NotificationChannelStrategy,
@@ -39,8 +41,10 @@ export class NotificationsService {
     type: NotificationType,
     payload: Record<string, unknown>,
     channels: NotificationChannel[],
+    // TODO: replace default with user.preferredLanguage once user language preferences are implemented
+    lang: SupportedLanguage = 'es',
   ): Promise<void> {
-    const { title, body } = buildNotificationContent(type, payload);
+    const { title, body } = this.renderContent(type, payload, lang);
     const [notification] = await this.db
       .insert(notifications)
       .values({ userId, type, title, body, data: payload })
@@ -55,10 +59,15 @@ export class NotificationsService {
     type: NotificationType,
     payload: Record<string, unknown>,
     channels: NotificationChannel[],
+    // TODO: replace default with per-user language lookup once preferences are implemented
+    lang: SupportedLanguage = 'es',
   ): Promise<void> {
     if (userIds.length === 0) return;
 
-    const { title, body } = buildNotificationContent(type, payload);
+    const { title, body } = this.renderContent(type, payload, lang);
+    // Single batch insert — acceptable at current group/trip scale (~100 members max).
+    // If userIds can grow to thousands, chunk into batches of ~500 to avoid Postgres
+    // parameter limits and memory pressure.
     const inserted = await this.db
       .insert(notifications)
       .values(userIds.map((userId) => ({ userId, type, title, body, data: payload })))
@@ -72,6 +81,13 @@ export class NotificationsService {
     cursor?: string,
     limit = 20,
   ): Promise<{ items: NotificationRow[]; nextCursor: string | null }> {
+    if (cursor !== undefined && isNaN(new Date(cursor).getTime())) {
+      throw new BadRequestException('Invalid cursor: must be an ISO 8601 timestamp');
+    }
+
+    // Cursor is a single createdAt timestamp. Two notifications inserted within the same
+    // millisecond (e.g. notifyMany batch) could produce duplicate or skipped items.
+    // A composite cursor (createdAt|id) would be strictly correct — acceptable trade-off for MVP.
     const rows = await this.db
       .select()
       .from(notifications)
@@ -119,6 +135,18 @@ export class NotificationsService {
     await this.notify(userId, type, { countryCode }, []);
   }
 
+  private renderContent(
+    type: NotificationType,
+    payload: Record<string, unknown>,
+    lang: SupportedLanguage,
+  ): { title: string; body: string } {
+    const { titleKey, bodyKey, args } = buildNotificationContent(type, payload);
+    return {
+      title: this.i18n.translate(titleKey, { lang, args }),
+      body: this.i18n.translate(bodyKey, { lang, args }),
+    };
+  }
+
   private async dispatchChannels(
     inserted: NotificationRow[],
     payload: Record<string, unknown>,
@@ -136,6 +164,9 @@ export class NotificationsService {
 
     await this.db.insert(notificationDeliveries).values(deliveryRows);
 
+    // TODO(Epic #8): update delivery status to SENT or FAILED based on strategy outcome.
+    // Currently rows stay PENDING indefinitely — add retry/status-update logic when
+    // real channel strategies are implemented.
     await Promise.allSettled(
       inserted.flatMap((n) =>
         channels.map((channel) =>

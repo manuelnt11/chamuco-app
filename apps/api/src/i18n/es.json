@@ -42,6 +42,46 @@
     "taskDueSoon": "La tarea \"{{task}}\" vence en {{days}} días",
     "tripStartingSoon": "Tu viaje \"{{trip}}\" comienza en {{days}} días",
     "expenseAdded": "{{user}} agregó un gasto: {{description}}",
-    "participantJoined": "{{user}} se unió al viaje \"{{trip}}\""
+    "participantJoined": "{{user}} se unió al viaje \"{{trip}}\"",
+    "passportExpiringSoon": {
+      "title": "Pasaporte por Vencer",
+      "body": "Tu pasaporte de {{countryCode}} está por vencer."
+    },
+    "passportExpired": {
+      "title": "Pasaporte Vencido",
+      "body": "Tu pasaporte de {{countryCode}} ha vencido."
+    },
+    "groupInvitation": {
+      "title": "Invitación a Grupo",
+      "body": "Has sido invitado a unirte a un grupo."
+    },
+    "groupJoinAccepted": {
+      "title": "Solicitud Aceptada",
+      "body": "Tu solicitud para unirte al grupo ha sido aceptada."
+    },
+    "groupAnnouncement": {
+      "title": "Nuevo Anuncio del Grupo",
+      "body": "Tu grupo tiene un nuevo anuncio."
+    },
+    "tripInvitation": {
+      "title": "Invitación a Viaje",
+      "body": "Has sido invitado a unirte a un viaje."
+    },
+    "tripAnnouncement": {
+      "title": "Nuevo Anuncio del Viaje",
+      "body": "Tu viaje tiene un nuevo anuncio."
+    },
+    "tripKeyDateReminder": {
+      "title": "Recordatorio de Fecha del Viaje",
+      "body": "Recordatorio: {{description}} se acerca."
+    },
+    "tripCompleted": {
+      "title": "Viaje Completado",
+      "body": "Tu viaje ha sido marcado como completado."
+    },
+    "achievementUnlocked": {
+      "title": "Logro Desbloqueado",
+      "body": "Desbloqueaste un nuevo logro: {{achievementName}}."
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   DeliveryStatus,
@@ -6,6 +7,7 @@ import {
   PassportStatus,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { I18nService } from '@/i18n/i18n.service';
 import { NotificationsService } from './notifications.service';
 import { PUSH_STRATEGY, EMAIL_STRATEGY, SMS_STRATEGY } from './notifications.constants';
 import type { NotificationChannelStrategy } from './channel-strategies/notification-channel.strategy';
@@ -56,6 +58,7 @@ describe('NotificationsService', () => {
   let pushStrategy: jest.Mocked<NotificationChannelStrategy>;
   let emailStrategy: jest.Mocked<NotificationChannelStrategy>;
   let smsStrategy: jest.Mocked<NotificationChannelStrategy>;
+  let i18n: jest.Mocked<Pick<I18nService, 'translate'>>;
 
   let db: {
     insert: jest.Mock;
@@ -68,6 +71,9 @@ describe('NotificationsService', () => {
     emailStrategy = makeStrategyMock();
     smsStrategy = makeStrategyMock();
 
+    // Returns the key as-is so assertions don't depend on translation output
+    i18n = { translate: jest.fn().mockImplementation((key: string) => key) };
+
     db = {
       insert: jest.fn(),
       update: jest.fn(),
@@ -78,6 +84,7 @@ describe('NotificationsService', () => {
       providers: [
         NotificationsService,
         { provide: DRIZZLE_CLIENT, useValue: db },
+        { provide: I18nService, useValue: i18n },
         { provide: PUSH_STRATEGY, useValue: pushStrategy },
         { provide: EMAIL_STRATEGY, useValue: emailStrategy },
         { provide: SMS_STRATEGY, useValue: smsStrategy },
@@ -88,7 +95,7 @@ describe('NotificationsService', () => {
   });
 
   describe('notify()', () => {
-    it('inserts a notifications row', async () => {
+    it('inserts a notifications row and skips deliveries when channels is empty', async () => {
       db.insert.mockReturnValue(makeInsert([FAKE_NOTIFICATION]));
 
       await service.notify(
@@ -99,19 +106,9 @@ describe('NotificationsService', () => {
       );
 
       expect(db.insert).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not insert deliveries when channels is empty', async () => {
-      db.insert.mockReturnValue(makeInsert([FAKE_NOTIFICATION]));
-
-      await service.notify(
-        'user-1',
-        NotificationType.PASSPORT_EXPIRING_SOON,
-        { countryCode: 'MX' },
-        [],
-      );
-
-      expect(db.insert).toHaveBeenCalledTimes(1);
+      expect(pushStrategy.send).not.toHaveBeenCalled();
+      expect(emailStrategy.send).not.toHaveBeenCalled();
+      expect(smsStrategy.send).not.toHaveBeenCalled();
     });
 
     it('inserts delivery rows and calls strategies for each channel', async () => {
@@ -240,6 +237,13 @@ describe('NotificationsService', () => {
       const whereFn = db.select.mock.results[0]!.value.from.mock.results[0]!.value
         .where as jest.Mock;
       expect(whereFn).toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException for an invalid cursor string', async () => {
+      await expect(service.findAll('user-1', 'not-a-date', 20)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(db.select).not.toHaveBeenCalled();
     });
   });
 

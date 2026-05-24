@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { I18nHelperModule } from '@/i18n/i18n.module';
 import { NotificationsService } from './notifications.service';
 import { PushChannelStrategy } from './channel-strategies/push-channel.strategy';
 import { EmailChannelStrategy } from './channel-strategies/email-channel.strategy';
@@ -6,6 +7,7 @@ import { SmsChannelStrategy } from './channel-strategies/sms-channel.strategy';
 import { PUSH_STRATEGY, EMAIL_STRATEGY, SMS_STRATEGY } from './notifications.constants';
 
 @Module({
+  imports: [I18nHelperModule],
   providers: [
     NotificationsService,
     { provide: PUSH_STRATEGY, useClass: PushChannelStrategy },
