@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import type { TransientMessageType } from '@chamuco/shared-types';
-import type { TransientChannelStrategy } from '@/modules/transient-messages/transient-channel.strategy';
+import type {
+  TransientChannelStrategy,
+  TransientContent,
+} from '@/modules/transient-messages/transient-channel.strategy';
 
 @Injectable()
 export class PushTransientStrategy implements TransientChannelStrategy {
@@ -8,6 +11,6 @@ export class PushTransientStrategy implements TransientChannelStrategy {
   async send(
     _type: TransientMessageType,
     _payload: Record<string, unknown>,
-    _content: { subject: string; body: string },
+    _content: TransientContent,
   ): Promise<void> {}
 }
