@@ -1,5 +1,12 @@
-import { Controller, Get, HttpCode, Param, Patch, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Query } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { NotificationsService } from './notifications.service';
@@ -13,6 +20,20 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    type: String,
+    description: 'ISO 8601 timestamp cursor from the previous page.',
+    example: '2026-05-01T00:00:00.000Z',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of notifications to return (1–50, default 20).',
+    example: 20,
+  })
   @ApiOperation({
     summary: 'Get the in-app notification feed',
     description:
@@ -61,7 +82,10 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'UUID of the notification to mark as read' })
   @ApiResponse({ status: 204, description: 'Notification marked as read' })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  async markRead(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<void> {
+  async markRead(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<void> {
     return this.notificationsService.markRead(user.id, id);
   }
 }

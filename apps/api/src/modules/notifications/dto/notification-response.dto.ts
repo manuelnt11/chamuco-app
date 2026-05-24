@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { NotificationType } from '@chamuco/shared-types';
 import type { NotificationRow } from '@/modules/notifications/channel-strategies/notification-channel.strategy';
 
@@ -22,13 +22,23 @@ export class NotificationResponseDto {
   })
   body!: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'ISO 8601 timestamp when the notification was read, or null if unread.',
     example: '2026-05-24T12:00:00.000Z',
     nullable: true,
     type: String,
   })
   readAt!: string | null;
+
+  @ApiProperty({
+    description:
+      'Event payload used for deep-linking — shape depends on `type` (e.g. `{ tripId }` for trip events, `{ countryCode }` for passport events). Null when no payload was stored.',
+    type: 'object',
+    additionalProperties: true,
+    nullable: true,
+    example: { tripId: 'a1b2c3d4-...' },
+  })
+  data!: Record<string, unknown> | null;
 
   @ApiProperty({
     description: 'ISO 8601 timestamp when the notification was created.',
@@ -44,7 +54,7 @@ export class NotificationsPageDto {
   })
   data!: NotificationResponseDto[];
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description:
       'Cursor to pass as `cursor` in the next request to get the following page. Null when there are no more pages.',
     example: '2026-05-20T08:00:00.000Z',
@@ -63,6 +73,7 @@ export function toNotificationResponseDto(row: NotificationRow): NotificationRes
     type: row.type as NotificationType,
     title: row.title,
     body: row.body,
+    data: (row.data ?? null) as Record<string, unknown> | null,
     readAt: row.readAt ? row.readAt.toISOString() : null,
     createdAt: row.createdAt.toISOString(),
   };

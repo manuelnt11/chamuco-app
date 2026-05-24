@@ -44,6 +44,7 @@ const FAKE_NOTIFICATION_DTO = {
   type: NotificationType.TRIP_INVITATION,
   title: 'New trip invitation',
   body: 'You have been invited to join Summer Trip 2026.',
+  data: { tripId: 'trip-uuid' },
   readAt: null,
   createdAt: NOW.toISOString(),
 };
