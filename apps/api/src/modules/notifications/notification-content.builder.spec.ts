@@ -28,10 +28,16 @@ describe('buildNotificationContent()', () => {
     expect(result.args['points']).toBe(100);
   });
 
-  it('strips non-string/non-number payload values from args', () => {
+  it('includes boolean payload values as args', () => {
+    const result = buildNotificationContent(NotificationType.GROUP_ANNOUNCEMENT, {
+      enabled: true,
+    });
+    expect(result.args['enabled']).toBe(true);
+  });
+
+  it('strips object/null/undefined payload values from args', () => {
     const result = buildNotificationContent(NotificationType.GROUP_ANNOUNCEMENT, {
       meta: { nested: true },
-      flag: true,
       label: 'hello',
     });
     expect(result.args).toEqual({ label: 'hello' });

@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { NotificationChannel, TransientMessageType } from '@chamuco/shared-types';
+import { I18nService, SupportedLanguage } from '@/i18n/i18n.service';
 import { EMAIL_TRANSIENT, PUSH_TRANSIENT, SMS_TRANSIENT } from './transient-messages.constants';
 import { buildTransientContent } from './transient-message-content.builder';
 import type { TransientChannelStrategy } from './transient-channel.strategy';
@@ -10,6 +11,7 @@ export class TransientMessageService {
   private readonly strategies: Record<NotificationChannel, TransientChannelStrategy>;
 
   constructor(
+    private readonly i18n: I18nService,
     @Inject(PUSH_TRANSIENT) push: TransientChannelStrategy,
     @Inject(EMAIL_TRANSIENT) email: TransientChannelStrategy,
     @Inject(SMS_TRANSIENT) sms: TransientChannelStrategy,
@@ -25,13 +27,18 @@ export class TransientMessageService {
     type: TransientMessageType,
     payload: Record<string, unknown>,
     channels: NotificationChannel[],
+    // TODO: replace default with user.preferredLanguage once user language preferences are implemented
+    lang: SupportedLanguage = 'es',
   ): Promise<void> {
-    // Build content eagerly so errors surface before any delivery attempt
-    buildTransientContent(type, payload);
+    const { subjectKey, bodyKey, args } = buildTransientContent(type, payload);
+    const content = {
+      subject: this.i18n.translate(subjectKey, { lang, args }),
+      body: this.i18n.translate(bodyKey, { lang, args }),
+    };
 
     await Promise.allSettled(
       channels.map((channel) =>
-        this.strategies[channel].send(type, payload).catch((err: unknown) => {
+        this.strategies[channel].send(type, payload, content).catch((err: unknown) => {
           this.logger.error(`Transient channel ${channel} dispatch failed for type ${type}`, err);
         }),
       ),

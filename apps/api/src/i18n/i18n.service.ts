@@ -15,7 +15,7 @@ export type SupportedLanguage = 'en' | 'es';
  */
 export interface TranslateOptions {
   lang?: SupportedLanguage;
-  args?: Record<string, string | number>;
+  args?: Record<string, string | number | boolean>;
 }
 
 @Injectable()

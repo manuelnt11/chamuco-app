@@ -5,5 +5,9 @@ import type { TransientChannelStrategy } from '@/modules/transient-messages/tran
 @Injectable()
 export class SmsTransientStrategy implements TransientChannelStrategy {
   // TODO(Epic #8): implement SMS delivery
-  async send(_type: TransientMessageType, _payload: Record<string, unknown>): Promise<void> {}
+  async send(
+    _type: TransientMessageType,
+    _payload: Record<string, unknown>,
+    _content: { subject: string; body: string },
+  ): Promise<void> {}
 }
