@@ -133,14 +133,15 @@ Also update `.env.example` with the new key (empty value) so other developers kn
 
 **Current required variables:**
 
-| Variable                                   | Purpose                                                    |
-| ------------------------------------------ | ---------------------------------------------------------- |
-| `NEXT_PUBLIC_FIREBASE_API_KEY`             | Firebase client SDK                                        |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`         | Firebase client SDK                                        |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`          | Firebase client SDK                                        |
-| `NEXT_PUBLIC_FIREBASE_APP_ID`              | Firebase client SDK                                        |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase client SDK                                        |
-| `NEXT_PUBLIC_API_URL`                      | NestJS API base URL (e.g. `http://localhost:3001` locally) |
+| Variable                                   | Purpose                                                                             |
+| ------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`             | Firebase client SDK                                                                 |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`         | Firebase client SDK                                                                 |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`          | Firebase client SDK                                                                 |
+| `NEXT_PUBLIC_FIREBASE_APP_ID`              | Firebase client SDK                                                                 |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase client SDK                                                                 |
+| `NEXT_PUBLIC_FIREBASE_VAPID_KEY`           | FCM Web Push VAPID key (Firebase Console → Cloud Messaging → Web Push certificates) |
+| `NEXT_PUBLIC_API_URL`                      | NestJS API base URL (e.g. `http://localhost:3001` locally)                          |
 
 ### 2. Validate i18n keys when modifying translations
 

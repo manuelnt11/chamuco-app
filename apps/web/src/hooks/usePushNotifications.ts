@@ -21,21 +21,26 @@ export function usePushNotifications(): void {
     const messaging = getFirebaseMessaging();
     if (!messaging) return;
 
+    let cancelled = false;
     let unsubscribeForeground: (() => void) | null = null;
 
     async function init() {
       const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return;
+      if (permission !== 'granted' || cancelled) return;
 
       const swReg = await navigator.serviceWorker.ready;
+      if (cancelled) return;
+
       const token = await getToken(messaging!, {
         vapidKey: env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
         serviceWorkerRegistration: swReg,
       });
+      if (cancelled) return;
 
       fcmTokenRef.current = token;
       await apiClient.post('/v1/notifications/fcm-token', { token });
 
+      if (cancelled) return;
       unsubscribeForeground = onMessage(messaging!, (payload) => {
         const title = payload.notification?.title ?? 'Notification';
         const body = payload.notification?.body;
@@ -43,7 +48,11 @@ export function usePushNotifications(): void {
       });
     }
 
-    void init();
+    void init().catch((err: unknown) => {
+      if (!cancelled) {
+        console.error('[usePushNotifications] FCM init failed:', err);
+      }
+    });
 
     const unregisterBeforeSignOut = registerBeforeSignOut(async () => {
       const token = fcmTokenRef.current;
@@ -54,6 +63,7 @@ export function usePushNotifications(): void {
     });
 
     return () => {
+      cancelled = true;
       unsubscribeForeground?.();
       unregisterBeforeSignOut();
     };

@@ -221,4 +221,55 @@ describe('usePushNotifications', () => {
     expect(unsubscribeForeground).toHaveBeenCalledTimes(1);
     expect(unregisterBeforeSignOut).toHaveBeenCalledTimes(1);
   });
+
+  it('logs error to console when getToken fails', async () => {
+    vi.mocked(useAuth).mockReturnValue({ currentUser: mockUser } as never);
+    setupBrowserEnv('granted');
+    vi.mocked(getToken).mockRejectedValue(new Error('SW not registered'));
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await act(async () => {
+      renderHook(() => usePushNotifications());
+    });
+
+    expect(consoleError).toHaveBeenCalledWith(
+      '[usePushNotifications] FCM init failed:',
+      expect.any(Error),
+    );
+
+    consoleError.mockRestore();
+  });
+
+  it('does not log error when effect is cancelled before init completes', async () => {
+    vi.mocked(useAuth).mockReturnValue({ currentUser: mockUser } as never);
+
+    let resolvePermission!: (value: NotificationPermission) => void;
+    Object.defineProperty(window, 'Notification', {
+      value: {
+        requestPermission: vi.fn(
+          () => new Promise<NotificationPermission>((res) => (resolvePermission = res)),
+        ),
+      },
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: { ready: Promise.resolve(mockSwReg) },
+      configurable: true,
+      writable: true,
+    });
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const { unmount } = renderHook(() => usePushNotifications());
+    unmount();
+
+    await act(async () => {
+      resolvePermission('granted');
+    });
+
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
 });
