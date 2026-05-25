@@ -22,8 +22,8 @@ catalog:
   eslint-plugin-prettier: ^5.5.5
   prettier: ^3.8.3
   typescript: ^6.0.3
-  '@vitest/coverage-v8': ^4.1.6
-  vitest: ^4.1.6
+  '@vitest/coverage-v8': ^4.1.7
+  vitest: ^4.1.7
 minimumReleaseAgeExclude:
   - '@protobufjs/utf8@1.1.1'
   - protobufjs@8.0.2
