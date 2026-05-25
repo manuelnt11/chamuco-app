@@ -193,9 +193,6 @@ export class NotificationsService {
 
     await this.db.insert(notificationDeliveries).values(deliveryRows);
 
-    // TODO(Epic #8): update delivery status to SENT or FAILED based on strategy outcome.
-    // Currently rows stay PENDING indefinitely — add retry/status-update logic when
-    // real channel strategies are implemented.
     await Promise.allSettled(
       inserted.flatMap((n) =>
         channels.map((channel) =>
