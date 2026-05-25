@@ -220,7 +220,7 @@ export class UsersController {
 
   @Patch('me/emergency-contacts/:id')
   @HttpCode(200)
-  @ApiParam({ name: 'id', description: 'UUID of the emergency contact to update' })
+  @ApiParam({ name: 'id', description: 'UUID of the emergency contact to update', format: 'uuid' })
   @ApiBody({ type: UpdateEmergencyContactDto })
   @ApiOperation({
     summary: 'Update an emergency contact',
@@ -246,7 +246,7 @@ export class UsersController {
 
   @Delete('me/emergency-contacts/:id')
   @HttpCode(204)
-  @ApiParam({ name: 'id', description: 'UUID of the emergency contact to delete' })
+  @ApiParam({ name: 'id', description: 'UUID of the emergency contact to delete', format: 'uuid' })
   @ApiOperation({
     summary: 'Delete an emergency contact',
     description:
@@ -305,7 +305,7 @@ export class UsersController {
 
   @Patch('me/nationalities/:id')
   @HttpCode(200)
-  @ApiParam({ name: 'id', description: 'UUID of the nationality record to update' })
+  @ApiParam({ name: 'id', description: 'UUID of the nationality record to update', format: 'uuid' })
   @ApiBody({ type: UpdateNationalityDto })
   @ApiOperation({
     summary: 'Update a nationality',
@@ -333,7 +333,7 @@ export class UsersController {
 
   @Delete('me/nationalities/:id')
   @HttpCode(204)
-  @ApiParam({ name: 'id', description: 'UUID of the nationality record to delete' })
+  @ApiParam({ name: 'id', description: 'UUID of the nationality record to delete', format: 'uuid' })
   @ApiOperation({
     summary: 'Delete a nationality',
     description:
@@ -390,7 +390,7 @@ export class UsersController {
 
   @Patch('me/loyalty-programs/:id')
   @HttpCode(200)
-  @ApiParam({ name: 'id', description: 'UUID of the loyalty program to update' })
+  @ApiParam({ name: 'id', description: 'UUID of the loyalty program to update', format: 'uuid' })
   @ApiBody({ type: UpdateLoyaltyProgramDto })
   @ApiOperation({
     summary: 'Update a loyalty program',
@@ -410,7 +410,7 @@ export class UsersController {
 
   @Delete('me/loyalty-programs/:id')
   @HttpCode(204)
-  @ApiParam({ name: 'id', description: 'UUID of the loyalty program to delete' })
+  @ApiParam({ name: 'id', description: 'UUID of the loyalty program to delete', format: 'uuid' })
   @ApiOperation({
     summary: 'Delete a loyalty program',
     description: 'Removes a single loyalty program identified by its UUID.',
@@ -487,7 +487,11 @@ export class UsersController {
 
   @Get('me/nationalities/:nationalityId/visas')
   @ApiOperation({ summary: 'List visas for a nationality' })
-  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiParam({
+    name: 'nationalityId',
+    description: 'UUID of the nationality record',
+    format: 'uuid',
+  })
   @ApiResponse({ status: 200, type: VisaResponseDto, isArray: true })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
   @ApiResponse({ status: 404, description: 'Nationality not found' })
@@ -500,7 +504,11 @@ export class UsersController {
 
   @Post('me/nationalities/:nationalityId/visas')
   @ApiOperation({ summary: 'Add a visa to a nationality' })
-  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiParam({
+    name: 'nationalityId',
+    description: 'UUID of the nationality record',
+    format: 'uuid',
+  })
   @ApiBody({ type: CreateVisaDto })
   @ApiResponse({ status: 201, type: VisaResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed' })
@@ -517,8 +525,12 @@ export class UsersController {
   @Patch('me/nationalities/:nationalityId/visas/:id')
   @HttpCode(200)
   @ApiOperation({ summary: 'Update a visa' })
-  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
-  @ApiParam({ name: 'id', description: 'UUID of the visa record' })
+  @ApiParam({
+    name: 'nationalityId',
+    description: 'UUID of the nationality record',
+    format: 'uuid',
+  })
+  @ApiParam({ name: 'id', description: 'UUID of the visa record', format: 'uuid' })
   @ApiBody({ type: UpdateVisaDto })
   @ApiResponse({ status: 200, type: VisaResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed' })
@@ -536,8 +548,12 @@ export class UsersController {
   @Delete('me/nationalities/:nationalityId/visas/:id')
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete a visa' })
-  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
-  @ApiParam({ name: 'id', description: 'UUID of the visa record' })
+  @ApiParam({
+    name: 'nationalityId',
+    description: 'UUID of the nationality record',
+    format: 'uuid',
+  })
+  @ApiParam({ name: 'id', description: 'UUID of the visa record', format: 'uuid' })
   @ApiResponse({ status: 204, description: 'Visa deleted' })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
   @ApiResponse({ status: 404, description: 'Nationality or visa not found' })
@@ -555,7 +571,11 @@ export class UsersController {
 
   @Get('me/nationalities/:nationalityId/etas')
   @ApiOperation({ summary: 'List ETAs for a nationality' })
-  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiParam({
+    name: 'nationalityId',
+    description: 'UUID of the nationality record',
+    format: 'uuid',
+  })
   @ApiResponse({ status: 200, type: EtaResponseDto, isArray: true })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
   @ApiResponse({ status: 404, description: 'Nationality not found' })
@@ -568,7 +588,11 @@ export class UsersController {
 
   @Post('me/nationalities/:nationalityId/etas')
   @ApiOperation({ summary: 'Add an ETA to a nationality' })
-  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
+  @ApiParam({
+    name: 'nationalityId',
+    description: 'UUID of the nationality record',
+    format: 'uuid',
+  })
   @ApiBody({ type: CreateEtaDto })
   @ApiResponse({ status: 201, type: EtaResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed' })
@@ -585,8 +609,12 @@ export class UsersController {
   @Patch('me/nationalities/:nationalityId/etas/:id')
   @HttpCode(200)
   @ApiOperation({ summary: 'Update an ETA' })
-  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
-  @ApiParam({ name: 'id', description: 'UUID of the ETA record' })
+  @ApiParam({
+    name: 'nationalityId',
+    description: 'UUID of the nationality record',
+    format: 'uuid',
+  })
+  @ApiParam({ name: 'id', description: 'UUID of the ETA record', format: 'uuid' })
   @ApiBody({ type: UpdateEtaDto })
   @ApiResponse({ status: 200, type: EtaResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed' })
@@ -604,8 +632,12 @@ export class UsersController {
   @Delete('me/nationalities/:nationalityId/etas/:id')
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete an ETA' })
-  @ApiParam({ name: 'nationalityId', description: 'UUID of the nationality record' })
-  @ApiParam({ name: 'id', description: 'UUID of the ETA record' })
+  @ApiParam({
+    name: 'nationalityId',
+    description: 'UUID of the nationality record',
+    format: 'uuid',
+  })
+  @ApiParam({ name: 'id', description: 'UUID of the ETA record', format: 'uuid' })
   @ApiResponse({ status: 204, description: 'ETA deleted' })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
   @ApiResponse({ status: 404, description: 'Nationality or ETA not found' })
