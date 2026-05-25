@@ -8,6 +8,7 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistratio
 import { I18nProvider } from '@/components/I18nProvider';
 import { AppShell } from '@/components/layout';
 import { PreferencesSync } from '@/components/PreferencesSync';
+import { PushNotificationsInit } from '@/components/push-notifications/PushNotificationsInit';
 import { IosPwaPrompt } from '@/components/IosPwaPrompt';
 import { AuthProvider } from '@/store/auth';
 import { UserProvider } from '@/store/user';
@@ -72,6 +73,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <AuthProvider>
                 <UserProvider>
                   <PreferencesSync />
+                  <PushNotificationsInit />
                   <AppShell>{children}</AppShell>
                 </UserProvider>
               </AuthProvider>
