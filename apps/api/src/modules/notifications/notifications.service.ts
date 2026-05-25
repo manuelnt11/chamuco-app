@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
-import { and, count, desc, eq, isNull, lt } from 'drizzle-orm';
+import { and, count, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import {
   DeliveryStatus,
   NotificationChannel,
@@ -10,12 +10,15 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { I18nService, SupportedLanguage } from '@/i18n/i18n.service';
 import { notifications } from '@/modules/notifications/schema/notifications.schema';
 import { notificationDeliveries } from '@/modules/notifications/schema/notification-deliveries.schema';
+import { userFcmTokens } from '@/modules/notifications/schema/user-fcm-tokens.schema';
 import { buildNotificationContent } from './notification-content.builder';
 import { EMAIL_STRATEGY, PUSH_STRATEGY, SMS_STRATEGY } from './notifications.constants';
 import type {
   NotificationChannelStrategy,
   NotificationRow,
 } from './channel-strategies/notification-channel.strategy';
+import type { RegisterFcmTokenDto } from './dto/register-fcm-token.dto';
+import type { DeleteFcmTokenDto } from './dto/delete-fcm-token.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -128,6 +131,24 @@ export class NotificationsService {
       .from(notifications)
       .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
     return result[0]?.count ?? 0;
+  }
+
+  async registerToken(userId: string, dto: RegisterFcmTokenDto): Promise<void> {
+    await this.db
+      .insert(userFcmTokens)
+      .values({ userId, token: dto.token, deviceHint: dto.deviceHint ?? null })
+      .onConflictDoUpdate({
+        target: [userFcmTokens.userId, userFcmTokens.token],
+        // deviceHint is intentionally not refreshed on conflict — the token identity
+        // is stable, and a stale hint is harmless (used only for human-readable display).
+        set: { lastUsedAt: sql`now()` },
+      });
+  }
+
+  async deleteToken(userId: string, dto: DeleteFcmTokenDto): Promise<void> {
+    await this.db
+      .delete(userFcmTokens)
+      .where(and(eq(userFcmTokens.userId, userId), eq(userFcmTokens.token, dto.token)));
   }
 
   async sendPassportStatusNotification(
