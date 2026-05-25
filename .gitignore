@@ -59,6 +59,9 @@ Desktop.ini
 firebase-debug.log
 firestore-debug.log
 
+# Generated service worker (produced by apps/web/scripts/generate-sw.mjs at build time)
+apps/web/public/sw.js
+
 # Database
 .postgres-data/
 backups/

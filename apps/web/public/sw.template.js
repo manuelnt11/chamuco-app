@@ -1,5 +1,5 @@
 // Chamuco Travel Service Worker
-// Version: 2.1.0
+// Version: 3.0.0
 
 const CACHE_NAME = 'chamuco-v3';
 const RUNTIME_CACHE = 'chamuco-runtime-v3';
@@ -112,22 +112,17 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// FCM Background Message Handler (skeleton for future implementation)
-console.log('[FCM Handler] Loaded (skeleton mode - FCM not yet configured)');
-
-/*
-// --- UNCOMMENT WHEN FCM IS READY ---
-
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+// FCM Background Message Handler
+importScripts('https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.13.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey: 'NEXT_PUBLIC_FIREBASE_API_KEY',
-  authDomain: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  projectId: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-  storageBucket: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-  messagingSenderId: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-  appId: 'NEXT_PUBLIC_FIREBASE_APP_ID',
+  apiKey: '%%NEXT_PUBLIC_FIREBASE_API_KEY%%',
+  authDomain: '%%NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN%%',
+  projectId: '%%NEXT_PUBLIC_FIREBASE_PROJECT_ID%%',
+  storageBucket: '%%NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET%%',
+  messagingSenderId: '%%NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID%%',
+  appId: '%%NEXT_PUBLIC_FIREBASE_APP_ID%%',
 });
 
 const messaging = firebase.messaging();
@@ -151,19 +146,17 @@ self.addEventListener('notificationclick', (event) => {
   console.log('[FCM] Notification clicked:', event.notification.tag);
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || '/';
+  const urlToOpen = new URL(event.notification.data?.url || '/', self.location.origin).href;
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
-          }
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
         }
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(urlToOpen);
-        }
-      })
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
+      }
+    }),
   );
 });
-*/
