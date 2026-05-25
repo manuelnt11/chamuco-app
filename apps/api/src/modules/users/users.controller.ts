@@ -6,6 +6,7 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -237,7 +238,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User profile or emergency contact not found' })
   updateEmergencyContact(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') contactId: string,
+    @Param('id', ParseUUIDPipe) contactId: string,
     @Body() dto: UpdateEmergencyContactDto,
   ): Promise<EmergencyContactDto> {
     return this.usersService.updateEmergencyContact(user.id, contactId, dto);
@@ -261,7 +262,7 @@ export class UsersController {
   })
   deleteEmergencyContact(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') contactId: string,
+    @Param('id', ParseUUIDPipe) contactId: string,
   ): Promise<void> {
     return this.usersService.deleteEmergencyContact(user.id, contactId);
   }
@@ -324,7 +325,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality not found' })
   updateNationality(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') nationalityId: string,
+    @Param('id', ParseUUIDPipe) nationalityId: string,
     @Body() dto: UpdateNationalityDto,
   ): Promise<NationalityResponseDto> {
     return this.usersService.updateNationality(user.id, nationalityId, dto);
@@ -348,7 +349,7 @@ export class UsersController {
   })
   deleteNationality(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') nationalityId: string,
+    @Param('id', ParseUUIDPipe) nationalityId: string,
   ): Promise<void> {
     return this.usersService.deleteNationality(user.id, nationalityId);
   }
@@ -401,7 +402,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User profile or loyalty program not found' })
   updateLoyaltyProgram(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') programId: string,
+    @Param('id', ParseUUIDPipe) programId: string,
     @Body() dto: UpdateLoyaltyProgramDto,
   ): Promise<LoyaltyProgramDto> {
     return this.usersService.updateLoyaltyProgram(user.id, programId, dto);
@@ -419,7 +420,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User profile or loyalty program not found' })
   deleteLoyaltyProgram(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') programId: string,
+    @Param('id', ParseUUIDPipe) programId: string,
   ): Promise<void> {
     return this.usersService.deleteLoyaltyProgram(user.id, programId);
   }
@@ -492,7 +493,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality not found' })
   getVisas(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('nationalityId') nationalityId: string,
+    @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
   ): Promise<VisaResponseDto[]> {
     return this.usersService.getVisas(user.id, nationalityId);
   }
@@ -507,7 +508,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality not found' })
   addVisa(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('nationalityId') nationalityId: string,
+    @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
     @Body() dto: CreateVisaDto,
   ): Promise<VisaResponseDto> {
     return this.usersService.addVisa(user.id, nationalityId, dto);
@@ -525,8 +526,8 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality or visa not found' })
   updateVisa(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('nationalityId') nationalityId: string,
-    @Param('id') id: string,
+    @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateVisaDto,
   ): Promise<VisaResponseDto> {
     return this.usersService.updateVisa(user.id, nationalityId, id, dto);
@@ -542,8 +543,8 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality or visa not found' })
   deleteVisa(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('nationalityId') nationalityId: string,
-    @Param('id') id: string,
+    @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
     return this.usersService.deleteVisa(user.id, nationalityId, id);
   }
@@ -560,7 +561,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality not found' })
   getEtas(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('nationalityId') nationalityId: string,
+    @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
   ): Promise<EtaResponseDto[]> {
     return this.usersService.getEtas(user.id, nationalityId);
   }
@@ -575,7 +576,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality not found' })
   addEta(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('nationalityId') nationalityId: string,
+    @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
     @Body() dto: CreateEtaDto,
   ): Promise<EtaResponseDto> {
     return this.usersService.addEta(user.id, nationalityId, dto);
@@ -593,8 +594,8 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality or ETA not found' })
   updateEta(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('nationalityId') nationalityId: string,
-    @Param('id') id: string,
+    @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateEtaDto,
   ): Promise<EtaResponseDto> {
     return this.usersService.updateEta(user.id, nationalityId, id, dto);
@@ -610,8 +611,8 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Nationality or ETA not found' })
   deleteEta(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('nationalityId') nationalityId: string,
-    @Param('id') id: string,
+    @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
     return this.usersService.deleteEta(user.id, nationalityId, id);
   }

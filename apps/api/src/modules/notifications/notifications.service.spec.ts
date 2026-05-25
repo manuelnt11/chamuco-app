@@ -270,6 +270,34 @@ describe('NotificationsService', () => {
     });
   });
 
+  describe('countUnread()', () => {
+    const makeSelectCount = (value: number) => ({
+      from: jest.fn().mockReturnValue({
+        where: jest.fn().mockResolvedValue([{ count: value }]),
+      }),
+    });
+
+    it('returns the unread count from the query', async () => {
+      db.select.mockReturnValue(makeSelectCount(5));
+
+      const result = await service.countUnread('user-1');
+
+      expect(result).toBe(5);
+    });
+
+    it('returns 0 when the query returns an empty result', async () => {
+      db.select.mockReturnValue({
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([]),
+        }),
+      });
+
+      const result = await service.countUnread('user-1');
+
+      expect(result).toBe(0);
+    });
+  });
+
   describe('sendPassportStatusNotification()', () => {
     it('calls notify() with PASSPORT_EXPIRING_SOON type', async () => {
       db.insert.mockReturnValue(makeInsert([FAKE_NOTIFICATION]));

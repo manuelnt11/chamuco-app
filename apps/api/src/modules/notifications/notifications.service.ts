@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
-import { and, desc, eq, isNull, lt } from 'drizzle-orm';
+import { and, count, desc, eq, isNull, lt } from 'drizzle-orm';
 import {
   DeliveryStatus,
   NotificationChannel,
@@ -120,6 +120,14 @@ export class NotificationsService {
       .update(notifications)
       .set({ readAt: new Date() })
       .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
+  }
+
+  async countUnread(userId: string): Promise<number> {
+    const result = await this.db
+      .select({ count: count() })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
+    return result[0]?.count ?? 0;
   }
 
   async sendPassportStatusNotification(
