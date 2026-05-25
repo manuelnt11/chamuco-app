@@ -64,6 +64,7 @@ describe('NotificationsService', () => {
     insert: jest.Mock;
     update: jest.Mock;
     select: jest.Mock;
+    delete: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -78,6 +79,7 @@ describe('NotificationsService', () => {
       insert: jest.fn(),
       update: jest.fn(),
       select: jest.fn(),
+      delete: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -295,6 +297,81 @@ describe('NotificationsService', () => {
       const result = await service.countUnread('user-1');
 
       expect(result).toBe(0);
+    });
+  });
+
+  describe('registerToken()', () => {
+    const makeInsertUpsert = () => ({
+      values: jest.fn().mockReturnValue({
+        onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
+      }),
+    });
+
+    it('inserts with the correct userId, token, and deviceHint', async () => {
+      db.insert.mockReturnValue(makeInsertUpsert());
+
+      await service.registerToken('user-1', { token: 'tok-abc', deviceHint: 'Chrome 124' });
+
+      expect(db.insert).toHaveBeenCalledTimes(1);
+      const valuesFn = db.insert.mock.results[0]!.value.values as jest.Mock;
+      const row = valuesFn.mock.calls[0]![0] as {
+        userId: string;
+        token: string;
+        deviceHint: string | null;
+      };
+      expect(row.userId).toBe('user-1');
+      expect(row.token).toBe('tok-abc');
+      expect(row.deviceHint).toBe('Chrome 124');
+    });
+
+    it('sets deviceHint to null when omitted', async () => {
+      db.insert.mockReturnValue(makeInsertUpsert());
+
+      await service.registerToken('user-1', { token: 'tok-abc' });
+
+      const valuesFn = db.insert.mock.results[0]!.value.values as jest.Mock;
+      const row = valuesFn.mock.calls[0]![0] as { deviceHint: string | null };
+      expect(row.deviceHint).toBeNull();
+    });
+
+    it('calls onConflictDoUpdate with userId + token as target', async () => {
+      db.insert.mockReturnValue(makeInsertUpsert());
+
+      await service.registerToken('user-1', { token: 'tok-abc' });
+
+      const valuesFn = db.insert.mock.results[0]!.value.values as jest.Mock;
+      const upsertFn = valuesFn.mock.results[0]!.value.onConflictDoUpdate as jest.Mock;
+      expect(upsertFn).toHaveBeenCalledTimes(1);
+      const upsertArg = upsertFn.mock.calls[0]![0] as { set: Record<string, unknown> };
+      expect(upsertArg.set).toHaveProperty('lastUsedAt');
+    });
+
+    it('resolves without throwing', async () => {
+      db.insert.mockReturnValue(makeInsertUpsert());
+
+      await expect(service.registerToken('user-1', { token: 'tok-abc' })).resolves.toBeUndefined();
+    });
+  });
+
+  describe('deleteToken()', () => {
+    const makeDelete = () => ({
+      where: jest.fn().mockResolvedValue(undefined),
+    });
+
+    it('calls delete with the correct userId and token', async () => {
+      db.delete.mockReturnValue(makeDelete());
+
+      await service.deleteToken('user-1', { token: 'tok-abc' });
+
+      expect(db.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it('resolves without throwing when the token does not exist', async () => {
+      db.delete.mockReturnValue(makeDelete());
+
+      await expect(
+        service.deleteToken('user-1', { token: 'nonexistent' }),
+      ).resolves.toBeUndefined();
     });
   });
 

@@ -53,6 +53,8 @@ let mockFindAll: jest.Mock;
 let mockCountUnread: jest.Mock;
 let mockMarkRead: jest.Mock;
 let mockMarkAllRead: jest.Mock;
+let mockRegisterToken: jest.Mock;
+let mockDeleteToken: jest.Mock;
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;
@@ -62,6 +64,8 @@ describe('NotificationsController', () => {
     mockCountUnread = jest.fn().mockResolvedValue(1);
     mockMarkRead = jest.fn().mockResolvedValue(undefined);
     mockMarkAllRead = jest.fn().mockResolvedValue(undefined);
+    mockRegisterToken = jest.fn().mockResolvedValue(undefined);
+    mockDeleteToken = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NotificationsController],
@@ -73,6 +77,8 @@ describe('NotificationsController', () => {
             countUnread: mockCountUnread,
             markRead: mockMarkRead,
             markAllRead: mockMarkAllRead,
+            registerToken: mockRegisterToken,
+            deleteToken: mockDeleteToken,
           },
         },
       ],
@@ -156,6 +162,43 @@ describe('NotificationsController', () => {
 
     it('returns undefined', async () => {
       const result = await controller.markRead(mockAuthUser, 'notif-uuid');
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('POST /v1/notifications/fcm-token', () => {
+    it('delegates to registerToken with user id and dto', async () => {
+      await controller.registerFcmToken(mockAuthUser, { token: 'tok-abc', deviceHint: 'Chrome' });
+
+      expect(mockRegisterToken).toHaveBeenCalledWith('user-uuid', {
+        token: 'tok-abc',
+        deviceHint: 'Chrome',
+      });
+    });
+
+    it('delegates to registerToken without deviceHint', async () => {
+      await controller.registerFcmToken(mockAuthUser, { token: 'tok-abc' });
+
+      expect(mockRegisterToken).toHaveBeenCalledWith('user-uuid', { token: 'tok-abc' });
+    });
+
+    it('returns undefined', async () => {
+      const result = await controller.registerFcmToken(mockAuthUser, { token: 'tok-abc' });
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('DELETE /v1/notifications/fcm-token', () => {
+    it('delegates to deleteToken with user id and dto', async () => {
+      await controller.deleteFcmToken(mockAuthUser, { token: 'tok-abc' });
+
+      expect(mockDeleteToken).toHaveBeenCalledWith('user-uuid', { token: 'tok-abc' });
+    });
+
+    it('returns undefined', async () => {
+      const result = await controller.deleteFcmToken(mockAuthUser, { token: 'tok-abc' });
 
       expect(result).toBeUndefined();
     });
