@@ -79,7 +79,7 @@ export class NotificationsController {
       'Sets readAt on the specified notification. ' +
       'Silently succeeds if the notification is already read or belongs to a different user.',
   })
-  @ApiParam({ name: 'id', description: 'UUID of the notification to mark as read' })
+  @ApiParam({ name: 'id', description: 'UUID of the notification to mark as read', format: 'uuid' })
   @ApiResponse({ status: 204, description: 'Notification marked as read' })
   @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
   async markRead(
