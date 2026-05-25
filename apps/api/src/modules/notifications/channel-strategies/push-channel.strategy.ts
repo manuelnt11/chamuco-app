@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import type * as admin from 'firebase-admin';
 import { and, eq, inArray } from 'drizzle-orm';
 import { DeliveryStatus, NotificationChannel } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -32,7 +33,7 @@ export class PushChannelStrategy implements NotificationChannelStrategy {
     const tokens = tokenRows.map((r) => r.token);
     const data = this.coercePayload(payload);
 
-    let batchResponse;
+    let batchResponse: admin.messaging.BatchResponse;
     try {
       batchResponse = await this.firebaseAdmin.messaging().sendEachForMulticast({
         tokens,
@@ -81,8 +82,10 @@ export class PushChannelStrategy implements NotificationChannelStrategy {
       await this.updateDelivery(notification.id, DeliveryStatus.FAILED, null, 'no_fcm_tokens');
     } else if (hasNonStaleFailure) {
       await this.updateDelivery(notification.id, DeliveryStatus.FAILED, null, firstNonStaleError!);
-    } else {
+    } else if (activeSent > 0) {
       await this.updateDelivery(notification.id, DeliveryStatus.SENT, new Date(), null);
+    } else {
+      await this.updateDelivery(notification.id, DeliveryStatus.FAILED, null, 'unknown_fcm_error');
     }
   }
 

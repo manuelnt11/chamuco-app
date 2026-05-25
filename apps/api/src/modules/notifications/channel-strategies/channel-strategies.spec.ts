@@ -56,7 +56,7 @@ function makeContext(tokens: string[], sendEachForMulticast: jest.Mock) {
       | { status: DeliveryStatus; sentAt: Date | null; error: string | null }
       | undefined;
 
-  return { strategy, db, updateSet, deleteWhere, getSetArgs };
+  return { strategy, db, updateSet, updateSetWhere, deleteWhere, getSetArgs };
 }
 
 // ─── PushChannelStrategy ─────────────────────────────────────────────────────
@@ -82,7 +82,10 @@ describe('PushChannelStrategy', () => {
       const sendEachForMulticast = jest
         .fn()
         .mockResolvedValue(makeBatchResponse([{ success: true }, { success: true }]));
-      const { strategy, db, getSetArgs } = makeContext(['tok-a', 'tok-b'], sendEachForMulticast);
+      const { strategy, db, updateSetWhere, getSetArgs } = makeContext(
+        ['tok-a', 'tok-b'],
+        sendEachForMulticast,
+      );
 
       await strategy.send(FAKE_NOTIFICATION, { key: 'val' });
 
@@ -97,6 +100,8 @@ describe('PushChannelStrategy', () => {
       expect(getSetArgs()?.status).toBe(DeliveryStatus.SENT);
       expect(getSetArgs()?.sentAt).toBeInstanceOf(Date);
       expect(getSetArgs()?.error).toBeNull();
+      // WHERE clause must be applied — guards against updateDelivery updating wrong rows
+      expect(updateSetWhere).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -170,6 +175,20 @@ describe('PushChannelStrategy', () => {
 
       expect(getSetArgs()?.status).toBe(DeliveryStatus.FAILED);
       expect(getSetArgs()?.error).toBe('Network timeout');
+    });
+  });
+
+  describe('FCM returns failure with no error object', () => {
+    it('marks delivery FAILED with unknown_fcm_error', async () => {
+      const sendEachForMulticast = jest
+        .fn()
+        .mockResolvedValue(makeBatchResponse([{ success: false }]));
+      const { strategy, getSetArgs } = makeContext(['tok-x'], sendEachForMulticast);
+
+      await strategy.send(FAKE_NOTIFICATION, {});
+
+      expect(getSetArgs()?.status).toBe(DeliveryStatus.FAILED);
+      expect(getSetArgs()?.error).toBe('unknown_fcm_error');
     });
   });
 
