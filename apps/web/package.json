@@ -20,7 +20,7 @@
     "clean": "rm -rf .next dist coverage .turbo"
   },
   "dependencies": {
-    "@base-ui/react": "^1.4.1",
+    "@base-ui/react": "^1.5.0",
     "@chamuco/shared-types": "workspace:*",
     "@chamuco/shared-utils": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
