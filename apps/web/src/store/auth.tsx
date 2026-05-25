@@ -28,6 +28,13 @@ export interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
+const beforeSignOutCallbacks = new Set<() => Promise<void>>();
+
+export function registerBeforeSignOut(cb: () => Promise<void>): () => void {
+  beforeSignOutCallbacks.add(cb);
+  return () => beforeSignOutCallbacks.delete(cb);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   // idToken is populated on sign-in and cleared on sign-out, but can become stale between
@@ -103,6 +110,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // Run beforeSignOut hooks (e.g. FCM token cleanup) before revoking the session.
+    // allSettled ensures a failing hook never blocks the logout flow.
+    await Promise.allSettled([...beforeSignOutCallbacks].map((cb) => cb()));
+
     // Revoke the session server-side before signing out locally.
     // firebaseSignOut runs unconditionally so the client is never stuck in a signed-in
     // state if the server-side revocation call fails.

@@ -19,6 +19,7 @@ function setAllEnv() {
     NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'test-project',
     NEXT_PUBLIC_FIREBASE_APP_ID: '1:123:web:abc',
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789',
+    NEXT_PUBLIC_FIREBASE_VAPID_KEY: 'test-vapid-key',
     NEXT_PUBLIC_API_URL: 'http://localhost:3001',
   });
 }
@@ -30,6 +31,7 @@ function clearAllEnv() {
     NEXT_PUBLIC_FIREBASE_PROJECT_ID: undefined,
     NEXT_PUBLIC_FIREBASE_APP_ID: undefined,
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: undefined,
+    NEXT_PUBLIC_FIREBASE_VAPID_KEY: undefined,
     NEXT_PUBLIC_API_URL: undefined,
   });
 }
@@ -55,6 +57,7 @@ describe('validateEnv', () => {
       NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'test-project',
       NEXT_PUBLIC_FIREBASE_APP_ID: '1:123:web:abc',
       NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789',
+      NEXT_PUBLIC_FIREBASE_VAPID_KEY: 'test-vapid-key',
       NEXT_PUBLIC_API_URL: 'http://localhost:3001',
     });
   });
