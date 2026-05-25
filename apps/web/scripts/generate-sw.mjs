@@ -25,5 +25,11 @@ for (const key of TOKENS) {
   output = output.replaceAll(`%%${key}%%`, process.env[key]);
 }
 
+const residual = output.match(/%%\w+%%/g);
+if (residual) {
+  console.error('[generate-sw] Unreplaced tokens in output:\n  ' + [...new Set(residual)].join('\n  '));
+  process.exit(1);
+}
+
 writeFileSync(join(ROOT, 'public/sw.js'), output, 'utf8');
 console.log('[generate-sw] public/sw.js generated successfully');

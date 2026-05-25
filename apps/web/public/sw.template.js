@@ -113,8 +113,8 @@ self.addEventListener('fetch', (event) => {
 });
 
 // FCM Background Message Handler
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.13.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: '%%NEXT_PUBLIC_FIREBASE_API_KEY%%',
@@ -146,7 +146,7 @@ self.addEventListener('notificationclick', (event) => {
   console.log('[FCM] Notification clicked:', event.notification.tag);
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || '/';
+  const urlToOpen = new URL(event.notification.data?.url || '/', self.location.origin).href;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
