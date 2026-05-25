@@ -139,6 +139,8 @@ export class NotificationsService {
       .values({ userId, token: dto.token, deviceHint: dto.deviceHint ?? null })
       .onConflictDoUpdate({
         target: [userFcmTokens.userId, userFcmTokens.token],
+        // deviceHint is intentionally not refreshed on conflict — the token identity
+        // is stable, and a stale hint is harmless (used only for human-readable display).
         set: { lastUsedAt: sql`now()` },
       });
   }

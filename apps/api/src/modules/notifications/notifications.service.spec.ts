@@ -358,12 +358,17 @@ describe('NotificationsService', () => {
       where: jest.fn().mockResolvedValue(undefined),
     });
 
-    it('calls delete with the correct userId and token', async () => {
+    it('calls delete with a scoped where clause', async () => {
       db.delete.mockReturnValue(makeDelete());
 
       await service.deleteToken('user-1', { token: 'tok-abc' });
 
       expect(db.delete).toHaveBeenCalledTimes(1);
+      const whereFn = db.delete.mock.results[0]!.value.where as jest.Mock;
+      expect(whereFn).toHaveBeenCalledTimes(1);
+      // Drizzle SQL expressions are opaque objects — verify a condition was applied
+      // (without .where(), the DELETE would affect all rows for all users)
+      expect(whereFn.mock.calls[0]![0]).toBeDefined();
     });
 
     it('resolves without throwing when the token does not exist', async () => {
