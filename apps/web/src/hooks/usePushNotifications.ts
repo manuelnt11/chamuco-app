@@ -18,8 +18,9 @@ export function usePushNotifications(): void {
     if (!currentUser) return;
     if (!('Notification' in window)) return;
 
-    const messaging = getFirebaseMessaging();
-    if (!messaging) return;
+    const maybeMessaging = getFirebaseMessaging();
+    if (!maybeMessaging) return;
+    const messaging = maybeMessaging;
 
     let cancelled = false;
     let unsubscribeForeground: (() => void) | null = null;
@@ -31,7 +32,7 @@ export function usePushNotifications(): void {
       const swReg = await navigator.serviceWorker.ready;
       if (cancelled) return;
 
-      const token = await getToken(messaging!, {
+      const token = await getToken(messaging, {
         vapidKey: env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
         serviceWorkerRegistration: swReg,
       });
@@ -41,7 +42,7 @@ export function usePushNotifications(): void {
       await apiClient.post('/v1/notifications/fcm-token', { token });
 
       if (cancelled) return;
-      unsubscribeForeground = onMessage(messaging!, (payload) => {
+      unsubscribeForeground = onMessage(messaging, (payload) => {
         const title = payload.notification?.title ?? 'Notification';
         const body = payload.notification?.body;
         toast.info(title, body);
@@ -58,7 +59,7 @@ export function usePushNotifications(): void {
       const token = fcmTokenRef.current;
       if (!token) return;
       await apiClient.delete('/v1/notifications/fcm-token', { data: { token } });
-      await deleteToken(messaging!);
+      await deleteToken(messaging);
       fcmTokenRef.current = null;
     });
 
