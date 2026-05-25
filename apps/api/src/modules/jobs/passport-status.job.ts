@@ -29,16 +29,16 @@ export class PassportStatusJob {
     const rows = await this.db.execute<PassportStatusRow>(sql`
       UPDATE user_nationalities
       SET passport_status = CASE
-            WHEN passport_expiry_date < CURRENT_DATE                        THEN 'EXPIRED'
-            WHEN passport_expiry_date < CURRENT_DATE + INTERVAL '180 days' THEN 'EXPIRING_SOON'
-            ELSE                                                                 'ACTIVE'
+            WHEN passport_expiry_date < CURRENT_DATE                        THEN 'EXPIRED'::passport_status
+            WHEN passport_expiry_date < CURRENT_DATE + INTERVAL '180 days' THEN 'EXPIRING_SOON'::passport_status
+            ELSE                                                                 'ACTIVE'::passport_status
           END,
           updated_at = CURRENT_TIMESTAMP
-      WHERE passport_status <> 'OMITTED'
+      WHERE passport_status <> 'OMITTED'::passport_status
         AND passport_status <> CASE
-          WHEN passport_expiry_date < CURRENT_DATE                        THEN 'EXPIRED'
-          WHEN passport_expiry_date < CURRENT_DATE + INTERVAL '180 days' THEN 'EXPIRING_SOON'
-          ELSE                                                                 'ACTIVE'
+          WHEN passport_expiry_date < CURRENT_DATE                        THEN 'EXPIRED'::passport_status
+          WHEN passport_expiry_date < CURRENT_DATE + INTERVAL '180 days' THEN 'EXPIRING_SOON'::passport_status
+          ELSE                                                                 'ACTIVE'::passport_status
         END
       RETURNING user_id, country_code, passport_status
     `);
