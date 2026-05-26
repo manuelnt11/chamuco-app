@@ -43,7 +43,7 @@ export class PassportStatusJob {
       RETURNING user_id, country_code, passport_status
     `);
 
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       rows
         .filter(
           (r) =>
@@ -61,5 +61,11 @@ export class PassportStatusJob {
           ),
         ),
     );
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        this.logger.error('Failed to send passport status notification', result.reason);
+      }
+    }
   }
 }

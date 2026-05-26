@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { and, count, eq, inArray, isNull } from 'drizzle-orm';
@@ -37,6 +38,8 @@ const ADMIN_ROLES = [GroupRole.OWNER, GroupRole.ADMIN] as const;
 
 @Injectable()
 export class GroupMembersService {
+  private readonly logger = new Logger(GroupMembersService.name);
+
   constructor(
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly assetResolver: AssetResolverService,
@@ -110,9 +113,11 @@ export class GroupMembersService {
         .onConflictDoNothing();
     });
 
-    await this.notifications.notify(targetUserId, NotificationType.GROUP_JOIN_ACCEPTED, {}, [
-      NotificationChannel.PUSH,
-    ]);
+    await this.notifications
+      .notify(targetUserId, NotificationType.GROUP_JOIN_ACCEPTED, {}, [NotificationChannel.PUSH])
+      .catch((err: unknown) => {
+        this.logger.error('Failed to send GROUP_JOIN_ACCEPTED notification', err);
+      });
   }
 
   async rejectJoinRequest(
@@ -226,9 +231,13 @@ export class GroupMembersService {
     }
 
     if (invitedUserIds.length > 0) {
-      await this.notifications.notifyMany(invitedUserIds, NotificationType.GROUP_INVITATION, {}, [
-        NotificationChannel.PUSH,
-      ]);
+      await this.notifications
+        .notifyMany(invitedUserIds, NotificationType.GROUP_INVITATION, {}, [
+          NotificationChannel.PUSH,
+        ])
+        .catch((err: unknown) => {
+          this.logger.error('Failed to send GROUP_INVITATION notifications', err);
+        });
     }
 
     return { results };

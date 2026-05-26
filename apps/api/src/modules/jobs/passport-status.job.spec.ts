@@ -88,6 +88,20 @@ describe('PassportStatusJob', () => {
       expect(logSpy).toHaveBeenCalledWith('Passport status refresh failed', expect.any(Error));
     });
 
+    it('logs error and resolves when notify() rejects', async () => {
+      db.execute.mockResolvedValue([
+        { user_id: 'user-1', country_code: 'MX', passport_status: PassportStatus.EXPIRING_SOON },
+      ]);
+      (notificationsService.notify as jest.Mock).mockRejectedValueOnce(new Error('DB blip'));
+      const logSpy = jest.spyOn(job['logger'], 'error').mockImplementation(() => undefined);
+
+      await expect(job.runPassportStatusRefresh()).resolves.toBeUndefined();
+      expect(logSpy).toHaveBeenCalledWith(
+        'Failed to send passport status notification',
+        expect.any(Error),
+      );
+    });
+
     it('sends notifications in parallel for multiple changed rows', async () => {
       db.execute.mockResolvedValue([
         { user_id: 'user-1', country_code: 'MX', passport_status: PassportStatus.EXPIRING_SOON },
