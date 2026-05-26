@@ -472,6 +472,12 @@ describe('GroupMembersService', () => {
       );
       expect(mockInsert).not.toHaveBeenCalled();
       expect(result).toEqual({ results: [{ username: 'target_user', status: 'INVITED' }] });
+      expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
+        [TARGET_ID],
+        NotificationType.GROUP_INVITATION,
+        {},
+        [NotificationChannel.PUSH],
+      );
     });
 
     it('handles multiple usernames and returns per-user results', async () => {
