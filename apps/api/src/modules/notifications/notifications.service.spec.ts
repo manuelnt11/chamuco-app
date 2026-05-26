@@ -60,6 +60,11 @@ describe('NotificationsService', () => {
     update: jest.Mock;
     select: jest.Mock;
     delete: jest.Mock;
+    query: {
+      userPreferences: {
+        findMany: jest.Mock;
+      };
+    };
   };
 
   beforeEach(async () => {
@@ -75,6 +80,12 @@ describe('NotificationsService', () => {
       update: jest.fn(),
       select: jest.fn(),
       delete: jest.fn(),
+      query: {
+        userPreferences: {
+          // Default: no prefs stored — all channels enabled
+          findMany: jest.fn().mockResolvedValue([]),
+        },
+      },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -138,6 +149,94 @@ describe('NotificationsService', () => {
         ]),
       ).resolves.toBeUndefined();
     });
+
+    describe('preference filtering', () => {
+      it('passes all channels through when user has no prefs for the type', async () => {
+        db.insert
+          .mockReturnValueOnce(makeInsert([FAKE_NOTIFICATION]))
+          .mockReturnValueOnce(makeInsertNoReturn());
+
+        await service.notify(
+          'user-1',
+          NotificationType.PASSPORT_EXPIRING_SOON,
+          { countryCode: 'MX' },
+          [NotificationChannel.PUSH],
+        );
+
+        expect(pushStrategy.send).toHaveBeenCalledTimes(1);
+      });
+
+      it('suppresses a disabled channel but still creates the notification row', async () => {
+        db.query.userPreferences.findMany.mockResolvedValueOnce([
+          {
+            userId: 'user-1',
+            notificationOptOuts: {
+              [NotificationType.PASSPORT_EXPIRING_SOON]: [NotificationChannel.PUSH],
+            },
+          },
+        ]);
+        db.insert.mockReturnValueOnce(makeInsert([FAKE_NOTIFICATION]));
+
+        await service.notify(
+          'user-1',
+          NotificationType.PASSPORT_EXPIRING_SOON,
+          { countryCode: 'MX' },
+          [NotificationChannel.PUSH],
+        );
+
+        // notification row inserted; no delivery rows (all channels suppressed)
+        expect(db.insert).toHaveBeenCalledTimes(1);
+        expect(pushStrategy.send).not.toHaveBeenCalled();
+      });
+
+      it('only dispatches channels not in the disabled list', async () => {
+        db.query.userPreferences.findMany.mockResolvedValueOnce([
+          {
+            userId: 'user-1',
+            notificationOptOuts: {
+              [NotificationType.PASSPORT_EXPIRING_SOON]: [NotificationChannel.EMAIL],
+            },
+          },
+        ]);
+        db.insert
+          .mockReturnValueOnce(makeInsert([FAKE_NOTIFICATION]))
+          .mockReturnValueOnce(makeInsertNoReturn());
+
+        await service.notify(
+          'user-1',
+          NotificationType.PASSPORT_EXPIRING_SOON,
+          { countryCode: 'MX' },
+          [NotificationChannel.PUSH, NotificationChannel.EMAIL],
+        );
+
+        expect(pushStrategy.send).toHaveBeenCalledTimes(1);
+        expect(emailStrategy.send).not.toHaveBeenCalled();
+      });
+
+      it('does not suppress channels for a different notification type', async () => {
+        db.query.userPreferences.findMany.mockResolvedValueOnce([
+          {
+            userId: 'user-1',
+            notificationOptOuts: {
+              // PUSH disabled only for GROUP_ANNOUNCEMENT, not PASSPORT_EXPIRING_SOON
+              [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.PUSH],
+            },
+          },
+        ]);
+        db.insert
+          .mockReturnValueOnce(makeInsert([FAKE_NOTIFICATION]))
+          .mockReturnValueOnce(makeInsertNoReturn());
+
+        await service.notify(
+          'user-1',
+          NotificationType.PASSPORT_EXPIRING_SOON,
+          { countryCode: 'MX' },
+          [NotificationChannel.PUSH],
+        );
+
+        expect(pushStrategy.send).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   describe('notifyMany()', () => {
@@ -199,6 +298,84 @@ describe('NotificationsService', () => {
       ]);
 
       expect(pushStrategy.send).toHaveBeenCalledTimes(2);
+    });
+
+    describe('preference filtering', () => {
+      it('dispatches only to users who have not disabled the channel', async () => {
+        const rows = [
+          {
+            ...FAKE_NOTIFICATION,
+            id: 'notif-1',
+            userId: 'user-1',
+            type: NotificationType.GROUP_ANNOUNCEMENT,
+          },
+          {
+            ...FAKE_NOTIFICATION,
+            id: 'notif-2',
+            userId: 'user-2',
+            type: NotificationType.GROUP_ANNOUNCEMENT,
+          },
+        ];
+        db.insert.mockReturnValueOnce(makeInsert(rows)).mockReturnValueOnce(makeInsertNoReturn());
+
+        // user-1 has PUSH disabled; user-2 has no prefs
+        db.query.userPreferences.findMany.mockResolvedValueOnce([
+          {
+            userId: 'user-1',
+            notificationOptOuts: {
+              [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.PUSH],
+            },
+          },
+        ]);
+
+        await service.notifyMany(['user-1', 'user-2'], NotificationType.GROUP_ANNOUNCEMENT, {}, [
+          NotificationChannel.PUSH,
+        ]);
+
+        expect(pushStrategy.send).toHaveBeenCalledTimes(1);
+        expect(pushStrategy.send).toHaveBeenCalledWith(rows[1], {});
+      });
+
+      it('skips dispatch entirely when all users have the channel disabled', async () => {
+        const rows = [
+          {
+            ...FAKE_NOTIFICATION,
+            id: 'notif-1',
+            userId: 'user-1',
+            type: NotificationType.GROUP_ANNOUNCEMENT,
+          },
+          {
+            ...FAKE_NOTIFICATION,
+            id: 'notif-2',
+            userId: 'user-2',
+            type: NotificationType.GROUP_ANNOUNCEMENT,
+          },
+        ];
+        db.insert.mockReturnValueOnce(makeInsert(rows));
+
+        db.query.userPreferences.findMany.mockResolvedValueOnce([
+          {
+            userId: 'user-1',
+            notificationOptOuts: {
+              [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.PUSH],
+            },
+          },
+          {
+            userId: 'user-2',
+            notificationOptOuts: {
+              [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.PUSH],
+            },
+          },
+        ]);
+
+        await service.notifyMany(['user-1', 'user-2'], NotificationType.GROUP_ANNOUNCEMENT, {}, [
+          NotificationChannel.PUSH,
+        ]);
+
+        // Only the notifications batch insert; no delivery rows written
+        expect(db.insert).toHaveBeenCalledTimes(1);
+        expect(pushStrategy.send).not.toHaveBeenCalled();
+      });
     });
   });
 

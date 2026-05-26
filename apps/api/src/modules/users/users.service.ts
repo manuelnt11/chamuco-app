@@ -17,7 +17,14 @@ import { userVisas } from '@/modules/users/schema/user-visas.schema';
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
-import { DocumentStatus, PassportStatus, ProfileVisibility } from '@chamuco/shared-types';
+import {
+  DisabledNotificationChannels,
+  DocumentStatus,
+  NotificationChannel,
+  NotificationType,
+  PassportStatus,
+  ProfileVisibility,
+} from '@chamuco/shared-types';
 import type { ResolvedAsset } from '@chamuco/shared-types';
 import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { computeDocumentStatus } from '@/common/utils/document-status.util';
@@ -35,6 +42,8 @@ import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emerg
 import type { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
 import type { PublicProfileResponseDto } from './dto/public-profile-response.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import type { NotificationPreferencesResponseDto } from './dto/notification-preferences-response.dto';
+import type { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import type { UserHealthResponseDto } from './dto/user-health-response.dto';
@@ -187,6 +196,41 @@ export class UsersService {
       throw new NotFoundException('User preferences not found');
     }
     return this.mapPreferencesResponse(updated);
+  }
+
+  async getNotificationPreferences(userId: string): Promise<NotificationPreferencesResponseDto> {
+    const prefs = await this.db.query.userPreferences.findFirst({
+      where: eq(userPreferences.userId, userId),
+    });
+    if (!prefs) {
+      throw new NotFoundException('User preferences not found');
+    }
+    return { disabledNotificationChannels: prefs.notificationOptOuts ?? {} };
+  }
+
+  async updateNotificationPreferences(
+    userId: string,
+    dto: UpdateNotificationPreferencesDto,
+  ): Promise<NotificationPreferencesResponseDto> {
+    const existing = await this.db.query.userPreferences.findFirst({
+      where: eq(userPreferences.userId, userId),
+    });
+    if (!existing) {
+      throw new NotFoundException('User preferences not found');
+    }
+
+    const sanitized = this.sanitizeNotificationPreferences(dto.disabledChannels);
+
+    const [updated] = await this.db
+      .update(userPreferences)
+      .set({ notificationOptOuts: sanitized })
+      .where(eq(userPreferences.userId, userId))
+      .returning();
+
+    if (!updated) {
+      throw new NotFoundException('User preferences not found');
+    }
+    return { disabledNotificationChannels: updated.notificationOptOuts ?? {} };
   }
 
   async getProfile(userId: string): Promise<UserProfileResponseDto> {
@@ -985,6 +1029,26 @@ export class UsersService {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  private sanitizeNotificationPreferences(
+    raw: DisabledNotificationChannels,
+  ): DisabledNotificationChannels {
+    const validTypes = new Set(Object.values(NotificationType));
+    const validChannels = new Set(Object.values(NotificationChannel));
+    const result: DisabledNotificationChannels = {};
+
+    for (const [key, channels] of Object.entries(raw)) {
+      if (!validTypes.has(key as NotificationType)) continue;
+      if (!Array.isArray(channels)) continue;
+      const valid = channels.filter((ch) =>
+        validChannels.has(ch as NotificationChannel),
+      ) as NotificationChannel[];
+      if (valid.length > 0) {
+        result[key as NotificationType] = valid;
+      }
+    }
+    return result;
+  }
 
   private async requireNationality(
     userId: string,
