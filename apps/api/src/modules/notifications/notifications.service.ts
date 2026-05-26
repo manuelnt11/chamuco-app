@@ -1,11 +1,6 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { and, count, desc, eq, isNull, lt, sql } from 'drizzle-orm';
-import {
-  DeliveryStatus,
-  NotificationChannel,
-  NotificationType,
-  PassportStatus,
-} from '@chamuco/shared-types';
+import { DeliveryStatus, NotificationChannel, NotificationType } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { I18nService, SupportedLanguage } from '@/i18n/i18n.service';
 import { notifications } from '@/modules/notifications/schema/notifications.schema';
@@ -149,19 +144,6 @@ export class NotificationsService {
     await this.db
       .delete(userFcmTokens)
       .where(and(eq(userFcmTokens.userId, userId), eq(userFcmTokens.token, dto.token)));
-  }
-
-  async sendPassportStatusNotification(
-    userId: string,
-    countryCode: string,
-    status: PassportStatus.EXPIRING_SOON | PassportStatus.EXPIRED,
-  ): Promise<void> {
-    const type =
-      status === PassportStatus.EXPIRING_SOON
-        ? NotificationType.PASSPORT_EXPIRING_SOON
-        : NotificationType.PASSPORT_EXPIRED;
-
-    await this.notify(userId, type, { countryCode }, []);
   }
 
   private renderContent(

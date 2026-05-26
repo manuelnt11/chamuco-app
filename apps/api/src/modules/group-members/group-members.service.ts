@@ -6,12 +6,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { and, count, eq, inArray, isNull } from 'drizzle-orm';
-import { GroupMemberStatus, GroupMemberTier, GroupRole } from '@chamuco/shared-types';
+import {
+  GroupMemberStatus,
+  GroupMemberTier,
+  GroupRole,
+  NotificationChannel,
+  NotificationType,
+} from '@chamuco/shared-types';
 import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { users } from '@/modules/users/schema/users.schema';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { groups } from '@/modules/groups/schema/groups.schema';
 import { groupMembers } from '@/modules/groups/schema/group-members.schema';
 import { groupMemberStats } from '@/modules/groups/schema/group-member-stats.schema';
@@ -33,6 +40,7 @@ export class GroupMembersService {
   constructor(
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly assetResolver: AssetResolverService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   // ─── Join request ────────────────────────────────────────────────────────────
@@ -101,6 +109,10 @@ export class GroupMembersService {
         .values({ groupId, userId: targetUserId, joinedAt: now })
         .onConflictDoNothing();
     });
+
+    await this.notifications.notify(targetUserId, NotificationType.GROUP_JOIN_ACCEPTED, {}, [
+      NotificationChannel.PUSH,
+    ]);
   }
 
   async rejectJoinRequest(
@@ -162,6 +174,7 @@ export class GroupMembersService {
     const membershipByUserId = new Map(existingMemberships.map((m) => [m.userId, m]));
 
     const results: InvitationResultDto[] = [];
+    const invitedUserIds: string[] = [];
 
     for (const username of dto.usernames) {
       const targetUser = userByUsername.get(username);
@@ -208,7 +221,14 @@ export class GroupMembersService {
         });
       }
 
+      invitedUserIds.push(targetUser.id);
       results.push({ username, status: 'INVITED' });
+    }
+
+    if (invitedUserIds.length > 0) {
+      await this.notifications.notifyMany(invitedUserIds, NotificationType.GROUP_INVITATION, {}, [
+        NotificationChannel.PUSH,
+      ]);
     }
 
     return { results };
