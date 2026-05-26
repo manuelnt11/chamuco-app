@@ -85,6 +85,13 @@
       "instruction": "Toca <shareIcon /> y luego \"Añadir a la pantalla de inicio\"",
       "install": "Instalar",
       "dismiss": "Ahora no"
+    },
+    "notifications": {
+      "openLabel": "Abrir notificaciones",
+      "title": "Notificaciones",
+      "markAllRead": "Marcar todo como leído",
+      "empty": "Aún no hay notificaciones",
+      "unreadBadge": "{{count}} notificaciones sin leer"
     }
   },
   "auth": {

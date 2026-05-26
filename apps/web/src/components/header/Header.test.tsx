@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { User } from 'firebase/auth';
+import type { AuthContextValue } from '@/store/auth';
 import { Header } from './Header';
 
 // Mock the Logo component
@@ -12,6 +14,11 @@ vi.mock('./UserAvatar', () => ({
   UserAvatar: () => <button data-testid="user-avatar">User Avatar</button>,
 }));
 
+// Mock the NotificationBell component
+vi.mock('./NotificationBell', () => ({
+  NotificationBell: () => <button data-testid="notification-bell">Notification Bell</button>,
+}));
+
 // Mock the ThemeToggle component
 vi.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <button data-testid="theme-toggle">Theme Toggle</button>,
@@ -21,6 +28,33 @@ vi.mock('@/components/ThemeToggle', () => ({
 vi.mock('@/components/LanguageToggle', () => ({
   LanguageToggle: () => <button data-testid="language-toggle">Language Toggle</button>,
 }));
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: vi.fn(),
+}));
+
+import { useAuth } from '@/hooks/useAuth';
+
+function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
+  return {
+    currentUser: null,
+    idToken: null,
+    isLoading: false,
+    getIdToken: vi.fn().mockResolvedValue(null),
+    signInWithGoogle: vi.fn(),
+    signInWithFacebook: vi.fn(),
+    signOut: vi.fn(),
+    ...overrides,
+  };
+}
+
+function makeFirebaseUser(): User {
+  return { uid: 'uid-1', displayName: 'Jane', email: 'jane@example.com' } as User;
+}
+
+beforeEach(() => {
+  vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeFirebaseUser() }));
+});
 
 describe('Header', () => {
   it('renders as a header element', () => {
@@ -55,6 +89,17 @@ describe('Header', () => {
   it('renders UserAvatar component', () => {
     render(<Header />);
     expect(screen.getByTestId('user-avatar')).toBeInTheDocument();
+  });
+
+  it('renders NotificationBell when user is authenticated', () => {
+    render(<Header />);
+    expect(screen.getByTestId('notification-bell')).toBeInTheDocument();
+  });
+
+  it('hides NotificationBell when user is not authenticated', () => {
+    vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: null }));
+    render(<Header />);
+    expect(screen.queryByTestId('notification-bell')).not.toBeInTheDocument();
   });
 
   it('renders LanguageToggle component', () => {
