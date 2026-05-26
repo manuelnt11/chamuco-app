@@ -55,7 +55,7 @@
     "@typescript-eslint/parser": "catalog:",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "catalog:",
-    "@vitest/ui": "^4.1.6",
+    "@vitest/ui": "^4.1.7",
     "eslint": "catalog:",
     "eslint-config-next": "^16.2.6",
     "eslint-config-prettier": "catalog:",
