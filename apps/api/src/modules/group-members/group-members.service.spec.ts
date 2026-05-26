@@ -5,9 +5,12 @@ import {
   GroupMemberTier,
   GroupRole,
   GroupVisibility,
+  NotificationChannel,
+  NotificationType,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { GroupMembersService } from './group-members.service';
 import type { CreateInvitationDto } from './dto/create-invitation.dto';
 import type { UpdateMemberRoleDto } from './dto/update-member-role.dto';
@@ -98,6 +101,8 @@ describe('GroupMembersService', () => {
   let mockSelect: jest.Mock;
   let mockTransaction: jest.Mock;
   let mockAssetResolverResolve: jest.Mock;
+  let mockNotificationsNotify: jest.Mock;
+  let mockNotificationsNotifyMany: jest.Mock;
 
   beforeEach(async () => {
     mockGroupsFindFirst = jest.fn().mockResolvedValue(mockPublicGroup);
@@ -140,6 +145,8 @@ describe('GroupMembersService', () => {
     );
 
     mockAssetResolverResolve = jest.fn().mockResolvedValue(null);
+    mockNotificationsNotify = jest.fn().mockResolvedValue(undefined);
+    mockNotificationsNotifyMany = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -167,6 +174,10 @@ describe('GroupMembersService', () => {
         {
           provide: AssetResolverService,
           useValue: { resolve: mockAssetResolverResolve },
+        },
+        {
+          provide: NotificationsService,
+          useValue: { notify: mockNotificationsNotify, notifyMany: mockNotificationsNotifyMany },
         },
       ],
     }).compile();
@@ -253,6 +264,26 @@ describe('GroupMembersService', () => {
         expect.objectContaining({ status: GroupMemberStatus.ACTIVE }),
       );
       expect(mockInsertOnConflict).toHaveBeenCalledTimes(1);
+      expect(mockNotificationsNotify).toHaveBeenCalledWith(
+        USER_ID,
+        NotificationType.GROUP_JOIN_ACCEPTED,
+        {},
+        [NotificationChannel.PUSH],
+      );
+    });
+
+    it('logs error and resolves when notify() rejects', async () => {
+      mockGroupMembersFindFirst
+        .mockResolvedValueOnce(ownerMembership)
+        .mockResolvedValueOnce(requestMembership);
+      mockNotificationsNotify.mockRejectedValueOnce(new Error('DB blip'));
+      const logSpy = jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+
+      await expect(service.acceptJoinRequest(GROUP_ID, USER_ID, ADMIN_ID)).resolves.toBeUndefined();
+      expect(logSpy).toHaveBeenCalledWith(
+        'Failed to send GROUP_JOIN_ACCEPTED notification',
+        expect.any(Error),
+      );
     });
 
     it('throws ForbiddenException when caller is not an admin', async () => {
@@ -359,6 +390,12 @@ describe('GroupMembersService', () => {
         expect.objectContaining({ status: GroupMemberStatus.INVITED }),
       );
       expect(result).toEqual({ results: [{ username: 'target_user', status: 'INVITED' }] });
+      expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
+        [TARGET_ID],
+        NotificationType.GROUP_INVITATION,
+        {},
+        [NotificationChannel.PUSH],
+      );
     });
 
     it('throws ForbiddenException when caller is not an admin', async () => {
@@ -378,6 +415,7 @@ describe('GroupMembersService', () => {
 
       expect(result).toEqual({ results: [{ username: 'target_user', status: 'NOT_FOUND' }] });
       expect(mockInsert).not.toHaveBeenCalled();
+      expect(mockNotificationsNotifyMany).not.toHaveBeenCalled();
     });
 
     it('returns ALREADY_MEMBER when target is already ACTIVE', async () => {
@@ -390,6 +428,7 @@ describe('GroupMembersService', () => {
       expect(result).toEqual({
         results: [{ username: 'target_user', status: 'ALREADY_MEMBER' }],
       });
+      expect(mockNotificationsNotifyMany).not.toHaveBeenCalled();
     });
 
     it('returns ALREADY_INVITED when target already has INVITED status', async () => {
@@ -402,6 +441,7 @@ describe('GroupMembersService', () => {
       expect(result).toEqual({
         results: [{ username: 'target_user', status: 'ALREADY_INVITED' }],
       });
+      expect(mockNotificationsNotifyMany).not.toHaveBeenCalled();
     });
 
     it('returns HAS_PENDING_REQUEST when target has a pending join request', async () => {
@@ -414,6 +454,7 @@ describe('GroupMembersService', () => {
       expect(result).toEqual({
         results: [{ username: 'target_user', status: 'HAS_PENDING_REQUEST' }],
       });
+      expect(mockNotificationsNotifyMany).not.toHaveBeenCalled();
     });
 
     it('re-invites after REJECTED, resets role to MEMBER, returns INVITED', async () => {
@@ -431,6 +472,12 @@ describe('GroupMembersService', () => {
       );
       expect(mockInsert).not.toHaveBeenCalled();
       expect(result).toEqual({ results: [{ username: 'target_user', status: 'INVITED' }] });
+      expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
+        [TARGET_ID],
+        NotificationType.GROUP_INVITATION,
+        {},
+        [NotificationChannel.PUSH],
+      );
     });
 
     it('handles multiple usernames and returns per-user results', async () => {
@@ -455,6 +502,26 @@ describe('GroupMembersService', () => {
           { username: 'user_c', status: 'INVITED' },
         ],
       });
+      expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
+        ['id-a', 'id-c'],
+        NotificationType.GROUP_INVITATION,
+        {},
+        [NotificationChannel.PUSH],
+      );
+    });
+
+    it('logs error and resolves when notifyMany() rejects', async () => {
+      mockGroupMembersFindFirst.mockResolvedValueOnce(ownerMembership);
+      mockUsersFindMany.mockResolvedValueOnce([mockTargetUser]);
+      mockGroupMembersFindMany.mockResolvedValueOnce([]);
+      mockNotificationsNotifyMany.mockRejectedValueOnce(new Error('DB blip'));
+      const logSpy = jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+
+      await expect(service.sendInvitations(GROUP_ID, dto, ADMIN_ID)).resolves.toBeDefined();
+      expect(logSpy).toHaveBeenCalledWith(
+        'Failed to send GROUP_INVITATION notifications',
+        expect.any(Error),
+      );
     });
   });
 

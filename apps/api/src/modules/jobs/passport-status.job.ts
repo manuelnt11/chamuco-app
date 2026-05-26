@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { sql } from 'drizzle-orm';
-import { PassportStatus } from '@chamuco/shared-types';
+import { NotificationChannel, NotificationType, PassportStatus } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 
@@ -43,7 +43,7 @@ export class PassportStatusJob {
       RETURNING user_id, country_code, passport_status
     `);
 
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       rows
         .filter(
           (r) =>
@@ -51,12 +51,21 @@ export class PassportStatusJob {
             r.passport_status === PassportStatus.EXPIRED,
         )
         .map((r) =>
-          this.notificationsService.sendPassportStatusNotification(
+          this.notificationsService.notify(
             r.user_id,
-            r.country_code,
-            r.passport_status as PassportStatus.EXPIRING_SOON | PassportStatus.EXPIRED,
+            r.passport_status === PassportStatus.EXPIRING_SOON
+              ? NotificationType.PASSPORT_EXPIRING_SOON
+              : NotificationType.PASSPORT_EXPIRED,
+            { countryCode: r.country_code },
+            [NotificationChannel.PUSH],
           ),
         ),
     );
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        this.logger.error('Failed to send passport status notification', result.reason);
+      }
+    }
   }
 }

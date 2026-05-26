@@ -1,11 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  DeliveryStatus,
-  NotificationChannel,
-  NotificationType,
-  PassportStatus,
-} from '@chamuco/shared-types';
+import { DeliveryStatus, NotificationChannel, NotificationType } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { I18nService } from '@/i18n/i18n.service';
 import { NotificationsService } from './notifications.service';
@@ -376,40 +371,6 @@ describe('NotificationsService', () => {
 
       await expect(
         service.deleteToken('user-1', { token: 'nonexistent' }),
-      ).resolves.toBeUndefined();
-    });
-  });
-
-  describe('sendPassportStatusNotification()', () => {
-    it('calls notify() with PASSPORT_EXPIRING_SOON type', async () => {
-      db.insert.mockReturnValue(makeInsert([FAKE_NOTIFICATION]));
-
-      await service.sendPassportStatusNotification('user-1', 'MX', PassportStatus.EXPIRING_SOON);
-
-      const valuesFn = db.insert.mock.results[0]!.value.values as jest.Mock;
-      const insertedRow = valuesFn.mock.calls[0]![0] as {
-        type: string;
-        data: Record<string, unknown>;
-      };
-      expect(insertedRow.type).toBe(NotificationType.PASSPORT_EXPIRING_SOON);
-      expect(insertedRow.data).toMatchObject({ countryCode: 'MX' });
-    });
-
-    it('calls notify() with PASSPORT_EXPIRED type', async () => {
-      db.insert.mockReturnValue(makeInsert([FAKE_NOTIFICATION]));
-
-      await service.sendPassportStatusNotification('user-1', 'US', PassportStatus.EXPIRED);
-
-      const valuesFn = db.insert.mock.results[0]!.value.values as jest.Mock;
-      const insertedRow = valuesFn.mock.calls[0]![0] as { type: string };
-      expect(insertedRow.type).toBe(NotificationType.PASSPORT_EXPIRED);
-    });
-
-    it('resolves without throwing', async () => {
-      db.insert.mockReturnValue(makeInsert([FAKE_NOTIFICATION]));
-
-      await expect(
-        service.sendPassportStatusNotification('user-1', 'MX', PassportStatus.EXPIRING_SOON),
       ).resolves.toBeUndefined();
     });
   });

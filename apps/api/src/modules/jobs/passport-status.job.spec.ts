@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PassportStatus } from '@chamuco/shared-types';
+import { NotificationChannel, NotificationType, PassportStatus } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { PassportStatusJob } from './passport-status.job';
@@ -18,7 +18,7 @@ describe('PassportStatusJob', () => {
         { provide: DRIZZLE_CLIENT, useValue: db },
         {
           provide: NotificationsService,
-          useValue: { sendPassportStatusNotification: jest.fn().mockResolvedValue(undefined) },
+          useValue: { notify: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();
@@ -40,10 +40,11 @@ describe('PassportStatusJob', () => {
 
       await job.runPassportStatusRefresh();
 
-      expect(notificationsService.sendPassportStatusNotification).toHaveBeenCalledWith(
+      expect(notificationsService.notify).toHaveBeenCalledWith(
         'user-1',
-        'MX',
-        PassportStatus.EXPIRING_SOON,
+        NotificationType.PASSPORT_EXPIRING_SOON,
+        { countryCode: 'MX' },
+        [NotificationChannel.PUSH],
       );
     });
 
@@ -54,10 +55,11 @@ describe('PassportStatusJob', () => {
 
       await job.runPassportStatusRefresh();
 
-      expect(notificationsService.sendPassportStatusNotification).toHaveBeenCalledWith(
+      expect(notificationsService.notify).toHaveBeenCalledWith(
         'user-2',
-        'US',
-        PassportStatus.EXPIRED,
+        NotificationType.PASSPORT_EXPIRED,
+        { countryCode: 'US' },
+        [NotificationChannel.PUSH],
       );
     });
 
@@ -68,14 +70,14 @@ describe('PassportStatusJob', () => {
 
       await job.runPassportStatusRefresh();
 
-      expect(notificationsService.sendPassportStatusNotification).not.toHaveBeenCalled();
+      expect(notificationsService.notify).not.toHaveBeenCalled();
     });
 
     it('handles empty result without error', async () => {
       db.execute.mockResolvedValue([]);
 
       await expect(job.runPassportStatusRefresh()).resolves.toBeUndefined();
-      expect(notificationsService.sendPassportStatusNotification).not.toHaveBeenCalled();
+      expect(notificationsService.notify).not.toHaveBeenCalled();
     });
 
     it('logs error and resolves when db.execute throws', async () => {
@@ -84,6 +86,20 @@ describe('PassportStatusJob', () => {
 
       await expect(job.runPassportStatusRefresh()).resolves.toBeUndefined();
       expect(logSpy).toHaveBeenCalledWith('Passport status refresh failed', expect.any(Error));
+    });
+
+    it('logs error and resolves when notify() rejects', async () => {
+      db.execute.mockResolvedValue([
+        { user_id: 'user-1', country_code: 'MX', passport_status: PassportStatus.EXPIRING_SOON },
+      ]);
+      (notificationsService.notify as jest.Mock).mockRejectedValueOnce(new Error('DB blip'));
+      const logSpy = jest.spyOn(job['logger'], 'error').mockImplementation(() => undefined);
+
+      await expect(job.runPassportStatusRefresh()).resolves.toBeUndefined();
+      expect(logSpy).toHaveBeenCalledWith(
+        'Failed to send passport status notification',
+        expect.any(Error),
+      );
     });
 
     it('sends notifications in parallel for multiple changed rows', async () => {
@@ -95,16 +111,18 @@ describe('PassportStatusJob', () => {
 
       await job.runPassportStatusRefresh();
 
-      expect(notificationsService.sendPassportStatusNotification).toHaveBeenCalledTimes(2);
-      expect(notificationsService.sendPassportStatusNotification).toHaveBeenCalledWith(
+      expect(notificationsService.notify).toHaveBeenCalledTimes(2);
+      expect(notificationsService.notify).toHaveBeenCalledWith(
         'user-1',
-        'MX',
-        PassportStatus.EXPIRING_SOON,
+        NotificationType.PASSPORT_EXPIRING_SOON,
+        { countryCode: 'MX' },
+        [NotificationChannel.PUSH],
       );
-      expect(notificationsService.sendPassportStatusNotification).toHaveBeenCalledWith(
+      expect(notificationsService.notify).toHaveBeenCalledWith(
         'user-2',
-        'US',
-        PassportStatus.EXPIRED,
+        NotificationType.PASSPORT_EXPIRED,
+        { countryCode: 'US' },
+        [NotificationChannel.PUSH],
       );
     });
   });
