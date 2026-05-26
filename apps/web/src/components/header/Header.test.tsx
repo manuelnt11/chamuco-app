@@ -12,6 +12,11 @@ vi.mock('./UserAvatar', () => ({
   UserAvatar: () => <button data-testid="user-avatar">User Avatar</button>,
 }));
 
+// Mock the NotificationBell component
+vi.mock('./NotificationBell', () => ({
+  NotificationBell: () => <button data-testid="notification-bell">Notification Bell</button>,
+}));
+
 // Mock the ThemeToggle component
 vi.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <button data-testid="theme-toggle">Theme Toggle</button>,
@@ -55,6 +60,11 @@ describe('Header', () => {
   it('renders UserAvatar component', () => {
     render(<Header />);
     expect(screen.getByTestId('user-avatar')).toBeInTheDocument();
+  });
+
+  it('renders NotificationBell component', () => {
+    render(<Header />);
+    expect(screen.getByTestId('notification-bell')).toBeInTheDocument();
   });
 
   it('renders LanguageToggle component', () => {

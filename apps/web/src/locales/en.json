@@ -85,6 +85,13 @@
       "instruction": "Tap <shareIcon /> then \"Add to Home Screen\"",
       "install": "Install",
       "dismiss": "Not now"
+    },
+    "notifications": {
+      "openLabel": "Open notifications",
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "empty": "No notifications yet",
+      "unreadBadge": "{{count}} unread notifications"
     }
   },
   "auth": {
