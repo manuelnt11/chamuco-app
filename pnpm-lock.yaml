@@ -294,8 +294,8 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1
       libphonenumber-js:
-        specifier: ^1.13.1
-        version: 1.13.2
+        specifier: ^1.13.3
+        version: 1.13.3
       next:
         specifier: ^16.2.6
         version: 16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -5782,6 +5782,9 @@ packages:
 
   libphonenumber-js@1.13.2:
     resolution: {integrity: sha512-S3kmBrptp3yRTm83NUcHy9g1vbwiWMzI8WvY22+koBJ6zkRteLnedBL2VX0MIAGwx2yiyxX4J85pceZyQ6ffgg==}
+
+  libphonenumber-js@1.13.3:
+    resolution: {integrity: sha512-xMkdAMqcyG7iN2WZZmGIfWbYxW4orRkny+0/AXIbwL0xll2zkDX0Vzo/BXFa6+7mh2UvJl9MbcTtHk0YXkFtBA==}
 
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
@@ -13684,6 +13687,8 @@ snapshots:
       type-check: 0.4.0
 
   libphonenumber-js@1.13.2: {}
+
+  libphonenumber-js@1.13.3: {}
 
   lightningcss-android-arm64@1.32.0:
     optional: true
