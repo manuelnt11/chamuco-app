@@ -122,9 +122,11 @@ describe('useNotifications', () => {
       expect(result.current.unreadCount).toBe(0);
     });
 
-    it('does not decrement unreadCount for already-read notifications', async () => {
-      const notif = makeNotification({ id: 'notif-1', readAt: '2026-01-01T00:00:00.000Z' });
-      mockGet.mockReturnValue(pageResponse([notif], 0));
+    it('does not decrement unreadCount when notification is already read', async () => {
+      const readNotif = makeNotification({ id: 'notif-1', readAt: '2026-01-01T00:00:00.000Z' });
+      const unreadNotif = makeNotification({ id: 'notif-2', readAt: null });
+      // unreadCount=1 (only notif-2 is unread); marking the already-read notif-1 must leave it at 1
+      mockGet.mockReturnValue(pageResponse([readNotif, unreadNotif], 1));
 
       const { result } = renderHook(() => useNotifications());
       await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -133,7 +135,7 @@ describe('useNotifications', () => {
         result.current.markRead('notif-1');
       });
 
-      expect(result.current.unreadCount).toBe(0);
+      expect(result.current.unreadCount).toBe(1);
     });
 
     it('calls PATCH /v1/notifications/:id/read', async () => {

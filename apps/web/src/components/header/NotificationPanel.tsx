@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 import {
   AirplaneIcon,
   BellIcon,
@@ -34,7 +35,7 @@ const TYPE_ICONS: Record<NotificationType, Icon> = {
 
 function formatRelativeTime(isoString: string): string {
   const diffMs = Date.now() - new Date(isoString).getTime();
-  const diffSec = Math.floor(diffMs / 1_000);
+  const diffSec = Math.max(0, Math.floor(diffMs / 1_000));
 
   if (diffSec < 60) return `${diffSec}s`;
   const diffMin = Math.floor(diffSec / 60);
@@ -110,12 +111,12 @@ export function NotificationPanel({
               <button
                 key={notif.id}
                 onClick={() => handleItemClick(notif)}
-                className={[
+                className={cn(
                   'w-full flex items-start gap-3 px-4 py-3 text-left',
                   'hover:bg-muted transition-colors',
                   'focus-visible:outline-none focus-visible:bg-muted',
-                  isUnread ? 'bg-primary/5' : '',
-                ].join(' ')}
+                  isUnread && 'bg-primary/5',
+                )}
               >
                 <TypeIcon
                   className="size-5 shrink-0 mt-0.5 text-muted-foreground"

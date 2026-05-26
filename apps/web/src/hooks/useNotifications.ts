@@ -16,7 +16,6 @@ export interface NotificationItem {
 
 interface NotificationsPage {
   data: NotificationItem[];
-  nextCursor: string | null;
   unreadCount: number;
 }
 
@@ -60,12 +59,13 @@ export function useNotifications() {
   }, [fetchNotifications]);
 
   const markRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) =>
+    setNotifications((prev) => {
+      const wasUnread = prev.find((n) => n.id === id)?.readAt === null;
+      if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
+      return prev.map((n) =>
         n.id === id && n.readAt === null ? { ...n, readAt: new Date().toISOString() } : n,
-      ),
-    );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
+      );
+    });
 
     apiClient.patch(`/v1/notifications/${id}/read`).catch(() => {
       // Badge re-syncs on next poll
