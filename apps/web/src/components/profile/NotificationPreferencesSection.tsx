@@ -7,17 +7,16 @@ import {
   NotificationChannel,
   NotificationType,
 } from '@chamuco/shared-types';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/services/api-client';
-import { cn } from '@/lib/utils';
 
 export type NotificationPreferencesData = {
-  disabledNotificationChannels: DisabledNotificationChannels;
+  optOuts: DisabledNotificationChannels;
 };
 
 interface NotificationPreferencesSectionProps {
   preferences: NotificationPreferencesData;
-  onRefresh: () => void;
 }
 
 const CONFIGURABLE_CHANNELS = [
@@ -30,12 +29,9 @@ type ConfigurableChannel = (typeof CONFIGURABLE_CHANNELS)[number];
 
 export function NotificationPreferencesSection({
   preferences,
-  onRefresh,
 }: NotificationPreferencesSectionProps) {
   const { t } = useTranslation('profile');
-  const [current, setCurrent] = useState<DisabledNotificationChannels>(
-    preferences.disabledNotificationChannels,
-  );
+  const [current, setCurrent] = useState<DisabledNotificationChannels>(preferences.optOuts);
   const [saving, setSaving] = useState<NotificationType | null>(null);
 
   function isEnabled(type: NotificationType, channel: ConfigurableChannel): boolean {
@@ -59,10 +55,9 @@ export function NotificationPreferencesSection({
     setSaving(type);
     try {
       await apiClient.patch('/v1/users/me/notification-preferences', {
-        disabledChannels: newDisabled,
+        optOuts: newDisabled,
       });
       setCurrent(newDisabled);
-      onRefresh();
     } catch {
       toast.error(t('notificationPreferences.saveError'));
     } finally {
@@ -104,17 +99,12 @@ export function NotificationPreferencesSection({
                   const isSaving = saving === type;
                   return (
                     <td key={channel} className="px-4 py-3 text-center">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={enabled}
                         disabled={isSaving}
-                        onChange={() => void handleToggle(type, channel)}
+                        onCheckedChange={() => void handleToggle(type, channel)}
                         aria-label={`${t(`notificationPreferences.types.${type}`)} — ${t(`notificationPreferences.channels.${channel}`)}`}
-                        className={cn(
-                          'mx-auto h-4 w-4 cursor-pointer rounded border-border accent-primary',
-                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                          'disabled:cursor-not-allowed disabled:opacity-50',
-                        )}
+                        className="mx-auto"
                       />
                     </td>
                   );

@@ -55,6 +55,10 @@ export class NotificationsService {
       .returning();
 
     // insert().returning() always yields a row on success — non-null is safe here
+    if (channels.length === 0) {
+      await this.dispatchChannels([notification!], payload, []);
+      return;
+    }
     const prefsMap = await this.fetchPrefsMap([userId]);
     const disabled = prefsMap.get(userId)?.[type] ?? [];
     const effectiveChannels = channels.filter((ch) => !disabled.includes(ch));

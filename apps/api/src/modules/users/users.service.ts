@@ -205,21 +205,14 @@ export class UsersService {
     if (!prefs) {
       throw new NotFoundException('User preferences not found');
     }
-    return { disabledNotificationChannels: prefs.notificationOptOuts ?? {} };
+    return { optOuts: prefs.notificationOptOuts ?? {} };
   }
 
   async updateNotificationPreferences(
     userId: string,
     dto: UpdateNotificationPreferencesDto,
   ): Promise<NotificationPreferencesResponseDto> {
-    const existing = await this.db.query.userPreferences.findFirst({
-      where: eq(userPreferences.userId, userId),
-    });
-    if (!existing) {
-      throw new NotFoundException('User preferences not found');
-    }
-
-    const sanitized = this.sanitizeNotificationPreferences(dto.disabledChannels);
+    const sanitized = this.sanitizeNotificationPreferences(dto.optOuts);
 
     const [updated] = await this.db
       .update(userPreferences)
@@ -230,7 +223,7 @@ export class UsersService {
     if (!updated) {
       throw new NotFoundException('User preferences not found');
     }
-    return { disabledNotificationChannels: updated.notificationOptOuts ?? {} };
+    return { optOuts: updated.notificationOptOuts ?? {} };
   }
 
   async getProfile(userId: string): Promise<UserProfileResponseDto> {

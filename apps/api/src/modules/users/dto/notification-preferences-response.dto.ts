@@ -20,5 +20,5 @@ export class NotificationPreferencesResponseDto {
       items: { type: 'string', enum: Object.values(NotificationChannel) },
     },
   })
-  disabledNotificationChannels!: DisabledNotificationChannels;
+  optOuts!: DisabledNotificationChannels;
 }

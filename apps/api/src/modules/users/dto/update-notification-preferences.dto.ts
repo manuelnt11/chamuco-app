@@ -23,5 +23,5 @@ export class UpdateNotificationPreferencesDto {
     },
   })
   @IsObject()
-  disabledChannels!: DisabledNotificationChannels;
+  optOuts!: DisabledNotificationChannels;
 }

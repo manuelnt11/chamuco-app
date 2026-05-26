@@ -181,7 +181,7 @@ export default function ProfilePage() {
         notificationPreferences:
           notifPrefRes.status === 'fulfilled'
             ? (notifPrefRes.value.data as NotificationPreferencesData)
-            : { disabledNotificationChannels: {} },
+            : { optOuts: {} },
       });
     } catch {
       if (!loadedOnce.current) {
@@ -370,10 +370,7 @@ export default function ProfilePage() {
         hidden={activeTab !== 'preferences'}
       >
         <PreferencesSection preferences={data.preferences} onRefresh={loadData} />
-        <NotificationPreferencesSection
-          preferences={data.notificationPreferences}
-          onRefresh={loadData}
-        />
+        <NotificationPreferencesSection preferences={data.notificationPreferences} />
       </div>
     </div>
   );

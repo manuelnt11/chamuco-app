@@ -596,7 +596,7 @@ describe('UsersService', () => {
 
       const result = await service.getNotificationPreferences('user-uuid');
 
-      expect(result).toEqual({ disabledNotificationChannels: {} });
+      expect(result).toEqual({ optOuts: {} });
     });
 
     it('returns the stored map when channels are set', async () => {
@@ -608,7 +608,7 @@ describe('UsersService', () => {
 
       const result = await service.getNotificationPreferences('user-uuid');
 
-      expect(result).toEqual({ disabledNotificationChannels: channels });
+      expect(result).toEqual({ optOuts: channels });
     });
 
     it('throws NotFoundException when preferences do not exist', async () => {
@@ -622,7 +622,6 @@ describe('UsersService', () => {
 
   describe('updateNotificationPreferences', () => {
     it('updates and returns the sanitized preferences', async () => {
-      mockPrefFindFirst.mockResolvedValue(mockPreferences);
       const updated = {
         ...mockPreferences,
         notificationOptOuts: {
@@ -632,63 +631,48 @@ describe('UsersService', () => {
       mockReturning.mockResolvedValue([updated]);
 
       const dto = {
-        disabledChannels: {
+        optOuts: {
           [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.EMAIL],
         },
       } as UpdateNotificationPreferencesDto;
 
       const result = await service.updateNotificationPreferences('user-uuid', dto);
 
-      expect(result.disabledNotificationChannels).toEqual({
+      expect(result.optOuts).toEqual({
         [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.EMAIL],
       });
     });
 
     it('strips invalid notification types from the input', async () => {
-      mockPrefFindFirst.mockResolvedValue(mockPreferences);
-      const updated = { ...mockPreferences, notificationOptOuts: {} };
-      mockReturning.mockResolvedValue([updated]);
+      mockReturning.mockResolvedValue([{ ...mockPreferences, notificationOptOuts: {} }]);
 
       const dto = {
-        disabledChannels: { INVALID_TYPE: [NotificationChannel.PUSH] },
+        optOuts: { INVALID_TYPE: [NotificationChannel.PUSH] },
       } as unknown as UpdateNotificationPreferencesDto;
 
       const result = await service.updateNotificationPreferences('user-uuid', dto);
 
-      expect(result.disabledNotificationChannels).toEqual({});
+      expect(result.optOuts).toEqual({});
     });
 
     it('strips invalid channel values from the input', async () => {
-      mockPrefFindFirst.mockResolvedValue(mockPreferences);
-      const updated = { ...mockPreferences, notificationOptOuts: {} };
-      mockReturning.mockResolvedValue([updated]);
+      mockReturning.mockResolvedValue([{ ...mockPreferences, notificationOptOuts: {} }]);
 
       const dto = {
-        disabledChannels: { [NotificationType.GROUP_ANNOUNCEMENT]: ['INVALID_CHANNEL'] },
+        optOuts: { [NotificationType.GROUP_ANNOUNCEMENT]: ['INVALID_CHANNEL'] },
       } as unknown as UpdateNotificationPreferencesDto;
 
       const result = await service.updateNotificationPreferences('user-uuid', dto);
 
-      expect(result.disabledNotificationChannels).toEqual({});
+      expect(result.optOuts).toEqual({});
     });
 
-    it('throws NotFoundException when preferences do not exist', async () => {
-      mockPrefFindFirst.mockResolvedValue(undefined);
-
-      await expect(
-        service.updateNotificationPreferences('unknown-uuid', {
-          disabledChannels: {},
-        } as UpdateNotificationPreferencesDto),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('throws NotFoundException when update returns nothing', async () => {
-      mockPrefFindFirst.mockResolvedValue(mockPreferences);
+    it('throws NotFoundException when the user has no preferences row', async () => {
       mockReturning.mockResolvedValue([]);
 
       await expect(
-        service.updateNotificationPreferences('user-uuid', {
-          disabledChannels: {},
+        service.updateNotificationPreferences('unknown-uuid', {
+          optOuts: {},
         } as UpdateNotificationPreferencesDto),
       ).rejects.toThrow(NotFoundException);
     });
