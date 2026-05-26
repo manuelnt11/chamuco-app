@@ -126,7 +126,10 @@ export function NotificationPanel({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`text-sm truncate ${isUnread ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}
+                      className={cn(
+                        'text-sm truncate text-foreground',
+                        isUnread ? 'font-semibold' : 'font-medium',
+                      )}
                     >
                       {notif.title}
                     </span>

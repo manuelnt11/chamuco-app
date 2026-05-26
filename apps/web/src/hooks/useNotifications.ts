@@ -58,19 +58,22 @@ export function useNotifications() {
     };
   }, [fetchNotifications]);
 
-  const markRead = useCallback((id: string) => {
-    setNotifications((prev) => {
-      const wasUnread = prev.find((n) => n.id === id)?.readAt === null;
-      if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
-      return prev.map((n) =>
-        n.id === id && n.readAt === null ? { ...n, readAt: new Date().toISOString() } : n,
+  const markRead = useCallback(
+    (id: string) => {
+      const wasUnread = notifications.find((n) => n.id === id)?.readAt === null;
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === id && n.readAt === null ? { ...n, readAt: new Date().toISOString() } : n,
+        ),
       );
-    });
+      if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
 
-    apiClient.patch(`/v1/notifications/${id}/read`).catch(() => {
-      // Badge re-syncs on next poll
-    });
-  }, []);
+      apiClient.patch(`/v1/notifications/${id}/read`).catch(() => {
+        // Badge re-syncs on next poll
+      });
+    },
+    [notifications],
+  );
 
   const markAllRead = useCallback(() => {
     setNotifications((prev) =>

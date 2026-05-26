@@ -25,7 +25,7 @@ function makeNotification(overrides: Partial<NotificationItem> = {}): Notificati
 
 function pageResponse(notifications: NotificationItem[] = [], unreadCount = 0) {
   return Promise.resolve({
-    data: { data: notifications, nextCursor: null, unreadCount },
+    data: { data: notifications, unreadCount },
   });
 }
 
