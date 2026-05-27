@@ -15,7 +15,7 @@ This file extends the root `CLAUDE.md` with rules specific to the `apps/web` Nex
 - Location: `apps/web/src/lib/i18n/config.ts`
 - Default namespace: `common`
 - Available namespaces: `common`, `auth`, `trips`, `groups`, `profile`, `errors`
-- Translation files: `apps/web/src/locales/{en|es}.json`
+- Translation files: `apps/web/src/locales/{en|es}/{namespace}.json` — one file per namespace per language
 
 **Namespace Rules:**
 
@@ -109,8 +109,13 @@ apps/web/src/
 │   ├── header/               → useTranslation() = 'common'
 │   └── layout/               → useTranslation() = 'common'
 └── locales/
-    ├── en.json               → { common: {...}, trips: {...}, groups: {...}, ... }
-    └── es.json               → { common: {...}, trips: {...}, groups: {...}, ... }
+    ├── en/
+    │   ├── common.json       → common namespace keys
+    │   ├── auth.json         → auth namespace keys
+    │   ├── groups.json       → groups namespace keys
+    │   └── ...               → one file per namespace
+    └── es/
+        └── ...               → mirrors en/ structure
 ```
 
 **Key takeaway:** Match the `useTranslation()` namespace to the feature you're working in, and use keys relative to that namespace. The validation script enforces this convention.
@@ -149,7 +154,7 @@ Also update `.env.example` with the new key (empty value) so other developers kn
 When any of the following changes are made to the frontend codebase:
 
 - Adding or modifying `t('key')` calls in components
-- Adding, removing, or modifying keys in translation files (`locales/en.json`, `locales/es.json`)
+- Adding, removing, or modifying keys in translation files (`locales/en/{namespace}.json`, `locales/es/{namespace}.json`)
 - Refactoring components that use i18n
 
 **You must run the i18n validation script:**
@@ -160,8 +165,8 @@ When any of the following changes are made to the frontend codebase:
 
 **The script validates:**
 
-1. **Missing keys** — Keys used in code (`t('key')`) but not defined in `en.json`
-2. **Translation parity** — Keys in `en.json` that don't exist in `es.json`
+1. **Missing keys** — Keys used in code (`t('key')`) but not defined in the corresponding `locales/en/{namespace}.json`
+2. **Translation parity** — Keys in `locales/en/` that don't exist in `locales/es/`
 3. **Unused keys** — Keys defined in translation files but not referenced in code
 
 **Script limitations — known blind spots:**
@@ -183,11 +188,11 @@ When reviewing unused keys, keep this in mind: a key reported as "unused" is gen
 
 **Fix workflow:**
 
-- If keys are missing in `en.json`, add them to the appropriate namespace
-- If keys are missing in `es.json`, translate and add them (maintain parity with `en.json`)
+- If keys are missing, add them to the appropriate `locales/en/{namespace}.json`
+- If keys are missing in `es`, translate and add them to `locales/es/{namespace}.json` (maintain parity)
 - If unused keys are reported, classify them before acting:
   - **Pre-planned keys** (auth flows, trips page, groups features not yet built) — keep them; they are intentionally defined ahead of implementation
-  - **Dead keys** (key exists in JSON, but code uses a different key, or the feature was removed) — delete from both `en.json` and `es.json`
+  - **Dead keys** (key exists in JSON, but code uses a different key, or the feature was removed) — delete from both `locales/en/{namespace}.json` and `locales/es/{namespace}.json`
   - **~100 pre-planned keys** currently exist across `auth`, `common.actions`, `common.status`, `common.time`, `common.validation`, `errors`, `explore`, `groups`, `profile`, and `trips` namespaces — this is expected and not a problem
 
 **The script exits with code 1 if any keys are missing**, blocking commits via pre-commit hooks if integrated. All i18n keys must be valid before merging.
@@ -288,3 +293,33 @@ async function handleSave(e: FormEvent<HTMLFormElement>) { ... }
 ```
 
 React's `SubmitEvent<T>` extends `SyntheticEvent<T, NativeSubmitEvent>` and is what `onSubmit` prop now expects (`SubmitEventHandler<T>`). Import from `'react'`, not from `lib.dom.d.ts`.
+
+### 7. Iconic UI — prefer icons over text labels for actions
+
+Action buttons that have a clear icon equivalent should use an icon-only button with the text as a `title` tooltip and `aria-label`. Avoid redundant text labels when context already makes the action clear.
+
+**Rules:**
+
+- Use `title={t('...')}` + `aria-label={t('...')}` on icon buttons so the text is accessible and visible on hover.
+- Add `aria-hidden="true"` to the icon element itself.
+- Use `p-2` padding (square) instead of `px-3 py-1.5` (wide) for icon-only buttons.
+- The translated string still lives in the i18n JSON — never hardcode the tooltip text.
+
+```tsx
+// ✅ Correct — icon button with tooltip
+<Link
+  href={`/groups/${group.id}/settings`}
+  className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
+  title={t('settings.title')}
+  aria-label={t('settings.title')}
+>
+  <GearSixIcon className="size-5" aria-hidden="true" />
+</Link>
+
+// ❌ Wrong — text label when icon suffices
+<Link href={`/groups/${group.id}/settings`} ...>
+  {t('settings.title')}
+</Link>
+```
+
+**When text labels ARE appropriate:** primary CTAs (create, save, submit), empty states, onboarding flows, or any action where the icon alone could be ambiguous.

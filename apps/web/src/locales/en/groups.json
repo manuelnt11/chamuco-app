@@ -1,0 +1,166 @@
+{
+  "title": "Groups",
+  "createGroup": "Create Group",
+  "myGroups": "My Groups",
+  "groupDetails": "Group Details",
+  "members": {
+    "title": "Members",
+    "role": {
+      "OWNER": "Owner",
+      "ADMIN": "Admin",
+      "MEMBER": "Member"
+    },
+    "tier": {
+      "NEWCOMER": "Newcomer",
+      "NOVICE": "Novice",
+      "EXPLORER": "Explorer",
+      "VETERAN": "Veteran"
+    },
+    "invite": {
+      "button": "Invite member",
+      "title": "Invite a member",
+      "usernamePlaceholder": "Search by name or @username",
+      "submit": "Send invitation",
+      "sending": "Sending...",
+      "cancel": "Cancel",
+      "success": "Invitation sent",
+      "error": "Failed to send invitation",
+      "noResults": "No users found",
+      "removeUser": "Remove {{username}}",
+      "alreadyExcluded": "This user is already a member or has a pending invitation",
+      "maxUsers": "You can invite up to 20 users at once",
+      "done": "Done",
+      "results": {
+        "title": "Invitation results"
+      },
+      "result": {
+        "INVITED": "Invited successfully",
+        "ALREADY_MEMBER": "Already a member",
+        "ALREADY_INVITED": "Already invited",
+        "HAS_PENDING_REQUEST": "Has a pending join request",
+        "NOT_FOUND": "User not found"
+      }
+    },
+    "joinRequest": {
+      "button": "Request to join",
+      "requesting": "Requesting...",
+      "success": "Join request sent",
+      "error": "Failed to send request",
+      "withdraw": "Withdraw request",
+      "withdrawing": "Withdrawing...",
+      "withdrawSuccess": "Request withdrawn",
+      "withdrawError": "Failed to withdraw request"
+    },
+    "leave": {
+      "button": "Leave group",
+      "confirm": "Are you sure you want to leave this group?",
+      "cancel": "Cancel",
+      "confirmButton": "Leave group",
+      "leaving": "Leaving...",
+      "success": "You have left the group",
+      "error": "Failed to leave group",
+      "lastAdmin": "You are the last admin. Promote another member before leaving."
+    },
+    "invitation": {
+      "received": "You have been invited to join this group",
+      "accept": "Accept invitation",
+      "decline": "Decline",
+      "accepting": "Accepting...",
+      "declining": "Declining...",
+      "acceptError": "Failed to accept invitation",
+      "declineError": "Failed to decline invitation"
+    },
+    "pending": {
+      "title": "Pending ({{count}})",
+      "noItems": "No pending requests or invitations",
+      "accept": "Accept",
+      "reject": "Reject",
+      "revoke": "Revoke",
+      "statusRequest": "Wants to join",
+      "statusInvited": "Invited"
+    },
+    "empty": "No members yet",
+    "loading": "Loading members...",
+    "loadError": "Failed to load members"
+  },
+  "events": "Events",
+  "announcements": "Announcements",
+  "announcementsEmpty": "No announcements yet.",
+  "announcementsPlaceholder": "Write an announcement to all members...",
+  "announcementsSubmit": "Send",
+  "announcementsPostedBy": "Posted by {{name}}",
+  "announcementsLoadError": "Failed to load announcements",
+  "announcementsCreateError": "Failed to send announcement",
+  "announcementsViewAll": "View all",
+  "name": "Group name",
+  "namePlaceholder": "e.g. Mountain Crew",
+  "description": "Description",
+  "descriptionPlaceholder": "What's this group about?",
+  "visibility": {
+    "label": "Visibility",
+    "public": "Public",
+    "public_desc": "Anyone can find and request to join",
+    "private": "Private",
+    "private_desc": "Only invited people can join",
+    "private_irreversible_hint": "Once the group has members, it cannot be made public again.",
+    "public_disabled_tooltip": "Groups with members cannot be made public.",
+    "makePrivateWarning": "This change is irreversible once the group has members. You will not be able to make the group public again.",
+    "makePrivateConfirmTitle": "Make group private?",
+    "makePrivateConfirm": "Make private"
+  },
+  "cover": {
+    "label": "Cover",
+    "tabImage": "Photo",
+    "tabEmoji": "Emoji",
+    "editButton": "Edit cover",
+    "photoSuccess": "Cover updated",
+    "photoError": "Failed to update cover photo",
+    "emojiSuccess": "Cover updated",
+    "emojiError": "Failed to update cover emoji",
+    "currentCover": "Current cover",
+    "cropTitle": "Crop photo",
+    "usePhoto": "Use photo"
+  },
+  "form": {
+    "createTitle": "Create group",
+    "editTitle": "Edit group",
+    "saving": "Saving...",
+    "submit": "Create group",
+    "saveChanges": "Save changes"
+  },
+  "invitations": {
+    "titleWithCount": "Pending Invitations ({{count}})"
+  },
+  "detail": {
+    "noGroups": "You don't have any groups yet",
+    "createFirst": "Create your first group to start organizing trips",
+    "view": "View"
+  },
+  "search": {
+    "pageTitle": "Discover Groups",
+    "searchGroups": "Search Groups",
+    "placeholder": "Search groups...",
+    "empty": "Search for public groups to join",
+    "loading": "Searching...",
+    "noResults": "No groups found for \"{{query}}\"",
+    "resultCount": "{{count}} group found",
+    "resultCount_other": "{{count}} groups found",
+    "memberCount": "{{count}} member",
+    "memberCount_other": "{{count}} members"
+  },
+  "settings": {
+    "title": "Settings",
+    "dangerZone": "Danger zone",
+    "deleteGroup": "Delete group",
+    "deleteConfirm": "Are you sure you want to delete this group? This action cannot be undone.",
+    "deleting": "Deleting..."
+  },
+  "errors": {
+    "notFound": "Group not found",
+    "forbidden": "You don't have permission to do that",
+    "deleteFailed": "Failed to delete group",
+    "createFailed": "Failed to create group",
+    "saveFailed": "Failed to save changes",
+    "cannotMakePublic": "Groups with members cannot be made public."
+  }
+}

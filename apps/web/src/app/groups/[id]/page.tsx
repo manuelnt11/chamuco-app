@@ -4,7 +4,13 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { GroupVisibility } from '@chamuco/shared-types';
-import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  MegaphoneIcon,
+  UsersThreeIcon,
+  GearSixIcon,
+} from '@phosphor-icons/react';
 
 import { apiClient } from '@/services/api-client';
 import { useAuth } from '@/hooks/useAuth';
@@ -88,16 +94,20 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
         <div className="flex shrink-0 gap-2">
           <Link
             href={`/groups/${group.id}/members`}
-            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
+            title={t('members.title')}
+            aria-label={t('members.title')}
           >
-            {t('members.title')}
+            <UsersThreeIcon className="size-5" aria-hidden="true" />
           </Link>
           {isOwner && (
             <Link
               href={`/groups/${group.id}/settings`}
-              className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
+              className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
+              title={t('settings.title')}
+              aria-label={t('settings.title')}
             >
-              {t('settings.title')}
+              <GearSixIcon className="size-5" aria-hidden="true" />
             </Link>
           )}
         </div>
@@ -111,9 +121,10 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           </div>
           <Link
             href={`/groups/${group.id}/announcements`}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             {t('announcementsViewAll')}
+            <ArrowRightIcon className="size-3" aria-hidden="true" />
           </Link>
         </div>
 

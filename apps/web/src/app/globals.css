@@ -3,9 +3,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* App shell layout — spacing utilities: top-header, pt-header, h-header, pl-sidebar, w-sidebar */
+  /* App shell layout — spacing utilities: top-header, pt-header, h-header */
+  /* w-sidebar and pl-sidebar are defined via @utility below to use the dynamic --layout-sidebar-width */
   --spacing-header: 4rem;   /* 64px — synced with --layout-header-height */
-  --spacing-sidebar: 10rem; /* 160px — synced with --layout-sidebar-width */
 
   /* Font family — references the CSS variable set by Next.js font optimization */
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system,
@@ -65,6 +65,15 @@
   --color-horizonte-brisa: oklch(var(--horizonte-brisa));
   --color-horizonte-brisa-light: oklch(var(--horizonte-brisa-light));
   --color-horizonte-brisa-dark: oklch(var(--horizonte-brisa-dark));
+}
+
+/* Dynamic sidebar utilities — use --layout-sidebar-width so they track JS setProperty() calls */
+@utility w-sidebar {
+  width: var(--layout-sidebar-width);
+}
+
+@utility pl-sidebar {
+  padding-left: var(--layout-sidebar-width);
 }
 
 :root {

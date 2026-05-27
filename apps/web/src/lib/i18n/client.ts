@@ -8,13 +8,50 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { i18nConfig, LANGUAGE_STORAGE_KEY } from './config';
 
-// Import translation files statically
-import enTranslations from '@/locales/en.json';
-import esTranslations from '@/locales/es.json';
+// Import translation files statically — one file per namespace per language
+import enAuth from '@/locales/en/auth.json';
+import enCommon from '@/locales/en/common.json';
+import enErrors from '@/locales/en/errors.json';
+import enExplore from '@/locales/en/explore.json';
+import enFeedback from '@/locales/en/feedback.json';
+import enGroups from '@/locales/en/groups.json';
+import enLegal from '@/locales/en/legal.json';
+import enProfile from '@/locales/en/profile.json';
+import enTrips from '@/locales/en/trips.json';
+
+import esAuth from '@/locales/es/auth.json';
+import esCommon from '@/locales/es/common.json';
+import esErrors from '@/locales/es/errors.json';
+import esExplore from '@/locales/es/explore.json';
+import esFeedback from '@/locales/es/feedback.json';
+import esGroups from '@/locales/es/groups.json';
+import esLegal from '@/locales/es/legal.json';
+import esProfile from '@/locales/es/profile.json';
+import esTrips from '@/locales/es/trips.json';
 
 const resources = {
-  en: enTranslations,
-  es: esTranslations,
+  en: {
+    auth: enAuth,
+    common: enCommon,
+    errors: enErrors,
+    explore: enExplore,
+    feedback: enFeedback,
+    groups: enGroups,
+    legal: enLegal,
+    profile: enProfile,
+    trips: enTrips,
+  },
+  es: {
+    auth: esAuth,
+    common: esCommon,
+    errors: esErrors,
+    explore: esExplore,
+    feedback: esFeedback,
+    groups: esGroups,
+    legal: esLegal,
+    profile: esProfile,
+    trips: esTrips,
+  },
 };
 
 let initPromise: Promise<void> | null = null;

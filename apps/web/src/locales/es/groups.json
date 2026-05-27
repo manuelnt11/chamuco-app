@@ -1,0 +1,166 @@
+{
+  "title": "Grupos",
+  "createGroup": "Crear Grupo",
+  "myGroups": "Mis Grupos",
+  "groupDetails": "Detalles del Grupo",
+  "members": {
+    "title": "Miembros",
+    "role": {
+      "OWNER": "Fundador",
+      "ADMIN": "Admin",
+      "MEMBER": "Miembro"
+    },
+    "tier": {
+      "NEWCOMER": "Recién llegado",
+      "NOVICE": "Novato",
+      "EXPLORER": "Explorador",
+      "VETERAN": "Veterano"
+    },
+    "invite": {
+      "button": "Invitar miembro",
+      "title": "Invitar un miembro",
+      "usernamePlaceholder": "Busca por nombre o @usuario",
+      "submit": "Enviar invitación",
+      "sending": "Enviando...",
+      "cancel": "Cancelar",
+      "success": "Invitación enviada",
+      "error": "Error al enviar la invitación",
+      "noResults": "No se encontraron usuarios",
+      "removeUser": "Eliminar {{username}}",
+      "alreadyExcluded": "Este usuario ya es miembro o tiene una invitación pendiente",
+      "maxUsers": "Puedes invitar hasta 20 usuarios a la vez",
+      "done": "Listo",
+      "results": {
+        "title": "Resultados de invitación"
+      },
+      "result": {
+        "INVITED": "Invitado exitosamente",
+        "ALREADY_MEMBER": "Ya es miembro",
+        "ALREADY_INVITED": "Ya tiene invitación pendiente",
+        "HAS_PENDING_REQUEST": "Tiene una solicitud de unión pendiente",
+        "NOT_FOUND": "Usuario no encontrado"
+      }
+    },
+    "joinRequest": {
+      "button": "Solicitar unirse",
+      "requesting": "Solicitando...",
+      "success": "Solicitud enviada",
+      "error": "Error al enviar la solicitud",
+      "withdraw": "Retirar solicitud",
+      "withdrawing": "Retirando...",
+      "withdrawSuccess": "Solicitud retirada",
+      "withdrawError": "Error al retirar la solicitud"
+    },
+    "leave": {
+      "button": "Salir del grupo",
+      "confirm": "¿Estás seguro de que quieres salir de este grupo?",
+      "cancel": "Cancelar",
+      "confirmButton": "Salir del grupo",
+      "leaving": "Saliendo...",
+      "success": "Has salido del grupo",
+      "error": "Error al salir del grupo",
+      "lastAdmin": "Eres el último admin. Promueve otro miembro antes de salir."
+    },
+    "invitation": {
+      "received": "Has sido invitado a unirte a este grupo",
+      "accept": "Aceptar invitación",
+      "decline": "Rechazar",
+      "accepting": "Aceptando...",
+      "declining": "Rechazando...",
+      "acceptError": "Error al aceptar la invitación",
+      "declineError": "Error al rechazar la invitación"
+    },
+    "pending": {
+      "title": "Pendientes ({{count}})",
+      "noItems": "No hay solicitudes ni invitaciones pendientes",
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "revoke": "Revocar",
+      "statusRequest": "Quiere unirse",
+      "statusInvited": "Invitado"
+    },
+    "empty": "Aún no hay miembros",
+    "loading": "Cargando miembros...",
+    "loadError": "Error al cargar miembros"
+  },
+  "events": "Eventos",
+  "announcements": "Anuncios",
+  "announcementsEmpty": "Aún no hay anuncios.",
+  "announcementsPlaceholder": "Escribe un anuncio para todos los miembros...",
+  "announcementsSubmit": "Enviar",
+  "announcementsPostedBy": "Publicado por {{name}}",
+  "announcementsLoadError": "Error al cargar los anuncios",
+  "announcementsCreateError": "Error al enviar el anuncio",
+  "announcementsViewAll": "Ver todos",
+  "name": "Nombre del grupo",
+  "namePlaceholder": "p.ej. Crew de Montaña",
+  "description": "Descripción",
+  "descriptionPlaceholder": "¿De qué trata este grupo?",
+  "visibility": {
+    "label": "Visibilidad",
+    "public": "Público",
+    "public_desc": "Cualquiera puede encontrarlo y solicitar unirse",
+    "private": "Privado",
+    "private_desc": "Solo personas invitadas pueden unirse",
+    "private_irreversible_hint": "Una vez que el grupo tenga miembros, no podrá volver a ser público.",
+    "public_disabled_tooltip": "Los grupos con miembros no pueden hacerse públicos.",
+    "makePrivateWarning": "Este cambio es irreversible una vez que el grupo tenga miembros. No podrás volver a hacerlo público.",
+    "makePrivateConfirmTitle": "¿Hacer el grupo privado?",
+    "makePrivateConfirm": "Hacer privado"
+  },
+  "cover": {
+    "label": "Portada",
+    "tabImage": "Foto",
+    "tabEmoji": "Emoji",
+    "editButton": "Editar portada",
+    "photoSuccess": "Portada actualizada",
+    "photoError": "Error al actualizar la foto de portada",
+    "emojiSuccess": "Portada actualizada",
+    "emojiError": "Error al actualizar el emoji de portada",
+    "currentCover": "Portada actual",
+    "cropTitle": "Recortar foto",
+    "usePhoto": "Usar foto"
+  },
+  "form": {
+    "createTitle": "Crear grupo",
+    "editTitle": "Editar grupo",
+    "saving": "Guardando...",
+    "submit": "Crear grupo",
+    "saveChanges": "Guardar cambios"
+  },
+  "invitations": {
+    "titleWithCount": "Invitaciones pendientes ({{count}})"
+  },
+  "detail": {
+    "noGroups": "Aún no tienes grupos",
+    "createFirst": "Crea tu primer grupo para empezar a organizar viajes",
+    "view": "Ver"
+  },
+  "search": {
+    "pageTitle": "Descubrir Grupos",
+    "searchGroups": "Buscar Grupos",
+    "placeholder": "Buscar grupos...",
+    "empty": "Busca grupos públicos para unirte",
+    "loading": "Buscando...",
+    "noResults": "No se encontraron grupos para \"{{query}}\"",
+    "resultCount": "{{count}} grupo encontrado",
+    "resultCount_other": "{{count}} grupos encontrados",
+    "memberCount": "{{count}} miembro",
+    "memberCount_other": "{{count}} miembros"
+  },
+  "settings": {
+    "title": "Configuración",
+    "dangerZone": "Zona de peligro",
+    "deleteGroup": "Eliminar grupo",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este grupo? Esta acción no se puede deshacer.",
+    "deleting": "Eliminando..."
+  },
+  "errors": {
+    "notFound": "Grupo no encontrado",
+    "forbidden": "No tienes permiso para hacer eso",
+    "deleteFailed": "Error al eliminar el grupo",
+    "createFailed": "Error al crear el grupo",
+    "saveFailed": "Error al guardar los cambios",
+    "cannotMakePublic": "Los grupos con miembros no pueden hacerse públicos."
+  }
+}
