@@ -8,10 +8,22 @@ The backend uses `nestjs-i18n` to provide localized error messages, validation m
 
 ## Translation Files
 
-Translation files are organized in JSON format with nested namespaces:
+Translation files use the nestjs-i18n directory structure — one subdirectory per language, one file per namespace:
 
-- `en.json` - English translations (default)
-- `es.json` - Spanish translations
+```
+i18n/
+  en/
+    common.json        ← common.validation.*, common.status.*
+    errors.json        ← errors.*
+    auth.json          ← auth.*
+    notifications.json ← notifications.*
+    transient.json     ← transient.*
+  es/
+    (same files in Spanish)
+```
+
+> **Note:** Flat `en.json`/`es.json` files at the root are NOT supported — nestjs-i18n's
+> `I18nJsonLoader` uses `getDirectories()` to discover languages, so only subdirectories work.
 
 ## Key Naming Convention
 

@@ -16,6 +16,7 @@ import { AssetsModule } from '@/modules/assets/assets.module';
 import { CloudStorageModule } from '@/modules/cloud-storage/cloud-storage.module';
 import { GroupsModule } from '@/modules/groups/groups.module';
 import { GroupMembersModule } from '@/modules/group-members/group-members.module';
+import { GroupAnnouncementsModule } from '@/modules/group-announcements/group-announcements.module';
 import { UploadsModule } from '@/modules/uploads/uploads.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
 import { I18nModule } from 'nestjs-i18n';
@@ -35,6 +36,7 @@ import * as path from 'path';
     // GET /v1/groups/invitations (static) takes priority over GET /v1/groups/:id (dynamic param).
     GroupMembersModule,
     GroupsModule,
+    GroupAnnouncementsModule,
     UploadsModule,
     HealthModule,
     FeedbackModule,

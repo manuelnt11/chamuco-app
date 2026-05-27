@@ -1,0 +1,17 @@
+{
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Por favor ingrese un correo electrónico válido",
+    "minLength": "La longitud mínima es {{count}} caracteres",
+    "maxLength": "La longitud máxima es {{count}} caracteres",
+    "invalidFormat": "Formato inválido",
+    "mustBePositive": "El valor debe ser positivo",
+    "mustBeInteger": "El valor debe ser un número entero"
+  },
+  "status": {
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Advertencia",
+    "info": "Información"
+  }
+}

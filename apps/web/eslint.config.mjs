@@ -43,6 +43,7 @@ export default [
         clearTimeout: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
+        HTMLFormElement: 'readonly',
         HTMLInputElement: 'readonly',
         HTMLImageElement: 'readonly',
         HTMLCanvasElement: 'readonly',
