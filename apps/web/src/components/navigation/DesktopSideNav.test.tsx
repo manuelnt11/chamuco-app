@@ -33,8 +33,8 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const map: Record<string, string> = {
-        'navigation.collapseSidebar': 'Collapse sidebar',
-        'navigation.expandSidebar': 'Expand sidebar',
+        'navigation.collapseSidebar': 'Collapse',
+        'navigation.expandSidebar': 'Expand',
       };
       return map[key] ?? key;
     },
@@ -128,13 +128,13 @@ describe('DesktopSideNav', () => {
 
   it('renders collapse toggle button', () => {
     render(<DesktopSideNav />);
-    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Collapse' })).toBeInTheDocument();
   });
 
   it('calls toggle when collapse button is clicked', async () => {
     const user = userEvent.setup();
     render(<DesktopSideNav />);
-    await user.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    await user.click(screen.getByRole('button', { name: 'Collapse' }));
     expect(mockToggle).toHaveBeenCalledOnce();
   });
 
@@ -158,7 +158,7 @@ describe('DesktopSideNav', () => {
 
     it('shows expand button when collapsed', () => {
       render(<DesktopSideNav />);
-      expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Expand' })).toBeInTheDocument();
     });
   });
 });
