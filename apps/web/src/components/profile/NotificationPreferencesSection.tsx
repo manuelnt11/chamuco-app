@@ -19,11 +19,8 @@ interface NotificationPreferencesSectionProps {
   preferences: NotificationPreferencesData;
 }
 
-const CONFIGURABLE_CHANNELS = [
-  NotificationChannel.PUSH,
-  NotificationChannel.EMAIL,
-  NotificationChannel.SMS,
-] as const;
+// TODO: add NotificationChannel.EMAIL and NotificationChannel.SMS once those delivery channels are implemented
+const CONFIGURABLE_CHANNELS = [NotificationChannel.PUSH] as const;
 
 type ConfigurableChannel = (typeof CONFIGURABLE_CHANNELS)[number];
 
