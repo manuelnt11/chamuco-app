@@ -37,6 +37,8 @@ import {
   UpdateNationalityDto,
 } from './dto/nationality.dto';
 import { UpdateUserHealthDto } from './dto/update-user-health.dto';
+import { NotificationPreferencesResponseDto } from './dto/notification-preferences-response.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UserHealthResponseDto } from './dto/user-health-response.dto';
@@ -453,6 +455,47 @@ export class UsersController {
     @Body() dto: UpdateUserPreferencesDto,
   ): Promise<UserPreferencesResponseDto> {
     return this.usersService.updatePreferences(user.id, dto);
+  }
+
+  @Get('me/notification-preferences')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Get the current user's notification preferences",
+    description:
+      'Returns which notification channels are disabled per notification type. ' +
+      'A missing key means all channels are enabled for that type. ' +
+      'IN_APP delivery (the notifications row) is always created regardless of preferences.',
+  })
+  @ApiResponse({ status: 200, type: NotificationPreferencesResponseDto })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User preferences not found' })
+  getNotificationPreferences(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<NotificationPreferencesResponseDto> {
+    return this.usersService.getNotificationPreferences(user.id);
+  }
+
+  @Patch('me/notification-preferences')
+  @HttpCode(200)
+  @ApiBearerAuth()
+  @ApiBody({ type: UpdateNotificationPreferencesDto })
+  @ApiOperation({
+    summary: "Update the current user's notification preferences",
+    description:
+      'Replaces the notification channel preferences with the provided map. ' +
+      'Keys are NotificationType values; values are arrays of NotificationChannel values to disable. ' +
+      'Invalid keys or channel values are silently ignored. ' +
+      'To re-enable all channels for a type, omit the key.',
+  })
+  @ApiResponse({ status: 200, type: NotificationPreferencesResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation failed — body must be an object' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 404, description: 'User preferences not found' })
+  updateNotificationPreferences(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateNotificationPreferencesDto,
+  ): Promise<NotificationPreferencesResponseDto> {
+    return this.usersService.updateNotificationPreferences(user.id, dto);
   }
 
   @Get('username-available')

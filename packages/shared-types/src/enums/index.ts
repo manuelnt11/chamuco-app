@@ -14,6 +14,7 @@ export * from './group-role.enum';
 export * from './group-visibility.enum';
 export * from './medical-condition-type.enum';
 export * from './notification-channel.enum';
+export * from './notification-preferences.type';
 export * from './notification-type.enum';
 export * from './passport-status.enum';
 export * from './phobia-type.enum';

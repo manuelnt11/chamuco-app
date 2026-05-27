@@ -454,6 +454,28 @@
       },
       "saveError": "Error al guardar las preferencias"
     },
+    "notificationPreferences": {
+      "heading": "Preferencias de notificaciones",
+      "description": "Elige por qué canales deseas recibir cada tipo de notificación.",
+      "types": {
+        "GROUP_INVITATION": "Invitación a grupo",
+        "GROUP_JOIN_ACCEPTED": "Solicitud de unión aceptada",
+        "GROUP_ANNOUNCEMENT": "Anuncio del grupo",
+        "TRIP_INVITATION": "Invitación a viaje",
+        "TRIP_ANNOUNCEMENT": "Anuncio del viaje",
+        "TRIP_KEY_DATE_REMINDER": "Recordatorio de fecha clave",
+        "TRIP_COMPLETED": "Viaje completado",
+        "PASSPORT_EXPIRING_SOON": "Pasaporte próximo a vencer",
+        "PASSPORT_EXPIRED": "Pasaporte vencido",
+        "ACHIEVEMENT_UNLOCKED": "Logro desbloqueado"
+      },
+      "channels": {
+        "PUSH": "Push",
+        "EMAIL": "Correo",
+        "SMS": "SMS"
+      },
+      "saveError": "Error al guardar las preferencias de notificaciones"
+    },
     "personalDetails": {
       "heading": "Datos Personales",
       "firstName": "Nombre(s)",

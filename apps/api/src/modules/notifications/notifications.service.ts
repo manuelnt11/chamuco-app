@@ -1,11 +1,17 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
-import { and, count, desc, eq, isNull, lt, sql } from 'drizzle-orm';
-import { DeliveryStatus, NotificationChannel, NotificationType } from '@chamuco/shared-types';
+import { and, count, desc, eq, inArray, isNull, lt, sql } from 'drizzle-orm';
+import {
+  DeliveryStatus,
+  DisabledNotificationChannels,
+  NotificationChannel,
+  NotificationType,
+} from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { I18nService, SupportedLanguage } from '@/i18n/i18n.service';
 import { notifications } from '@/modules/notifications/schema/notifications.schema';
 import { notificationDeliveries } from '@/modules/notifications/schema/notification-deliveries.schema';
 import { userFcmTokens } from '@/modules/notifications/schema/user-fcm-tokens.schema';
+import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { buildNotificationContent } from './notification-content.builder';
 import { EMAIL_STRATEGY, PUSH_STRATEGY, SMS_STRATEGY } from './notifications.constants';
 import type {
@@ -49,7 +55,11 @@ export class NotificationsService {
       .returning();
 
     // insert().returning() always yields a row on success — non-null is safe here
-    await this.dispatchChannels([notification!], payload, channels);
+    if (channels.length === 0) return;
+    const prefsMap = await this.fetchPrefsMap([userId]);
+    const disabled = prefsMap.get(userId)?.[type] ?? [];
+    const effectiveChannels = channels.filter((ch) => !disabled.includes(ch));
+    await this.dispatchChannels([notification!], payload, effectiveChannels);
   }
 
   async notifyMany(
@@ -63,15 +73,32 @@ export class NotificationsService {
     if (userIds.length === 0) return;
 
     const { title, body } = this.renderContent(type, payload, lang);
+    const values = userIds.map((userId) => ({ userId, type, title, body, data: payload }));
+
     // Single batch insert — acceptable at current group/trip scale (~100 members max).
     // If userIds can grow to thousands, chunk into batches of ~500 to avoid Postgres
     // parameter limits and memory pressure.
-    const inserted = await this.db
-      .insert(notifications)
-      .values(userIds.map((userId) => ({ userId, type, title, body, data: payload })))
-      .returning();
+    if (channels.length === 0) {
+      await this.db.insert(notifications).values(values);
+      return;
+    }
 
-    await this.dispatchChannels(inserted, payload, channels);
+    const inserted = await this.db.insert(notifications).values(values).returning();
+
+    const prefsMap = await this.fetchPrefsMap(userIds);
+    // Group rows by effective channel set to minimise dispatchChannels calls
+    const groups = new Map<string, { rows: NotificationRow[]; channels: NotificationChannel[] }>();
+    for (const row of inserted) {
+      const disabled = prefsMap.get(row.userId)?.[type] ?? [];
+      const effective = channels.filter((ch) => !disabled.includes(ch));
+      if (effective.length === 0) continue;
+      const key = [...effective].sort().join(',');
+      if (!groups.has(key)) groups.set(key, { rows: [], channels: effective });
+      groups.get(key)!.rows.push(row);
+    }
+    await Promise.allSettled(
+      Array.from(groups.values()).map((g) => this.dispatchChannels(g.rows, payload, g.channels)),
+    );
   }
 
   async findAll(
@@ -144,6 +171,16 @@ export class NotificationsService {
     await this.db
       .delete(userFcmTokens)
       .where(and(eq(userFcmTokens.userId, userId), eq(userFcmTokens.token, dto.token)));
+  }
+
+  private async fetchPrefsMap(
+    userIds: string[],
+  ): Promise<Map<string, DisabledNotificationChannels>> {
+    const rows = await this.db.query.userPreferences.findMany({
+      where: inArray(userPreferences.userId, userIds),
+      columns: { userId: true, notificationOptOuts: true },
+    });
+    return new Map(rows.map((r) => [r.userId, r.notificationOptOuts ?? {}]));
   }
 
   private renderContent(

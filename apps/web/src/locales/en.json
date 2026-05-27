@@ -454,6 +454,28 @@
       },
       "saveError": "Failed to save preferences"
     },
+    "notificationPreferences": {
+      "heading": "Notification Preferences",
+      "description": "Choose which channels you receive each notification type on.",
+      "types": {
+        "GROUP_INVITATION": "Group invitation",
+        "GROUP_JOIN_ACCEPTED": "Join request accepted",
+        "GROUP_ANNOUNCEMENT": "Group announcement",
+        "TRIP_INVITATION": "Trip invitation",
+        "TRIP_ANNOUNCEMENT": "Trip announcement",
+        "TRIP_KEY_DATE_REMINDER": "Trip key date reminder",
+        "TRIP_COMPLETED": "Trip completed",
+        "PASSPORT_EXPIRING_SOON": "Passport expiring soon",
+        "PASSPORT_EXPIRED": "Passport expired",
+        "ACHIEVEMENT_UNLOCKED": "Achievement unlocked"
+      },
+      "channels": {
+        "PUSH": "Push",
+        "EMAIL": "Email",
+        "SMS": "SMS"
+      },
+      "saveError": "Failed to save notification preferences"
+    },
     "personalDetails": {
       "heading": "Personal Details",
       "firstName": "First Name",

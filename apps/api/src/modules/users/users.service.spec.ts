@@ -33,6 +33,8 @@ jest.mock('@google-cloud/storage', () => ({
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import type { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
+import type { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
+import { NotificationChannel, NotificationType } from '@chamuco/shared-types';
 import type { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 import type { CreateNationalityDto, UpdateNationalityDto } from './dto/nationality.dto';
 import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -582,6 +584,116 @@ describe('UsersService', () => {
       await expect(
         service.updatePreferences('user-uuid', { theme: AppTheme.DARK }),
       ).rejects.toThrow(dbError);
+    });
+  });
+
+  describe('getNotificationPreferences', () => {
+    it('returns empty map when notificationOptOuts is null', async () => {
+      mockPrefFindFirst.mockResolvedValue({
+        ...mockPreferences,
+        notificationOptOuts: null,
+      });
+
+      const result = await service.getNotificationPreferences('user-uuid');
+
+      expect(result).toEqual({ optOuts: {} });
+    });
+
+    it('returns the stored map when channels are set', async () => {
+      const channels = { [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.PUSH] };
+      mockPrefFindFirst.mockResolvedValue({
+        ...mockPreferences,
+        notificationOptOuts: channels,
+      });
+
+      const result = await service.getNotificationPreferences('user-uuid');
+
+      expect(result).toEqual({ optOuts: channels });
+    });
+
+    it('throws NotFoundException when preferences do not exist', async () => {
+      mockPrefFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getNotificationPreferences('unknown-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('updateNotificationPreferences', () => {
+    it('updates and returns the sanitized preferences', async () => {
+      const updated = {
+        ...mockPreferences,
+        notificationOptOuts: {
+          [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.EMAIL],
+        },
+      };
+      mockReturning.mockResolvedValue([updated]);
+
+      const dto = {
+        optOuts: {
+          [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.EMAIL],
+        },
+      } as UpdateNotificationPreferencesDto;
+
+      const result = await service.updateNotificationPreferences('user-uuid', dto);
+
+      expect(result.optOuts).toEqual({
+        [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.EMAIL],
+      });
+    });
+
+    it('strips invalid notification types from the input', async () => {
+      mockReturning.mockResolvedValue([{ ...mockPreferences, notificationOptOuts: {} }]);
+
+      const dto = {
+        optOuts: { INVALID_TYPE: [NotificationChannel.PUSH] },
+      } as unknown as UpdateNotificationPreferencesDto;
+
+      const result = await service.updateNotificationPreferences('user-uuid', dto);
+
+      expect(result.optOuts).toEqual({});
+    });
+
+    it('strips invalid channel values from the input', async () => {
+      mockReturning.mockResolvedValue([{ ...mockPreferences, notificationOptOuts: {} }]);
+
+      const dto = {
+        optOuts: { [NotificationType.GROUP_ANNOUNCEMENT]: ['INVALID_CHANNEL'] },
+      } as unknown as UpdateNotificationPreferencesDto;
+
+      const result = await service.updateNotificationPreferences('user-uuid', dto);
+
+      expect(result.optOuts).toEqual({});
+    });
+
+    it('preserves valid channels when input contains a mix of valid and invalid', async () => {
+      const sanitized = {
+        [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.PUSH],
+      };
+      mockReturning.mockResolvedValue([{ ...mockPreferences, notificationOptOuts: sanitized }]);
+
+      const dto = {
+        optOuts: {
+          [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.PUSH, 'INVALID_CHANNEL'],
+        },
+      } as unknown as UpdateNotificationPreferencesDto;
+
+      const result = await service.updateNotificationPreferences('user-uuid', dto);
+
+      expect(result.optOuts).toEqual({
+        [NotificationType.GROUP_ANNOUNCEMENT]: [NotificationChannel.PUSH],
+      });
+    });
+
+    it('throws NotFoundException when the user has no preferences row', async () => {
+      mockReturning.mockResolvedValue([]);
+
+      await expect(
+        service.updateNotificationPreferences('unknown-uuid', {
+          optOuts: {},
+        } as UpdateNotificationPreferencesDto),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

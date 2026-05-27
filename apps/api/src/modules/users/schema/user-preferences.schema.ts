@@ -1,5 +1,10 @@
-import { AppCurrency, AppLanguage, AppTheme } from '@chamuco/shared-types';
-import { pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  AppCurrency,
+  AppLanguage,
+  AppTheme,
+  DisabledNotificationChannels,
+} from '@chamuco/shared-types';
+import { jsonb, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { users } from './users.schema';
 
@@ -17,5 +22,6 @@ export const userPreferences = pgTable('user_preferences', {
   language: appLanguageEnum('language').notNull().default(AppLanguage.ES),
   currency: appCurrencyEnum('currency').notNull().default(AppCurrency.COP),
   theme: appThemeEnum('theme').notNull().default(AppTheme.SYSTEM),
+  notificationOptOuts: jsonb('notification_opt_outs').$type<DisabledNotificationChannels>(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

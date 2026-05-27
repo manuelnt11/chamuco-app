@@ -16,6 +16,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { BasicInfoSection } from '@/components/profile/BasicInfoSection';
 import { PersonalDetailsSection } from '@/components/profile/PersonalDetailsSection';
 import { PreferencesSection } from '@/components/profile/PreferencesSection';
+import { NotificationPreferencesSection } from '@/components/profile/NotificationPreferencesSection';
 import { LoyaltyProgramsSection } from '@/components/profile/LoyaltyProgramsSection';
 import { HealthSection } from '@/components/profile/HealthSection';
 import { EmergencyContactsSection } from '@/components/profile/EmergencyContactsSection';
@@ -23,6 +24,7 @@ import { NationalitiesSection } from '@/components/profile/NationalitiesSection'
 import type { BasicInfoProfile } from '@/components/profile/BasicInfoSection';
 import type { PersonalDetailsProfile } from '@/components/profile/PersonalDetailsSection';
 import type { PreferencesData } from '@/components/profile/PreferencesSection';
+import type { NotificationPreferencesData } from '@/components/profile/NotificationPreferencesSection';
 import type { LoyaltyProgramDto } from '@/components/profile/LoyaltyProgramsSection';
 import type { HealthData } from '@/components/profile/HealthSection';
 import type { EmergencyContactDto } from '@/components/profile/EmergencyContactsSection';
@@ -80,6 +82,7 @@ interface ProfileData {
   emergencyContacts: EmergencyContactDto[];
   nationalities: NationalityDto[];
   preferences: PreferencesData;
+  notificationPreferences: NotificationPreferencesData;
 }
 
 export default function ProfilePage() {
@@ -130,15 +133,23 @@ export default function ProfilePage() {
     if (!loadedOnce.current) setIsLoading(true);
     setHasLoadError(false);
     try {
-      const [profileRes, prefRes, loyaltyRes, healthRes, emergencyRes, nationalitiesRes] =
-        await Promise.allSettled([
-          apiClient.get('/v1/users/me/profile'),
-          apiClient.get('/v1/users/me/preferences'),
-          apiClient.get('/v1/users/me/loyalty-programs'),
-          apiClient.get('/v1/users/me/health'),
-          apiClient.get('/v1/users/me/emergency-contacts'),
-          apiClient.get('/v1/users/me/nationalities'),
-        ]);
+      const [
+        profileRes,
+        prefRes,
+        loyaltyRes,
+        healthRes,
+        emergencyRes,
+        nationalitiesRes,
+        notifPrefRes,
+      ] = await Promise.allSettled([
+        apiClient.get('/v1/users/me/profile'),
+        apiClient.get('/v1/users/me/preferences'),
+        apiClient.get('/v1/users/me/loyalty-programs'),
+        apiClient.get('/v1/users/me/health'),
+        apiClient.get('/v1/users/me/emergency-contacts'),
+        apiClient.get('/v1/users/me/nationalities'),
+        apiClient.get('/v1/users/me/notification-preferences'),
+      ]);
 
       setData({
         userProfile:
@@ -167,6 +178,10 @@ export default function ProfilePage() {
           prefRes.status === 'fulfilled'
             ? (prefRes.value.data as PreferencesData)
             : { language: AppLanguage.ES, currency: AppCurrency.COP, theme: AppTheme.SYSTEM },
+        notificationPreferences:
+          notifPrefRes.status === 'fulfilled'
+            ? (notifPrefRes.value.data as NotificationPreferencesData)
+            : { optOuts: {} },
       });
     } catch {
       if (!loadedOnce.current) {
@@ -355,6 +370,7 @@ export default function ProfilePage() {
         hidden={activeTab !== 'preferences'}
       >
         <PreferencesSection preferences={data.preferences} onRefresh={loadData} />
+        <NotificationPreferencesSection preferences={data.notificationPreferences} />
       </div>
     </div>
   );
