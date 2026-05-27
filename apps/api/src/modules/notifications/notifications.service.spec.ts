@@ -213,6 +213,21 @@ describe('NotificationsService', () => {
         expect(emailStrategy.send).not.toHaveBeenCalled();
       });
 
+      it('skips prefs lookup and dispatch when caller passes no channels', async () => {
+        db.insert.mockReturnValueOnce(makeInsert([FAKE_NOTIFICATION]));
+
+        await service.notify(
+          'user-1',
+          NotificationType.PASSPORT_EXPIRING_SOON,
+          { countryCode: 'MX' },
+          [],
+        );
+
+        expect(db.insert).toHaveBeenCalledTimes(1);
+        expect(db.query.userPreferences.findMany).not.toHaveBeenCalled();
+        expect(pushStrategy.send).not.toHaveBeenCalled();
+      });
+
       it('does not suppress channels for a different notification type', async () => {
         db.query.userPreferences.findMany.mockResolvedValueOnce([
           {

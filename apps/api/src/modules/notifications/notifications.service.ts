@@ -55,10 +55,7 @@ export class NotificationsService {
       .returning();
 
     // insert().returning() always yields a row on success — non-null is safe here
-    if (channels.length === 0) {
-      await this.dispatchChannels([notification!], payload, []);
-      return;
-    }
+    if (channels.length === 0) return;
     const prefsMap = await this.fetchPrefsMap([userId]);
     const disabled = prefsMap.get(userId)?.[type] ?? [];
     const effectiveChannels = channels.filter((ch) => !disabled.includes(ch));
@@ -76,13 +73,17 @@ export class NotificationsService {
     if (userIds.length === 0) return;
 
     const { title, body } = this.renderContent(type, payload, lang);
+    const values = userIds.map((userId) => ({ userId, type, title, body, data: payload }));
+
     // Single batch insert — acceptable at current group/trip scale (~100 members max).
     // If userIds can grow to thousands, chunk into batches of ~500 to avoid Postgres
     // parameter limits and memory pressure.
-    const inserted = await this.db
-      .insert(notifications)
-      .values(userIds.map((userId) => ({ userId, type, title, body, data: payload })))
-      .returning();
+    if (channels.length === 0) {
+      await this.db.insert(notifications).values(values);
+      return;
+    }
+
+    const inserted = await this.db.insert(notifications).values(values).returning();
 
     const prefsMap = await this.fetchPrefsMap(userIds);
     // Group rows by effective channel set to minimise dispatchChannels calls

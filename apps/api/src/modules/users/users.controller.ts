@@ -458,6 +458,7 @@ export class UsersController {
   }
 
   @Get('me/notification-preferences')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Get the current user's notification preferences",
     description:
@@ -476,6 +477,7 @@ export class UsersController {
 
   @Patch('me/notification-preferences')
   @HttpCode(200)
+  @ApiBearerAuth()
   @ApiBody({ type: UpdateNotificationPreferencesDto })
   @ApiOperation({
     summary: "Update the current user's notification preferences",
