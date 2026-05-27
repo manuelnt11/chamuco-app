@@ -55,7 +55,11 @@ vi.mock('react-i18next', () => ({
   useTranslation: (_ns?: string) => ({
     t: (key: string, opts?: Record<string, string>) => {
       if (opts) {
-        return Object.entries(opts).reduce((acc, [k, v]) => acc.replace(`{{${k}}}`, v), key);
+        const interpolated = Object.entries(opts).reduce(
+          (acc, [k, v]) => acc.replace(`{{${k}}}`, v),
+          key,
+        );
+        return interpolated === key ? [key, ...Object.values(opts)].join(' ') : interpolated;
       }
       return key;
     },
@@ -125,6 +129,15 @@ describe('GroupAnnouncementsPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText(mockAnnouncement.content)).toBeInTheDocument();
+    });
+  });
+
+  it('shows @username in announcement feed', async () => {
+    setupDefaultMocks();
+    render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/@admin-user/)).toBeInTheDocument();
     });
   });
 

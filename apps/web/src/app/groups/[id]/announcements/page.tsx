@@ -62,7 +62,7 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
     void load();
   }, [id, isAuthLoading, appUser]);
 
-  const handleSubmit = async (e: SubmitEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!content.trim()) return;
 
@@ -115,6 +115,7 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
             onChange={(e) => setContent(e.target.value)}
             placeholder={t('announcementsPlaceholder')}
             rows={3}
+            maxLength={2000}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
           />
           {submitError && (
@@ -141,7 +142,11 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
               <p className="text-sm whitespace-pre-wrap">{a.content}</p>
               <p className="mt-2 text-xs text-muted-foreground">
                 {t('announcementsPostedBy', { name: `@${a.createdByUsername}` })} &middot;{' '}
-                {new Date(a.createdAt).toLocaleDateString()}
+                {new Date(a.createdAt).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
               </p>
             </li>
           ))}
