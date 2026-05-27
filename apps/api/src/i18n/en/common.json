@@ -1,0 +1,17 @@
+{
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "minLength": "Minimum length is {{count}} characters",
+    "maxLength": "Maximum length is {{count}} characters",
+    "invalidFormat": "Invalid format",
+    "mustBePositive": "Value must be positive",
+    "mustBeInteger": "Value must be an integer"
+  },
+  "status": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information"
+  }
+}

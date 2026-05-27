@@ -1,0 +1,12 @@
+{
+  "generic": "Algo salió mal. Por favor intenta de nuevo.",
+  "notFound": "Recurso no encontrado",
+  "unauthorized": "No estás autorizado para acceder a este recurso",
+  "forbidden": "Acceso a este recurso prohibido",
+  "badRequest": "Solicitud inválida",
+  "conflict": "Este recurso ya existe",
+  "internalServerError": "Error interno del servidor. Por favor intenta más tarde.",
+  "serviceUnavailable": "Servicio temporalmente no disponible",
+  "validation": "Validación fallida",
+  "database": "Ocurrió un error de base de datos"
+}

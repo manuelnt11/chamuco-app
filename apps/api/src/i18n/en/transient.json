@@ -1,0 +1,14 @@
+{
+  "emailVerification": {
+    "subject": "Verify your email address",
+    "body": "Your verification code is: {{code}}"
+  },
+  "phoneVerification": {
+    "subject": "Chamuco verification code",
+    "body": "Your verification code is: {{code}}"
+  },
+  "welcomeEmail": {
+    "subject": "Welcome to Chamuco Travel!",
+    "body": "Hi {{displayName}}, welcome to Chamuco Travel!"
+  }
+}

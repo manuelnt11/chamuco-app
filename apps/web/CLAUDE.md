@@ -230,6 +230,20 @@ import { FileUploadButton, UploadType } from '@/components/ui/file-upload-button
 - `upload.errorDefault` — user-facing error message
 - `upload.progressLabel` — ARIA label for the progress bar (`Upload progress: {{progress}}%`)
 
+### 6. Never display raw user IDs — always use @username
+
+Any user-facing string that references who performed an action must display `@username` (formatted as `@${user.createdByUsername}` or `@${member.username}`), never a raw UUID. Backend response DTOs must expose `username` fields, not `id` fields, for display purposes.
+
+```tsx
+// ✅ Correct
+t('announcementsPostedBy', { name: `@${a.createdByUsername}` });
+
+// ❌ Wrong — UUID is meaningless to users
+t('announcementsPostedBy', { name: a.createdBy });
+```
+
+If an API response returns only a user ID where a username is needed, that is a backend bug — fix the DTO to include `username` rather than working around it on the frontend.
+
 ### 5. React imports — always use named imports
 
 Next.js uses the automatic JSX transform. **Never use `import React from 'react'` or `import * as React from 'react'`** — neither is needed for JSX and both pull in the entire module as a namespace.

@@ -4,12 +4,12 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { GroupVisibility } from '@chamuco/shared-types';
-import { ArrowLeftIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
 
 import { apiClient } from '@/services/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
-import type { Group } from '@/types/group';
+import type { Group, GroupAnnouncement, GroupAnnouncementsResponse } from '@/types/group';
 
 interface GroupDetailPageProps {
   params: Promise<{ id: string }>;
@@ -21,15 +21,23 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { isLoading: isAuthLoading } = useAuth();
   const { appUser } = useUser();
   const [group, setGroup] = useState<Group | null>(null);
+  const [announcements, setAnnouncements] = useState<GroupAnnouncement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (isAuthLoading) return;
     setIsLoading(true);
-    apiClient
-      .get<Group>(`/v1/groups/${id}`)
-      .then((res) => setGroup(res.data))
+    Promise.all([
+      apiClient.get<Group>(`/v1/groups/${id}`),
+      apiClient
+        .get<GroupAnnouncementsResponse>(`/v1/groups/${id}/announcements?limit=3&offset=0`)
+        .catch(() => null),
+    ])
+      .then(([groupRes, announcementsRes]) => {
+        setGroup(groupRes.data);
+        setAnnouncements(announcementsRes?.data?.items ?? []);
+      })
       .catch(() => setNotFound(true))
       .finally(() => setIsLoading(false));
   }, [id, isAuthLoading]);
@@ -84,6 +92,12 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           >
             {t('members.title')}
           </Link>
+          <Link
+            href={`/groups/${group.id}/announcements`}
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
+          >
+            {t('announcements')}
+          </Link>
           {isOwner && (
             <Link
               href={`/groups/${group.id}/settings`}
@@ -94,6 +108,37 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           )}
         </div>
       </div>
+
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <MegaphoneIcon className="size-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold">{t('announcements')}</h2>
+          </div>
+          <Link
+            href={`/groups/${group.id}/announcements`}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t('announcementsViewAll')}
+          </Link>
+        </div>
+
+        {announcements.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('announcementsEmpty')}</p>
+        ) : (
+          <ul className="space-y-3">
+            {announcements.map((a) => (
+              <li key={a.id} className="rounded-lg border border-border bg-card p-4">
+                <p className="text-sm whitespace-pre-wrap line-clamp-3">{a.content}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t('announcementsPostedBy', { name: `@${a.createdByUsername}` })} &middot;{' '}
+                  {new Date(a.createdAt).toLocaleDateString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

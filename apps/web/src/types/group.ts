@@ -56,3 +56,16 @@ export interface GroupSearchResponse {
   data: GroupSearchResult[];
   total: number;
 }
+
+export interface GroupAnnouncement {
+  id: string;
+  groupId: string;
+  createdByUsername: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface GroupAnnouncementsResponse {
+  items: GroupAnnouncement[];
+  total: number;
+}
