@@ -46,7 +46,10 @@ vi.mock('@/hooks/useUser', () => ({
 
 vi.mock('@phosphor-icons/react', () => ({
   ArrowLeftIcon: () => <span data-testid="arrow-left-icon" />,
+  ArrowRightIcon: () => null,
+  GearSixIcon: () => null,
   MegaphoneIcon: () => <span data-testid="megaphone-icon" />,
+  UsersThreeIcon: () => null,
 }));
 
 vi.mock('react-i18next', () => ({

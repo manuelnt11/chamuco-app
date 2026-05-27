@@ -1,0 +1,95 @@
+{
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "submit": "Enviar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "deleteConfirm": "¿Confirmar?",
+    "loading": "Cargando...",
+    "viewMore": "Ver Más",
+    "viewLess": "Ver Menos",
+    "backToSignIn": "Volver al inicio de sesión"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "trips": "Viajes",
+    "groups": "Grupos",
+    "explore": "Explorar",
+    "profile": "Perfil",
+    "collapseSidebar": "Contraer",
+    "expandSidebar": "Expandir"
+  },
+  "status": {
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Advertencia",
+    "info": "Información"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Por favor ingrese un correo electrónico válido",
+    "invalidFormat": "Formato inválido",
+    "minLength": "La longitud mínima es {{count}} caracteres",
+    "maxLength": "La longitud máxima es {{count}} caracteres"
+  },
+  "time": {
+    "days": "{{count}} día",
+    "days_other": "{{count}} días",
+    "hours": "{{count}} hora",
+    "hours_other": "{{count}} horas",
+    "minutes": "{{count}} minuto",
+    "minutes_other": "{{count}} minutos",
+    "ago": "hace {{time}}",
+    "from_now": "en {{time}}"
+  },
+  "home": {
+    "title": "Chamuco Travel",
+    "subtitle": "Plataforma de gestión de viajes grupales"
+  },
+  "offline": {
+    "title": "Sin Conexión",
+    "message": "No se detectó conexión a internet. Algunas funciones pueden no estar disponibles.",
+    "retry": "Intentar de Nuevo"
+  },
+  "upload": {
+    "chooseFile": "Elegir archivo",
+    "uploading": "Subiendo...",
+    "retry": "Reintentar",
+    "errorDefault": "Error al subir. Inténtalo de nuevo.",
+    "progressLabel": "Progreso de subida: {{progress}}%"
+  },
+  "phoneInput": {
+    "searchCountry": "Buscar país...",
+    "noCountries": "No se encontraron países."
+  },
+  "profileIncomplete": {
+    "title": "Completa tu perfil",
+    "description": "Agrega tus nacionalidades y contactos de emergencia para acceder a todas las funciones.",
+    "action": "Completar perfil",
+    "dismiss": "Descartar"
+  },
+  "installPrompt": {
+    "title": "Instala Chamuco Travel",
+    "description": "Agrégala a tu pantalla de inicio para la mejor experiencia",
+    "instruction": "Toca <shareIcon /> y luego \"Añadir a la pantalla de inicio\"",
+    "install": "Instalar",
+    "dismiss": "Ahora no"
+  },
+  "notifications": {
+    "openLabel": "Abrir notificaciones",
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "empty": "Aún no hay notificaciones",
+    "unreadBadge": "{{count}} notificaciones sin leer"
+  }
+}

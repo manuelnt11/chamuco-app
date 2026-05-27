@@ -1,0 +1,9 @@
+{
+  "generic": "Something went wrong. Please try again.",
+  "notFound": "Page not found",
+  "unauthorized": "You are not authorized to access this resource",
+  "networkError": "Network error. Please check your connection.",
+  "sessionExpired": "Your session has expired. Please sign in again.",
+  "loadError": "Failed to load data. Please try again.",
+  "retry": "Retry"
+}

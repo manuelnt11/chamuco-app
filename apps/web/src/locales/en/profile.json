@@ -1,0 +1,493 @@
+{
+  "title": "Profile",
+  "editProfile": "Edit Profile",
+  "personalInfo": "Personal Information",
+  "travelPreferences": "Travel Preferences",
+  "achievements": "Achievements",
+  "statistics": "Statistics",
+  "tabs": {
+    "basicInfo": "Basic Info",
+    "personalDetails": "Personal Details",
+    "preferences": "Preferences",
+    "loyaltyPrograms": "Loyalty Programs",
+    "health": "Health",
+    "emergencyContacts": "Emergency Contacts",
+    "nationalities": "Nationalities & Documents"
+  },
+  "basicInfo": {
+    "heading": "Basic Information",
+    "displayName": "Display Name",
+    "username": "Username",
+    "usernameHint": "Username cannot be changed",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell others about yourself...",
+    "timezone": "Timezone",
+    "timezonePlaceholder": "Select a timezone",
+    "timezoneSearchPlaceholder": "Search timezones...",
+    "timezoneNoResults": "No timezone found.",
+    "avatarEditor": {
+      "editButton": "Change avatar",
+      "tabPhoto": "Upload photo",
+      "tabEmoji": "Choose emoji",
+      "photoSuccess": "Avatar updated",
+      "photoError": "Failed to update avatar",
+      "emojiSuccess": "Avatar updated",
+      "emojiError": "Failed to update avatar",
+      "cropEditor": {
+        "title": "Crop photo",
+        "usePhoto": "Use photo",
+        "currentAvatar": "Current avatar"
+      }
+    },
+    "save": "Save changes",
+    "saveSuccess": "Profile updated",
+    "saveError": "Failed to save profile",
+    "validDisplayName": "Display name must be between 1 and 100 characters",
+    "profileVisibility": "Profile Visibility",
+    "profileVisibilityHint": "Controls who can see your travel stats, achievements, and discovery map.",
+    "profileVisibilityOptions": {
+      "PRIVATE": "Private",
+      "CONNECTIONS_ONLY": "Connections",
+      "MEMBERS_ONLY": "Members",
+      "PUBLIC": "Public"
+    }
+  },
+  "preferences": {
+    "heading": "Preferences",
+    "language": "Language",
+    "currency": "Currency",
+    "theme": "Theme",
+    "languages": {
+      "EN": "English",
+      "ES": "Español"
+    },
+    "currencies": {
+      "COP": "Colombian Peso (COP)",
+      "USD": "US Dollar (USD)"
+    },
+    "themes": {
+      "LIGHT": "Light",
+      "DARK": "Dark",
+      "SYSTEM": "System"
+    },
+    "saveError": "Failed to save preferences"
+  },
+  "notificationPreferences": {
+    "heading": "Notification Preferences",
+    "description": "Choose which channels you receive each notification type on.",
+    "types": {
+      "GROUP_INVITATION": "Group invitation",
+      "GROUP_JOIN_ACCEPTED": "Join request accepted",
+      "GROUP_ANNOUNCEMENT": "Group announcement",
+      "TRIP_INVITATION": "Trip invitation",
+      "TRIP_ANNOUNCEMENT": "Trip announcement",
+      "TRIP_KEY_DATE_REMINDER": "Trip key date reminder",
+      "TRIP_COMPLETED": "Trip completed",
+      "PASSPORT_EXPIRING_SOON": "Passport expiring soon",
+      "PASSPORT_EXPIRED": "Passport expired",
+      "ACHIEVEMENT_UNLOCKED": "Achievement unlocked"
+    },
+    "channels": {
+      "PUSH": "Push",
+      "EMAIL": "Email",
+      "SMS": "SMS"
+    },
+    "saveError": "Failed to save notification preferences"
+  },
+  "personalDetails": {
+    "heading": "Personal Details",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "JUAN CARLOS",
+    "firstNameHint": "As on your passport or ID",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "GARCÍA LÓPEZ",
+    "lastNameHint": "As on your passport or ID",
+    "dateOfBirth": "Date of Birth",
+    "day": "Day",
+    "month": "Month",
+    "year": "Year",
+    "yearVisible": "Show birth year on public profile",
+    "phone": "Phone Number",
+    "phoneCountry": "Country Code",
+    "phoneCountryPlaceholder": "Country",
+    "phoneCountrySearch": "Search countries…",
+    "phoneCountryNoResults": "No countries found.",
+    "phoneNumber": "Local Number",
+    "phoneNumberPlaceholder": "e.g. 3001234567",
+    "birthLocationOptional": "Birth Location (optional)",
+    "birthCountry": "Birth Country",
+    "birthCountryPlaceholder": "Select country",
+    "birthCountrySearch": "Search countries…",
+    "birthCountryNoResults": "No countries found.",
+    "birthCity": "Birth City",
+    "birthCityPlaceholder": "e.g. Bogotá",
+    "homeLocation": "Home Location",
+    "homeCountry": "Home Country",
+    "homeCountryPlaceholder": "Select country",
+    "homeCountrySearch": "Search countries…",
+    "homeCountryNoResults": "No countries found.",
+    "homeCity": "Home City",
+    "homeCityPlaceholder": "e.g. Medellín",
+    "save": "Save changes",
+    "saveSuccess": "Personal details updated",
+    "saveError": "Failed to save personal details",
+    "errors": {
+      "firstNameRequired": "First name: letters and spaces only, 2–100 characters",
+      "lastNameRequired": "Last name: letters and spaces only, 2–100 characters",
+      "invalidDob": "Enter a valid date of birth (min age: 15)",
+      "invalidPhone": "Enter a valid phone number",
+      "homeCountryRequired": "Home country is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Enter a valid email address"
+    },
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "emailHint": "Email address for trip alerts and platform notifications.",
+    "dobPickerOpen": "Open date picker"
+  },
+  "loyaltyPrograms": {
+    "heading": "Loyalty Programs",
+    "empty": "No loyalty programs added yet",
+    "add": "Add program",
+    "programName": "Program name",
+    "memberId": "Member ID",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "addSuccess": "Program added",
+    "updateSuccess": "Program updated",
+    "deleteSuccess": "Program deleted",
+    "saveError": "Failed to save",
+    "duplicateError": "You already have this program with the same member ID.",
+    "categories": {
+      "airline": "Airline",
+      "hotel": "Hotel",
+      "car_rental": "Car Rental",
+      "cruise": "Cruise",
+      "bank": "Bank & Credit Card",
+      "other": "Other"
+    }
+  },
+  "health": {
+    "heading": "Health Profile",
+    "privacyNote": "This information is private and only shared with trip organizers when you grant permission.",
+    "bloodType": {
+      "label": "Blood Type",
+      "A_POSITIVE": "A+",
+      "A_NEGATIVE": "A−",
+      "B_POSITIVE": "B+",
+      "B_NEGATIVE": "B−",
+      "AB_POSITIVE": "AB+",
+      "AB_NEGATIVE": "AB−",
+      "O_POSITIVE": "O+",
+      "O_NEGATIVE": "O−"
+    },
+    "dietaryPreference": {
+      "label": "Dietary Preference",
+      "OMNIVORE": "Omnivore",
+      "VEGETARIAN": "Vegetarian",
+      "VEGAN": "Vegan",
+      "PESCATARIAN": "Pescatarian",
+      "GLUTEN_FREE": "Gluten Free",
+      "OTHER": "Other"
+    },
+    "dietaryNotes": {
+      "label": "Dietary Notes",
+      "placeholder": "Describe your dietary needs..."
+    },
+    "generalMedicalNotes": {
+      "label": "General Medical Notes",
+      "placeholder": "Any relevant medical information...",
+      "hint": "Private — only visible to trip organizers when explicitly shared."
+    },
+    "foodAllergies": {
+      "label": "Food Allergies",
+      "GLUTEN": "Gluten",
+      "CRUSTACEANS": "Crustaceans",
+      "EGGS": "Eggs",
+      "FISH": "Fish",
+      "PEANUTS": "Peanuts",
+      "SOYBEANS": "Soybeans",
+      "MILK": "Milk",
+      "TREE_NUTS": "Tree Nuts",
+      "CELERY": "Celery",
+      "MUSTARD": "Mustard",
+      "SESAME": "Sesame",
+      "SULPHITES": "Sulphites",
+      "LUPIN": "Lupin",
+      "MOLLUSCS": "Molluscs",
+      "OTHER": "Other"
+    },
+    "phobias": {
+      "label": "Phobias",
+      "HEIGHTS": "Heights",
+      "ENCLOSED_SPACES": "Enclosed Spaces",
+      "FLYING": "Flying",
+      "DEEP_WATER": "Deep Water",
+      "OPEN_WATER": "Open Water",
+      "ANIMALS": "Animals",
+      "INSECTS": "Insects",
+      "SNAKES": "Snakes",
+      "SPIDERS": "Spiders",
+      "DARKNESS": "Darkness",
+      "CROWDS": "Crowds",
+      "MOTION_SICKNESS": "Motion Sickness",
+      "OTHER": "Other"
+    },
+    "physicalLimitations": {
+      "label": "Physical Limitations",
+      "WHEELCHAIR_USER": "Wheelchair User",
+      "REDUCED_MOBILITY": "Reduced Mobility",
+      "CANNOT_USE_STAIRS": "Cannot Use Stairs",
+      "HEARING_IMPAIRMENT": "Hearing Impairment",
+      "VISUAL_IMPAIRMENT": "Visual Impairment",
+      "REQUIRES_OXYGEN": "Requires Oxygen",
+      "REQUIRES_CPAP": "Requires CPAP",
+      "CHRONIC_PAIN": "Chronic Pain",
+      "JOINT_CONDITION": "Joint Condition",
+      "CARDIAC_CONDITION": "Cardiac Condition",
+      "RESPIRATORY_CONDITION": "Respiratory Condition",
+      "PREGNANCY": "Pregnancy",
+      "OTHER": "Other"
+    },
+    "medicalConditions": {
+      "label": "Medical Conditions",
+      "DIABETES": "Diabetes",
+      "EPILEPSY": "Epilepsy",
+      "SEVERE_ALLERGY_EPIPEN": "Severe Allergy (EpiPen)",
+      "ASTHMA": "Asthma",
+      "HEART_CONDITION": "Heart Condition",
+      "HYPERTENSION": "Hypertension",
+      "BLOOD_CLOTTING_DISORDER": "Blood Clotting Disorder",
+      "MENTAL_HEALTH_CONDITION": "Mental Health Condition",
+      "OTHER": "Other"
+    },
+    "arrayField": {
+      "otherDescriptionPlaceholder": "Please describe...",
+      "otherDescriptionRequired": "Description is required for \"Other\""
+    },
+    "save": "Save changes",
+    "saveSuccess": "Health profile saved",
+    "saveError": "Failed to save health profile"
+  },
+  "emergencyContacts": {
+    "heading": "Emergency Contacts",
+    "empty": "No emergency contacts added yet.",
+    "add": "Add contact",
+    "save": "Save",
+    "cancel": "Cancel",
+    "fullName": "Full name",
+    "phoneNumber": "Phone number",
+    "relationship": "Relationship",
+    "isPrimary": "Primary contact",
+    "primaryBadge": "Primary",
+    "addSuccess": "Contact added.",
+    "updateSuccess": "Contact updated.",
+    "deleteSuccess": "Contact deleted.",
+    "saveError": "Could not save contact. Try again.",
+    "relationshipOptions": {
+      "mother": "MOTHER",
+      "father": "FATHER",
+      "sister": "SISTER",
+      "brother": "BROTHER",
+      "spouse": "SPOUSE",
+      "partner": "PARTNER",
+      "daughter": "DAUGHTER",
+      "son": "SON",
+      "grandmother": "GRANDMOTHER",
+      "grandfather": "GRANDFATHER",
+      "aunt": "AUNT",
+      "uncle": "UNCLE",
+      "cousin": "COUSIN",
+      "friend": "FRIEND",
+      "colleague": "COLLEAGUE",
+      "other": "OTHER"
+    },
+    "errors": {
+      "fullNameRequired": "Full name is required.",
+      "fullNameInvalid": "Full name may only contain letters and spaces.",
+      "phoneRequired": "Phone number is required.",
+      "invalidPhone": "Invalid phone number.",
+      "relationshipRequired": "Relationship is required.",
+      "relationshipInvalid": "Relationship may only contain letters and spaces."
+    }
+  },
+  "nationalities": {
+    "heading": "Nationalities & Travel Documents",
+    "empty": "No nationalities added yet.",
+    "add": "Add nationality",
+    "save": "Save",
+    "cancel": "Cancel",
+    "primaryBadge": "Primary",
+    "countryCode": "Country",
+    "countryPlaceholder": "Select country",
+    "countrySearch": "Search countries…",
+    "countryNoResults": "No countries found.",
+    "nationalIdNumber": "National ID",
+    "nationalIdPlaceholder": "e.g. 1234567890",
+    "passportSection": "Passport (optional)",
+    "passportNumber": "Passport number",
+    "passportPlaceholder": "e.g. AB1234567",
+    "passportIssueDate": "Issue date",
+    "passportExpiryDate": "Expiry date",
+    "passportStatus": {
+      "OMITTED": "No passport",
+      "ACTIVE": "Active",
+      "EXPIRING_SOON": "Expiring soon",
+      "EXPIRED": "Expired"
+    },
+    "addSuccess": "Nationality added.",
+    "updateSuccess": "Nationality updated.",
+    "deleteSuccess": "Nationality removed.",
+    "saveError": "Could not save. Please try again.",
+    "duplicateError": "You already have a nationality for that country.",
+    "deleteError": "Could not delete. Please try again.",
+    "deletePrimaryError": "Cannot delete the primary nationality while others exist.",
+    "errors": {
+      "nationalIdFormat": "National ID may only contain uppercase letters, numbers, and hyphens.",
+      "passportIncomplete": "Provide all three passport fields or leave them all empty.",
+      "passportFormat": "Passport number may only contain uppercase letters, numbers, and hyphens.",
+      "expiryBeforeIssue": "Expiry date must be after issue date.",
+      "issueDateFuture": "Passport issue date cannot be in the future."
+    },
+    "documentStatus": {
+      "ACTIVE": "Active",
+      "EXPIRING_SOON": "Expiring soon",
+      "EXPIRED": "Expired"
+    },
+    "documentsToggle": "Visas & ETAs",
+    "visas": {
+      "heading": "Visas",
+      "empty": "No visas added.",
+      "add": "Add visa",
+      "save": "Save",
+      "cancel": "Cancel",
+      "coverageType": "Coverage",
+      "coverageTypes": {
+        "COUNTRY": "Country",
+        "ZONE": "Zone"
+      },
+      "country": "Country",
+      "countryPlaceholder": "Select country",
+      "countrySearch": "Search countries…",
+      "countryNoResults": "No countries found.",
+      "zone": "Visa zone",
+      "zones": {
+        "SCHENGEN": "Schengen",
+        "GCC": "GCC",
+        "CARICOM": "CARICOM",
+        "EAC": "East African Community",
+        "CAN": "Andean Community",
+        "MERCOSUR": "Mercosur",
+        "ECOWAS": "ECOWAS"
+      },
+      "visaType": "Visa type",
+      "visaTypes": {
+        "TOURIST": "Tourist",
+        "BUSINESS": "Business",
+        "TRANSIT": "Transit",
+        "WORK": "Work",
+        "STUDENT": "Student",
+        "DIGITAL_NOMAD": "Digital nomad",
+        "OTHER": "Other"
+      },
+      "entries": "Entries",
+      "entriesOptions": {
+        "SINGLE": "Single",
+        "DOUBLE": "Double",
+        "MULTIPLE": "Multiple"
+      },
+      "expiryDate": "Expiry date",
+      "notes": "Notes",
+      "notesPlaceholder": "Optional notes...",
+      "addSuccess": "Visa added.",
+      "updateSuccess": "Visa updated.",
+      "deleteSuccess": "Visa deleted.",
+      "saveError": "Could not save visa. Try again.",
+      "deleteError": "Could not delete visa. Try again.",
+      "errors": {
+        "coverageRequired": "Select a coverage type.",
+        "countryRequired": "Select the destination country.",
+        "zoneRequired": "Select a visa zone.",
+        "typeRequired": "Select a visa type.",
+        "entriesRequired": "Select entry count.",
+        "expiryRequired": "Expiry date is required."
+      }
+    },
+    "etas": {
+      "heading": "ETAs",
+      "empty": "No ETAs added.",
+      "add": "Add ETA",
+      "save": "Save",
+      "cancel": "Cancel",
+      "passportNumber": "Passport number",
+      "destinationCountry": "Destination",
+      "destinationPlaceholder": "Select country",
+      "destinationSearch": "Search countries…",
+      "destinationNoResults": "No countries found.",
+      "authorizationNumber": "Authorization number",
+      "authorizationPlaceholder": "e.g. A1B2C3D4E5",
+      "etaType": "ETA type",
+      "etaTypes": {
+        "TOURIST": "Tourist",
+        "TRANSIT": "Transit"
+      },
+      "entries": "Entries",
+      "entriesOptions": {
+        "SINGLE": "Single",
+        "DOUBLE": "Double",
+        "MULTIPLE": "Multiple"
+      },
+      "expiryDate": "Expiry date",
+      "notes": "Notes",
+      "notesPlaceholder": "Optional notes...",
+      "noPassportHint": "Add a passport to this nationality to create ETAs.",
+      "addSuccess": "ETA added.",
+      "updateSuccess": "ETA updated.",
+      "deleteSuccess": "ETA deleted.",
+      "saveError": "Could not save ETA. Try again.",
+      "deleteError": "Could not delete ETA. Try again.",
+      "errors": {
+        "countryRequired": "Select the destination country.",
+        "authNumberRequired": "Authorization number is required.",
+        "authNumberFormat": "Can only contain letters, numbers and hyphens.",
+        "typeRequired": "Select an ETA type.",
+        "entriesRequired": "Select entry count.",
+        "expiryRequired": "Expiry date is required."
+      }
+    }
+  },
+  "publicProfile": {
+    "notFound": "Profile not found",
+    "notFoundDescription": "No user with the username @{{username}} exists.",
+    "loadError": "Failed to load profile",
+    "retry": "Try again",
+    "privateProfile": "This profile is private",
+    "stats": {
+      "heading": "Travel Stats",
+      "tripsCompleted": "Trips",
+      "countriesVisited": "Countries",
+      "kmTraveled": "Km traveled",
+      "citiesVisited": "Cities",
+      "tripsAsOrganizer": "As organizer"
+    },
+    "achievements": {
+      "heading": "Achievements",
+      "empty": "No achievements yet"
+    },
+    "recognitions": {
+      "heading": "Recognitions",
+      "empty": "No recognitions yet"
+    },
+    "discoveryMap": {
+      "heading": "Discovery Map",
+      "placeholder": "Full map coming soon"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "loadError": "Failed to load profile data. Please try again.",
+    "retry": "Retry"
+  }
+}

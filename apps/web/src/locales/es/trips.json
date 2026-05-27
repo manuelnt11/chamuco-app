@@ -1,0 +1,21 @@
+{
+  "title": "Viajes",
+  "createTrip": "Crear Viaje",
+  "myTrips": "Mis Viajes",
+  "upcomingTrips": "Próximos Viajes",
+  "pastTrips": "Viajes Pasados",
+  "tripDetails": "Detalles del Viaje",
+  "participants": "Participantes",
+  "itinerary": "Itinerario",
+  "budget": "Presupuesto",
+  "expenses": "Gastos",
+  "notes": "Notas",
+  "status": {
+    "draft": "Borrador",
+    "open": "Abierto",
+    "confirmed": "Confirmado",
+    "inProgress": "En Progreso",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  }
+}

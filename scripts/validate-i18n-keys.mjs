@@ -3,7 +3,7 @@
 // Validates that all i18n keys used in the code exist in translation files.
 // Handles namespace detection from useTranslation('namespace') calls.
 
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 
@@ -108,11 +108,22 @@ function flattenKeys(obj, prefix) {
 
 console.log(`${BLUE}Step 2: Extracting keys from translation files...${NC}`);
 
-const enKeys = new Set(flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'en.json'), 'utf8'))));
-const esKeys = new Set(flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'es.json'), 'utf8'))));
+function loadNamespacedKeys(lang) {
+  const langDir = join(LOCALES_DIR, lang);
+  const keys = [];
+  for (const file of readdirSync(langDir).filter((f) => f.endsWith('.json'))) {
+    const ns = file.replace('.json', '');
+    const content = JSON.parse(readFileSync(join(langDir, file), 'utf8'));
+    keys.push(...flattenKeys(content, ns));
+  }
+  return new Set(keys);
+}
 
-console.log(`${GREEN}✓ Found ${enKeys.size} keys in en.json${NC}`);
-console.log(`${GREEN}✓ Found ${esKeys.size} keys in es.json${NC}\n`);
+const enKeys = loadNamespacedKeys('en');
+const esKeys = loadNamespacedKeys('es');
+
+console.log(`${GREEN}✓ Found ${enKeys.size} keys in locales/en/${NC}`);
+console.log(`${GREEN}✓ Found ${esKeys.size} keys in locales/es/${NC}\n`);
 
 // Step 3: Missing keys (used in code but not in en.json)
 console.log(`${BLUE}Step 3: Checking for missing keys...${NC}`);
