@@ -53,7 +53,12 @@ vi.mock('react-i18next', () => ({
   useTranslation: (_ns?: string) => ({
     t: (key: string, opts?: Record<string, string>) => {
       if (opts) {
-        return Object.entries(opts).reduce((acc, [k, v]) => acc.replace(`{{${k}}}`, v), key);
+        const interpolated = Object.entries(opts).reduce(
+          (acc, [k, v]) => acc.replace(`{{${k}}}`, v),
+          key,
+        );
+        // If no placeholders were replaced, append the values so they appear in the DOM
+        return interpolated === key ? [key, ...Object.values(opts)].join(' ') : interpolated;
       }
       return key;
     },
@@ -130,7 +135,7 @@ describe('GroupDetailPage', () => {
     render(<GroupDetailPage params={Promise.resolve({ id: 'group-id' })} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/announcementsPostedBy/)).toBeInTheDocument();
+      expect(screen.getByText(/@admin-user/)).toBeInTheDocument();
     });
   });
 

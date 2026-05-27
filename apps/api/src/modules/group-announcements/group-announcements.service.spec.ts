@@ -85,7 +85,6 @@ describe('GroupAnnouncementsService', () => {
 
   let mockGroupsFindFirst: jest.Mock;
   let mockGroupMembersFindFirst: jest.Mock;
-  let mockUsersFindFirst: jest.Mock;
 
   let mockInsertReturning: jest.Mock;
   let mockInsertValues: jest.Mock;
@@ -100,7 +99,6 @@ describe('GroupAnnouncementsService', () => {
     mockGroupMembersFindFirst = jest
       .fn()
       .mockResolvedValue(makeMembership(ADMIN_ID, GroupRole.OWNER));
-    mockUsersFindFirst = jest.fn().mockResolvedValue({ username: ADMIN_USERNAME });
 
     mockInsertReturning = jest.fn().mockResolvedValue([mockAnnouncement]);
     mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
@@ -120,7 +118,6 @@ describe('GroupAnnouncementsService', () => {
             query: {
               groups: { findFirst: mockGroupsFindFirst },
               groupMembers: { findFirst: mockGroupMembersFindFirst },
-              users: { findFirst: mockUsersFindFirst },
             },
             insert: mockInsert,
             select: mockSelect,
@@ -142,7 +139,7 @@ describe('GroupAnnouncementsService', () => {
     const dto: CreateAnnouncementDto = { content: 'Trip departs Sunday at 6am.' };
 
     it('inserts announcement and returns DTO', async () => {
-      const result = await service.create(GROUP_ID, ADMIN_ID, dto);
+      const result = await service.create(GROUP_ID, ADMIN_ID, ADMIN_USERNAME, dto);
 
       expect(mockInsert).toHaveBeenCalled();
       expect(mockInsertValues).toHaveBeenCalledWith(
@@ -156,7 +153,7 @@ describe('GroupAnnouncementsService', () => {
     it('calls notifyMany with all active member IDs', async () => {
       mockSelect.mockReturnValue(makeChain([{ userId: MEMBER_ID }, { userId: ADMIN_ID }]));
 
-      await service.create(GROUP_ID, ADMIN_ID, dto);
+      await service.create(GROUP_ID, ADMIN_ID, ADMIN_USERNAME, dto);
 
       expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
         [MEMBER_ID, ADMIN_ID],
@@ -169,19 +166,23 @@ describe('GroupAnnouncementsService', () => {
     it('does not throw when notifyMany rejects', async () => {
       mockNotificationsNotifyMany.mockRejectedValue(new Error('FCM down'));
 
-      await expect(service.create(GROUP_ID, ADMIN_ID, dto)).resolves.toBeDefined();
+      await expect(service.create(GROUP_ID, ADMIN_ID, ADMIN_USERNAME, dto)).resolves.toBeDefined();
     });
 
     it('throws NotFoundException when group not found', async () => {
       mockGroupsFindFirst.mockResolvedValue(undefined);
 
-      await expect(service.create(GROUP_ID, ADMIN_ID, dto)).rejects.toThrow(NotFoundException);
+      await expect(service.create(GROUP_ID, ADMIN_ID, ADMIN_USERNAME, dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('throws ForbiddenException when caller is not admin', async () => {
       mockGroupMembersFindFirst.mockResolvedValue(undefined);
 
-      await expect(service.create(GROUP_ID, MEMBER_ID, dto)).rejects.toThrow(ForbiddenException);
+      await expect(service.create(GROUP_ID, MEMBER_ID, ADMIN_USERNAME, dto)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('throws ForbiddenException when caller is a regular member', async () => {
@@ -190,7 +191,9 @@ describe('GroupAnnouncementsService', () => {
       // Drizzle query mock doesn't check the inArray condition — simulate by returning undefined
       mockGroupMembersFindFirst.mockResolvedValue(undefined);
 
-      await expect(service.create(GROUP_ID, MEMBER_ID, dto)).rejects.toThrow(ForbiddenException);
+      await expect(service.create(GROUP_ID, MEMBER_ID, ADMIN_USERNAME, dto)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 

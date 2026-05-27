@@ -54,7 +54,7 @@ export class GroupAnnouncementsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateAnnouncementDto,
   ): Promise<AnnouncementResponseDto> {
-    return this.groupAnnouncementsService.create(id, user.id, dto);
+    return this.groupAnnouncementsService.create(id, user.id, user.username, dto);
   }
 
   @Get('announcements')

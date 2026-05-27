@@ -92,12 +92,6 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           >
             {t('members.title')}
           </Link>
-          <Link
-            href={`/groups/${group.id}/announcements`}
-            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
-          >
-            {t('announcements')}
-          </Link>
           {isOwner && (
             <Link
               href={`/groups/${group.id}/settings`}
@@ -132,7 +126,11 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                 <p className="text-sm whitespace-pre-wrap line-clamp-3">{a.content}</p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {t('announcementsPostedBy', { name: `@${a.createdByUsername}` })} &middot;{' '}
-                  {new Date(a.createdAt).toLocaleDateString()}
+                  {new Date(a.createdAt).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
                 </p>
               </li>
             ))}

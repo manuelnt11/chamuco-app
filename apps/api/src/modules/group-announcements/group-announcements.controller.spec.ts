@@ -1,3 +1,4 @@
+import { plainToInstance } from 'class-transformer';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import type { AuthenticatedUser } from '@/types/express';
@@ -19,7 +20,7 @@ const ANNOUNCEMENT_ID = 'announcement-uuid';
 
 const mockAuthUser: AuthenticatedUser = {
   id: ADMIN_ID,
-  username: 'admin',
+  username: ADMIN_USERNAME,
   displayName: 'Admin',
   avatar: null,
   authProvider: AuthProvider.GOOGLE,
@@ -70,7 +71,7 @@ describe('GroupAnnouncementsController', () => {
 
       const result = await controller.create(mockAuthUser, GROUP_ID, dto);
 
-      expect(mockCreate).toHaveBeenCalledWith(GROUP_ID, ADMIN_ID, dto);
+      expect(mockCreate).toHaveBeenCalledWith(GROUP_ID, ADMIN_ID, ADMIN_USERNAME, dto);
       expect(result).toEqual(mockAnnouncementDto);
     });
   });
@@ -97,9 +98,13 @@ describe('ListAnnouncementsQueryDto defaults', () => {
 });
 
 describe('CreateAnnouncementDto', () => {
-  it('stores content', () => {
-    const dto = new CreateAnnouncementDto();
-    dto.content = 'Hello members!';
+  it('trims whitespace from content via @Transform', () => {
+    const dto = plainToInstance(CreateAnnouncementDto, { content: '  Hello members!  ' });
     expect(dto.content).toBe('Hello members!');
+  });
+
+  it('leaves non-string values unchanged', () => {
+    const dto = plainToInstance(CreateAnnouncementDto, { content: 42 });
+    expect(dto.content).toBe(42);
   });
 });

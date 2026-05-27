@@ -31,6 +31,7 @@ export class GroupAnnouncementsService {
   async create(
     groupId: string,
     callerId: string,
+    callerUsername: string,
     dto: CreateAnnouncementDto,
   ): Promise<AnnouncementResponseDto> {
     await this.assertGroupAdmin(groupId, callerId);
@@ -42,18 +43,12 @@ export class GroupAnnouncementsService {
 
     if (!inserted) throw new Error('Failed to create announcement');
 
-    const [creator, memberRows] = await Promise.all([
-      this.db.query.users.findFirst({
-        where: eq(users.id, callerId),
-        columns: { username: true },
-      }),
-      this.db
-        .select({ userId: groupMembers.userId })
-        .from(groupMembers)
-        .where(
-          and(eq(groupMembers.groupId, groupId), eq(groupMembers.status, GroupMemberStatus.ACTIVE)),
-        ),
-    ]);
+    const memberRows = await this.db
+      .select({ userId: groupMembers.userId })
+      .from(groupMembers)
+      .where(
+        and(eq(groupMembers.groupId, groupId), eq(groupMembers.status, GroupMemberStatus.ACTIVE)),
+      );
 
     const userIds = memberRows.map((r) => r.userId);
 
@@ -68,7 +63,7 @@ export class GroupAnnouncementsService {
         this.logger.error('Failed to send group announcement notifications', err),
       );
 
-    return this.toDto(inserted, creator?.username ?? callerId);
+    return this.toDto(inserted, callerUsername);
   }
 
   async findAll(
