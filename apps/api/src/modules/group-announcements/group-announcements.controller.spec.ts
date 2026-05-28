@@ -1,4 +1,5 @@
 import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import type { AuthenticatedUser } from '@/types/express';
@@ -106,5 +107,27 @@ describe('CreateAnnouncementDto', () => {
   it('leaves non-string values unchanged', () => {
     const dto = plainToInstance(CreateAnnouncementDto, { content: 42 });
     expect(dto.content).toBe(42);
+  });
+
+  it('rejects content containing HTML open tag', async () => {
+    const dto = plainToInstance(CreateAnnouncementDto, {
+      content: '<script>alert(1)</script>',
+    });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'content')).toBe(true);
+  });
+
+  it('rejects content containing HTML close tag', async () => {
+    const dto = plainToInstance(CreateAnnouncementDto, { content: 'hello <b>world</b>' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'content')).toBe(true);
+  });
+
+  it('accepts clean markdown content without HTML', async () => {
+    const dto = plainToInstance(CreateAnnouncementDto, {
+      content: '**Bold** and _italic_ text with [a link](https://example.com)',
+    });
+    const errors = await validate(dto);
+    expect(errors.filter((e) => e.property === 'content')).toHaveLength(0);
   });
 });
