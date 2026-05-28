@@ -435,18 +435,26 @@ await db.update(users).set({ avatar: newAssetId }).where(eq(users.id, userId));
 
 ### 8. Cloud Run deployment — invariants that must never be dropped
 
-When modifying `.github/workflows/api.yml` or any `gcloud run deploy` command, the following flags are **required**. Omitting them silently reverts Cloud Run to defaults on every deploy.
+When modifying `.github/workflows/api.yml`, `.github/workflows/web.yml`, or any `gcloud run deploy` command, the following flags are **required**. Omitting them silently reverts Cloud Run to defaults on every deploy.
 
-| Flag                      | Value  | Why                                               |
-| ------------------------- | ------ | ------------------------------------------------- |
-| `--execution-environment` | `gen2` | Faster cold starts, better Unix socket support    |
-| `--no-use-http2`          | (flag) | Required for NestJS WebSocket / SSE compatibility |
+| Flag                      | Value  | Applies to | Why                                                    |
+| ------------------------- | ------ | ---------- | ------------------------------------------------------ |
+| `--execution-environment` | `gen2` | api, web   | Faster cold starts, better Unix socket support         |
+| `--no-use-http2`          | (flag) | api, web   | Required for NestJS WebSocket / SSE compatibility      |
+| `--memory`                | `1Gi`  | web        | Next.js SSR requires >256 Mi default; OOM without this |
 
 ```bash
-# ✅ Must always be present in gcloud run deploy
+# ✅ Must always be present in gcloud run deploy (api)
 gcloud run deploy chamuco-api \
   --execution-environment=gen2 \
   --no-use-http2 \
+  ...
+
+# ✅ Must always be present in gcloud run deploy (web)
+gcloud run deploy chamuco-web \
+  --execution-environment=gen2 \
+  --no-use-http2 \
+  --memory=1Gi \
   ...
 ```
 

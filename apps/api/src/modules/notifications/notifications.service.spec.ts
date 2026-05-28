@@ -11,8 +11,6 @@ const FAKE_NOTIFICATION = {
   id: 'notif-1',
   userId: 'user-1',
   type: NotificationType.PASSPORT_EXPIRING_SOON,
-  title: 'Passport Expiring Soon',
-  body: 'Your passport for MX is expiring soon.',
   data: { countryCode: 'MX' },
   readAt: null,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -41,6 +39,16 @@ const makeSelect = (rows: object[]) => ({
         limit: jest.fn().mockResolvedValue(rows),
       }),
     }),
+  }),
+});
+
+// Enrichment queries use select({cols}).from().where() — no orderBy/limit, resolves directly
+const makeEnrichSelect = (rows: object[]) => ({
+  from: jest.fn().mockReturnValue({
+    innerJoin: jest.fn().mockReturnValue({
+      where: jest.fn().mockResolvedValue(rows),
+    }),
+    where: jest.fn().mockResolvedValue(rows),
   }),
 });
 
@@ -132,8 +140,14 @@ describe('NotificationsService', () => {
       );
 
       expect(db.insert).toHaveBeenCalledTimes(2);
-      expect(pushStrategy.send).toHaveBeenCalledWith(FAKE_NOTIFICATION, { countryCode: 'MX' });
-      expect(emailStrategy.send).toHaveBeenCalledWith(FAKE_NOTIFICATION, { countryCode: 'MX' });
+      expect(pushStrategy.send).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'notif-1', userId: 'user-1' }),
+        { countryCode: 'MX' },
+      );
+      expect(emailStrategy.send).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'notif-1', userId: 'user-1' }),
+        { countryCode: 'MX' },
+      );
       expect(smsStrategy.send).not.toHaveBeenCalled();
     });
 
@@ -348,7 +362,10 @@ describe('NotificationsService', () => {
         ]);
 
         expect(pushStrategy.send).toHaveBeenCalledTimes(1);
-        expect(pushStrategy.send).toHaveBeenCalledWith(rows[1], {});
+        expect(pushStrategy.send).toHaveBeenCalledWith(
+          expect.objectContaining({ id: 'notif-2', userId: 'user-2' }),
+          {},
+        );
       });
 
       it('skips dispatch entirely when all users have the channel disabled', async () => {
@@ -433,6 +450,111 @@ describe('NotificationsService', () => {
         BadRequestException,
       );
       expect(db.select).not.toHaveBeenCalled();
+    });
+
+    it('enriches groupName from groupId when missing from payload', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.GROUP_INVITATION,
+        data: { groupId: 'group-1' },
+      };
+      db.select
+        .mockReturnValueOnce(makeSelect([row]))
+        .mockReturnValueOnce(makeEnrichSelect([{ id: 'group-1', name: 'Mountain Crew' }]))
+        .mockReturnValueOnce(makeEnrichSelect([]));
+
+      const result = await service.findAll('user-1');
+
+      const rendered = result.items[0]!;
+      // renderContent receives the enriched payload — i18n.translate is called with groupName in args
+      expect(i18n.translate).toHaveBeenCalledWith(
+        expect.stringContaining('groupInvitation'),
+        expect.objectContaining({ args: expect.objectContaining({ groupName: 'Mountain Crew' }) }),
+      );
+      expect(rendered).toBeDefined();
+    });
+
+    it('enriches senderUsername from announcementId for GROUP_ANNOUNCEMENT when missing', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.GROUP_ANNOUNCEMENT,
+        data: { groupId: 'group-1', announcementId: 'ann-1' },
+      };
+      db.select
+        .mockReturnValueOnce(makeSelect([row]))
+        .mockReturnValueOnce(makeEnrichSelect([{ id: 'group-1', name: 'Road Crew' }]))
+        .mockReturnValueOnce(makeEnrichSelect([{ id: 'ann-1', username: 'alice' }]));
+
+      await service.findAll('user-1');
+
+      expect(i18n.translate).toHaveBeenCalledWith(
+        expect.stringContaining('groupAnnouncement'),
+        expect.objectContaining({
+          args: expect.objectContaining({ groupName: 'Road Crew', senderUsername: 'alice' }),
+        }),
+      );
+    });
+
+    it('does not set groupName when group lookup returns no rows (soft-deleted group)', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.GROUP_INVITATION,
+        data: { groupId: 'group-deleted' },
+      };
+      db.select
+        .mockReturnValueOnce(makeSelect([row]))
+        .mockReturnValueOnce(makeEnrichSelect([]))
+        .mockReturnValueOnce(makeEnrichSelect([]));
+
+      await service.findAll('user-1');
+
+      // groupName must not be injected as empty string — payload should keep the raw groupId only
+      expect(i18n.translate).toHaveBeenCalledWith(
+        expect.stringContaining('groupInvitation'),
+        expect.objectContaining({
+          args: expect.not.objectContaining({ groupName: '' }),
+        }),
+      );
+    });
+
+    it('does not set senderUsername when announcement lookup returns no rows', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.GROUP_ANNOUNCEMENT,
+        data: { groupId: 'group-1', announcementId: 'ann-deleted' },
+      };
+      db.select
+        .mockReturnValueOnce(makeSelect([row]))
+        .mockReturnValueOnce(makeEnrichSelect([{ id: 'group-1', name: 'Active Crew' }]))
+        .mockReturnValueOnce(makeEnrichSelect([]));
+
+      await service.findAll('user-1');
+
+      expect(i18n.translate).toHaveBeenCalledWith(
+        expect.stringContaining('groupAnnouncement'),
+        expect.objectContaining({
+          args: expect.not.objectContaining({ senderUsername: '' }),
+        }),
+      );
+    });
+
+    it('does not make enrichment DB calls when payload already has resolved fields', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.GROUP_ANNOUNCEMENT,
+        data: {
+          groupId: 'group-1',
+          groupName: 'Cached Crew',
+          announcementId: 'ann-1',
+          senderUsername: 'bob',
+        },
+      };
+      db.select.mockReturnValueOnce(makeSelect([row]));
+
+      await service.findAll('user-1');
+
+      // Only the main notifications query — no enrichment selects
+      expect(db.select).toHaveBeenCalledTimes(1);
     });
   });
 

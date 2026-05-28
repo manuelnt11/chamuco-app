@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { NotificationType } from '@chamuco/shared-types';
-import type { NotificationRow } from '@/modules/notifications/channel-strategies/notification-channel.strategy';
+import type { RenderedNotification } from '@/modules/notifications/channel-strategies/notification-channel.strategy';
 
 export class NotificationResponseDto {
   @ApiProperty({ description: 'UUID of the notification.', example: 'a1b2c3d4-...' })
@@ -32,11 +32,20 @@ export class NotificationResponseDto {
 
   @ApiProperty({
     description:
-      'Event payload used for deep-linking — shape depends on `type` (e.g. `{ tripId }` for trip events, `{ countryCode }` for passport events). Null when no payload was stored.',
+      'Deep-link URL for this notification (e.g. `/groups/<id>`, `/profile/passport`). Null when no target applies.',
+    example: '/groups/a1b2c3d4-...',
+    nullable: true,
+    type: String,
+  })
+  url!: string | null;
+
+  @ApiProperty({
+    description:
+      'Event payload used for additional context — shape depends on `type` (e.g. `{ groupId }` for group events, `{ countryCode }` for passport events). Null when no payload was stored.',
     type: 'object',
     additionalProperties: true,
     nullable: true,
-    example: { tripId: 'a1b2c3d4-...' },
+    example: { groupId: 'a1b2c3d4-...' },
   })
   data!: Record<string, unknown> | null;
 
@@ -67,12 +76,13 @@ export class NotificationsPageDto {
   unreadCount!: number;
 }
 
-export function toNotificationResponseDto(row: NotificationRow): NotificationResponseDto {
+export function toNotificationResponseDto(row: RenderedNotification): NotificationResponseDto {
   return {
     id: row.id,
     type: row.type as NotificationType,
     title: row.title,
     body: row.body,
+    url: row.url,
     data: (row.data ?? null) as Record<string, unknown> | null,
     readAt: row.readAt ? row.readAt.toISOString() : null,
     createdAt: row.createdAt.toISOString(),

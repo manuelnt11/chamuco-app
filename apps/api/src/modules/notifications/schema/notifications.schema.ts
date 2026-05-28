@@ -1,5 +1,5 @@
 import { desc, relations } from 'drizzle-orm';
-import { index, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { index, jsonb, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { NotificationType } from '@chamuco/shared-types';
 import { users } from '@/modules/users/schema/users.schema';
@@ -25,8 +25,6 @@ export const notifications = pgTable(
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
     type: notificationTypeEnum('type').notNull(),
-    title: varchar('title', { length: 200 }).notNull(),
-    body: text('body').notNull(),
     data: jsonb('data'),
     readAt: timestamp('read_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

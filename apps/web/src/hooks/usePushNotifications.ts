@@ -46,6 +46,7 @@ export function usePushNotifications(): void {
         const title = payload.notification?.title ?? 'Notification';
         const body = payload.notification?.body;
         toast.info(title, body);
+        window.dispatchEvent(new window.CustomEvent('chamuco:notification'));
       });
     }
 

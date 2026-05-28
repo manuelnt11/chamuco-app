@@ -113,8 +113,17 @@ export class GroupMembersService {
         .onConflictDoNothing();
     });
 
+    const group = await this.db.query.groups.findFirst({
+      where: eq(groups.id, groupId),
+      columns: { name: true },
+    });
     await this.notifications
-      .notify(targetUserId, NotificationType.GROUP_JOIN_ACCEPTED, {}, [NotificationChannel.PUSH])
+      .notify(
+        targetUserId,
+        NotificationType.GROUP_JOIN_ACCEPTED,
+        { groupId, groupName: group?.name ?? '' },
+        [NotificationChannel.PUSH],
+      )
       .catch((err: unknown) => {
         this.logger.error('Failed to send GROUP_JOIN_ACCEPTED notification', err);
       });
@@ -158,6 +167,11 @@ export class GroupMembersService {
     adminUserId: string,
   ): Promise<BulkInvitationResponseDto> {
     await this.assertGroupAdmin(groupId, adminUserId);
+
+    const group = await this.db.query.groups.findFirst({
+      where: eq(groups.id, groupId),
+      columns: { name: true },
+    });
 
     const targetUsers = await this.db.query.users.findMany({
       where: inArray(users.username, dto.usernames),
@@ -232,9 +246,12 @@ export class GroupMembersService {
 
     if (invitedUserIds.length > 0) {
       await this.notifications
-        .notifyMany(invitedUserIds, NotificationType.GROUP_INVITATION, {}, [
-          NotificationChannel.PUSH,
-        ])
+        .notifyMany(
+          invitedUserIds,
+          NotificationType.GROUP_INVITATION,
+          { groupId, groupName: group?.name ?? '' },
+          [NotificationChannel.PUSH],
+        )
         .catch((err: unknown) => {
           this.logger.error('Failed to send GROUP_INVITATION notifications', err);
         });

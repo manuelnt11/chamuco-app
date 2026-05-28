@@ -38,7 +38,7 @@ Keys follow **camelCase dot-notation** with a feature namespace prefix:
 1. **Keys are always in English**, even if the translated value is in Spanish
 2. **Use camelCase** for multi-word identifiers (no snake_case, no hyphens)
 3. **Describe context and role**, not content (e.g., `errors.notFound` not `errors.recursoNoEncontrado`)
-4. **Interpolation variables** use double-brace syntax: `{{variableName}}` (also in English and camelCase)
+4. **Interpolation variables** use single-brace syntax: `{variableName}` (also in English and camelCase). `{{variableName}}` is an escape sequence in `string-format` (the default nestjs-i18n formatter) and outputs a literal `{variableName}` without substitution — never use double braces.
 
 ### Examples
 
@@ -53,6 +53,27 @@ Keys follow **camelCase dot-notation** with a feature namespace prefix:
 'common.validation.campo_requerido'; // Spanish content in key
 'errors.not-found'; // Hyphens instead of camelCase
 'ERRORS.NOT_FOUND'; // All caps
+```
+
+### Interpolation syntax
+
+nestjs-i18n uses `string-format` as the default formatter, which uses **single-brace** syntax:
+
+```json
+// ✅ Correct — single braces
+{ "body": "You've been invited to join {groupName}." }
+
+// ❌ Wrong — double braces are an escape sequence, output literal {groupName}
+{ "body": "You've been invited to join {{groupName}}." }
+```
+
+```typescript
+// Usage in code
+this.i18n.translate('notifications.groupInvitation.body', {
+  lang: 'es',
+  args: { groupName: 'Mountain Crew' },
+});
+// => "Has sido invitado a unirte a Mountain Crew."
 ```
 
 ## Namespaces

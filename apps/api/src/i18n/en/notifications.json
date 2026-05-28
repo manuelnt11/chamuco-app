@@ -1,28 +1,23 @@
 {
-  "invitationReceived": "{{organizer}} invited you to the trip \"{{trip}}\"",
-  "taskDueSoon": "The task \"{{task}}\" is due in {{days}} days",
-  "tripStartingSoon": "Your trip \"{{trip}}\" starts in {{days}} days",
-  "expenseAdded": "{{user}} added an expense: {{description}}",
-  "participantJoined": "{{user}} joined the trip \"{{trip}}\"",
   "passportExpiringSoon": {
     "title": "Passport Expiring Soon",
-    "body": "Your passport for {{countryCode}} is expiring soon."
+    "body": "Your passport for {countryCode} is expiring soon."
   },
   "passportExpired": {
     "title": "Passport Expired",
-    "body": "Your passport for {{countryCode}} has expired."
+    "body": "Your passport for {countryCode} has expired."
   },
   "groupInvitation": {
     "title": "Group Invitation",
-    "body": "You have been invited to join a group."
+    "body": "You've been invited to join {groupName}."
   },
   "groupJoinAccepted": {
     "title": "Join Request Accepted",
-    "body": "Your request to join the group has been accepted."
+    "body": "Your request to join {groupName} has been accepted."
   },
   "groupAnnouncement": {
-    "title": "New Group Announcement",
-    "body": "Your group has a new announcement."
+    "title": "New announcement in {groupName}",
+    "body": "@{senderUsername} posted a new announcement."
   },
   "tripInvitation": {
     "title": "Trip Invitation",
@@ -34,7 +29,7 @@
   },
   "tripKeyDateReminder": {
     "title": "Trip Date Reminder",
-    "body": "Reminder: {{description}} is coming up."
+    "body": "Reminder: {description} is coming up."
   },
   "tripCompleted": {
     "title": "Trip Completed",
@@ -42,6 +37,6 @@
   },
   "achievementUnlocked": {
     "title": "Achievement Unlocked",
-    "body": "You unlocked a new achievement: {{achievementName}}."
+    "body": "You unlocked a new achievement: {achievementName}."
   }
 }

@@ -4,7 +4,7 @@
   "description": "Chamuco App - Next.js Frontend Application",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--max-old-space-size=8192' next dev --turbopack",
     "prebuild": "node scripts/generate-sw.mjs",
     "build": "next build",
     "start": "next start",

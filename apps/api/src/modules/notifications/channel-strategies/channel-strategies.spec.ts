@@ -1,20 +1,17 @@
-import { DeliveryStatus, NotificationType } from '@chamuco/shared-types';
+import { DeliveryStatus } from '@chamuco/shared-types';
 import type { DrizzleClient } from '@/database/drizzle.provider';
 import type { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 import { PushChannelStrategy } from './push-channel.strategy';
 import { EmailChannelStrategy } from './email-channel.strategy';
 import { SmsChannelStrategy } from './sms-channel.strategy';
-import type { NotificationRow } from './notification-channel.strategy';
+import type { DispatchableNotification } from './notification-channel.strategy';
 
-const FAKE_NOTIFICATION: NotificationRow = {
+const FAKE_NOTIFICATION: DispatchableNotification = {
   id: 'notif-1',
   userId: 'user-1',
-  type: NotificationType.PASSPORT_EXPIRING_SOON,
   title: 'Test title',
   body: 'Test body',
-  data: {},
-  readAt: null,
-  createdAt: new Date(),
+  url: null,
 };
 
 type SendResponse = { success: boolean; error?: { code: string; message?: string } };
@@ -206,6 +203,36 @@ describe('PushChannelStrategy', () => {
           data: { count: '3', flag: 'true', nested: '{"x":1}' },
         }),
       );
+    });
+  });
+
+  describe('webpush click-action URL', () => {
+    it('sets webpush.fcmOptions.link when notification has a url', async () => {
+      const sendEachForMulticast = jest
+        .fn()
+        .mockResolvedValue(makeBatchResponse([{ success: true }]));
+      const { strategy } = makeContext(['tok-a'], sendEachForMulticast);
+      const notifWithUrl: DispatchableNotification = { ...FAKE_NOTIFICATION, url: '/groups/abc' };
+
+      await strategy.send(notifWithUrl, {});
+
+      expect(sendEachForMulticast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          webpush: { fcmOptions: { link: '/groups/abc' } },
+        }),
+      );
+    });
+
+    it('omits webpush when notification url is null', async () => {
+      const sendEachForMulticast = jest
+        .fn()
+        .mockResolvedValue(makeBatchResponse([{ success: true }]));
+      const { strategy } = makeContext(['tok-a'], sendEachForMulticast);
+
+      await strategy.send(FAKE_NOTIFICATION, {});
+
+      const call = sendEachForMulticast.mock.calls[0]![0] as Record<string, unknown>;
+      expect(call).not.toHaveProperty('webpush');
     });
   });
 });

@@ -9,6 +9,7 @@ export interface NotificationItem {
   type: NotificationType;
   title: string;
   body: string;
+  url: string | null;
   readAt: string | null;
   data: Record<string, unknown> | null;
   createdAt: string;
@@ -52,9 +53,15 @@ export function useNotifications() {
 
     const intervalId = setInterval(fetchNotifications, POLL_INTERVAL_MS);
 
+    const handleForegroundPush = () => {
+      void fetchNotifications();
+    };
+    window.addEventListener('chamuco:notification', handleForegroundPush);
+
     return () => {
       clearInterval(intervalId);
       abortRef.current?.abort();
+      window.removeEventListener('chamuco:notification', handleForegroundPush);
     };
   }, [fetchNotifications]);
 

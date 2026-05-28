@@ -16,8 +16,9 @@ function makeNotification(overrides: Partial<NotificationItem> = {}): Notificati
     type: NotificationType.TRIP_INVITATION,
     title: 'New trip invitation',
     body: 'You have been invited to join Summer Trip 2026.',
+    url: '/trips/trip-1',
     readAt: null,
-    data: { url: '/trips/trip-1' },
+    data: null,
     createdAt: new Date().toISOString(),
     ...overrides,
   };
@@ -82,6 +83,20 @@ describe('useNotifications', () => {
 
     unmount();
     vi.useRealTimers();
+  });
+
+  it('re-fetches when chamuco:notification event fires', async () => {
+    const { result } = renderHook(() => useNotifications());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const callsBefore = mockGet.mock.calls.length;
+
+    await act(async () => {
+      window.dispatchEvent(new window.CustomEvent('chamuco:notification'));
+      await Promise.resolve();
+    });
+
+    expect(mockGet.mock.calls.length).toBeGreaterThan(callsBefore);
   });
 
   it('cancels polling on unmount', async () => {
