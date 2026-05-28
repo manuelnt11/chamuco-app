@@ -63,9 +63,8 @@ export function NotificationPanel({
 
   function handleItemClick(notif: NotificationItem) {
     onMarkRead(notif.id);
-    const url = typeof notif.data?.url === 'string' ? notif.data.url : null;
-    if (url) {
-      router.push(url);
+    if (notif.url) {
+      router.push(notif.url);
     }
   }
 

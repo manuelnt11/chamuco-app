@@ -159,6 +159,31 @@ describe('usePushNotifications', () => {
     expect(toast.info).toHaveBeenCalledWith('Hello', 'World');
   });
 
+  it('dispatches chamuco:notification event on foreground message', async () => {
+    vi.mocked(useAuth).mockReturnValue({ currentUser: mockUser } as never);
+    setupBrowserEnv('granted');
+
+    let capturedHandler: ((payload: MessagePayload) => void) | null = null;
+    vi.mocked(onMessage).mockImplementation((_messaging, handler) => {
+      capturedHandler = handler as (payload: MessagePayload) => void;
+      return vi.fn();
+    });
+
+    await act(async () => {
+      renderHook(() => usePushNotifications());
+    });
+
+    const listener = vi.fn();
+    window.addEventListener('chamuco:notification', listener);
+
+    act(() => {
+      capturedHandler?.({ notification: { title: 'Hello' } } as MessagePayload);
+    });
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    window.removeEventListener('chamuco:notification', listener);
+  });
+
   it('uses fallback title when notification has no title', async () => {
     vi.mocked(useAuth).mockReturnValue({ currentUser: mockUser } as never);
     setupBrowserEnv('granted');

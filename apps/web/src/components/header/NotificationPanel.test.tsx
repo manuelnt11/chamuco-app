@@ -29,8 +29,9 @@ function makeNotification(overrides: Partial<NotificationItem> = {}): Notificati
     type: NotificationType.TRIP_INVITATION,
     title: 'New trip invitation',
     body: 'You have been invited to join Summer Trip 2026.',
+    url: '/trips/trip-1',
     readAt: null,
-    data: { url: '/trips/trip-1' },
+    data: null,
     createdAt: new Date().toISOString(),
     ...overrides,
   };
@@ -130,27 +131,18 @@ describe('NotificationPanel', () => {
       expect(onMarkRead).toHaveBeenCalledWith('notif-abc');
     });
 
-    it('navigates to data.url on row click when url is present', async () => {
+    it('navigates to url on row click when url is present', async () => {
       const user = userEvent.setup();
-      const notif = makeNotification({ data: { url: '/trips/t1' } });
+      const notif = makeNotification({ url: '/groups/g1' });
       renderPanel([notif]);
 
       await user.click(screen.getByText(notif.title));
-      expect(mocks.mockRouterPush).toHaveBeenCalledWith('/trips/t1');
+      expect(mocks.mockRouterPush).toHaveBeenCalledWith('/groups/g1');
     });
 
-    it('does not navigate when data.url is absent', async () => {
+    it('does not navigate when url is null', async () => {
       const user = userEvent.setup();
-      const notif = makeNotification({ data: null });
-      renderPanel([notif]);
-
-      await user.click(screen.getByText(notif.title));
-      expect(mocks.mockRouterPush).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate when data.url is not a string', async () => {
-      const user = userEvent.setup();
-      const notif = makeNotification({ data: { tripId: 'some-id' } });
+      const notif = makeNotification({ url: null });
       renderPanel([notif]);
 
       await user.click(screen.getByText(notif.title));
