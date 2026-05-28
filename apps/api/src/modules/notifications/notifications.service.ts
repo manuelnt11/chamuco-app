@@ -98,7 +98,7 @@ export class NotificationsService {
 
     const prefsMap = await this.fetchPrefsMap(userIds);
     // Group rows by effective channel set to minimise dispatchChannels calls
-    const groups = new Map<
+    const groupedByChannel = new Map<
       string,
       { dispatchables: DispatchableNotification[]; channels: NotificationChannel[] }
     >();
@@ -107,11 +107,14 @@ export class NotificationsService {
       const effective = channels.filter((ch) => !disabled.includes(ch));
       if (effective.length === 0) continue;
       const key = [...effective].sort().join(',');
-      if (!groups.has(key)) groups.set(key, { dispatchables: [], channels: effective });
-      groups.get(key)!.dispatchables.push({ id: row.id, userId: row.userId, title, body, url });
+      if (!groupedByChannel.has(key))
+        groupedByChannel.set(key, { dispatchables: [], channels: effective });
+      groupedByChannel
+        .get(key)!
+        .dispatchables.push({ id: row.id, userId: row.userId, title, body, url });
     }
     await Promise.allSettled(
-      Array.from(groups.values()).map((g) =>
+      Array.from(groupedByChannel.values()).map((g) =>
         this.dispatchChannels(g.dispatchables, payload, g.channels),
       ),
     );
@@ -275,10 +278,12 @@ export class NotificationsService {
     for (const row of rows) {
       const enriched = result.get(row.id)!;
       if (groupIdsNeeded.has(enriched.groupId as string)) {
-        enriched.groupName = groupNameMap.get(enriched.groupId as string) ?? '';
+        const name = groupNameMap.get(enriched.groupId as string);
+        if (name !== undefined) enriched.groupName = name;
       }
       if (announcementIdsNeeded.has(enriched.announcementId as string)) {
-        enriched.senderUsername = senderUsernameMap.get(enriched.announcementId as string) ?? '';
+        const username = senderUsernameMap.get(enriched.announcementId as string);
+        if (username !== undefined) enriched.senderUsername = username;
       }
     }
 

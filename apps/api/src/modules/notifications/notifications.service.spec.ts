@@ -495,6 +495,49 @@ describe('NotificationsService', () => {
       );
     });
 
+    it('does not set groupName when group lookup returns no rows (soft-deleted group)', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.GROUP_INVITATION,
+        data: { groupId: 'group-deleted' },
+      };
+      db.select
+        .mockReturnValueOnce(makeSelect([row]))
+        .mockReturnValueOnce(makeEnrichSelect([]))
+        .mockReturnValueOnce(makeEnrichSelect([]));
+
+      await service.findAll('user-1');
+
+      // groupName must not be injected as empty string — payload should keep the raw groupId only
+      expect(i18n.translate).toHaveBeenCalledWith(
+        expect.stringContaining('groupInvitation'),
+        expect.objectContaining({
+          args: expect.not.objectContaining({ groupName: '' }),
+        }),
+      );
+    });
+
+    it('does not set senderUsername when announcement lookup returns no rows', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.GROUP_ANNOUNCEMENT,
+        data: { groupId: 'group-1', announcementId: 'ann-deleted' },
+      };
+      db.select
+        .mockReturnValueOnce(makeSelect([row]))
+        .mockReturnValueOnce(makeEnrichSelect([{ id: 'group-1', name: 'Active Crew' }]))
+        .mockReturnValueOnce(makeEnrichSelect([]));
+
+      await service.findAll('user-1');
+
+      expect(i18n.translate).toHaveBeenCalledWith(
+        expect.stringContaining('groupAnnouncement'),
+        expect.objectContaining({
+          args: expect.not.objectContaining({ senderUsername: '' }),
+        }),
+      );
+    });
+
     it('does not make enrichment DB calls when payload already has resolved fields', async () => {
       const row = {
         ...FAKE_NOTIFICATION,
