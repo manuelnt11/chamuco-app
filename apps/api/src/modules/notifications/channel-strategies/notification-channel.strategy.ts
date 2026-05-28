@@ -2,6 +2,20 @@ import type { notifications } from '@/modules/notifications/schema/notifications
 
 export type NotificationRow = typeof notifications.$inferSelect;
 
+export interface DispatchableNotification {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  url: string | null;
+}
+
+export type RenderedNotification = NotificationRow & {
+  title: string;
+  body: string;
+  url: string | null;
+};
+
 export interface NotificationChannelStrategy {
-  send(notification: NotificationRow, payload: Record<string, unknown>): Promise<void>;
+  send(notification: DispatchableNotification, payload: Record<string, unknown>): Promise<void>;
 }

@@ -12,11 +12,15 @@ import { notifications } from '@/modules/notifications/schema/notifications.sche
 import { notificationDeliveries } from '@/modules/notifications/schema/notification-deliveries.schema';
 import { userFcmTokens } from '@/modules/notifications/schema/user-fcm-tokens.schema';
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
+import { groups } from '@/modules/groups/schema/groups.schema';
+import { groupAnnouncements } from '@/modules/group-announcements/schema/group-announcements.schema';
+import { users } from '@/modules/users/schema/users.schema';
 import { buildNotificationContent } from './notification-content.builder';
 import { EMAIL_STRATEGY, PUSH_STRATEGY, SMS_STRATEGY } from './notifications.constants';
 import type {
+  DispatchableNotification,
   NotificationChannelStrategy,
-  NotificationRow,
+  RenderedNotification,
 } from './channel-strategies/notification-channel.strategy';
 import type { RegisterFcmTokenDto } from './dto/register-fcm-token.dto';
 import type { DeleteFcmTokenDto } from './dto/delete-fcm-token.dto';
@@ -48,10 +52,10 @@ export class NotificationsService {
     // TODO: replace default with user.preferredLanguage once user language preferences are implemented
     lang: SupportedLanguage = 'es',
   ): Promise<void> {
-    const { title, body } = this.renderContent(type, payload, lang);
-    const [notification] = await this.db
+    const { title, body, url } = this.renderContent(type, payload, lang);
+    const [row] = await this.db
       .insert(notifications)
-      .values({ userId, type, title, body, data: payload })
+      .values({ userId, type, data: payload })
       .returning();
 
     // insert().returning() always yields a row on success — non-null is safe here
@@ -59,7 +63,14 @@ export class NotificationsService {
     const prefsMap = await this.fetchPrefsMap([userId]);
     const disabled = prefsMap.get(userId)?.[type] ?? [];
     const effectiveChannels = channels.filter((ch) => !disabled.includes(ch));
-    await this.dispatchChannels([notification!], payload, effectiveChannels);
+    const dispatchable: DispatchableNotification = {
+      id: row!.id,
+      userId: row!.userId,
+      title,
+      body,
+      url,
+    };
+    await this.dispatchChannels([dispatchable], payload, effectiveChannels);
   }
 
   async notifyMany(
@@ -72,8 +83,8 @@ export class NotificationsService {
   ): Promise<void> {
     if (userIds.length === 0) return;
 
-    const { title, body } = this.renderContent(type, payload, lang);
-    const values = userIds.map((userId) => ({ userId, type, title, body, data: payload }));
+    const { title, body, url } = this.renderContent(type, payload, lang);
+    const values = userIds.map((userId) => ({ userId, type, data: payload }));
 
     // Single batch insert — acceptable at current group/trip scale (~100 members max).
     // If userIds can grow to thousands, chunk into batches of ~500 to avoid Postgres
@@ -87,17 +98,22 @@ export class NotificationsService {
 
     const prefsMap = await this.fetchPrefsMap(userIds);
     // Group rows by effective channel set to minimise dispatchChannels calls
-    const groups = new Map<string, { rows: NotificationRow[]; channels: NotificationChannel[] }>();
+    const groups = new Map<
+      string,
+      { dispatchables: DispatchableNotification[]; channels: NotificationChannel[] }
+    >();
     for (const row of inserted) {
       const disabled = prefsMap.get(row.userId)?.[type] ?? [];
       const effective = channels.filter((ch) => !disabled.includes(ch));
       if (effective.length === 0) continue;
       const key = [...effective].sort().join(',');
-      if (!groups.has(key)) groups.set(key, { rows: [], channels: effective });
-      groups.get(key)!.rows.push(row);
+      if (!groups.has(key)) groups.set(key, { dispatchables: [], channels: effective });
+      groups.get(key)!.dispatchables.push({ id: row.id, userId: row.userId, title, body, url });
     }
     await Promise.allSettled(
-      Array.from(groups.values()).map((g) => this.dispatchChannels(g.rows, payload, g.channels)),
+      Array.from(groups.values()).map((g) =>
+        this.dispatchChannels(g.dispatchables, payload, g.channels),
+      ),
     );
   }
 
@@ -105,7 +121,8 @@ export class NotificationsService {
     userId: string,
     cursor?: string,
     limit = 20,
-  ): Promise<{ items: NotificationRow[]; nextCursor: string | null }> {
+    lang: SupportedLanguage = 'es',
+  ): Promise<{ items: RenderedNotification[]; nextCursor: string | null }> {
     if (cursor !== undefined && isNaN(new Date(cursor).getTime())) {
       throw new BadRequestException('Invalid cursor: must be an ISO 8601 timestamp');
     }
@@ -126,9 +143,21 @@ export class NotificationsService {
       .limit(limit + 1);
 
     const hasMore = rows.length > limit;
-    const items = hasMore ? rows.slice(0, limit) : rows;
-    // hasMore guarantees items is non-empty (length === limit > 0)
-    const nextCursor = hasMore ? items[items.length - 1]!.createdAt.toISOString() : null;
+    const rawItems = hasMore ? rows.slice(0, limit) : rows;
+
+    const enrichedPayloads = await this.enrichPayloads(rawItems);
+
+    const items: RenderedNotification[] = rawItems.map((row) => ({
+      ...row,
+      ...this.renderContent(
+        row.type,
+        enrichedPayloads.get(row.id) ?? ((row.data ?? {}) as Record<string, unknown>),
+        lang,
+      ),
+    }));
+
+    // hasMore guarantees rawItems is non-empty (length === limit > 0)
+    const nextCursor = hasMore ? rawItems[rawItems.length - 1]!.createdAt.toISOString() : null;
 
     return { items, nextCursor };
   }
@@ -187,22 +216,83 @@ export class NotificationsService {
     type: NotificationType,
     payload: Record<string, unknown>,
     lang: SupportedLanguage,
-  ): { title: string; body: string } {
-    const { titleKey, bodyKey, args } = buildNotificationContent(type, payload);
+  ): { title: string; body: string; url: string | null } {
+    const { titleKey, bodyKey, args, url } = buildNotificationContent(type, payload);
     return {
       title: this.i18n.translate(titleKey, { lang, args }),
       body: this.i18n.translate(bodyKey, { lang, args }),
+      url,
     };
   }
 
+  private async enrichPayloads(
+    rows: Array<{ id: string; type: NotificationType; data: unknown }>,
+  ): Promise<Map<string, Record<string, unknown>>> {
+    const result = new Map<string, Record<string, unknown>>();
+
+    const groupIdsNeeded = new Set<string>();
+    const announcementIdsNeeded = new Set<string>();
+
+    for (const row of rows) {
+      const data = (row.data ?? {}) as Record<string, unknown>;
+      result.set(row.id, { ...data });
+
+      if (typeof data.groupId === 'string' && typeof data.groupName !== 'string') {
+        groupIdsNeeded.add(data.groupId);
+      }
+      if (
+        row.type === NotificationType.GROUP_ANNOUNCEMENT &&
+        typeof data.announcementId === 'string' &&
+        typeof data.senderUsername !== 'string'
+      ) {
+        announcementIdsNeeded.add(data.announcementId);
+      }
+    }
+
+    const groupNameMap = new Map<string, string>();
+    const senderUsernameMap = new Map<string, string>();
+
+    await Promise.all([
+      (async () => {
+        if (groupIdsNeeded.size === 0) return;
+        const fetched = await this.db
+          .select({ id: groups.id, name: groups.name })
+          .from(groups)
+          .where(inArray(groups.id, [...groupIdsNeeded]));
+        for (const r of fetched) groupNameMap.set(r.id, r.name);
+      })(),
+      (async () => {
+        if (announcementIdsNeeded.size === 0) return;
+        const fetched = await this.db
+          .select({ id: groupAnnouncements.id, username: users.username })
+          .from(groupAnnouncements)
+          .innerJoin(users, eq(groupAnnouncements.createdBy, users.id))
+          .where(inArray(groupAnnouncements.id, [...announcementIdsNeeded]));
+        for (const r of fetched) senderUsernameMap.set(r.id, r.username);
+      })(),
+    ]);
+
+    for (const row of rows) {
+      const enriched = result.get(row.id)!;
+      if (groupIdsNeeded.has(enriched.groupId as string)) {
+        enriched.groupName = groupNameMap.get(enriched.groupId as string) ?? '';
+      }
+      if (announcementIdsNeeded.has(enriched.announcementId as string)) {
+        enriched.senderUsername = senderUsernameMap.get(enriched.announcementId as string) ?? '';
+      }
+    }
+
+    return result;
+  }
+
   private async dispatchChannels(
-    inserted: NotificationRow[],
+    dispatchables: DispatchableNotification[],
     payload: Record<string, unknown>,
     channels: NotificationChannel[],
   ): Promise<void> {
     if (channels.length === 0) return;
 
-    const deliveryRows = inserted.flatMap((n) =>
+    const deliveryRows = dispatchables.flatMap((n) =>
       channels.map((channel) => ({
         notificationId: n.id,
         channel,
@@ -213,7 +303,7 @@ export class NotificationsService {
     await this.db.insert(notificationDeliveries).values(deliveryRows);
 
     await Promise.allSettled(
-      inserted.flatMap((n) =>
+      dispatchables.flatMap((n) =>
         channels.map((channel) =>
           this.strategies[channel].send(n, payload).catch((err: unknown) => {
             this.logger.error(`Channel ${channel} dispatch failed for notification ${n.id}`, err);

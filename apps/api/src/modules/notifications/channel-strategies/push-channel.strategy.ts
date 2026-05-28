@@ -6,7 +6,10 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 import { notificationDeliveries } from '@/modules/notifications/schema/notification-deliveries.schema';
 import { userFcmTokens } from '@/modules/notifications/schema/user-fcm-tokens.schema';
-import type { NotificationChannelStrategy, NotificationRow } from './notification-channel.strategy';
+import type {
+  DispatchableNotification,
+  NotificationChannelStrategy,
+} from './notification-channel.strategy';
 
 const STALE_TOKEN_ERROR = 'messaging/registration-token-not-registered';
 
@@ -19,7 +22,10 @@ export class PushChannelStrategy implements NotificationChannelStrategy {
     private readonly firebaseAdmin: FirebaseAdminService,
   ) {}
 
-  async send(notification: NotificationRow, payload: Record<string, unknown>): Promise<void> {
+  async send(
+    notification: DispatchableNotification,
+    payload: Record<string, unknown>,
+  ): Promise<void> {
     const tokenRows = await this.db
       .select({ token: userFcmTokens.token })
       .from(userFcmTokens)
@@ -39,6 +45,7 @@ export class PushChannelStrategy implements NotificationChannelStrategy {
         tokens,
         notification: { title: notification.title, body: notification.body },
         data,
+        ...(notification.url ? { webpush: { fcmOptions: { link: notification.url } } } : {}),
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

@@ -43,12 +43,18 @@ export class GroupAnnouncementsService {
 
     if (!inserted) throw new Error('Failed to create announcement');
 
-    const memberRows = await this.db
-      .select({ userId: groupMembers.userId })
-      .from(groupMembers)
-      .where(
-        and(eq(groupMembers.groupId, groupId), eq(groupMembers.status, GroupMemberStatus.ACTIVE)),
-      );
+    const [memberRows, group] = await Promise.all([
+      this.db
+        .select({ userId: groupMembers.userId })
+        .from(groupMembers)
+        .where(
+          and(eq(groupMembers.groupId, groupId), eq(groupMembers.status, GroupMemberStatus.ACTIVE)),
+        ),
+      this.db.query.groups.findFirst({
+        where: and(eq(groups.id, groupId), isNull(groups.deletedAt)),
+        columns: { name: true },
+      }),
+    ]);
 
     const userIds = memberRows.map((r) => r.userId);
 
@@ -56,7 +62,12 @@ export class GroupAnnouncementsService {
       .notifyMany(
         userIds,
         NotificationType.GROUP_ANNOUNCEMENT,
-        { groupId, announcementId: inserted.id },
+        {
+          groupId,
+          groupName: group?.name ?? '',
+          senderUsername: callerUsername,
+          announcementId: inserted.id,
+        },
         [NotificationChannel.PUSH],
       )
       .catch((err: unknown) =>

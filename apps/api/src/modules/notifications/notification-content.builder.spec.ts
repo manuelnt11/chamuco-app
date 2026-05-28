@@ -61,4 +61,52 @@ describe('buildNotificationContent()', () => {
     });
     expect(result.args['achievementName']).toBe('World Traveler');
   });
+
+  describe('url derivation', () => {
+    it('derives /groups/:id url for GROUP_INVITATION when groupId is present', () => {
+      const result = buildNotificationContent(NotificationType.GROUP_INVITATION, {
+        groupId: 'g-123',
+      });
+      expect(result.url).toBe('/groups/g-123');
+    });
+
+    it('derives /groups/:id url for GROUP_JOIN_ACCEPTED', () => {
+      const result = buildNotificationContent(NotificationType.GROUP_JOIN_ACCEPTED, {
+        groupId: 'g-456',
+      });
+      expect(result.url).toBe('/groups/g-456');
+    });
+
+    it('derives /groups/:id url for GROUP_ANNOUNCEMENT', () => {
+      const result = buildNotificationContent(NotificationType.GROUP_ANNOUNCEMENT, {
+        groupId: 'g-789',
+      });
+      expect(result.url).toBe('/groups/g-789');
+    });
+
+    it('returns null for group types when groupId is missing', () => {
+      const result = buildNotificationContent(NotificationType.GROUP_INVITATION, {});
+      expect(result.url).toBeNull();
+    });
+
+    it('derives /profile/passport for PASSPORT_EXPIRING_SOON', () => {
+      const result = buildNotificationContent(NotificationType.PASSPORT_EXPIRING_SOON, {});
+      expect(result.url).toBe('/profile/passport');
+    });
+
+    it('derives /profile/passport for PASSPORT_EXPIRED', () => {
+      const result = buildNotificationContent(NotificationType.PASSPORT_EXPIRED, {});
+      expect(result.url).toBe('/profile/passport');
+    });
+
+    it('derives /profile/achievements for ACHIEVEMENT_UNLOCKED', () => {
+      const result = buildNotificationContent(NotificationType.ACHIEVEMENT_UNLOCKED, {});
+      expect(result.url).toBe('/profile/achievements');
+    });
+
+    it('returns null for types without a dedicated url (e.g. TRIP_COMPLETED)', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_COMPLETED, {});
+      expect(result.url).toBeNull();
+    });
+  });
 });

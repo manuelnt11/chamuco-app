@@ -1,28 +1,23 @@
 {
-  "invitationReceived": "{{organizer}} te invitó al viaje \"{{trip}}\"",
-  "taskDueSoon": "La tarea \"{{task}}\" vence en {{days}} días",
-  "tripStartingSoon": "Tu viaje \"{{trip}}\" comienza en {{days}} días",
-  "expenseAdded": "{{user}} agregó un gasto: {{description}}",
-  "participantJoined": "{{user}} se unió al viaje \"{{trip}}\"",
   "passportExpiringSoon": {
     "title": "Pasaporte por Vencer",
-    "body": "Tu pasaporte de {{countryCode}} está por vencer."
+    "body": "Tu pasaporte de {countryCode} está por vencer."
   },
   "passportExpired": {
     "title": "Pasaporte Vencido",
-    "body": "Tu pasaporte de {{countryCode}} ha vencido."
+    "body": "Tu pasaporte de {countryCode} ha vencido."
   },
   "groupInvitation": {
     "title": "Invitación a Grupo",
-    "body": "Has sido invitado a unirte a un grupo."
+    "body": "Has sido invitado a unirte a {groupName}."
   },
   "groupJoinAccepted": {
     "title": "Solicitud Aceptada",
-    "body": "Tu solicitud para unirte al grupo ha sido aceptada."
+    "body": "Tu solicitud para unirte a {groupName} ha sido aceptada."
   },
   "groupAnnouncement": {
-    "title": "Nuevo Anuncio del Grupo",
-    "body": "Tu grupo tiene un nuevo anuncio."
+    "title": "Nuevo anuncio en {groupName}",
+    "body": "@{senderUsername} publicó un nuevo anuncio."
   },
   "tripInvitation": {
     "title": "Invitación a Viaje",
@@ -34,7 +29,7 @@
   },
   "tripKeyDateReminder": {
     "title": "Recordatorio de Fecha del Viaje",
-    "body": "Recordatorio: {{description}} se acerca."
+    "body": "Recordatorio: {description} se acerca."
   },
   "tripCompleted": {
     "title": "Viaje Completado",
@@ -42,6 +37,6 @@
   },
   "achievementUnlocked": {
     "title": "Logro Desbloqueado",
-    "body": "Desbloqueaste un nuevo logro: {{achievementName}}."
+    "body": "Desbloqueaste un nuevo logro: {achievementName}."
   }
 }

@@ -267,7 +267,7 @@ describe('GroupMembersService', () => {
       expect(mockNotificationsNotify).toHaveBeenCalledWith(
         USER_ID,
         NotificationType.GROUP_JOIN_ACCEPTED,
-        {},
+        { groupId: GROUP_ID, groupName: 'Mountain Crew' },
         [NotificationChannel.PUSH],
       );
     });
@@ -393,7 +393,7 @@ describe('GroupMembersService', () => {
       expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
         [TARGET_ID],
         NotificationType.GROUP_INVITATION,
-        {},
+        { groupId: GROUP_ID, groupName: 'Mountain Crew' },
         [NotificationChannel.PUSH],
       );
     });
@@ -475,7 +475,7 @@ describe('GroupMembersService', () => {
       expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
         [TARGET_ID],
         NotificationType.GROUP_INVITATION,
-        {},
+        { groupId: GROUP_ID, groupName: 'Mountain Crew' },
         [NotificationChannel.PUSH],
       );
     });
@@ -505,7 +505,7 @@ describe('GroupMembersService', () => {
       expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
         ['id-a', 'id-c'],
         NotificationType.GROUP_INVITATION,
-        {},
+        { groupId: GROUP_ID, groupName: 'Mountain Crew' },
         [NotificationChannel.PUSH],
       );
     });
