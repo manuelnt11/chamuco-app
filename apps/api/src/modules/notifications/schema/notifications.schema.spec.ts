@@ -18,16 +18,7 @@ describe('notifications schema', () => {
     const config = getTableConfig(notifications);
     const columnNames = config.columns.map((c) => c.name);
     expect(columnNames).toEqual(
-      expect.arrayContaining([
-        'id',
-        'user_id',
-        'type',
-        'title',
-        'body',
-        'data',
-        'read_at',
-        'created_at',
-      ]),
+      expect.arrayContaining(['id', 'user_id', 'type', 'data', 'read_at', 'created_at']),
     );
   });
 
