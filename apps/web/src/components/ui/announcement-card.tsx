@@ -84,11 +84,7 @@ export function AnnouncementCard({
           })}
         </p>
         {(onEdit ?? onDelete) && (
-          <EditDeleteActions
-            onEdit={onEdit ?? (() => {})}
-            onDelete={handleDelete ?? (() => Promise.resolve())}
-            disabled={isDeleting}
-          />
+          <EditDeleteActions onEdit={onEdit} onDelete={handleDelete} disabled={isDeleting} />
         )}
       </div>
     </li>

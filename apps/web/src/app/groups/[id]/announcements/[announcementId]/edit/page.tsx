@@ -11,7 +11,7 @@ import { apiClient } from '@/services/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import type { Group, GroupAnnouncement } from '@/types/group';
+import type { GroupAnnouncement } from '@/types/group';
 
 interface EditAnnouncementPageProps {
   params: Promise<{ id: string; announcementId: string }>;
@@ -24,7 +24,6 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
   const { isLoading: isAuthLoading } = useAuth();
   const { appUser } = useUser();
 
-  const [group, setGroup] = useState<Group | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,8 +35,7 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
     const load = async () => {
       setIsLoading(true);
       try {
-        const [groupRes, membershipRes, announcementRes] = await Promise.all([
-          apiClient.get<Group>(`/v1/groups/${id}`),
+        const [membershipRes, announcementRes] = await Promise.all([
           apiClient
             .get<{ status: string; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
             .catch(() => null),
@@ -52,7 +50,6 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
           return;
         }
 
-        setGroup(groupRes.data);
         setContent(announcementRes.data.content);
       } catch {
         router.replace(`/groups/${id}/announcements`);
@@ -82,7 +79,7 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
     }
   };
 
-  if (isLoading || !group) return null;
+  if (isLoading) return null;
 
   return (
     <div className="p-8 max-w-2xl">

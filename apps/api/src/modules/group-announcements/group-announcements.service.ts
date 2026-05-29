@@ -161,10 +161,9 @@ export class GroupAnnouncementsService {
     });
     if (!existing) throw new NotFoundException('Announcement not found');
 
-    const now = new Date();
     const [updated] = await this.db
       .update(groupAnnouncements)
-      .set({ content: dto.content, updatedAt: now })
+      .set({ content: dto.content })
       .where(eq(groupAnnouncements.id, announcementId))
       .returning();
 
@@ -189,7 +188,11 @@ export class GroupAnnouncementsService {
     });
     if (!existing) throw new NotFoundException('Announcement not found');
 
-    await this.db.delete(groupAnnouncements).where(eq(groupAnnouncements.id, announcementId));
+    await this.db
+      .delete(groupAnnouncements)
+      .where(
+        and(eq(groupAnnouncements.id, announcementId), eq(groupAnnouncements.groupId, groupId)),
+      );
   }
 
   private async assertGroupAdmin(groupId: string, userId: string): Promise<void> {

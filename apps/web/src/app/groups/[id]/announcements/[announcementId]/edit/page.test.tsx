@@ -97,17 +97,6 @@ vi.mock('react-i18next', () => ({
 
 import EditAnnouncementPage from './page';
 
-const mockGroup = {
-  id: 'group-id',
-  name: 'Mountain Crew',
-  description: null,
-  coverUrl: '',
-  visibility: 'PUBLIC',
-  createdBy: 'admin-id',
-  createdAt: '2026-01-01T00:00:00.000Z',
-  updatedAt: '2026-01-01T00:00:00.000Z',
-};
-
 const mockAnnouncement = {
   id: 'a1',
   groupId: 'group-id',
@@ -126,10 +115,7 @@ function setupMocks(role: GroupRole | null = GroupRole.OWNER) {
       if (role === null) return Promise.reject(new Error('Not member'));
       return Promise.resolve({ data: { status: 'active', role } });
     }
-    if (url.includes('/announcements/')) {
-      return Promise.resolve({ data: mockAnnouncement });
-    }
-    return Promise.resolve({ data: mockGroup });
+    return Promise.resolve({ data: mockAnnouncement });
   });
 
   mocks.mockApiPatch.mockResolvedValue({ data: mockAnnouncement });
@@ -201,9 +187,7 @@ describe('EditAnnouncementPage', () => {
     mocks.mockApiGet.mockImplementation((url: string) => {
       if (url.includes('/members/me'))
         return Promise.resolve({ data: { status: 'active', role: GroupRole.OWNER } });
-      if (url.includes('/announcements/'))
-        return Promise.resolve({ data: { ...mockAnnouncement, content: '' } });
-      return Promise.resolve({ data: mockGroup });
+      return Promise.resolve({ data: { ...mockAnnouncement, content: '' } });
     });
     render(
       <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,

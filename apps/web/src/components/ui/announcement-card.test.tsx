@@ -19,17 +19,21 @@ vi.mock('@/components/ui/edit-delete-actions', () => ({
     onDelete,
     disabled,
   }: {
-    onEdit: () => void;
-    onDelete: () => Promise<void>;
+    onEdit?: () => void;
+    onDelete?: () => Promise<void>;
     disabled?: boolean;
   }) => (
     <div data-testid="edit-delete-actions" aria-disabled={disabled}>
-      <button type="button" onClick={onEdit} data-testid="edit-btn">
-        edit
-      </button>
-      <button type="button" onClick={() => void onDelete()} data-testid="delete-btn">
-        delete
-      </button>
+      {onEdit && (
+        <button type="button" onClick={onEdit} data-testid="edit-btn">
+          edit
+        </button>
+      )}
+      {onDelete && (
+        <button type="button" onClick={() => void onDelete()} data-testid="delete-btn">
+          delete
+        </button>
+      )}
     </div>
   ),
 }));
