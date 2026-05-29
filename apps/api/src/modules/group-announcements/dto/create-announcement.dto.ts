@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
 
 export class CreateAnnouncementDto {
   @ApiProperty({
@@ -12,5 +12,6 @@ export class CreateAnnouncementDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(2000)
+  @Matches(/^[^<>]*$/, { message: 'HTML tags are not allowed in announcement content.' })
   content!: string;
 }

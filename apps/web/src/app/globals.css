@@ -220,6 +220,38 @@
   padding-bottom: var(--layout-nav-safe);
 }
 
+/* ─── Rich text / Markdown shared typography ─────────────────────────────── */
+.ProseMirror,
+.prose-content {
+  & h1 { @apply mb-2 text-xl font-bold; }
+  & h2 { @apply mb-2 text-lg font-semibold; }
+  & h3 { @apply mb-2 text-base font-semibold; }
+  & p { @apply mb-2 text-sm; }
+  & p:last-child { @apply mb-0; }
+  & ul { @apply list-disc pl-4; }
+  & ol { @apply list-decimal pl-4; }
+  & li { @apply my-0.5 text-sm; }
+  & strong { @apply font-semibold; }
+  & em { @apply italic; }
+  & blockquote { @apply border-l-2 border-border pl-3 italic text-muted-foreground; }
+  & code { @apply rounded bg-muted px-1 py-0.5 font-mono text-xs; }
+  & table { @apply my-2 w-full border-collapse text-sm; }
+  & th { @apply border border-border bg-muted px-3 py-1.5 text-left font-semibold; }
+  & td { @apply border border-border px-3 py-1.5; }
+}
+
+/* ─── Editor-only overrides (ProseMirror) ────────────────────────────────── */
+.ProseMirror {
+  & .selectedCell { @apply bg-primary/10; }
+  & p.is-editor-empty:first-child::before {
+    color: oklch(var(--muted-foreground));
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}
+
 @utility pt-safe {
   padding-top: env(safe-area-inset-top, 0px);
 }

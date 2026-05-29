@@ -1,11 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { type ReactNode } from 'react';
 import { GroupRole } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
-  mockApiPost: vi.fn(),
   mockUseAuth: vi.fn(),
   mockUseUser: vi.fn(),
 }));
@@ -35,7 +33,7 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('@/services/api-client', () => ({
-  apiClient: { get: mocks.mockApiGet, post: mocks.mockApiPost },
+  apiClient: { get: mocks.mockApiGet },
 }));
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -49,6 +47,22 @@ vi.mock('@/hooks/useUser', () => ({
 vi.mock('@phosphor-icons/react', () => ({
   ArrowLeftIcon: () => <span data-testid="arrow-left-icon" />,
   MegaphoneIcon: () => <span data-testid="megaphone-icon" />,
+}));
+
+vi.mock('@/components/ui/announcement-card', () => ({
+  AnnouncementCard: ({
+    content,
+    postedByLabel,
+  }: {
+    content: string;
+    postedByLabel: string;
+    createdAt: string;
+  }) => (
+    <li>
+      <span>{content}</span>
+      <span>{postedByLabel}</span>
+    </li>
+  ),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -108,14 +122,14 @@ function setupDefaultMocks(
 
   mocks.mockApiGet.mockImplementation((url: string) => {
     if (url.includes('/members/me'))
-      return Promise.resolve(membership ? { data: membership } : null);
+      return membership
+        ? Promise.resolve({ data: membership })
+        : Promise.reject(new Error('Not member'));
     if (url.includes('/announcements'))
       return Promise.resolve(makeAnnouncementsResponse(announcements));
     // group detail
     return Promise.resolve({ data: mockGroup });
   });
-
-  mocks.mockApiPost.mockResolvedValue({ data: mockAnnouncement });
 }
 
 describe('GroupAnnouncementsPage', () => {
@@ -150,55 +164,35 @@ describe('GroupAnnouncementsPage', () => {
     });
   });
 
-  it('shows create form for admin/owner', async () => {
+  it('shows new announcement button for admin/owner', async () => {
     setupDefaultMocks({ membership: adminMembership });
     render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'announcementsSubmit' })).toBeInTheDocument();
-      expect(screen.getByPlaceholderText('announcementsPlaceholder')).toBeInTheDocument();
+      const link = screen.getByRole('link', { name: 'announcementsNewButton' });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute('href', '/groups/group-id/announcements/new');
     });
   });
 
-  it('hides create form for regular members', async () => {
+  it('hides new announcement button for regular members', async () => {
     setupDefaultMocks({ membership: memberMembership });
     render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
 
     await waitFor(() => {
-      expect(screen.queryByRole('button', { name: 'announcementsSubmit' })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('link', { name: 'announcementsNewButton' }),
+      ).not.toBeInTheDocument();
     });
   });
 
-  it('submits announcement and prepends to list', async () => {
-    setupDefaultMocks({ announcements: [] });
-    const newAnnouncement = { ...mockAnnouncement, id: 'a2', content: 'New announcement!' };
-    mocks.mockApiPost.mockResolvedValue({ data: newAnnouncement });
-
-    const user = userEvent.setup();
-    render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('announcementsPlaceholder')).toBeInTheDocument();
-    });
-
-    await user.type(screen.getByPlaceholderText('announcementsPlaceholder'), 'New announcement!');
-    await user.click(screen.getByRole('button', { name: 'announcementsSubmit' }));
-
-    await waitFor(() => {
-      expect(mocks.mockApiPost).toHaveBeenCalledWith('/v1/groups/group-id/announcements', {
-        content: 'New announcement!',
-      });
-      expect(screen.getByText('New announcement!')).toBeInTheDocument();
-    });
-  });
-
-  it('submit button is disabled when textarea is empty', async () => {
+  it('back link points to group detail page', async () => {
     setupDefaultMocks();
     render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
 
     await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'announcementsSubmit' });
-      expect(button).toBeDisabled();
+      const link = screen.getByRole('link', { name: /Mountain Crew/ });
+      expect(link).toHaveAttribute('href', '/groups/group-id');
     });
   });
 
@@ -211,25 +205,6 @@ describe('GroupAnnouncementsPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('announcementsLoadError')).toBeInTheDocument();
-    });
-  });
-
-  it('shows error when post fails', async () => {
-    setupDefaultMocks({ announcements: [] });
-    mocks.mockApiPost.mockRejectedValue(new Error('Server error'));
-
-    const user = userEvent.setup();
-    render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('announcementsPlaceholder')).toBeInTheDocument();
-    });
-
-    await user.type(screen.getByPlaceholderText('announcementsPlaceholder'), 'Hello members!');
-    await user.click(screen.getByRole('button', { name: 'announcementsSubmit' }));
-
-    await waitFor(() => {
-      expect(screen.getByText('announcementsCreateError')).toBeInTheDocument();
     });
   });
 });

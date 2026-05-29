@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { type ReactNode } from 'react';
-import { GroupVisibility } from '@chamuco/shared-types';
+import { GroupRole, GroupVisibility } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
@@ -52,6 +52,22 @@ vi.mock('@phosphor-icons/react', () => ({
   UsersThreeIcon: () => null,
 }));
 
+vi.mock('@/components/ui/announcement-card', () => ({
+  AnnouncementCard: ({
+    content,
+    postedByLabel,
+  }: {
+    content: string;
+    postedByLabel: string;
+    createdAt: string;
+  }) => (
+    <li>
+      <span>{content}</span>
+      <span>{postedByLabel}</span>
+    </li>
+  ),
+}));
+
 vi.mock('react-i18next', () => ({
   useTranslation: (_ns?: string) => ({
     t: (key: string, opts?: Record<string, string>) => {
@@ -94,15 +110,24 @@ const mockAnnouncement = {
 
 function setupMocks({
   userId = OWNER_ID,
+  membership = { status: 'active', role: GroupRole.OWNER } as {
+    status: string;
+    role: GroupRole;
+  } | null,
   announcements = [mockAnnouncement],
 }: {
   userId?: string;
+  membership?: { status: string; role: GroupRole } | null;
   announcements?: (typeof mockAnnouncement)[];
 } = {}) {
   mocks.mockUseAuth.mockReturnValue({ isLoading: false });
   mocks.mockUseUser.mockReturnValue({ appUser: { id: userId }, isLoading: false });
 
   mocks.mockApiGet.mockImplementation((url: string) => {
+    if (url.includes('/members/me'))
+      return membership
+        ? Promise.resolve({ data: membership })
+        : Promise.reject(new Error('Not member'));
     if (url.includes('/announcements'))
       return Promise.resolve({ data: { items: announcements, total: announcements.length } });
     return Promise.resolve({ data: mockGroup });
@@ -161,11 +186,49 @@ describe('GroupDetailPage', () => {
   });
 
   it('hides settings link for non-owner', async () => {
-    setupMocks({ userId: 'other-user' });
+    setupMocks({ userId: 'other-user', membership: { status: 'active', role: GroupRole.MEMBER } });
     render(<GroupDetailPage params={Promise.resolve({ id: 'group-id' })} />);
 
     await waitFor(() => {
       expect(screen.queryByRole('link', { name: 'settings.title' })).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows publish button for owner', async () => {
+    setupMocks({ userId: OWNER_ID, membership: { status: 'active', role: GroupRole.OWNER } });
+    render(<GroupDetailPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => {
+      const link = screen.getByRole('link', { name: 'announcementsPublish' });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute('href', '/groups/group-id/announcements/new');
+    });
+  });
+
+  it('shows publish button for admin', async () => {
+    setupMocks({ userId: 'admin-id', membership: { status: 'active', role: GroupRole.ADMIN } });
+    render(<GroupDetailPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'announcementsPublish' })).toBeInTheDocument();
+    });
+  });
+
+  it('hides publish button for regular member', async () => {
+    setupMocks({ userId: 'member-id', membership: { status: 'active', role: GroupRole.MEMBER } });
+    render(<GroupDetailPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('link', { name: 'announcementsPublish' })).not.toBeInTheDocument();
+    });
+  });
+
+  it('hides publish button when not a member', async () => {
+    setupMocks({ userId: 'other-user', membership: null });
+    render(<GroupDetailPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('link', { name: 'announcementsPublish' })).not.toBeInTheDocument();
     });
   });
 

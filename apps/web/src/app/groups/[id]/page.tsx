@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { GroupVisibility } from '@chamuco/shared-types';
+import { GroupRole, GroupVisibility } from '@chamuco/shared-types';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -13,6 +13,7 @@ import {
 } from '@phosphor-icons/react';
 
 import { apiClient } from '@/services/api-client';
+import { AnnouncementCard } from '@/components/ui/announcement-card';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import type { Group, GroupAnnouncement, GroupAnnouncementsResponse } from '@/types/group';
@@ -21,6 +22,8 @@ interface GroupDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
+const ADMIN_ROLES: GroupRole[] = [GroupRole.OWNER, GroupRole.ADMIN];
+
 export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { id } = use(params);
   const { t } = useTranslation('groups');
@@ -28,6 +31,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { appUser } = useUser();
   const [group, setGroup] = useState<Group | null>(null);
   const [announcements, setAnnouncements] = useState<GroupAnnouncement[]>([]);
+  const [callerRole, setCallerRole] = useState<GroupRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -37,11 +41,15 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
     Promise.all([
       apiClient.get<Group>(`/v1/groups/${id}`),
       apiClient
+        .get<{ status: string; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
+        .catch(() => null),
+      apiClient
         .get<GroupAnnouncementsResponse>(`/v1/groups/${id}/announcements?limit=3&offset=0`)
         .catch(() => null),
     ])
-      .then(([groupRes, announcementsRes]) => {
+      .then(([groupRes, membershipRes, announcementsRes]) => {
         setGroup(groupRes.data);
+        setCallerRole(membershipRes?.data?.role ?? null);
         setAnnouncements(announcementsRes?.data?.items ?? []);
       })
       .catch(() => setNotFound(true))
@@ -59,6 +67,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   }
 
   const isOwner = appUser?.id === group.createdBy;
+  const isAdmin = callerRole !== null && ADMIN_ROLES.includes(callerRole);
 
   return (
     <div className="p-8 max-w-2xl">
@@ -100,6 +109,16 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           >
             <UsersThreeIcon className="size-5" aria-hidden="true" />
           </Link>
+          {isAdmin && (
+            <Link
+              href={`/groups/${group.id}/announcements/new`}
+              className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
+              title={t('announcementsPublish')}
+              aria-label={t('announcementsPublish')}
+            >
+              <MegaphoneIcon className="size-5" aria-hidden="true" />
+            </Link>
+          )}
           {isOwner && (
             <Link
               href={`/groups/${group.id}/settings`}
@@ -133,17 +152,12 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
         ) : (
           <ul className="space-y-3">
             {announcements.map((a) => (
-              <li key={a.id} className="rounded-lg border border-border bg-card p-4">
-                <p className="text-sm whitespace-pre-wrap line-clamp-3">{a.content}</p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {t('announcementsPostedBy', { name: `@${a.createdByUsername}` })} &middot;{' '}
-                  {new Date(a.createdAt).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </p>
-              </li>
+              <AnnouncementCard
+                key={a.id}
+                content={a.content}
+                postedByLabel={t('announcementsPostedBy', { name: `@${a.createdByUsername}` })}
+                createdAt={a.createdAt}
+              />
             ))}
           </ul>
         )}
