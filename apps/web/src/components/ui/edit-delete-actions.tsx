@@ -7,8 +7,8 @@ import { DeleteConfirmButton } from '@/components/ui/delete-confirm-button';
 import { cn } from '@/lib/utils';
 
 interface EditDeleteActionsProps {
-  onEdit: () => void;
-  onDelete: () => void | Promise<void>;
+  onEdit?: () => void;
+  onDelete?: () => void | Promise<void>;
   disabled?: boolean;
   className?: string;
 }
@@ -23,10 +23,12 @@ export function EditDeleteActions({
 
   return (
     <div className={cn('flex shrink-0 flex-col gap-1.5 sm:flex-row', className)}>
-      <Button type="button" size="sm" variant="outline" onClick={onEdit} disabled={disabled}>
-        {t('actions.edit')}
-      </Button>
-      <DeleteConfirmButton onDelete={onDelete} disabled={disabled} />
+      {onEdit && (
+        <Button type="button" size="sm" variant="outline" onClick={onEdit} disabled={disabled}>
+          {t('actions.edit')}
+        </Button>
+      )}
+      {onDelete && <DeleteConfirmButton onDelete={onDelete} disabled={disabled} />}
     </div>
   );
 }

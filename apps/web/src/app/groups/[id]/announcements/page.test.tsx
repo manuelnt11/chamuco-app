@@ -1,11 +1,13 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { GroupRole } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
+  mockApiDelete: vi.fn(),
   mockUseAuth: vi.fn(),
   mockUseUser: vi.fn(),
+  mockRouterPush: vi.fn(),
 }));
 
 vi.mock('react', async (importOriginal) => {
@@ -32,8 +34,18 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('next/navigation', () => {
+  let stableRouter: { push: typeof mocks.mockRouterPush } | null = null;
+  return {
+    useRouter: () => {
+      if (!stableRouter) stableRouter = { push: mocks.mockRouterPush };
+      return stableRouter;
+    },
+  };
+});
+
 vi.mock('@/services/api-client', () => ({
-  apiClient: { get: mocks.mockApiGet },
+  apiClient: { get: mocks.mockApiGet, delete: mocks.mockApiDelete },
 }));
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -53,14 +65,28 @@ vi.mock('@/components/ui/announcement-card', () => ({
   AnnouncementCard: ({
     content,
     postedByLabel,
+    onEdit,
+    onDelete,
   }: {
     content: string;
     postedByLabel: string;
     createdAt: string;
+    onEdit?: () => void;
+    onDelete?: () => Promise<void>;
   }) => (
     <li>
       <span>{content}</span>
       <span>{postedByLabel}</span>
+      {onEdit && (
+        <button type="button" onClick={onEdit} data-testid="edit-btn">
+          edit
+        </button>
+      )}
+      {onDelete && (
+        <button type="button" onClick={() => void onDelete()} data-testid="delete-btn">
+          delete
+        </button>
+      )}
     </li>
   ),
 }));
@@ -119,6 +145,7 @@ function setupDefaultMocks(
 
   mocks.mockUseAuth.mockReturnValue({ isLoading: false });
   mocks.mockUseUser.mockReturnValue({ appUser: { id: 'admin-id' }, isLoading: false });
+  mocks.mockApiDelete.mockResolvedValue({});
 
   mocks.mockApiGet.mockImplementation((url: string) => {
     if (url.includes('/members/me'))
@@ -205,6 +232,62 @@ describe('GroupAnnouncementsPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('announcementsLoadError')).toBeInTheDocument();
+    });
+  });
+
+  it('shows edit and delete buttons for admin', async () => {
+    setupDefaultMocks({ membership: adminMembership });
+    render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('edit-btn')).toBeInTheDocument();
+      expect(screen.getByTestId('delete-btn')).toBeInTheDocument();
+    });
+  });
+
+  it('hides edit and delete buttons for regular members', async () => {
+    setupDefaultMocks({ membership: memberMembership });
+    render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('edit-btn')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('delete-btn')).not.toBeInTheDocument();
+    });
+  });
+
+  it('navigates to edit page when edit button is clicked', async () => {
+    setupDefaultMocks({ membership: adminMembership });
+    render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => screen.getByTestId('edit-btn'));
+    fireEvent.click(screen.getByTestId('edit-btn'));
+
+    expect(mocks.mockRouterPush).toHaveBeenCalledWith('/groups/group-id/announcements/a1/edit');
+  });
+
+  it('removes announcement from list after successful delete', async () => {
+    setupDefaultMocks({ membership: adminMembership });
+    render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => screen.getByTestId('delete-btn'));
+    fireEvent.click(screen.getByTestId('delete-btn'));
+
+    await waitFor(() => {
+      expect(mocks.mockApiDelete).toHaveBeenCalledWith('/v1/groups/group-id/announcements/a1');
+      expect(screen.queryByText(mockAnnouncement.content)).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows delete error when delete fails', async () => {
+    setupDefaultMocks({ membership: adminMembership });
+    mocks.mockApiDelete.mockRejectedValue(new Error('Server error'));
+    render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
+
+    await waitFor(() => screen.getByTestId('delete-btn'));
+    fireEvent.click(screen.getByTestId('delete-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByText('announcementsDeleteError')).toBeInTheDocument();
     });
   });
 });

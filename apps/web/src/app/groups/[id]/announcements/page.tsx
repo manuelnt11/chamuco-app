@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { GroupRole } from '@chamuco/shared-types';
 import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
@@ -18,6 +19,7 @@ interface AnnouncementsPageProps {
 
 export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProps) {
   const { id } = use(params);
+  const router = useRouter();
   const { t } = useTranslation('groups');
   const { isLoading: isAuthLoading } = useAuth();
   const { appUser } = useUser();
@@ -27,6 +29,7 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
   const [callerRole, setCallerRole] = useState<GroupRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
 
   const isAdmin = callerRole !== null && [GroupRole.OWNER, GroupRole.ADMIN].includes(callerRole);
 
@@ -59,6 +62,16 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
 
     void load();
   }, [id, isAuthLoading, appUser]);
+
+  const handleDelete = async (announcementId: string) => {
+    setDeleteError(false);
+    try {
+      await apiClient.delete(`/v1/groups/${id}/announcements/${announcementId}`);
+      setAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
+    } catch {
+      setDeleteError(true);
+    }
+  };
 
   if (isLoading) return null;
 
@@ -97,6 +110,10 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
         )}
       </div>
 
+      {deleteError && (
+        <p className="mb-4 text-sm text-destructive">{t('announcementsDeleteError')}</p>
+      )}
+
       {announcements.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('announcementsEmpty')}</p>
       ) : (
@@ -108,6 +125,10 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
               postedByLabel={t('announcementsPostedBy', { name: `@${a.createdByUsername}` })}
               createdAt={a.createdAt}
               noCollapse
+              onEdit={
+                isAdmin ? () => router.push(`/groups/${id}/announcements/${a.id}/edit`) : undefined
+              }
+              onDelete={isAdmin ? () => handleDelete(a.id) : undefined}
             />
           ))}
         </ul>

@@ -16,6 +16,7 @@ export const groupAnnouncements = pgTable(
       .notNull(),
     content: text('content').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('idx_group_announcements_group_id').on(t.groupId, t.createdAt)],
 );
