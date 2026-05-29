@@ -68,7 +68,7 @@ for (const file of sourceFiles) {
 
   // Extract static t('key') and t('key', {...}) calls — drop the closing ) requirement so
   // interpolated calls like t('key', { n }) are also captured.
-  for (const match of filteredContent.matchAll(/t\(['"]([a-zA-Z0-9._:-]+)['"]/g)) {
+  for (const match of filteredContent.matchAll(/(?<![a-zA-Z])t\(['"]([a-zA-Z0-9._:-]+)['"]/g)) {
     const key = match[1];
     if (key.includes(':')) {
       // Explicit namespace prefix — normalise colon to dot: common:actions.save → common.actions.save
@@ -84,7 +84,7 @@ for (const file of sourceFiles) {
 
   // Extract template literal t() calls: t(`prefix.${variable}`) — capture the static prefix before ${.
   // Any en.json key whose dotted path starts with the qualified prefix is treated as used.
-  for (const match of filteredContent.matchAll(/t\(`([a-zA-Z0-9._:-]*)\$\{/g)) {
+  for (const match of filteredContent.matchAll(/(?<![a-zA-Z])t\(`([a-zA-Z0-9._:-]*)\$\{/g)) {
     const rawPrefix = match[1];
     if (!rawPrefix) continue;
     const qualified = qualifyKey(rawPrefix, namespace);
