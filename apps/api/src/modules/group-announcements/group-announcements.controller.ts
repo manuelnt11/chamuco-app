@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -14,6 +16,7 @@ import {
   ApiBody,
   ApiBadRequestResponse,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
@@ -26,6 +29,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { GroupAnnouncementsService } from './group-announcements.service';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
+import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { AnnouncementResponseDto } from './dto/announcement-response.dto';
 import { ListAnnouncementsQueryDto } from './dto/list-announcements-query.dto';
 
@@ -84,5 +88,65 @@ export class GroupAnnouncementsController {
     @Query() query: ListAnnouncementsQueryDto,
   ): Promise<{ items: AnnouncementResponseDto[]; total: number }> {
     return this.groupAnnouncementsService.findAll(id, user.id, query);
+  }
+
+  @Get('announcements/:announcementId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get a single group announcement', description: 'Active members only.' })
+  @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
+  @ApiParam({ name: 'announcementId', type: String, description: 'Announcement UUID' })
+  @ApiResponse({ status: 200, description: 'Announcement found.', type: AnnouncementResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
+  @ApiForbiddenResponse({ description: 'Caller is not an active group member.' })
+  @ApiNotFoundResponse({ description: 'Group or announcement not found.' })
+  async findOne(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('announcementId', ParseUUIDPipe) announcementId: string,
+  ): Promise<AnnouncementResponseDto> {
+    return this.groupAnnouncementsService.findOne(id, announcementId, user.id);
+  }
+
+  @Patch('announcements/:announcementId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update a group announcement',
+    description: 'Admin or owner only.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
+  @ApiParam({ name: 'announcementId', type: String, description: 'Announcement UUID' })
+  @ApiBody({ type: UpdateAnnouncementDto })
+  @ApiResponse({ status: 200, description: 'Announcement updated.', type: AnnouncementResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
+  @ApiForbiddenResponse({ description: 'Caller is not a group admin or owner.' })
+  @ApiNotFoundResponse({ description: 'Group or announcement not found.' })
+  @ApiBadRequestResponse({ description: 'Invalid request body.' })
+  async update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('announcementId', ParseUUIDPipe) announcementId: string,
+    @Body() dto: UpdateAnnouncementDto,
+  ): Promise<AnnouncementResponseDto> {
+    return this.groupAnnouncementsService.update(id, announcementId, user.id, dto);
+  }
+
+  @Delete('announcements/:announcementId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete a group announcement',
+    description: 'Admin or owner only.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
+  @ApiParam({ name: 'announcementId', type: String, description: 'Announcement UUID' })
+  @ApiNoContentResponse({ description: 'Announcement deleted.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
+  @ApiForbiddenResponse({ description: 'Caller is not a group admin or owner.' })
+  @ApiNotFoundResponse({ description: 'Group or announcement not found.' })
+  async remove(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('announcementId', ParseUUIDPipe) announcementId: string,
+  ): Promise<void> {
+    return this.groupAnnouncementsService.remove(id, announcementId, user.id);
   }
 }

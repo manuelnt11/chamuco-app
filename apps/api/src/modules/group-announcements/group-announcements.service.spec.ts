@@ -11,6 +11,7 @@ import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { GroupAnnouncementsService } from './group-announcements.service';
 import type { CreateAnnouncementDto } from './dto/create-announcement.dto';
+import type { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 
 jest.mock('@google-cloud/storage', () => ({
   Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
@@ -38,9 +39,11 @@ const mockGroup = {
 const mockAnnouncement = {
   id: ANNOUNCEMENT_ID,
   groupId: GROUP_ID,
+  createdBy: ADMIN_ID,
   createdByUsername: ADMIN_USERNAME,
   content: 'Trip departs Sunday at 6am.',
   createdAt: NOW,
+  updatedAt: NOW,
 };
 
 const makeMembership = (userId: string, role: GroupRole) => ({
@@ -85,10 +88,20 @@ describe('GroupAnnouncementsService', () => {
 
   let mockGroupsFindFirst: jest.Mock;
   let mockGroupMembersFindFirst: jest.Mock;
+  let mockGroupAnnouncementsFindFirst: jest.Mock;
+  let mockUsersFindFirst: jest.Mock;
 
   let mockInsertReturning: jest.Mock;
   let mockInsertValues: jest.Mock;
   let mockInsert: jest.Mock;
+
+  let mockUpdateReturning: jest.Mock;
+  let mockUpdateWhere: jest.Mock;
+  let mockUpdateSet: jest.Mock;
+  let mockUpdate: jest.Mock;
+
+  let mockDeleteWhere: jest.Mock;
+  let mockDelete: jest.Mock;
 
   let mockSelect: jest.Mock;
 
@@ -99,10 +112,20 @@ describe('GroupAnnouncementsService', () => {
     mockGroupMembersFindFirst = jest
       .fn()
       .mockResolvedValue(makeMembership(ADMIN_ID, GroupRole.OWNER));
+    mockGroupAnnouncementsFindFirst = jest.fn().mockResolvedValue(mockAnnouncement);
+    mockUsersFindFirst = jest.fn().mockResolvedValue({ username: ADMIN_USERNAME });
 
     mockInsertReturning = jest.fn().mockResolvedValue([mockAnnouncement]);
     mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
     mockInsert = jest.fn().mockReturnValue({ values: mockInsertValues });
+
+    mockUpdateReturning = jest.fn().mockResolvedValue([mockAnnouncement]);
+    mockUpdateWhere = jest.fn().mockReturnValue({ returning: mockUpdateReturning });
+    mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
+    mockUpdate = jest.fn().mockReturnValue({ set: mockUpdateSet });
+
+    mockDeleteWhere = jest.fn().mockResolvedValue(undefined);
+    mockDelete = jest.fn().mockReturnValue({ where: mockDeleteWhere });
 
     // Default: returns one active member
     mockSelect = jest.fn().mockReturnValue(makeChain([{ userId: MEMBER_ID }]));
@@ -118,8 +141,12 @@ describe('GroupAnnouncementsService', () => {
             query: {
               groups: { findFirst: mockGroupsFindFirst },
               groupMembers: { findFirst: mockGroupMembersFindFirst },
+              groupAnnouncements: { findFirst: mockGroupAnnouncementsFindFirst },
+              users: { findFirst: mockUsersFindFirst },
             },
             insert: mockInsert,
+            update: mockUpdate,
+            delete: mockDelete,
             select: mockSelect,
           },
         },
@@ -248,6 +275,94 @@ describe('GroupAnnouncementsService', () => {
       mockGroupMembersFindFirst.mockResolvedValue(undefined);
 
       await expect(service.findAll(GROUP_ID, MEMBER_ID, {})).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  // ─── findOne ─────────────────────────────────────────────────────────────────
+
+  describe('findOne', () => {
+    it('returns the announcement DTO', async () => {
+      mockGroupMembersFindFirst.mockResolvedValue(makeMembership(ADMIN_ID, GroupRole.OWNER));
+      mockSelect.mockReturnValue(makeChain([mockAnnouncement]));
+
+      const result = await service.findOne(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID);
+
+      expect(result.id).toBe(ANNOUNCEMENT_ID);
+      expect(result.content).toBe(mockAnnouncement.content);
+    });
+
+    it('throws NotFoundException when announcement not found', async () => {
+      mockGroupMembersFindFirst.mockResolvedValue(makeMembership(ADMIN_ID, GroupRole.OWNER));
+      mockSelect.mockReturnValue(makeChain([]));
+
+      await expect(service.findOne(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws ForbiddenException when caller is not an active member', async () => {
+      mockGroupMembersFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.findOne(GROUP_ID, ANNOUNCEMENT_ID, MEMBER_ID)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+  });
+
+  // ─── update ─────────────────────────────────────────────────────────────────
+
+  describe('update', () => {
+    const dto: UpdateAnnouncementDto = { content: 'Updated content.' };
+
+    it('updates announcement and returns DTO', async () => {
+      const result = await service.update(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID, dto);
+
+      expect(mockUpdate).toHaveBeenCalled();
+      expect(mockUpdateSet).toHaveBeenCalledWith(expect.objectContaining({ content: dto.content }));
+      expect(result.id).toBe(ANNOUNCEMENT_ID);
+    });
+
+    it('throws NotFoundException when announcement not found', async () => {
+      mockGroupAnnouncementsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.update(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID, dto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws ForbiddenException when caller is not admin', async () => {
+      mockGroupMembersFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.update(GROUP_ID, ANNOUNCEMENT_ID, MEMBER_ID, dto)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+  });
+
+  // ─── remove ─────────────────────────────────────────────────────────────────
+
+  describe('remove', () => {
+    it('deletes the announcement', async () => {
+      await service.remove(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID);
+
+      expect(mockDelete).toHaveBeenCalled();
+      expect(mockDeleteWhere).toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when announcement not found', async () => {
+      mockGroupAnnouncementsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.remove(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws ForbiddenException when caller is not admin', async () => {
+      mockGroupMembersFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.remove(GROUP_ID, ANNOUNCEMENT_ID, MEMBER_ID)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

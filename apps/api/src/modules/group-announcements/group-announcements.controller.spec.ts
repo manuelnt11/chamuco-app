@@ -7,6 +7,7 @@ import { GroupAnnouncementsController } from './group-announcements.controller';
 import { GroupAnnouncementsService } from './group-announcements.service';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import type { AnnouncementResponseDto } from './dto/announcement-response.dto';
+import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { ListAnnouncementsQueryDto } from './dto/list-announcements-query.dto';
 
 jest.mock('@google-cloud/storage', () => ({
@@ -41,24 +42,37 @@ const mockAnnouncementDto: AnnouncementResponseDto = {
   createdByUsername: ADMIN_USERNAME,
   content: 'Trip departs Sunday at 6am.',
   createdAt: NOW,
+  updatedAt: NOW,
 };
 
 let mockCreate: jest.Mock;
+let mockFindOne: jest.Mock;
 let mockFindAll: jest.Mock;
+let mockUpdate: jest.Mock;
+let mockRemove: jest.Mock;
 
 describe('GroupAnnouncementsController', () => {
   let controller: GroupAnnouncementsController;
 
   beforeEach(async () => {
     mockCreate = jest.fn().mockResolvedValue(mockAnnouncementDto);
+    mockFindOne = jest.fn().mockResolvedValue(mockAnnouncementDto);
     mockFindAll = jest.fn().mockResolvedValue({ items: [mockAnnouncementDto], total: 1 });
+    mockUpdate = jest.fn().mockResolvedValue(mockAnnouncementDto);
+    mockRemove = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GroupAnnouncementsController],
       providers: [
         {
           provide: GroupAnnouncementsService,
-          useValue: { create: mockCreate, findAll: mockFindAll },
+          useValue: {
+            create: mockCreate,
+            findOne: mockFindOne,
+            findAll: mockFindAll,
+            update: mockUpdate,
+            remove: mockRemove,
+          },
         },
       ],
     }).compile();
@@ -87,6 +101,53 @@ describe('GroupAnnouncementsController', () => {
       expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
     });
+  });
+
+  describe('findOne', () => {
+    it('delegates to service and returns announcement', async () => {
+      const result = await controller.findOne(mockAuthUser, GROUP_ID, ANNOUNCEMENT_ID);
+
+      expect(mockFindOne).toHaveBeenCalledWith(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID);
+      expect(result).toEqual(mockAnnouncementDto);
+    });
+  });
+
+  describe('update', () => {
+    it('delegates to service and returns updated announcement', async () => {
+      const dto: UpdateAnnouncementDto = { content: 'Updated content.' };
+
+      const result = await controller.update(mockAuthUser, GROUP_ID, ANNOUNCEMENT_ID, dto);
+
+      expect(mockUpdate).toHaveBeenCalledWith(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID, dto);
+      expect(result).toEqual(mockAnnouncementDto);
+    });
+  });
+
+  describe('remove', () => {
+    it('delegates to service', async () => {
+      await controller.remove(mockAuthUser, GROUP_ID, ANNOUNCEMENT_ID);
+
+      expect(mockRemove).toHaveBeenCalledWith(GROUP_ID, ANNOUNCEMENT_ID, ADMIN_ID);
+    });
+  });
+});
+
+describe('UpdateAnnouncementDto', () => {
+  it('trims whitespace from content via @Transform', () => {
+    const dto = plainToInstance(UpdateAnnouncementDto, { content: '  Updated!  ' });
+    expect(dto.content).toBe('Updated!');
+  });
+
+  it('rejects content containing HTML tags', async () => {
+    const dto = plainToInstance(UpdateAnnouncementDto, { content: '<b>bold</b>' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'content')).toBe(true);
+  });
+
+  it('accepts valid markdown content', async () => {
+    const dto = plainToInstance(UpdateAnnouncementDto, { content: '**Updated** announcement.' });
+    const errors = await validate(dto);
+    expect(errors.filter((e) => e.property === 'content')).toHaveLength(0);
   });
 });
 

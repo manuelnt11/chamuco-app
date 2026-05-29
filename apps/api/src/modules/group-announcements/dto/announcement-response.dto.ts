@@ -18,4 +18,7 @@ export class AnnouncementResponseDto {
 
   @ApiProperty({ description: 'ISO 8601 creation timestamp.' })
   createdAt!: Date;
+
+  @ApiProperty({ description: 'ISO 8601 last-updated timestamp.' })
+  updatedAt!: Date;
 }

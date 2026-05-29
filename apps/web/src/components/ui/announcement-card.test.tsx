@@ -13,6 +13,27 @@ vi.mock('@/components/ui/markdown-content', () => ({
   MarkdownContent: ({ content }: { content: string }) => <span>{content}</span>,
 }));
 
+vi.mock('@/components/ui/edit-delete-actions', () => ({
+  EditDeleteActions: ({
+    onEdit,
+    onDelete,
+    disabled,
+  }: {
+    onEdit: () => void;
+    onDelete: () => Promise<void>;
+    disabled?: boolean;
+  }) => (
+    <div data-testid="edit-delete-actions" aria-disabled={disabled}>
+      <button type="button" onClick={onEdit} data-testid="edit-btn">
+        edit
+      </button>
+      <button type="button" onClick={() => void onDelete()} data-testid="delete-btn">
+        delete
+      </button>
+    </div>
+  ),
+}));
+
 const defaultProps = {
   content: 'Hello **world**',
   postedByLabel: 'Posted by @alice',
@@ -80,6 +101,37 @@ describe('AnnouncementCard', () => {
     fireEvent.click(screen.getByText('actions.viewMore'));
     const contentWrapper = screen.getByText('Hello **world**').closest('div');
     expect(contentWrapper?.className ?? '').not.toContain('line-clamp');
+  });
+
+  describe('edit/delete actions', () => {
+    it('does not render EditDeleteActions when no callbacks provided', () => {
+      render(<AnnouncementCard {...defaultProps} />);
+      expect(screen.queryByTestId('edit-delete-actions')).not.toBeInTheDocument();
+    });
+
+    it('renders EditDeleteActions when onEdit is provided', () => {
+      render(<AnnouncementCard {...defaultProps} onEdit={() => {}} />);
+      expect(screen.getByTestId('edit-delete-actions')).toBeInTheDocument();
+    });
+
+    it('renders EditDeleteActions when onDelete is provided', () => {
+      render(<AnnouncementCard {...defaultProps} onDelete={() => Promise.resolve()} />);
+      expect(screen.getByTestId('edit-delete-actions')).toBeInTheDocument();
+    });
+
+    it('calls onEdit when edit button is clicked', () => {
+      const onEdit = vi.fn();
+      render(<AnnouncementCard {...defaultProps} onEdit={onEdit} />);
+      fireEvent.click(screen.getByTestId('edit-btn'));
+      expect(onEdit).toHaveBeenCalledOnce();
+    });
+
+    it('calls onDelete when delete button is clicked', async () => {
+      const onDelete = vi.fn().mockResolvedValue(undefined);
+      render(<AnnouncementCard {...defaultProps} onDelete={onDelete} onEdit={() => {}} />);
+      fireEvent.click(screen.getByTestId('delete-btn'));
+      await waitFor(() => expect(onDelete).toHaveBeenCalledOnce());
+    });
   });
 
   describe('noCollapse', () => {

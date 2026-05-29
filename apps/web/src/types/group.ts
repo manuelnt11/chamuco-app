@@ -63,6 +63,7 @@ export interface GroupAnnouncement {
   createdByUsername: string;
   content: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface GroupAnnouncementsResponse {
