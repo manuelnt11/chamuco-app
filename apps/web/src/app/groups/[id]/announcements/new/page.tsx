@@ -89,13 +89,13 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
           href={`/groups/${id}`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeftIcon className="size-4" />
+          <ArrowLeftIcon className="size-4" aria-hidden="true" />
           {group.name}
         </Link>
       </div>
 
       <div className="flex items-center gap-2 mb-6">
-        <MegaphoneIcon className="size-5" />
+        <MegaphoneIcon className="size-5" aria-hidden="true" />
         <h1 className="text-2xl font-bold">{t('announcementsNew')}</h1>
       </div>
 
