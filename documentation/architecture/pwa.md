@@ -1,7 +1,7 @@
 # Architecture: Progressive Web App (PWA)
 
-**Status:** Implemented (MVP)
-**Last Updated:** 2026-04-02
+**Status:** Active
+**Last Updated:** 2026-06-02
 
 ---
 
@@ -75,18 +75,24 @@ export default function manifest(): MetadataRoute.Manifest {
 The Service Worker (SW) is the core of the PWA. It runs in a separate thread in the background and handles two independent responsibilities:
 
 - **Caching and offline support** — intercepts network requests and serves cached responses when offline.
-- **FCM background message handling** — receives push notifications from Firebase Cloud Messaging when the app is not in the foreground (post-MVP).
+- **FCM background message handling** — receives push notifications from Firebase Cloud Messaging when the app is not in the foreground. **Active in MVP.**
 
 #### Implementation: Manual Service Worker (Turbopack-compatible)
 
-**Why manual?** As of Next.js 16, Turbopack is enabled by default. `@ducanh2912/next-pwa` relies on webpack plugins and is not yet compatible with Turbopack. Rather than disable Turbopack or wait for plugin compatibility, we implemented a manual Service Worker that is future-ready for FCM integration.
+**Why manual?** As of Next.js 16, Turbopack is enabled by default. `@ducanh2912/next-pwa` relies on webpack plugins and is not yet compatible with Turbopack. Rather than disable Turbopack or wait for plugin compatibility, we implemented a manual Service Worker with full FCM integration.
 
-The unified Service Worker lives at `public/sw.js` and is registered via a client component:
+#### Template + build step
+
+The Service Worker source lives at `public/sw.template.js`. It contains `%%PLACEHOLDER%%` tokens for Firebase config values (e.g., `%%NEXT_PUBLIC_FIREBASE_API_KEY%%`). At build time, a script substitutes these tokens with the actual `NEXT_PUBLIC_*` environment variable values and writes the output to `public/sw.js`. The registered file is always `sw.js`.
+
+This indirection is required because Service Workers run outside the Next.js module system and cannot read `process.env` — the config values must be inlined as string literals.
+
+The unified Service Worker is registered via a client component:
 
 ```js
-// apps/web/public/sw.js
-const CACHE_NAME = 'chamuco-v1';
-const RUNTIME_CACHE = 'chamuco-runtime-v1';
+// apps/web/public/sw.template.js  (generates public/sw.js at build time)
+const CACHE_NAME = 'chamuco-v3';
+const RUNTIME_CACHE = 'chamuco-runtime-v3';
 
 const PRECACHE_URLS = [
   '/',
@@ -94,6 +100,11 @@ const PRECACHE_URLS = [
   '/manifest.webmanifest',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
+  '/logo-icon.svg',
+  '/trips',
+  '/groups',
+  '/explore',
+  '/profile',
 ];
 
 self.addEventListener('install', (event) => {
@@ -139,8 +150,11 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// FCM handler skeleton (commented out until FCM is implemented)
-// See file for full FCM integration code
+// FCM background message handler (active in MVP)
+// Firebase SDK loaded via importScripts using %%PLACEHOLDER%% tokens
+// - Handles background push messages from FCM
+// - Calls showNotification() with title, body, icon, badge, and data payload
+// - Handles notificationclick to open/focus the relevant deep-link URL
 ```
 
 **Client-side registration:**
@@ -231,32 +245,39 @@ Push notifications flow through **Firebase Cloud Messaging (FCM)**. The same FCM
 ### How a push notification reaches the user
 
 ```
-[NestJS backend writes message to Firestore]
+[NestJS NotificationsService.notify()]
           │
-          ▼
-[NestJS calls FCM API with target FCM token + payload]
+          ├── Inserts notifications + notification_deliveries rows (PostgreSQL)
           │
-          ▼
-[FCM delivers to user's browser/device]
-          │
-          ├── App is in foreground ──▶ Firebase client SDK receives message
-          │                            App shows in-app notification UI
-          │
-          └── App is in background ──▶ Unified Service Worker receives background message
-                                        SW calls showNotification() → OS-level notification appears
+          └── PushChannelStrategy calls FCM API with target token(s) + payload
+                    │
+                    ▼
+          [FCM delivers to user's browser/device]
+                    │
+                    ├── App is in foreground ──▶ Firebase client SDK receives message
+                    │                            App shows in-app notification banner/panel
+                    │
+                    └── App is in background ──▶ Unified Service Worker (sw.js) receives
+                                                  background message via onBackgroundMessage()
+                                                  SW calls showNotification() → OS-level notification
+                                                  User clicks → SW reads payload.data.url → navigates
 ```
+
+> **Note:** Firestore is not involved in push delivery. The MVP flow is NestJS → FCM API directly. Firestore is deferred until post-MVP messaging is implemented.
 
 ### FCM token management
 
 Each browser/device instance generates a unique **FCM registration token**. This token must be stored in PostgreSQL associated with the user, so the backend can target the right device(s) when sending a notification.
 
-| Field          | Type      | Description                                          |
-| -------------- | --------- | ---------------------------------------------------- |
-| `user_id`      | UUID      | The user who owns this token                         |
-| `fcm_token`    | String    | The FCM registration token                           |
-| `device_hint`  | String    | Optional label (e.g., `"Chrome / macOS"`)            |
-| `created_at`   | Timestamp |                                                      |
-| `last_seen_at` | Timestamp | Updated on each app open; used to prune stale tokens |
+| Field          | Type      | Description                                                     |
+| -------------- | --------- | --------------------------------------------------------------- |
+| `user_id`      | UUID      | PK + FK → `users.id`                                            |
+| `token`        | Text      | PK. The FCM registration token                                  |
+| `device_hint`  | varchar   | Optional label (e.g., `"Chrome / macOS"`)                       |
+| `created_at`   | Timestamp |                                                                 |
+| `last_used_at` | Timestamp | Updated on each successful delivery; used to prune stale tokens |
+
+Composite PK `(user_id, token)`. See [`features/notifications.md`](../features/notifications.md) for the full token lifecycle (registration, deregistration, staleness pruning).
 
 A single user can have multiple active tokens (different browsers or devices). The backend sends the notification to all active tokens for that user. Tokens that have not been refreshed in 60+ days should be considered stale and removed.
 
@@ -298,12 +319,13 @@ Because iOS does not provide a native install prompt (unlike Android/Chrome), th
 
 The Service Worker caching strategy determines what the user sees without a network connection.
 
-| Resource type                  | Strategy                              | Rationale                                                                   |
-| ------------------------------ | ------------------------------------- | --------------------------------------------------------------------------- |
-| App shell (HTML, JS, CSS)      | Cache-first (precache)                | The app loads instantly even offline; `next-pwa` precaches the build output |
-| Static assets (images, icons)  | Cache-first with network fallback     | Avatars and trip photos load from cache                                     |
-| API calls (`/v1/**`)           | Network-first                         | Always attempt fresh data; fall back to a cached response if network fails  |
-| Firestore real-time connection | Offline persistence via Firestore SDK | Firestore's `enableIndexedDbPersistence()` caches recent documents locally  |
+| Resource type                 | Strategy                          | Rationale                                                                  |
+| ----------------------------- | --------------------------------- | -------------------------------------------------------------------------- |
+| App shell (HTML, JS, CSS)     | Cache-first (precache)            | App loads instantly even offline; SW precaches key routes at install time  |
+| Static assets (images, icons) | Cache-first with network fallback | Avatars and assets load from cache                                         |
+| API calls (`/v1/**`)          | Network-first                     | Always attempt fresh data; fall back to a cached response if network fails |
+
+> Firestore offline persistence is deferred until post-MVP messaging is implemented.
 
 The app should indicate clearly when it is operating in offline mode (e.g., a top banner). Write operations (sending a message, updating an itinerary item) performed offline should be queued and retried when the connection is restored — this is handled by Firestore's offline persistence for message operations.
 
@@ -331,11 +353,12 @@ apps/web/
 │   │   │   └── page.tsx                   # Offline fallback page
 │   │   └── layout.tsx                     # Metadata with favicon links + SW registration
 │   └── components/
-│       └── ServiceWorkerRegistration.tsx  # Client component that registers SW
+│       └── ServiceWorkerRegistration.tsx  # Client component that registers sw.js
 ├── scripts/
 │   └── generate-pwa-icons.mjs             # Icon + favicon generator (runs at build time)
 ├── public/
-│   ├── sw.js                              # Unified Service Worker (manual implementation)
+│   ├── sw.template.js                     # Service Worker source with %%PLACEHOLDER%% tokens
+│   ├── sw.js                              # Generated at build time (token-substituted output)
 │   ├── favicon.ico                        # Multi-res favicon (16×16, 32×32, 48×48)
 │   ├── favicon-16x16.png
 │   ├── favicon-32x32.png
@@ -344,7 +367,7 @@ apps/web/
 │       ├── icon-192x192.png               # PWA icon (standard)
 │       ├── icon-512x512.png               # PWA icon (standard)
 │       └── icon-512x512-maskable.png      # PWA icon (Android adaptive)
-└── package.json                           # Dependencies: sharp, to-ico
+└── next.config.js                         # Next.js config (no PWA plugin — manual SW)
 ```
 
 **Dependencies:**
@@ -359,5 +382,5 @@ apps/web/
 ## Related Documents
 
 - [`infrastructure/cloud.md`](../infrastructure/cloud.md) — CI/CD pipeline; the SW is compiled into `public/` during the `pnpm --filter web build` step.
-- [`features/community.md`](../features/community.md) — FCM notifications for messages; FCM token management.
+- [`features/notifications.md`](../features/notifications.md) — FCM token management, notification types, in-app feed, transient messages.
 - [`infrastructure/auth.md`](../infrastructure/auth.md) — Firebase Authentication; the same Firebase project is used for Auth, Firestore, FCM, and PWA.

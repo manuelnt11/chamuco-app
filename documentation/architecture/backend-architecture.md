@@ -1,7 +1,7 @@
 # Chamuco App — Backend Architecture
 
-**Status:** Proposed
-**Last Updated:** 2026-03-25
+**Status:** Active
+**Last Updated:** 2026-06-02
 
 ---
 
@@ -17,25 +17,35 @@ Each feature domain is encapsulated in its own NestJS module. A module owns ever
 
 ### Module Boundaries
 
-| Module                | Domain Responsibility                                                                                                                                                                          |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AuthModule`          | Authentication, token issuance, session management                                                                                                                                             |
-| `UsersModule`         | User accounts, profiles, privacy settings                                                                                                                                                      |
-| `AssetsModule`        | `@Global()` — normalized asset records, `AssetResolverService` (resolves any `Asset` to `ResolvedAsset` with computed `url`). Consumed by `UsersModule`, future `GroupsModule`, `TripsModule`. |
-| `CloudStorageModule`  | `@Global()` — signed upload/download URL generation, object deletion, `makePublic`. All GCS operations go through `CloudStorageService`.                                                       |
-| `GroupsModule`        | User groups, group membership                                                                                                                                                                  |
-| `TripsModule`         | Trip creation, lifecycle, status management                                                                                                                                                    |
-| `ParticipantsModule`  | Trip participant management, invitation logic, confirmation rules                                                                                                                              |
-| `ItineraryModule`     | Ordered sequence of movements, stays, and activities within a trip                                                                                                                             |
-| `MovementsModule`     | Transport segments (flights, buses, cars, etc.)                                                                                                                                                |
-| `StaysModule`         | Accommodation bookings and stay details                                                                                                                                                        |
-| `ActivitiesModule`    | Planned activities and experiences                                                                                                                                                             |
-| `ReservationsModule`  | Booking status tracking for stays and movements                                                                                                                                                |
-| `ExpensesModule`      | Shared expense recording, splitting, and settlement                                                                                                                                            |
-| `CommunityModule`     | Chats, channels, broadcast messaging                                                                                                                                                           |
-| `NotificationsModule` | Push/email/in-app notifications                                                                                                                                                                |
-| `SchedulerModule`     | Scheduled job endpoints triggered by Cloud Scheduler                                                                                                                                           |
-| `LocalizationModule`  | i18n and currency utilities                                                                                                                                                                    |
+#### Implemented
+
+| Module                     | Domain Responsibility                                                                                                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthModule`               | `@Global()` — Firebase ID token verification via `FirebaseAuthGuard` (applied globally via `APP_GUARD`), `@Public()` decorator to bypass, `RolesGuard` for role-based access, `FirebaseAdminService`. |
+| `UsersModule`              | User accounts, profiles, nationalities, passports, visas, ETAs, emergency contacts, health data, preferences, public profiles.                                                                        |
+| `AssetsModule`             | `@Global()` — normalized asset records, `AssetResolverService` (resolves any `Asset` to `ResolvedAsset` with computed `url`). Consumed by `UsersModule`, `GroupsModule`.                              |
+| `CloudStorageModule`       | `@Global()` — signed upload/download URL generation, object deletion, `makePublic`. All GCS operations go through `CloudStorageService`.                                                              |
+| `UploadsModule`            | Pre-signed upload URL orchestration for client-side direct-to-GCS uploads.                                                                                                                            |
+| `GroupsModule`             | Group CRUD, visibility management (PUBLIC/PRIVATE), cover image/emoji, soft-delete.                                                                                                                   |
+| `GroupMembersModule`       | Group membership: invitations, join requests, role management (ADMIN/MEMBER), bulk invite by user autocomplete.                                                                                       |
+| `GroupAnnouncementsModule` | Group broadcast announcements: rich text create/edit/delete, read-only feed for members.                                                                                                              |
+| `NotificationsModule`      | In-app notification feed (create, list, mark-read), FCM token registration/deregistration, per-channel opt-out preferences, `notify()` dispatcher with pluggable channel strategies.                  |
+| `TransientMessagesModule`  | Real-time ephemeral UI signals sent over FCM data messages (not persisted). Used for live UI updates that do not belong in the persistent notification feed.                                          |
+| `FeedbackModule`           | User-submitted feedback flows.                                                                                                                                                                        |
+| `LocationsModule`          | Location autocomplete and country/city data endpoints.                                                                                                                                                |
+| `JobsModule`               | Scheduled job handlers triggered by Cloud Scheduler HTTP calls. Currently implements `PassportStatusJob`. See [Scheduled Jobs](#scheduled-jobs) below.                                                |
+| `HealthModule`             | `GET /health` liveness endpoint for Cloud Run health checks.                                                                                                                                          |
+
+#### Planned (post-MVP — tracked in GitHub Issues)
+
+| Module               | Domain Responsibility                                                   | Issue      |
+| -------------------- | ----------------------------------------------------------------------- | ---------- |
+| `TripsModule`        | Trip CRUD, lifecycle state machine, visibility, cover                   | #343, #347 |
+| `ParticipantsModule` | Trip participant invitations, join requests, role invitations, waitlist | Epic #7    |
+| `ItineraryModule`    | Ordered itinerary items (transport, stays, activities)                  | Post-MVP   |
+| `ExpensesModule`     | Shared expense ledger, splits, settlements                              | Post-MVP   |
+| `ReservationsModule` | Booking records for stays and transport                                 | Post-MVP   |
+| `EmailModule`        | Transactional email via GoDaddy SMTP, template system                   | Epic #125  |
 
 > Module boundaries are intentionally strict. If a module needs data from another module's domain, it accesses it through an exported service — never by importing the other module's repository directly.
 
@@ -66,16 +76,16 @@ src/modules/trips/
 
 These are handled in the `common/` folder and applied globally or selectively via NestJS interceptors, guards, and pipes.
 
-| Concern                | Mechanism                                             |
-| ---------------------- | ----------------------------------------------------- |
-| Authentication         | `JwtAuthGuard` using Google SSO / Passkeys            |
-| Authorization          | Role-based `RolesGuard` + permission decorators       |
-| Request validation     | `ValidationPipe` with class-validator                 |
-| Response serialization | `ClassSerializerInterceptor`                          |
-| Error handling         | Global `HttpExceptionFilter`                          |
-| Logging                | Custom `LoggingInterceptor` (structured logs for GCP) |
-| Pagination             | Shared pagination DTO and utility                     |
-| API documentation      | `@nestjs/swagger` — OpenAPI spec + Swagger UI         |
+| Concern                | Mechanism                                                                                                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentication         | `FirebaseAuthGuard` — verifies Firebase ID tokens via `admin.auth().verifyIdToken()`. Applied globally via `APP_GUARD`. Use `@Public()` to bypass on specific routes. |
+| Authorization          | `RolesGuard` + `@Roles()` decorator. Use `@FirebaseOnly()` for endpoints that only require a valid Firebase token (no DB role check).                                 |
+| Request validation     | `ValidationPipe` with class-validator                                                                                                                                 |
+| Response serialization | `ClassSerializerInterceptor`                                                                                                                                          |
+| Error handling         | Global `HttpExceptionFilter`                                                                                                                                          |
+| Support admin audit    | `SupportAdminAuditInterceptor` — logs every write performed by a `SUPPORT_ADMIN` user to `support_admin_audit_log`.                                                   |
+| Pagination             | Shared pagination DTO and utility                                                                                                                                     |
+| API documentation      | `@nestjs/swagger` — OpenAPI spec + Swagger UI                                                                                                                         |
 
 ---
 
@@ -149,11 +159,11 @@ Because the backend runs on **Cloud Run** (which scales to zero), in-process sch
 ```
 Cloud Scheduler
   └── HTTP POST → /v1/jobs/<job-name>   (NestJS, Cloud Run)
-                       └── SchedulerModule handler
+                       └── JobsModule handler
                              └── service logic + FCM / DB writes
 ```
 
-Each scheduled job is a dedicated HTTP endpoint in the `SchedulerModule`. Cloud Scheduler calls the endpoint on its configured interval, which wakes up the Cloud Run instance if needed.
+Each scheduled job is a dedicated HTTP endpoint in `JobsModule`. Cloud Scheduler calls the endpoint on its configured interval, which wakes up the Cloud Run instance if needed.
 
 ### Security
 
@@ -165,27 +175,23 @@ X-Scheduler-Secret: <secret>
 
 The secret is stored as a Cloud Run environment variable and injected into Cloud Scheduler requests. Any request missing or presenting the wrong header is rejected with `403`.
 
-### Jobs in MVP
+### Jobs
 
-| Job                        | Endpoint                           | Schedule           | Description                                                                                                                                                                                                                                            |
-| -------------------------- | ---------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Passport expiry check      | `POST /v1/jobs/passport-expiry`    | Daily at 02:00 UTC | Scans `user_nationalities` for records with non-null `passport_expiry_date`. Transitions `ACTIVE` → `EXPIRING_SOON` (≤ 30 days) and `EXPIRING_SOON` → `EXPIRED` (≤ 0 days). Sends FCM notification for each affected user.                             |
-| Trip lifecycle transitions | `POST /v1/jobs/trip-transitions`   | Every 30 minutes   | Transitions `OPEN`/`CONFIRMED` → `IN_PROGRESS` for trips whose `start_date` boundary has passed, and `IN_PROGRESS` → `COMPLETED` for trips whose `end_date` boundary has passed. Triggers the post-trip completion flow for each newly completed trip. |
-| Key date reminders         | `POST /v1/jobs/key-date-reminders` | Daily at 09:00 UTC | Scans `trip_key_dates` where `reminder_enabled = true` and `date = tomorrow`. Sends FCM push notification to all confirmed participants of each matching trip.                                                                                         |
+| Job                        | Endpoint                           | Schedule           | Status               | Description                                                                                                                                                                                              |
+| -------------------------- | ---------------------------------- | ------------------ | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Passport expiry check      | `POST /v1/jobs/passport-expiry`    | Daily at 02:00 UTC | ✅ Implemented       | Scans `user_nationalities` for non-null `passport_expiry_date`. Transitions `ACTIVE` → `EXPIRING_SOON` (≤ 30 days) and `EXPIRING_SOON` → `EXPIRED` (≤ 0 days). Sends FCM notification per affected user. |
+| Trip lifecycle transitions | `POST /v1/jobs/trip-transitions`   | Every 30 minutes   | 🔲 Planned (Epic #9) | Transitions `OPEN`/`CONFIRMED` → `IN_PROGRESS` and `IN_PROGRESS` → `COMPLETED` based on trip date boundaries. Triggers post-trip completion flow.                                                        |
+| Key date reminders         | `POST /v1/jobs/key-date-reminders` | Daily at 09:00 UTC | 🔲 Planned (Epic #9) | Scans `trip_key_dates` where `reminder_enabled = true` and `date = tomorrow`. Sends FCM push to all confirmed participants.                                                                              |
 
-### Job Handler Structure
-
-Each job handler lives in `SchedulerModule` and follows the same pattern:
+### Module Structure
 
 ```
-src/modules/scheduler/
-├── scheduler.module.ts
-├── scheduler.controller.ts       # Exposes POST /v1/jobs/* endpoints
-├── jobs/
-│   ├── passport-expiry.job.ts
-│   ├── trip-transitions.job.ts
-│   └── key-date-reminders.job.ts
-└── scheduler.guard.ts            # Validates X-Scheduler-Secret header
+src/modules/jobs/
+├── jobs.module.ts
+├── passport-status.job.ts        # ✅ Implemented
+├── passport-status.job.spec.ts
+# trip-transitions.job.ts         🔲 Planned
+# key-date-reminders.job.ts       🔲 Planned
 ```
 
 Job handlers are idempotent — running a job twice for the same data produces the same result. Each handler logs its outcome (rows affected, notifications sent) as structured logs visible in Cloud Logging.

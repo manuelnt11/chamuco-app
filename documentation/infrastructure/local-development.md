@@ -1,7 +1,7 @@
 # Local Development Environment
 
-**Status:** Implemented
-**Last Updated:** 2026-03-28
+**Status:** Active
+**Last Updated:** 2026-06-02
 
 This guide covers the local development setup for Chamuco App, including the Docker-based PostgreSQL database and development workflow.
 
@@ -553,17 +553,48 @@ SWAGGER_ENABLED=true
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/chamuco_dev
 DATABASE_POOL_MIN=2
 DATABASE_POOL_MAX=10
+
+# Firebase Admin SDK — required for auth and FCM
+# Paste the full contents of the service account JSON as a single-line string
+FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"...","private_key":"...","client_email":"...",...}'
+
+# Google Cloud Storage — required for file uploads
+GOOGLE_CLOUD_STORAGE_BUCKET=chamuco-uploads-dev
+
+# GeoNames API — required for location autocomplete
+# Register a free account at https://www.geonames.org/login
+GEONAMES_USERNAME=your_geonames_username
 ```
 
-### Optional Variables
+### Optional Variables (`apps/api/.env`)
 
 ```bash
 # Logging
 LOG_LEVEL=debug  # debug, info, warn, error
 
-# CORS (for local frontend)
+# CORS (for local frontend — must be https in production)
 CORS_ORIGIN=http://localhost:3001
 ```
+
+### Required Variables (`apps/web/.env.local`)
+
+```bash
+# Firebase client SDK
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+
+# FCM Web Push VAPID key (from Firebase Console → Project Settings → Cloud Messaging)
+NEXT_PUBLIC_FIREBASE_VAPID_KEY=...
+
+# NestJS API base URL
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+> All `NEXT_PUBLIC_*` variables are validated at startup by `apps/web/src/config/env.ts`. Missing variables will cause a runtime crash with a descriptive error. See `apps/web/CLAUDE.md` for the three-file sync rule when adding new env vars.
 
 ---
 

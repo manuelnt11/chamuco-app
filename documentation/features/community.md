@@ -1,47 +1,19 @@
 # Feature: Community & Social
 
-**Status:** Design Phase
-**Last Updated:** 2026-03-23
+**Status:** Active (partial — Groups implemented; Messaging is post-MVP)
+**Last Updated:** 2026-06-02
 
 ---
 
 ## Overview
 
-Chamuco App is not just a trip planner — it also supports a lightweight social layer that allows users to build profiles, form groups, chat with fellow travelers, and grow a community around shared travel experiences.
+Chamuco App supports a social layer that allows users to form groups, build a shared travel community, and communicate. This document covers the **Groups** feature (implemented) and the **Messaging** system (post-MVP).
+
+For user account and profile documentation, see [`features/users.md`](./users.md).
 
 ---
 
-## Users & Profiles
-
-### User Account
-
-A user account is created via **Google SSO** (primary authentication method). Each account has:
-
-- Display name
-- Email (from Google account)
-- Avatar (from Google or custom upload)
-- Linked authentication provider(s) (Google, Passkey)
-
-### User Profile
-
-The profile is the social-facing layer of the user. It is **separate from the account** and has adjustable privacy settings.
-
-Profile fields: bio / description, location (city/country), travel interests / tags, travel stats (computed), social links.
-
-Profile privacy levels (enum: `ProfileVisibility`):
-
-| Value              | Visibility                                        |
-| ------------------ | ------------------------------------------------- |
-| `PUBLIC`           | Visible to anyone, including non-registered users |
-| `MEMBERS_ONLY`     | Visible only to registered Chamuco users          |
-| `CONNECTIONS_ONLY` | Visible only to users they're connected with      |
-| `PRIVATE`          | Not visible to anyone except the user themselves  |
-
-Individual profile fields can have granular visibility overrides (e.g., public bio but private location).
-
----
-
-## Groups
+## Groups ✅ Implemented
 
 A **group** is a named collection of users. Groups simplify inviting the same set of people to multiple trips and provide a shared social space for recurring travel communities.
 
@@ -70,29 +42,28 @@ In both cases, once a request or invitation reaches a terminal state, a new one 
 
 ### Group Record (`groups`)
 
-| Field             | Type                   | Description                                                                                                        |
-| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `id`              | UUID                   |                                                                                                                    |
-| `name`            | String                 |                                                                                                                    |
-| `description`     | Text                   | Optional                                                                                                           |
-| `cover_type`      | Enum `CoverType`       | `IMAGE` or `EMOJI`. Determines which cover field is active.                                                        |
-| `cover_image_url` | String (nullable)      | URL in Cloud Storage. Required when `cover_type = IMAGE`.                                                          |
-| `cover_emoji`     | String (nullable)      | A single Unicode emoji character (e.g., `🏔️`, `🌴`, `🎒`). Required when `cover_type = EMOJI`.                     |
-| `visibility`      | Enum `GroupVisibility` | `PUBLIC` or `PRIVATE`. **Required at creation** — no default is applied. The creator must make an explicit choice. |
-| `created_by`      | UUID                   | The user who created the group. Receives `OWNER` role.                                                             |
-| `created_at`      | Timestamp              |                                                                                                                    |
-| `updated_at`      | Timestamp              |                                                                                                                    |
+| Field         | Type                   | Description                                                                                                                                                                                         |
+| ------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`          | UUID                   |                                                                                                                                                                                                     |
+| `name`        | varchar(100)           |                                                                                                                                                                                                     |
+| `description` | Text                   | Optional                                                                                                                                                                                            |
+| `cover`       | UUID (nullable)        | FK → `assets.id`. The group's cover asset. The asset `source` discriminates the type: `gcs` = uploaded image, `emoji` = emoji cover rendered via Twemoji CDN. Nullable — a group can have no cover. |
+| `visibility`  | Enum `GroupVisibility` | `PUBLIC` or `PRIVATE`. **Required at creation** — no default is applied. The creator must make an explicit choice.                                                                                  |
+| `created_by`  | UUID                   | FK → `users.id`. The user who created the group. Receives `OWNER` role.                                                                                                                             |
+| `created_at`  | Timestamp              |                                                                                                                                                                                                     |
+| `updated_at`  | Timestamp              |                                                                                                                                                                                                     |
+| `deleted_at`  | Timestamp (nullable)   | Soft-delete. All queries must filter `IS NULL deleted_at`.                                                                                                                                          |
 
-### Cover Image / Emoji (`CoverType`)
+### Cover Asset
 
-Groups and trips share the same `CoverType` enum. Exactly one cover must always be set — `cover_image_url` and `cover_emoji` are mutually exclusive.
+The group cover is stored as a normalized `assets` record. The `source` field on the asset determines how it renders:
 
-| Value   | Behavior                                                                                                                                                                                                                |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `IMAGE` | A user-uploaded image stored in Cloud Storage. Displayed as a full or cropped cover. `cover_image_url` is required; `cover_emoji` is null.                                                                              |
-| `EMOJI` | A single emoji character rendered at large scale as the group's visual identity. Useful when no image is available or the user prefers a symbolic representation. `cover_emoji` is required; `cover_image_url` is null. |
+| Asset `source` | Behavior                                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `gcs`          | A user-uploaded image stored in Cloud Storage. `AssetResolverService` generates a signed URL.                             |
+| `emoji`        | A single emoji character rendered at large scale via the Twemoji CDN. `AssetResolverService` returns the Twemoji PNG URL. |
 
-The default at creation time is `EMOJI` with a contextually suggested emoji (e.g., based on the group name or left to the user to pick). The admin can change it at any time.
+`AssetResolverService` always dispatches on `source`, not on a separate `cover_type` column. When the cover is replaced, the old asset record is deleted and the old GCS object is removed per the asset replacement pattern (see `CLAUDE.md` Rule 7).
 
 ### Group Member Roles (enum: `GroupRole`)
 
@@ -104,36 +75,82 @@ The default at creation time is `EMOJI` with a contextually suggested emoji (e.g
 
 ### Group Member States (enum: `GroupMemberStatus`)
 
-Mirrors the trip participant state machine:
+Design decision (issue #243): a single `REJECTED` status covers both admin-rejected requests and user-declined invitations, eliminating the `DECLINED` state. No `join_flow` field — the direction of the initiation is inferred from `initiated_by`.
 
-| Value             | Description                                                               |
-| ----------------- | ------------------------------------------------------------------------- |
-| `PENDING_REQUEST` | User submitted a join request on a public group. Awaiting admin decision. |
-| `INVITED`         | Admin sent an invitation on a private group. Awaiting user decision.      |
-| `ACTIVE`          | Membership is active.                                                     |
-| `REJECTED`        | Admin rejected the join request. User may submit a new one.               |
-| `DECLINED`        | User declined the invitation. Admin may re-invite.                        |
-| `REMOVED`         | Admin removed the member.                                                 |
-| `LEFT`            | Member voluntarily left the group.                                        |
+| Value      | Description                                                                               |
+| ---------- | ----------------------------------------------------------------------------------------- |
+| `REQUEST`  | User submitted a join request on a public group. Awaiting admin decision.                 |
+| `INVITED`  | Admin sent an invitation. Awaiting user acceptance.                                       |
+| `ACTIVE`   | Membership is active.                                                                     |
+| `REJECTED` | Terminal. Covers both: admin rejected the join request, and user declined the invitation. |
+| `REMOVED`  | Admin removed the member.                                                                 |
+| `LEFT`     | Member voluntarily left the group.                                                        |
 
 ### Group Member Record (`group_members`)
 
+**Primary key:** composite `(group_id, user_id)` — enforces at DB level that a user can only have one membership record per group. No surrogate `id` column.
+
 | Field          | Type                     | Description                                              |
 | -------------- | ------------------------ | -------------------------------------------------------- |
-| `id`           | UUID                     |                                                          |
-| `group_id`     | UUID                     |                                                          |
-| `user_id`      | UUID                     |                                                          |
+| `group_id`     | UUID                     | PK + FK → `groups.id`                                    |
+| `user_id`      | UUID                     | PK + FK → `users.id`                                     |
 | `status`       | Enum `GroupMemberStatus` |                                                          |
-| `role`         | Enum `GroupRole`         |                                                          |
-| `join_flow`    | Enum `JoinFlow`          | `REQUEST` or `INVITATION`                                |
+| `role`         | Enum `GroupRole`         | Default: `MEMBER`                                        |
 | `initiated_at` | Timestamp                | When the request or invitation was created               |
-| `responded_at` | Timestamp                | When the decision was made                               |
+| `responded_at` | Timestamp (nullable)     | When the decision was made                               |
 | `initiated_by` | UUID                     | Who initiated (user for requests, admin for invitations) |
-| `decided_by`   | UUID                     | Who made the accept/reject/decline decision              |
+| `decided_by`   | UUID (nullable)          | Who accepted/rejected                                    |
 
 ---
 
-## Messaging System
+## Group Announcements ✅ Implemented
+
+Group admins can send one-way broadcast announcements to all active members of a group. There is no reply mechanism — the announcement is the message.
+
+### Schema (`group_announcements`)
+
+| Field        | Type      | Description                         |
+| ------------ | --------- | ----------------------------------- |
+| `id`         | UUID      | PK                                  |
+| `group_id`   | UUID      | FK → `groups.id` ON DELETE RESTRICT |
+| `created_by` | UUID      | FK → `users.id` ON DELETE RESTRICT  |
+| `content`    | Text      | Rich text (HTML subset). Required.  |
+| `created_at` | Timestamp |                                     |
+| `updated_at` | Timestamp |                                     |
+
+Indexed on `(group_id, created_at)` for the read-only feed query.
+
+### Access Rules
+
+- Only `ADMIN` and `OWNER` roles can create, edit, or delete announcements.
+- All active members (`ACTIVE` status) can read the announcement feed.
+- Announcements are delivered as FCM push notifications to all active members at creation time. See [`features/notifications.md`](./notifications.md) — `GROUP_ANNOUNCEMENT` type.
+
+---
+
+## Group Discovery ✅ Implemented
+
+Users can search and browse public groups via the **Explore** section (`/explore/groups`).
+
+- Full-text search by group name.
+- Results show group name, description preview, cover asset, member count, and the requesting user's membership status (if any).
+- Only `PUBLIC` groups appear in search results. `PRIVATE` groups are not discoverable.
+- The search result DTO exposes a `membershipStatus` field so the frontend can render the correct CTA (Join / Pending / Active).
+
+---
+
+## Group Privacy Enforcement ✅ Implemented
+
+Visibility changes follow strict rules to protect existing members:
+
+- A group can be changed from `PRIVATE` to `PUBLIC` freely.
+- A group **cannot** be changed from `PUBLIC` to `PRIVATE` — this restriction prevents removing discoverability from members who joined a public group under different terms. (If this rule changes, it requires an explicit design decision and migration.)
+
+---
+
+## Messaging System — Post-MVP
+
+> **Firestore is not active in MVP.** FCM (push notifications) is the only Firebase service used in MVP. Firestore and real-time messaging are deferred until post-MVP. The schema, data model, and architecture described below are **spec only**.
 
 The messaging system is modeled after Slack's structure: **direct messages** and **channels**, each with their own membership, visibility, and permission model. Every message belongs to either a DM or a channel — there is no other container type.
 
@@ -143,7 +160,7 @@ All members of a channel or DM thread can see the **complete message history** r
 
 ---
 
-## Real-time Architecture
+## Real-time Architecture — Post-MVP Spec
 
 ### Technology: Firestore
 
@@ -373,13 +390,11 @@ The app uses a layered permission model. Each layer is independent — a user's 
 
 | Layer    | Enum           | Values                                     |
 | -------- | -------------- | ------------------------------------------ |
-| Platform | `PlatformRole` | `USER`, `MODERATOR`, `ADMIN`               |
+| Platform | `PlatformRole` | `USER`, `SUPPORT_ADMIN`                    |
 | Group    | `GroupRole`    | `OWNER`, `ADMIN`, `MEMBER`                 |
 | Trip     | `TripRole`     | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT` |
 
-Permissions are enforced at the API layer via NestJS guards. A detailed permissions matrix per action and role will be defined in a dedicated document under `/architecture`.
-
----
+Permissions are enforced at the API layer via NestJS guards (`FirebaseAuthGuard`, `RolesGuard`).
 
 ---
 
