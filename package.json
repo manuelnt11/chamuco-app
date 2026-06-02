@@ -39,7 +39,7 @@
     "eslint-plugin-i18next": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.5",
+    "lint-staged": "^17.0.7",
     "prettier": "catalog:",
     "turbo": "^2.9.14",
     "typescript": "catalog:"
