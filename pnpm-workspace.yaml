@@ -22,8 +22,8 @@ catalog:
   eslint-plugin-prettier: ^5.5.5
   prettier: ^3.8.3
   typescript: ^6.0.3
-  '@vitest/coverage-v8': ^4.1.7
-  vitest: ^4.1.7
+  '@vitest/coverage-v8': ^4.1.8
+  vitest: ^4.1.8
 overrides:
   cross-spawn: '>=6.0.6'
   glob: '>=10.5.0'
