@@ -1,7 +1,7 @@
 # Chamuco App — Monorepo Structure
 
-**Status:** Defined
-**Last Updated:** 2026-04-15
+**Status:** Active
+**Last Updated:** 2026-06-02
 
 ---
 
@@ -16,7 +16,7 @@ The entire Chamuco App project lives in a single Git repository. The monorepo ap
 
 ---
 
-## Proposed Directory Layout
+## Directory Layout
 
 ```
 chamuco-app/
@@ -24,12 +24,12 @@ chamuco-app/
 ├── apps/
 │   ├── api/                        # NestJS backend application
 │   │   ├── src/
-│   │   │   ├── modules/            # Feature modules — one folder per domain (users, trips, etc.)
-│   │   │   ├── common/             # Guards, interceptors, decorators, pipes, filters
+│   │   │   ├── modules/            # Feature modules — one folder per domain
+│   │   │   ├── common/             # Guards, interceptors, decorators, pipes, transforms, utils
 │   │   │   ├── config/             # Environment config and validation (class-validator)
-│   │   │   ├── database/           # Drizzle connection provider and schema barrel
+│   │   │   ├── database/           # Drizzle connection provider, schema barrel, migrations/
+│   │   │   ├── i18n/               # nestjs-i18n locale files (en/, es/)
 │   │   │   └── main.ts
-│   │   ├── test/                   # Integration test helpers and fixtures
 │   │   ├── jest.config.ts
 │   │   ├── tsconfig.json           # Extends tsconfig.base.json; defines @/* alias
 │   │   └── package.json
@@ -38,14 +38,24 @@ chamuco-app/
 │       ├── src/
 │       │   ├── app/                # Next.js App Router — layouts, pages, loading, error
 │       │   ├── components/         # Reusable UI components
+│       │   ├── config/             # Frontend config constants
 │       │   ├── hooks/              # Custom React hooks
-│       │   ├── lib/                # External library wrappers and low-level utilities
+│       │   ├── lib/                # External library wrappers (firebase/, hooks/, i18n/, navigation/)
 │       │   ├── services/           # API client functions (fetchers, mutations)
 │       │   ├── store/              # Zustand stores and React contexts
 │       │   ├── types/              # App-local TypeScript types (not shared across apps)
-│       │   └── locales/            # i18n locale files (es.json, en.json)
-│       │       ├── es.json
-│       │       └── en.json
+│       │   └── locales/            # i18n locale files — split by namespace
+│       │       ├── es/
+│       │       │   ├── auth.json
+│       │       │   ├── common.json
+│       │       │   ├── errors.json
+│       │       │   ├── explore.json
+│       │       │   ├── feedback.json
+│       │       │   ├── groups.json
+│       │       │   ├── legal.json
+│       │       │   ├── profile.json
+│       │       │   └── trips.json
+│       │       └── en/             # mirrors es/ structure
 │       ├── public/
 │       │   ├── custom-sw.js        # Unified Service Worker (FCM + next-pwa caching)
 │       │   └── icons/
@@ -58,24 +68,33 @@ chamuco-app/
 ├── packages/
 │   ├── shared-types/               # Shared TypeScript interfaces, enums, and DTOs
 │   │   ├── src/
-│   │   │   ├── trip.types.ts
-│   │   │   ├── user.types.ts
+│   │   │   ├── data/               # Static data (asset.ts, loyalty-programs.data.ts)
+│   │   │   ├── enums/              # All shared enums (one file per domain)
+│   │   │   ├── types/              # Shared type definitions (membership-status.ts, etc.)
 │   │   │   └── index.ts            # Barrel export
 │   │   ├── tsconfig.json
 │   │   └── package.json            # name: "@chamuco/shared-types"
 │   │
-│   └── shared-utils/               # Shared pure utility functions (dates, currency, etc.)
+│   └── shared-utils/               # Shared pure utility functions
 │       ├── src/
+│       │   ├── emoji-utils.ts      # Emoji helpers
 │       │   └── index.ts
 │       ├── tsconfig.json
 │       └── package.json            # name: "@chamuco/shared-utils"
 │
-├── documentation/                  # All design and planning documentation (this folder)
+├── documentation/                  # All design and planning documentation
 │   ├── overview/
 │   ├── architecture/
 │   ├── features/
 │   ├── design/
-│   └── infrastructure/
+│   ├── infrastructure/
+│   └── analysis/
+│
+├── infrastructure/
+│   └── gcp/                        # GCP infrastructure scripts and configs
+│
+├── scripts/
+│   └── db/                         # Database management scripts (backup, restore, seed)
 │
 ├── .github/                        # GitHub Actions workflows (CI/CD)
 │   └── workflows/
@@ -88,9 +107,7 @@ chamuco-app/
 ├── package.json                    # Root package.json (pnpm workspaces)
 ├── pnpm-workspace.yaml             # pnpm workspace declaration + shared devDependency catalog
 ├── tsconfig.base.json              # Base TypeScript config extended by all packages
-├── .eslintrc.js                    # Root ESLint config
 ├── .prettierrc                     # Prettier config (indentation, quotes, trailing commas)
-├── .lintstagedrc.js                # lint-staged config: which tools run on which file patterns
 └── README.md
 ```
 
@@ -113,15 +130,17 @@ Shared `devDependencies` that appear in more than one package must be declared i
 
 ```yaml
 catalog:
-  '@types/node': ^25.6.0
-  '@typescript-eslint/eslint-plugin': ^8.57.2
-  '@typescript-eslint/parser': ^8.57.2
-  eslint: ^10.2.0
-  eslint-config-prettier: ^10.0.1
+  '@types/node': ^25.9.1
+  '@typescript-eslint/eslint-plugin': ^8.60.0
+  '@typescript-eslint/parser': ^8.60.0
+  '@vitest/coverage-v8': ^4.1.7
+  eslint: ^10.4.0
+  eslint-config-prettier: ^10.1.8
   eslint-plugin-i18next: ^6.1.4
   eslint-plugin-prettier: ^5.5.5
-  prettier: ^3.8.1
-  typescript: ^6.0.2
+  prettier: ^3.8.3
+  typescript: ^6.0.3
+  vitest: ^4.1.7
 ```
 
 Each `package.json` that uses one of these packages references it as:
@@ -179,13 +198,13 @@ Coverage thresholds are defined per package:
 
 ## Shared Types Package
 
-The `packages/shared-types` package is critical for keeping API contracts consistent between the backend and frontend. It should contain:
+`packages/shared-types` keeps API contracts consistent between backend and frontend. Organized into three subdirectories:
 
-- Domain entity interfaces (e.g., `ITrip`, `IUser`, `IParticipant`).
-- Enum definitions (e.g., `TripStatus`, `ReservationStatus`, `ParticipantRole`).
-- DTO interfaces used in API request/response contracts.
+- `src/enums/` — All shared enums, one file per domain (e.g., `notification-type.enum.ts`, `group-role.enum.ts`, `passport-status.enum.ts`). This is the primary content of the package.
+- `src/types/` — Shared type definitions that don't fit neatly as enums (e.g., `membership-status.ts`, `notification-preferences.type.ts`).
+- `src/data/` — Static reference data (e.g., `loyalty-programs.data.ts`, `asset.ts`).
 
-> All enums and type names must be in English regardless of the application's display language.
+> All enum values and type names must be in English regardless of the application's display language.
 
 ---
 
@@ -277,16 +296,17 @@ The alias makes directory naming load-bearing — a consistent layout ensures ev
 
 **`apps/web/src/`**
 
-| Directory     | Contents                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------ |
-| `app/`        | Next.js App Router — layouts, pages, `loading.tsx`, `error.tsx`, route groups.                   |
-| `components/` | Reusable, presentational UI components. No data fetching logic.                                  |
-| `hooks/`      | Custom React hooks. May call services or access stores.                                          |
-| `lib/`        | Thin wrappers around external libraries (Firebase client, date-fns, etc.) and low-level helpers. |
-| `services/`   | API client functions — typed wrappers around `fetch`/HTTP calls to the NestJS backend.           |
-| `store/`      | Zustand stores and React contexts (auth state, preference state, etc.).                          |
-| `types/`      | App-local TypeScript types that are not shared with other apps or packages.                      |
-| `locales/`    | i18n locale files: `es.json`, `en.json`.                                                         |
+| Directory     | Contents                                                                                                                                                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app/`        | Next.js App Router — layouts, pages, `loading.tsx`, `error.tsx`, route groups.                                                                                                                                                       |
+| `components/` | Reusable, presentational UI components. No data fetching logic.                                                                                                                                                                      |
+| `config/`     | Frontend configuration constants (API base URL, feature flags, etc.).                                                                                                                                                                |
+| `hooks/`      | Custom React hooks at the app level. May call services or access stores.                                                                                                                                                             |
+| `lib/`        | Thin wrappers around external libraries. Subdirs: `firebase/` (client SDK), `hooks/` (lower-level reusable hooks), `i18n/` (i18next setup), `navigation/` (routing helpers).                                                         |
+| `services/`   | API client functions — typed wrappers around `fetch`/HTTP calls to the NestJS backend.                                                                                                                                               |
+| `store/`      | Zustand stores and React contexts (auth state, preference state, etc.).                                                                                                                                                              |
+| `types/`      | App-local TypeScript types that are not shared with other apps or packages.                                                                                                                                                          |
+| `locales/`    | i18n locale files split by namespace. Each language has its own subdirectory (`es/`, `en/`) with one JSON file per namespace (`auth.json`, `groups.json`, `profile.json`, etc.). See `apps/web/CLAUDE.md` for namespace conventions. |
 
 ### ESLint enforcement
 
@@ -308,5 +328,5 @@ This catches any relative import that navigates upward (`../`) at lint time, bef
 ## Versioning Strategy
 
 - The repository uses **Git** for version control.
-- Branching strategy: to be defined (recommended: **trunk-based development** with short-lived feature branches or **Gitflow** for more structured releases).
-- Commit messages should follow **Conventional Commits** format (e.g., `feat:`, `fix:`, `docs:`, `chore:`).
+- Branching strategy: **feature branches + PR workflow**. Work happens on short-lived feature branches; all changes merge into `main` via pull requests with at least one review.
+- Commit messages follow **Conventional Commits** format (e.g., `feat:`, `fix:`, `docs:`, `chore:`), scoped to the affected package (e.g., `feat(groups):`, `fix(api):`, `chore(deps):`).

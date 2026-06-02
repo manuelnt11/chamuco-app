@@ -14,7 +14,7 @@ This file extends the root `CLAUDE.md` with rules specific to the `apps/web` Nex
 
 - Location: `apps/web/src/lib/i18n/config.ts`
 - Default namespace: `common`
-- Available namespaces: `common`, `auth`, `trips`, `groups`, `profile`, `errors`
+- Available namespaces: `common`, `auth`, `trips`, `groups`, `profile`, `explore`, `feedback`, `errors`, `legal`
 - Translation files: `apps/web/src/locales/{en|es}/{namespace}.json` — one file per namespace per language
 
 **Namespace Rules:**
@@ -100,22 +100,32 @@ This file extends the root `CLAUDE.md` with rules specific to the `apps/web` Nex
 ```
 apps/web/src/
 ├── app/
-│   ├── trips/page.tsx        → useTranslation('trips')
-│   ├── groups/page.tsx       → useTranslation('groups')
-│   ├── profile/page.tsx      → useTranslation('profile')
-│   └── page.tsx              → useTranslation() = 'common'
+│   ├── trips/page.tsx            → useTranslation('trips')
+│   ├── groups/page.tsx           → useTranslation('groups')
+│   ├── explore/groups/page.tsx   → useTranslation('explore')
+│   ├── profile/page.tsx          → useTranslation('profile')
+│   ├── sign-in/page.tsx          → useTranslation('auth')
+│   ├── privacy-policy/page.tsx   → useTranslation('legal')
+│   ├── terms-of-service/page.tsx → useTranslation('legal')
+│   └── page.tsx                  → useTranslation() = 'common'
 ├── components/
-│   ├── navigation/           → useTranslation() = 'common'
-│   ├── header/               → useTranslation() = 'common'
-│   └── layout/               → useTranslation() = 'common'
+│   ├── navigation/               → useTranslation() = 'common'
+│   ├── header/                   → useTranslation() = 'common'
+│   ├── layout/                   → useTranslation() = 'common'
+│   └── feedback/                 → useTranslation('feedback')
 └── locales/
     ├── en/
-    │   ├── common.json       → common namespace keys
-    │   ├── auth.json         → auth namespace keys
-    │   ├── groups.json       → groups namespace keys
-    │   └── ...               → one file per namespace
+    │   ├── auth.json             → auth namespace
+    │   ├── common.json           → common namespace (default)
+    │   ├── errors.json           → errors namespace
+    │   ├── explore.json          → explore namespace
+    │   ├── feedback.json         → feedback namespace
+    │   ├── groups.json           → groups namespace
+    │   ├── legal.json            → legal namespace
+    │   ├── profile.json          → profile namespace
+    │   └── trips.json            → trips namespace
     └── es/
-        └── ...               → mirrors en/ structure
+        └── ...                   → mirrors en/ structure exactly
 ```
 
 **Key takeaway:** Match the `useTranslation()` namespace to the feature you're working in, and use keys relative to that namespace. The validation script enforces this convention.

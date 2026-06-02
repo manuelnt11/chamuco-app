@@ -1,7 +1,7 @@
 # Infrastructure: Authentication & Authorization
 
-**Status:** Defined
-**Last Updated:** 2026-04-06
+**Status:** Active
+**Last Updated:** 2026-06-02
 
 ---
 
@@ -78,7 +78,7 @@ A custom NestJS guard that replaces the generic `JwtAuthGuard`. On each request:
 1. Extracts the Bearer token from the `Authorization` header.
 2. Calls `admin.auth().verifyIdToken(token)`.
 3. If valid, attaches the decoded token (including `uid` and `email`) to the request object as `req.firebaseUser`.
-4. A subsequent step resolves the internal `users` record from `auth_provider_id = uid` and attaches it as `req.user`.
+4. A subsequent step resolves the internal `users` record from `firebase_uid = uid` and attaches it as `req.user`.
 5. If the token is invalid or expired, returns `401 Unauthorized`.
 
 ### User provisioning
@@ -207,7 +207,7 @@ Replace `<password>` with the `postgres` user password retrieved from GCP Secret
 
 Run this script after:
 
-1. The Firebase Admin SDK (`AuthModule`) is deployed and the app is running — see issue #69.
+1. The `AuthModule` is deployed and the app is running (Firebase Admin SDK is configured).
 2. The admin has completed their first Google or Facebook sign-in through the live app, confirming their UID exists in Firebase Authentication.
 
 ---

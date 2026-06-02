@@ -1,7 +1,7 @@
 # Feature: Trips
 
-**Status:** Design Phase — MVP Scope
-**Last Updated:** 2026-03-25
+**Status:** Post-MVP spec — implementation pending (Issues #343–#354)
+**Last Updated:** 2026-06-02
 
 ---
 
@@ -20,9 +20,7 @@ This document reflects the **MVP scope** of the trips module. The full itinerary
 | `id`                   | UUID                  |                                                                                                                                                                                         |
 | `name`                 | String                | Trip name (e.g., "Cartagena Long Weekend").                                                                                                                                             |
 | `description`          | Text (nullable)       | Optional public description shown on the trip page.                                                                                                                                     |
-| `cover_type`           | Enum `CoverType`      | `IMAGE` or `EMOJI`. Determines the visual identity of the trip.                                                                                                                         |
-| `cover_image_url`      | String (nullable)     | URL in Cloud Storage. Required when `cover_type = IMAGE`.                                                                                                                               |
-| `cover_emoji`          | String (nullable)     | A single Unicode emoji character. Required when `cover_type = EMOJI`.                                                                                                                   |
+| `cover`                | UUID (nullable)       | FK → `assets.id`. The trip's cover asset. Asset `source` discriminates type: `gcs` = uploaded image, `emoji` = emoji rendered via Twemoji CDN. Same pattern as `groups.cover`.          |
 | `status`               | Enum `TripStatus`     | Current lifecycle state.                                                                                                                                                                |
 | `visibility`           | Enum `TripVisibility` | Discoverability setting.                                                                                                                                                                |
 | `start_date`           | Date                  | Trip start date (trip begins at 00:00).                                                                                                                                                 |
@@ -42,7 +40,7 @@ This document reflects the **MVP scope** of the trips module. The full itinerary
 | `created_at`           | Timestamp             |                                                                                                                                                                                         |
 | `updated_at`           | Timestamp             |                                                                                                                                                                                         |
 
-The `CoverType` enum and the mutual exclusivity rule between `cover_image_url` and `cover_emoji` are shared with the `groups` table. See [`features/community.md`](./community.md).
+The cover asset pattern is shared with the `groups` table — a single `cover UUID FK → assets.id` where `AssetResolverService` dispatches on `asset.source`. See [`features/community.md`](./community.md) — Cover Asset section.
 
 ---
 

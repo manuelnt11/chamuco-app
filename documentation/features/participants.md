@@ -1,7 +1,7 @@
 # Feature: Participants & Invitations
 
-**Status:** Design Phase
-**Last Updated:** 2026-03-19
+**Status:** Post-MVP spec — implementation pending (Epic #7)
+**Last Updated:** 2026-06-02
 
 ---
 

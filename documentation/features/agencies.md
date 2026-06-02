@@ -1,7 +1,7 @@
 # Feature: Travel Agencies
 
-**Status:** Design Phase
-**Last Updated:** 2026-03-23
+**Status:** Post-MVP spec — implementation pending
+**Last Updated:** 2026-06-02
 
 ---
 

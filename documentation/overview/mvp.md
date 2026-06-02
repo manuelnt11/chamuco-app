@@ -1,7 +1,7 @@
 # Chamuco Travel — MVP Scope
 
-**Status:** Draft
-**Last Updated:** 2026-03-25
+**Status:** Active — in development
+**Last Updated:** 2026-06-02
 
 ---
 
@@ -10,6 +10,20 @@
 This document defines the scope of the **Minimum Viable Product (MVP)** of Chamuco Travel. The MVP is the first shippable version of the platform — complete enough to deliver real value to a group of travelers, but deliberately scoped to avoid building features whose design is not yet validated.
 
 The MVP is not a demo. It is a functional product that a real group can use to plan and complete a real trip together.
+
+---
+
+## Build Status Legend
+
+Each module header shows its current implementation state:
+
+| Marker         | Meaning                                                    |
+| -------------- | ---------------------------------------------------------- |
+| ✅ Built       | Backend + frontend implemented and merged to `main`        |
+| 🔄 Partial     | Core functionality built; specific sub-features still open |
+| ⏳ Not started | Designed and tracked in GitHub Issues; work not yet begun  |
+
+The ✅/🔄/⏳ markers reflect implementation status, not MVP scope. All modules in this document are in scope for MVP unless explicitly listed under [Out of Scope](#out-of-scope-for-mvp).
 
 ---
 
@@ -30,37 +44,59 @@ Full implementation of the authentication layer as designed.
 
 ---
 
-### ✅ Users & Personal Profile
+### 🔄 Users & Personal Profile
 
-Full implementation of the user profile module as designed.
+Core user record and travel documents are built. Health data, emergency contacts, and loyalty programs are designed but not yet implemented.
+
+**Built:**
 
 - Core user record (`users`): username, display name, avatar, auth provider, timezone
-- Personal profile (`user_profiles`): legal name, date of birth (JSONB with year visibility flag), birth/home country (char(2)) and city, phone, bio; plus health data (dietary preference, food allergies, phobias, physical limitations, medical conditions), emergency contacts, and loyalty programs — all stored as typed columns or JSONB arrays on the same table
-- Nationalities & travel documents (`user_nationalities`): multiple nationalities, national ID, passport number, issue date, expiry date, pre-computed `PassportStatus`, daily job for status updates and expiry notifications
+- Personal profile (`user_profiles`): legal name, date of birth (JSONB with year visibility flag), birth/home country (char(2)) and city, phone, bio
+- Nationalities & travel documents (`user_nationalities`): multiple nationalities, national ID, passport number, issue date, expiry date, pre-computed `PassportStatus`
+- Visas (`user_visas`): per-citizenship visa records with coverage type, visa type, entries, expiry, pre-computed `VisaStatus`
+- ETAs (`user_etas`): electronic travel authorizations tied to a specific passport number
 - User preferences (`user_preferences`): language, currency, theme
 - Profile visibility controls (`ProfileVisibility`)
+- Daily passport status job (`PassportStatusJob`) — transitions `ACTIVE` → `EXPIRING_SOON` → `EXPIRED`, sends FCM notifications
+- Public profile view (`/profile/:username`)
+- Account deletion flow
+
+**Not yet started:**
+
+- Structured health data — `user_phobias`, `user_physical_limitations`, `user_food_allergies`, `user_medical_conditions` (dedicated tables per type, not JSONB; each includes an `OTHER` + `description` option)
+- Emergency contacts (`user_emergency_contacts`) — at least one mandatory
+- Loyalty programs (`user_loyalty_programs`) — reference data only
 
 **Reference:** [`features/users.md`](../features/users.md)
 
 ---
 
-### ✅ Traveler Groups
+### 🔄 Traveler Groups
 
-Full implementation of the groups module as designed, **excluding messaging**.
+Core group functionality and announcements are built. Member tiers and group resources are still open.
 
-- Group creation with name, description, cover (image or emoji), and visibility (PUBLIC or PRIVATE — required at creation)
-- Group membership: roles (`OWNER`, `ADMIN`, `MEMBER`), join requests and invitations
-- Group member tiers (`NEWCOMER` → `NOVICE` → `EXPLORER` → `VETERAN`) computed from shared completed trips
-- Group resources (notes, documents, links)
-- Group announcements: admins can send a one-way broadcast notification to all group members (see Notifications)
+**Built:**
 
-> Real-time messaging (group channels and 1:1 DMs) is out of scope for MVP. The Firestore dependency is therefore deferred — it is not needed until messaging is implemented.
+- Group CRUD: name, description, cover (image or emoji), visibility (PUBLIC/PRIVATE — required at creation), soft-delete
+- Privacy enforcement: PUBLIC → PRIVATE restrictions (cannot remove members from an already-public group)
+- Group membership: roles (`ADMIN`, `MEMBER`), join requests and invitations, bulk invite by user autocomplete
+- Group discovery and search (`/explore/groups`)
+- Group announcements: admins send one-way broadcast (rich text), read-only feed for members, FCM push delivery
+- Group settings page (edit, delete)
+
+**Not yet started:**
+
+- Group member tiers (`NEWCOMER` → `NOVICE` → `EXPLORER` → `VETERAN`) — schema exists (`group_member_stats`), display not built (Issue #245)
+- Group resources (notes, documents, links) — Issue #246
+- Integration review & test coverage cleanup — Issue #248
+
+> Real-time messaging (group channels and 1:1 DMs) is out of scope for MVP. Firestore is not needed until messaging is implemented.
 
 **Reference:** [`features/community.md`](../features/community.md)
 
 ---
 
-### ✅ Trips (Simplified)
+### ⏳ Trips (Simplified) — Issues #343–#354
 
 The full trips module covers the complete lifecycle of a journey: creation, participant management, itinerary, expenses, reservations, pre-trip tasks, and post-trip gamification. For the MVP, a **simplified version** is shipped with the following scope:
 
@@ -96,9 +132,9 @@ The full trips module covers the complete lifecycle of a journey: creation, part
 
 ---
 
-### ✅ Gamification
+### ⏳ Gamification — Epic #10
 
-Full implementation of the gamification module as designed.
+Full implementation of the gamification module as designed. Depends on the Trips module completing first.
 
 - Player level system (1–50, 5 named tiers: Nómada → Leyenda)
 - Level Points (LP) earned from trips using the multi-factor formula (base + duration + distance + international + participants + organizer bonus)
@@ -120,30 +156,38 @@ Full implementation of the gamification module as designed.
 
 ### ✅ Notifications
 
-Push notification delivery via Firebase Cloud Messaging (FCM) integrated with a unified Service Worker (shared with PWA caching).
+Push notification delivery via Firebase Cloud Messaging (FCM) integrated with a unified Service Worker (shared with PWA caching). In-app notification feed with per-channel opt-out preferences.
 
 FCM is the only Firebase service used in MVP. Firestore is not required (messaging is post-MVP).
 
-**MVP notification events:**
+**Built:**
 
-| Event                                            | Trigger                                                   | Recipient                              |
-| ------------------------------------------------ | --------------------------------------------------------- | -------------------------------------- |
-| Trip invitation received                         | Organizer invites user                                    | Invited user                           |
-| Join request accepted / declined                 | Organizer acts on request                                 | Requesting user                        |
-| Trip status changed (`IN_PROGRESS`, `COMPLETED`) | Organizer transitions status                              | All confirmed participants             |
-| Feedback window opened                           | Trip reaches `COMPLETED`                                  | All confirmed participants             |
-| Passport `EXPIRING_SOON`                         | Daily job                                                 | User who owns the record               |
-| Passport `EXPIRED`                               | Daily job                                                 | User who owns the record               |
-| Level-up                                         | Trip completion flow                                      | User                                   |
-| Achievement unlocked                             | Trip completion flow                                      | User                                   |
-| New recognition received                         | Organizer or admin awards recognition                     | Recipient user                         |
-| Key date reminder                                | 24 hours before a key date with `reminder_enabled = true` | All confirmed participants of the trip |
-| Trip announcement                                | Organizer sends broadcast                                 | All confirmed participants of the trip |
-| Group announcement                               | Group admin sends broadcast                               | All members of the group               |
+- FCM token registration/deregistration per device (`user_fcm_tokens`)
+- In-app notification feed: create, list, mark-read (`notifications` + `notification_deliveries`)
+- Per-channel opt-out preferences stored on `user_preferences`
+- `notify()` dispatcher with pluggable channel strategies (PUSH implemented; EMAIL/SMS stubs)
+- Transient messages: ephemeral FCM data messages for real-time UI signals (not persisted)
+- Notification bell + panel in app header
 
-**Announcements** are one-way broadcasts. An organizer or admin writes a short message that is delivered as a push notification to all recipients. There is no reply mechanism and no persistent chat thread — the notification is the message. Announcements are stored in PostgreSQL for an audit trail and displayed in a simple read-only feed within the trip or group detail screen.
+**Active notification types:**
 
-**Reference:** [`infrastructure/cloud.md`](../infrastructure/cloud.md)
+| Event                       | Trigger                      | Recipient                  | Status                            |
+| --------------------------- | ---------------------------- | -------------------------- | --------------------------------- |
+| Passport `EXPIRING_SOON`    | Daily job                    | User                       | ✅                                |
+| Passport `EXPIRED`          | Daily job                    | User                       | ✅                                |
+| Group invitation received   | Admin invites user           | Invited user               | ✅                                |
+| Group join request accepted | Admin accepts request        | Requesting user            | ✅                                |
+| Group announcement          | Admin sends broadcast        | All group members          | ✅                                |
+| Trip invitation received    | Organizer invites user       | Invited user               | ⏳ Pending trips module           |
+| Trip status changed         | Organizer transitions status | All confirmed participants | ⏳ Pending trips module           |
+| Trip announcement           | Organizer sends broadcast    | All confirmed participants | ⏳ Pending trips module           |
+| Key date reminder           | Daily job, 24h before date   | All confirmed participants | ⏳ Pending trips module (Epic #9) |
+| Achievement unlocked        | Trip completion flow         | User                       | ⏳ Pending gamification           |
+| New recognition received    | Organizer/admin awards       | Recipient user             | ⏳ Pending gamification           |
+
+**Announcements** are one-way broadcasts. An organizer or admin writes a short message that is delivered as a push notification to all recipients. There is no reply mechanism and no persistent chat thread — the notification is the message. Announcements are stored in PostgreSQL and displayed in a read-only feed within the group or trip detail screen.
+
+**Reference:** [`infrastructure/cloud.md`](../infrastructure/cloud.md), [`features/notifications.md`](../features/notifications.md)
 
 ---
 
@@ -166,3 +210,18 @@ The following modules are designed and documented but will not be built in the M
 
 - Is there a target user count or pilot group for the MVP launch?
 - Should past trips (pre-Chamuco travel history) be supported in MVP? If so, which entry path: full retroactive trip creation, lightweight history entry, or a streamlined past-trip flow?
+
+---
+
+## Module Build Progress Summary
+
+| Module          | Status         | Notes                                                                    |
+| --------------- | -------------- | ------------------------------------------------------------------------ |
+| Authentication  | ✅ Built       | —                                                                        |
+| Notifications   | ✅ Built       | Trip-related events pending trips module                                 |
+| Users & Profile | 🔄 Partial     | Health data, emergency contacts, loyalty programs not started            |
+| Groups          | 🔄 Partial     | Member tiers (#245), resources (#246) pending                            |
+| Trips           | ⏳ Not started | Issues #343–#354                                                         |
+| Participants    | ⏳ Not started | Epic #7                                                                  |
+| Gamification    | ⏳ Not started | Epic #10; depends on Trips                                               |
+| Scheduled jobs  | 🔄 Partial     | Passport job ✅; trip-transitions + key-date-reminders pending (Epic #9) |

@@ -1,7 +1,7 @@
 # Feature: Users & Personal Profile
 
-**Status:** Design Phase
-**Last Updated:** 2026-05-01 (ETAs added)
+**Status:** Active (partial — core user/profile/documents built; health data, emergency contacts, loyalty programs, gamification not yet implemented)
+**Last Updated:** 2026-06-02
 
 ---
 
@@ -63,7 +63,7 @@ A 1:1 extension of the `users` table that holds display and UX preferences. Crea
 
 Extended personal data for the person behind the account. This is a 1:1 extension of the `users` table, kept separate to avoid bloating the core auth record.
 
-In addition to personal fields, `user_profiles` consolidates all data that is always fetched per-user, never queried cross-user, and has no external FK dependencies: health data, emergency contacts, and loyalty programs. These are stored as JSONB columns instead of separate tables. See each section below for the JSONB structure and enum definitions.
+In addition to personal fields, `user_profiles` holds the core personal data. Health data, emergency contacts, and loyalty programs are stored in **dedicated tables** (not JSONB on `user_profiles`) — each with a dedicated schema file. These tables are not yet implemented; see their sections below for the planned schema.
 
 | Field                   | Type                     | Description                                                                                                                                                                                      |
 | ----------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -80,13 +80,9 @@ In addition to personal fields, `user_profiles` consolidates all data that is al
 | `dietary_preference`    | Enum `DietaryPreference` | Declared baseline diet. Default: `OMNIVORE`.                                                                                                                                                     |
 | `dietary_notes`         | Text (nullable)          | Additional dietary context (e.g., "no pork for religious reasons", "keto").                                                                                                                      |
 | `general_medical_notes` | Text (nullable)          | Free text for any other medical context the user chooses to share that does not fit the structured categories. Opt-in sharing per trip — see Visibility below.                                   |
-| `food_allergies`        | JSONB                    | Array of `{ allergen: FoodAllergen, description: string \| null }`. Default: `[]`.                                                                                                               |
-| `phobias`               | JSONB                    | Array of `{ phobia: PhobiaType, description: string \| null }`. Default: `[]`.                                                                                                                   |
-| `physical_limitations`  | JSONB                    | Array of `{ limitation: PhysicalLimitationType, description: string \| null }`. Default: `[]`.                                                                                                   |
-| `medical_conditions`    | JSONB                    | Array of `{ condition: MedicalConditionType, description: string \| null }`. Default: `[]`.                                                                                                      |
-| `emergency_contacts`    | JSONB                    | Array of emergency contact objects. See [Emergency Contacts](#emergency-contacts) below. Default: `[]`.                                                                                          |
-| `loyalty_programs`      | JSONB                    | Array of loyalty program objects. See [Loyalty Programs](#loyalty-programs) below. Default: `[]`.                                                                                                |
 | `updated_at`            | Timestamp                |                                                                                                                                                                                                  |
+
+> **Not on `user_profiles`:** food allergies, phobias, physical limitations, medical conditions, emergency contacts, and loyalty programs each have their **own dedicated table** (not JSONB columns). See their respective sections below. These tables are not yet implemented.
 
 ### Date of Birth Format
 
@@ -461,52 +457,52 @@ The warning flow: trip organizer sees on the participant panel that participant 
 
 ---
 
-## Emergency Contacts
+## Emergency Contacts — Not yet implemented
 
-A user must have **at least one emergency contact**. Multiple contacts are supported.
+A user must have **at least one emergency contact**. Multiple contacts are supported. Stored in a dedicated `user_emergency_contacts` table (1:many from `users`).
 
-Emergency contacts are stored as a JSONB array in `user_profiles.emergency_contacts`. This data is always fetched per-user, is never queried cross-user, and has no FK dependencies — a JSONB column avoids the overhead of a separate table.
-
-**JSONB element shape:**
-
-```typescript
-{
-  id: string; // client-generated UUID, used to target individual items in PATCH operations
-  full_name: string;
-  phone_number: string; // international format (e.g., +573001234567)
-  relationship: string; // free text (e.g., "mother", "spouse", "best friend")
-  is_primary: boolean; // exactly one element must be true
-}
-```
+| Field          | Type      | Description                                         |
+| -------------- | --------- | --------------------------------------------------- |
+| `id`           | UUID      | PK                                                  |
+| `user_id`      | UUID      | FK → `users.id` ON DELETE CASCADE                   |
+| `full_name`    | String    |                                                     |
+| `phone_number` | String    | International format (e.g., `+573001234567`)        |
+| `relationship` | String    | Free text (e.g., "mother", "spouse", "best friend") |
+| `is_primary`   | Boolean   | Exactly one record per user must be `true`          |
+| `created_at`   | Timestamp |                                                     |
+| `updated_at`   | Timestamp |                                                     |
 
 **Rule:** A user with zero emergency contacts cannot be marked as a confirmed participant on international trips (enforced by the pre-trip checklist, not as a hard DB constraint).
 
 ---
 
-## Loyalty Programs
+## Loyalty Programs — Not yet implemented
 
-Reference data only — loyalty program IDs are stored on the user profile as a convenience for manual entry when making reservations. They are **not linked to reservation records** in the system.
+Reference data only — loyalty program IDs are stored as a convenience for manual entry when making reservations. They are **not linked to reservation records** in the system. Stored in a dedicated `user_loyalty_programs` table (1:many from `users`). Visible only to the user themselves — never exposed to organizers or other participants.
 
-Stored as a JSONB array in `user_profiles.loyalty_programs`. Visible only to the user themselves — never exposed to organizers or other participants.
-
-**JSONB element shape:**
-
-```typescript
-{
-  id: string; // client-generated UUID, used to target individual items in PATCH operations
-  program_name: string; // e.g., "LifeMiles", "Delta SkyMiles", "Marriott Bonvoy"
-  member_id: string; // membership / account number
-  notes: string | null; // tier level, expiry, or other notes
-}
-```
+| Field          | Type            | Description                                            |
+| -------------- | --------------- | ------------------------------------------------------ |
+| `id`           | UUID            | PK                                                     |
+| `user_id`      | UUID            | FK → `users.id` ON DELETE CASCADE                      |
+| `program_name` | String          | e.g., "LifeMiles", "Delta SkyMiles", "Marriott Bonvoy" |
+| `member_id`    | String          | Membership / account number                            |
+| `notes`        | Text (nullable) | Tier level, expiry, or other notes                     |
+| `created_at`   | Timestamp       |                                                        |
 
 ---
 
-## Health Profile
+## Health Profile — Not yet implemented
 
 Health and dietary data used by organizers to plan meals, activities, and manage emergency situations. Each category uses a **structured selection list** so organizers can filter and search effectively. Every category includes an `OTHER` option with a required `description` field for cases not covered by the standard list.
 
-All health data is stored directly on `user_profiles` (see table above). Scalar fields (`blood_type`, `dietary_preference`, `dietary_notes`, `general_medical_notes`) are typed columns. The four multi-value categories (food allergies, phobias, physical limitations, medical conditions) are JSONB arrays — each element has the shape `{ <field>: <enum>, description: string | null }`, where `description` is required when the enum value is `OTHER`.
+Scalar fields (`blood_type`, `dietary_preference`, `dietary_notes`, `general_medical_notes`) live on `user_profiles`. The four multi-value categories each have a **dedicated table**:
+
+- `user_food_allergies` (`user_id`, `allergen FoodAllergen`, `description text|null`)
+- `user_phobias` (`user_id`, `phobia PhobiaType`, `description text|null`)
+- `user_physical_limitations` (`user_id`, `limitation PhysicalLimitationType`, `description text|null`)
+- `user_medical_conditions` (`user_id`, `condition MedicalConditionType`, `description text|null`)
+
+Each table uses `(user_id, <enum_column>)` as a composite PK. `description` is required when the enum value is `OTHER`.
 
 ### Blood Type (enum: `BloodType`)
 
@@ -660,7 +656,7 @@ The checklist is scoped to what the organizer needs for that specific trip type 
 
 ---
 
-## Traveler Statistics (`user_stats`)
+## Traveler Statistics (`user_stats`) — Post-MVP
 
 A 1:1 extension of the `users` table that stores the user's computed travel statistics. Populated and updated automatically as part of the trip completion flow — never edited directly. See [`features/gamification.md`](./gamification.md) for the full definition of each metric.
 
@@ -682,7 +678,7 @@ A 1:1 extension of the `users` table that stores the user's computed travel stat
 
 ---
 
-## Achievements (`user_achievements`)
+## Achievements (`user_achievements`) — Post-MVP
 
 Records which achievements the user has unlocked and when. Created by the system during the trip completion flow. Never created manually.
 
@@ -698,25 +694,25 @@ See [`features/gamification.md`](./gamification.md) for the full `Achievement` e
 
 ---
 
-## Chamuco Points
+## Chamuco Points — Post-MVP
 
 The user's point balance is derived by summing all `chamuco_point_transactions` records for the user — never stored as a single column. See [`features/gamification.md`](./gamification.md) for the transaction schema, earn events, spending catalog, and rules.
 
 ---
 
-## Recognitions Received
+## Recognitions Received — Post-MVP
 
 Recognitions received by the user are stored in the `recognitions` table, keyed by `recipient_user_id`. They appear on the user's public profile, grouped by context (trip / group / event). See [`features/gamification.md`](./gamification.md) for the full schema.
 
 ---
 
-## Discovery Map
+## Discovery Map — Post-MVP
 
 A personal geographic visualization of visited places. In MVP, derived from `trip_destinations` (country + city) of completed trips where the user was a confirmed participant. Post-MVP, enriched from `PLACE` itinerary items. Computed on demand from existing trip data — no separate table needed. Visibility follows the main `ProfileVisibility` setting. See [`features/gamification.md`](./gamification.md).
 
 ---
 
-## Public Profile (Gamification Data)
+## Public Profile (Gamification Data) — Post-MVP
 
 | Data                             | Visibility                      |
 | -------------------------------- | ------------------------------- |
