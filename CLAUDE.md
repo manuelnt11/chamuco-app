@@ -1,23 +1,16 @@
 # Chamuco App — Project Brief for AI Assistants
 
-This file provides essential context for working on Chamuco App. Read it in full before making any code or documentation changes. For detailed specs, refer to the files under `documentation/`.
+**Public name:** Chamuco Travel · **Domain:** chamucotravel.com · **Tagline:** An app for groups that travel (not a travel app).
+
+Covers the full lifecycle of group travel: planning, itinerary, participants, shared expenses, reservations, real-time communication, and long-term social identity (achievements, reputation, rankings, discovery map). Closest reference: Strava, applied to group travel.
 
 **Package-specific instructions** — read the relevant file when working inside a sub-package:
 
-- `apps/web/CLAUDE.md` — Next.js frontend: i18n namespaces, env variable sync, translation validation
-- `apps/api/CLAUDE.md` — NestJS backend: OpenAPI decorators, Drizzle migration generation
-
----
-
-## What Is Chamuco App
-
-**Public name:** Chamuco Travel · **Domain:** chamucotravel.com
-
-**Chamuco is not a travel app. It is an app for groups that travel.**
-
-It covers the full lifecycle of a group's journey together: trip planning, itinerary, participant management, shared expenses, reservations, real-time communication, and — crucially — the long-term social identity of the group: achievements, reputation, rankings, recognitions, and a personal travel history that grows with every trip. The closest reference is Strava, applied to group travel.
-
-The project is currently in the **design and documentation phase** — no source code has been written yet.
+- `apps/web/CLAUDE.md` — Next.js frontend: i18n namespaces, env variable sync, React patterns
+- `apps/api/CLAUDE.md` — NestJS backend: OpenAPI decorators, migrations, file uploads
+- `apps/api/src/database/CLAUDE.md` — Schema, migration workflow, Drizzle client
+- `apps/api/src/i18n/CLAUDE.md` — Backend i18n: key conventions, interpolation syntax
+- `packages/shared-types/CLAUDE.md` — Shared enums and types: PG sync rules
 
 ---
 
@@ -25,228 +18,156 @@ The project is currently in the **design and documentation phase** — no source
 
 - **All code is in English**: variable names, function names, enums, table names, column names, TypeScript types, comments, file names. No exceptions.
 - **All documentation is in English**.
-- **No hardcoded user-facing strings on the frontend**. Every visible text must use `i18next` `t()` references. Enforced by `eslint-plugin-i18next` at lint and CI level. This is a hard requirement, not a guideline.
-
-> i18n namespace conventions, translation file structure, and the validation script are documented in `apps/web/CLAUDE.md`.
+- **No hardcoded user-facing strings on the frontend**. Every visible text must use `i18next` `t()` references. Enforced by `eslint-plugin-i18next` at lint and CI level.
 
 ---
 
-## Tech Stack (All Decided)
+## Tech Stack
 
-| Layer               | Technology                                                                                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime             | Node.js + TypeScript                                                                                                            |
-| Backend framework   | NestJS                                                                                                                          |
-| Frontend framework  | Next.js (React)                                                                                                                 |
-| PWA                 | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background messages)                                             |
-| Theme management    | `next-themes` — SSR-safe dark/light/system toggle, cookie-backed, Tailwind `class` strategy                                     |
-| Styling             | Tailwind CSS                                                                                                                    |
-| ORM                 | Drizzle ORM                                                                                                                     |
-| Migrations          | drizzle-kit — generates `.sql` files committed to Git                                                                           |
-| Primary database    | PostgreSQL (Cloud SQL)                                                                                                          |
-| Real-time messaging | Firestore (Firebase)                                                                                                            |
-| Authentication      | Firebase Authentication (Google Sign-In + Facebook Sign-In)                                                                     |
-| Push notifications  | Firebase Cloud Messaging (FCM)                                                                                                  |
-| API documentation   | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs`                                                                      |
-| Backend testing     | Jest + `@swc/jest` — unit and integration tests                                                                                 |
-| Frontend testing    | Vitest + React Testing Library — unit and component tests                                                                       |
-| E2E testing         | Playwright — cross-browser end-to-end tests                                                                                     |
-| Code formatting     | Prettier — indentation, quotes, trailing commas; config at `.prettierrc`                                                        |
-| Code linting        | ESLint 9.x — flat config format; config at `eslint.config.mjs` per package                                                      |
-| Git hooks           | Husky + lint-staged — pre-commit enforces lint, format, unit tests, and 90% coverage                                            |
-| Frontend i18n       | `i18next` + `react-i18next`                                                                                                     |
-| Backend i18n        | `nestjs-i18n`                                                                                                                   |
-| Cloud               | Google Cloud Platform (GCP)                                                                                                     |
-| Hosting             | Cloud Run (containerized, serverless, scales to zero)                                                                           |
-| File storage        | Cloud Storage                                                                                                                   |
-| CI/CD               | GitHub Actions (two independent pipelines: `api` and `web`)                                                                     |
-| Dependency catalog  | pnpm catalog (`pnpm-workspace.yaml`) — shared `devDependencies` versioned once, referenced as `catalog:` in each `package.json` |
-| Repository          | Monorepo — pnpm workspaces + Turborepo                                                                                          |
+| Layer               | Technology                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| Runtime             | Node.js + TypeScript                                                                        |
+| Backend framework   | NestJS                                                                                      |
+| Frontend framework  | Next.js (React)                                                                             |
+| PWA                 | `@ducanh2912/next-pwa` + unified Service Worker (caching + FCM background messages)         |
+| Theme management    | `next-themes` — SSR-safe dark/light/system toggle, cookie-backed, Tailwind `class` strategy |
+| Styling             | Tailwind CSS                                                                                |
+| ORM                 | Drizzle ORM                                                                                 |
+| Migrations          | drizzle-kit — generates `.sql` files committed to Git                                       |
+| Primary database    | PostgreSQL (Cloud SQL)                                                                      |
+| Real-time messaging | Firestore (Firebase) — **post-MVP only**                                                    |
+| Authentication      | Firebase Authentication (Google Sign-In + Facebook Sign-In)                                 |
+| Push notifications  | Firebase Cloud Messaging (FCM)                                                              |
+| API documentation   | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs`                                  |
+| Backend testing     | Jest + `@swc/jest`                                                                          |
+| Frontend testing    | Vitest + React Testing Library                                                              |
+| E2E testing         | Playwright                                                                                  |
+| Code formatting     | Prettier — config at `.prettierrc`                                                          |
+| Code linting        | ESLint 9.x flat config — `eslint.config.mjs` per package                                    |
+| Git hooks           | Husky + lint-staged — pre-commit enforces lint, format, unit tests, 90% coverage            |
+| Frontend i18n       | `i18next` + `react-i18next`                                                                 |
+| Backend i18n        | `nestjs-i18n`                                                                               |
+| Cloud               | GCP — Cloud Run, Cloud SQL (PostgreSQL), Cloud Storage                                      |
+| CI/CD               | GitHub Actions (two pipelines: `api` and `web`)                                             |
+| Dependency catalog  | pnpm catalog (`pnpm-workspace.yaml`) — shared `devDependencies` versioned once              |
+| Repository          | Monorepo — pnpm workspaces + Turborepo                                                      |
 
 ---
 
 ## Critical Architectural Decisions
 
-### PostgreSQL is the source of truth for memberships
+**PostgreSQL is the source of truth for memberships.** Firestore is for real-time message delivery only. Any membership change must be synchronously synced to Firestore by the NestJS backend via Firebase Admin SDK. The frontend never writes to Firestore directly.
 
-Firestore is used exclusively for real-time message delivery. Who belongs to which channel is always determined by PostgreSQL. Any membership change (join trip, leave group, remove participant, etc.) must be **immediately and synchronously synced to Firestore** by the NestJS backend via the Firebase Admin SDK. The frontend never writes to Firestore directly — all writes go through the NestJS API.
+**Migrations are explicit SQL files.** Never use schema push or auto-sync. Every schema change produces a `.sql` file via `drizzle-kit generate`, committed to Git.
 
-### Migrations are explicit SQL files
+**Firebase Admin SDK is the only Firestore writer.** The frontend reads from Firestore via the client SDK; all writes go through `POST /api/v1/...` on the NestJS backend.
 
-Never use schema push or auto-sync. Every schema change produces a `.sql` file via `drizzle-kit generate`, which is committed to Git and reviewed in PRs. Destructive operations (column drops, renames) require a multi-step migration strategy.
+**CI/CD pipeline order:** lint → type check → tests → build → Docker image → push image → run DB migrations (inside the container at startup) → deploy to Cloud Run. Migrations run before the NestJS process starts. If they fail, the container exits with code 1 and Cloud Run keeps the previous revision live.
 
-### Firebase Admin SDK is the only Firestore writer
+**No custom JWT.** Authentication is delegated to Firebase Authentication. The backend verifies Firebase ID tokens via `admin.auth().verifyIdToken()`.
 
-The frontend reads from Firestore in real time via the Firebase client SDK. It never writes. All writes (messages, membership updates) go through `POST /api/v1/...` on the NestJS backend, which validates auth and membership in PostgreSQL before writing to Firestore.
-
-### CI/CD pipeline order for backend
-
-On push to `main`: lint → type check → tests → build → Docker image → push image → **run DB migrations** → deploy to Cloud Run. Migrations run before deploy. If migrations fail, deployment is skipped.
-
-### No custom JWT system
-
-Authentication is fully delegated to Firebase Authentication. The backend verifies Firebase ID tokens via `admin.auth().verifyIdToken()`. There is no Chamuco-issued JWT.
+**Firestore is not used in MVP.** FCM is the only Firebase service active in MVP. Firestore is introduced post-MVP when Slack-like messaging is built.
 
 ---
 
-## Key Domain Rules
+## Key Domain Coding Constraints
+
+These are the rules that directly affect how code is written. Full domain specs live in `documentation/features/`.
 
 ### Users
 
-- Every user must choose a unique `@username` at registration: lowercase, 3–30 chars, `a-z 0-9 _ -` only, stored without `@`, displayed with `@`.
-- **Authentication providers** (`auth_provider` on `users`): `GOOGLE` or `FACEBOOK`. The `display_name` is pre-filled from the OAuth provider at registration and is editable.
-- **Nationalities & travel documents** — stored in `user_nationalities` (1:many, min 1). Each record represents one citizenship and optionally holds the national ID, passport number, issue date, expiry date, and a pre-computed `PassportStatus` (`OMITTED` | `ACTIVE` | `EXPIRING_SOON` | `EXPIRED`). Unique index on `(user_id, country_code)`. Status is set immediately by the app when passport data is saved; a daily job updates `ACTIVE` → `EXPIRING_SOON` → `EXPIRED` for records with a non-null expiry date (skips `OMITTED`).
-- **Visas** (`user_visas`) — stored in a separate table (1:many from `user_nationalities`). A visa belongs to a citizenship, not a specific passport document. Each record has: `coverage_type` (`COUNTRY` | `ZONE`), `country_code` char(2) or `visa_zone` enum (mutually exclusive, enforced by CHECK), `visa_type` (`TOURIST` | `BUSINESS` | `TRANSIT` | `WORK` | `STUDENT` | `DIGITAL_NOMAD` | `OTHER`), `entries` (`SINGLE` | `DOUBLE` | `MULTIPLE`), `expiry_date`, and a pre-computed `VisaStatus` (`ACTIVE` | `EXPIRING_SOON` | `EXPIRED`). EXPIRING_SOON threshold is 30 days. The daily job updates visa status on the same cadence as passport status. Visa data is visible to the user only — never exposed to organizers. Visa entry logs (`user_visa_entry_logs`) are post-MVP: they track individual entries per visa from both Chamuco trips and manually registered independent trips.
-- **ETAs** (`user_etas`) — Electronic Travel Authorizations stored in a separate table (1:many from `user_nationalities`). **Unlike visas, an ETA is tied to a specific passport**, not just a citizenship — `passport_number` is a required snapshot field. ETAs are always country-specific (no zones). Each record has: `passport_number` (text snapshot), `destination_country` char(2), `authorization_number`, `eta_type` (`TOURIST` | `TRANSIT`), `entries` (`SINGLE` | `DOUBLE` | `MULTIPLE`), `expiry_date`, and a pre-computed `EtaStatus` (`ACTIVE` | `EXPIRING_SOON` | `EXPIRED`). An ETA expires by date **or** by passport invalidation (renewal or expiry of the linked passport). When the user updates their passport number, the NestJS service **synchronously** marks all ETAs under the old `passport_number` as `EXPIRED`. The daily job also performs this check. ETA data is visible to the user only — never exposed to organizers.
-- **Date of birth** — stored as JSONB `{ day, month, year, year_visible }` on `user_profiles`. The `year_visible` flag controls public profile display.
-- **Birth and residence location** — `user_profiles` stores `birth_country`, `birth_city`, `home_country`, and `home_city`. `home_city` is used as the departure origin for LP distance calculations; falls back to country centroid if not set.
-- **Emergency contacts** — stored in `user_emergency_contacts` (1:many). At least one is mandatory. Each has `full_name`, `phone_number`, `relationship`, and `is_primary`.
-- **Loyalty programs** (`user_loyalty_programs`) — reference data only, not linked to reservation records.
-- **Structured health data** — phobias, physical limitations, food allergies, and medical conditions each have a dedicated table (`user_phobias`, `user_physical_limitations`, `user_food_allergies`, `user_medical_conditions`) with a selection enum per category. Every category includes `OTHER` + required `description` for non-standard entries.
-- **Traveler stats and discovery map** visibility follows the main `ProfileVisibility` setting — no independent toggle.
-- **Platform roles** (`platform_role` on `users`): `USER` (default) or `SUPPORT_ADMIN`. A `SUPPORT_ADMIN` is a service account for troubleshooting — it bypasses all trip and group access restrictions (authentication still required), is never counted as a participant, has no travel profile or gamification records, and every write it performs is logged immutably in `support_admin_audit_log`. The role is not assignable from within the app.
-- **Agencies** — a higher-level entity (`agencies` table) that groups professional trip organizers under a common brand. A user may belong to at most one agency (`agency_id` on `users`). Agency coordinators can create and manage trips on behalf of the agency. See `features/agencies.md`.
-- **User deletion is logical (soft-delete)** — users are never hard-deleted from the `users` table. When account deletion is implemented, it will set a `deleted_at` timestamp; the row persists. This means all `NOT NULL` foreign keys referencing `users.id` with `ON DELETE restrict` are safe: the referenced row is never physically removed.
-- **Group deletion is logical (soft-delete)** — groups are never hard-deleted. Deletion sets `deleted_at` on the `groups` row; `group_members` and `group_member_stats` records are preserved for history. The `cover` FK is nulled in the same operation so the orphaned asset record can be cleaned up after commit per rule #7. All group queries must filter `IS NULL deleted_at`.
+- `@username`: lowercase, 3–30 chars, `a-z0-9_-`, stored without `@`, displayed with `@`.
+- **Soft-delete only** — never `DELETE FROM users`. Set `deleted_at`; all `NOT NULL` FKs with `ON DELETE restrict` are safe because the row is never physically removed.
+- `SUPPORT_ADMIN` bypasses all access restrictions, is never counted as a participant, and every write it performs is logged immutably in `support_admin_audit_log`.
+- When a user updates their passport number, the NestJS service must **synchronously** mark all ETAs under the old `passport_number` as `EXPIRED`.
+- Daily job updates `ACTIVE` → `EXPIRING_SOON` → `EXPIRED` for passports, visas, and ETAs with non-null expiry dates.
+- Visa and ETA data is visible to the user only — **never** exposed to organizers.
+
+### Groups
+
+- **Soft-delete only** — set `deleted_at`, null the `cover` FK in the same operation. All group queries must filter `IS NULL deleted_at`.
+- `group_members` and `group_member_stats` use composite PKs `(group_id, user_id)`.
+- Last admin cannot leave without transferring the role first.
 
 ### Trips
 
-- A trip starts at **00:00 on `start_date`** and ends at **24:00 on `end_date`** (`end_date >= start_date`, same day is valid).
-- Once `IN_PROGRESS`: all edits require organizer confirmation and all confirmed participants are notified.
-- **Trip visibility controls discoverability only**, not who can be invited. `PUBLIC` = listed publicly; `PRIVATE` = not searchable, visible only to members of groups explicitly listed in `trip_visible_to_groups`.
-- An organizer can **always** invite any user regardless of trip visibility.
-- If a user can see the trip (by any visibility path), they can submit a join request. Changing visibility does not affect pending requests or invitations already in flight.
-- **Invite links** (`trip_invite_links`) — a separate mechanism from visibility. An organizer generates a shareable link with a unique token. A non-registered user who follows the link is directed to registration; upon completing it, an `INVITED` record is automatically created for them. A registered user who follows the link receives an invitation directly, bypassing visibility restrictions. Links support optional expiry (`expires_at`), use cap (`max_uses`), and organizer revocation (`revoked_at`).
-- The trip creator must declare `is_traveling_participant` at creation time.
-- **`participant_capacity` is required** (not nullable). Must be ≥ 1. May be updated while the trip is `DRAFT` or `OPEN`; cannot be reduced below the current confirmed participant count.
-- **Group visibility is required at creation** (`PUBLIC` or `PRIVATE`) — no default is applied.
-- **Departure & return locations** — Every trip has `departure_country` (char 2) and `departure_city` (text), both required. `return_country` and `return_city` are nullable; null means the group returns to the departure location (round trip).
-- **Trip route** — The trip route for LP distance calculation is: `departure_location → trip_destinations (ordered by position) → return_location`. `return_location` falls back to `departure_location` when null. Distance is the sum of great-circle distances between consecutive points.
-- **Destinations** (`trip_destinations`) — At least one required. Each record has `position` (integer, 1-based), `country_code` (char 2), `city` (text), and optional `label`. Countries visited for gamification are derived from `trip_destinations` + return location.
-- **Itinerary notes** — `itinerary_notes` is a nullable `text` column on the `trips` table. Free text only. The full structured itinerary builder is post-MVP.
-- **Budget items** (`trip_budget_items`) — Simple named list: `name`, `description` (nullable), `amount` (numeric), `currency` (char 3, defaults to `base_currency`). Not linked to expense splits. Post-MVP the full expense module replaces this.
-- **Notes** (`trip_notes`) — Collaborative list: `content` (text), `created_by`, timestamps. Any confirmed participant or organizer may add notes.
-- **Key dates** (`trip_key_dates`) — List of important dates: `date`, `description` (text), `reminder_enabled` (boolean, default false). When `reminder_enabled = true`, a FCM push notification is sent to all confirmed participants 24 hours before the date.
+- Trip starts at 00:00 on `start_date`, ends at 24:00 on `end_date`. `end_date >= start_date` (same day is valid).
+- `participant_capacity` is required, ≥ 1, cannot be reduced below the current confirmed participant count.
+- Visibility controls discoverability only — an organizer can always invite any user regardless of visibility.
+- Route for LP distance: `departure_location → trip_destinations (by position) → return_location` (falls back to `departure_location` if `return_location` is null).
+- Once `IN_PROGRESS`: all edits require organizer confirmation; all confirmed participants are notified.
+- Last organizer cannot leave without transferring the role first.
 
-### Participants & Groups
+### Participants
 
-- Two entry paths: **join request** (user-initiated, requires the user to be able to see the trip) and **invitation** (organizer-initiated, always available). Both may coexist.
-- Only one active request **or** invitation per user per trip/group at a time.
-- **Requests and invitations can be cancelled at any time by their creator**: a user may withdraw their `PENDING_REQUEST`; an organizer may revoke an `INVITED` invitation. The record is deleted (no terminal status set) and the slot is freed immediately.
-- **Waitlist** is not a separate entity. It is a view of `PENDING_REQUEST` records ordered by `initiated_at`. When `WAITLIST_MODE` confirmation rule is active and capacity is full, the organizer must accept requests in chronological order — they may reject any request at any time but may not skip one to accept a later one.
-- Last organizer (trip) or last admin (group) cannot leave without transferring the role first.
-- **Organizer role vs. participation are independent**: both `ORGANIZER` and `CO_ORGANIZER` may or may not travel on the trip, controlled by `is_traveling_participant` (boolean). Non-traveling organizers are excluded from capacity, expense splits, and the per-person budget estimate. Multiple users may hold `ORGANIZER` simultaneously.
-- **Co-organizer permissions are granular**: when assigning `CO_ORGANIZER`, the assigning organizer defines an explicit `CoOrganizerPermission[]` set: `MANAGE_ITINERARY`, `MANAGE_EXPENSES`, `MANAGE_PARTICIPANTS`, `MANAGE_RESERVATIONS`, `EDIT_TRIP_DETAILS`, `MANAGE_PRE_TRIP_TASKS`, `MODERATE_CHANNEL`, `VIEW_TRAVEL_PROFILES`, `AWARD_RECOGNITIONS`. Full organizers always have all permissions implicitly.
-- **Role promotion requires a role invitation** (`trip_role_invitations`): if the invitee is already a confirmed participant, the invitation only upgrades their role (`is_traveling_participant` stays `true`); if not yet a participant, the organizer declares `will_travel`. A role invitation with `will_travel = true` bypasses `WAITLIST_MODE`. Role invitations follow the same create/revoke-at-will lifecycle as participant invitations. If the invitee has an active participant request or invitation, it is deleted when the role invitation is created.
-- **Role downgrade is a direct organizer action** (no invitation): never affects `is_traveling_participant`.
-
-### Announcements
-
-- Organizers can send a one-way broadcast announcement to all confirmed participants of a trip. Group admins can send a one-way broadcast announcement to all group members.
-- Announcements are delivered as push notifications (FCM). There is no reply mechanism and no persistent chat thread.
-- Announcements are stored in PostgreSQL (`trip_announcements` / `group_announcements`) and displayed in a read-only feed within the trip or group detail screen.
-- **MVP scope**: announcements are included in the MVP as the primary communication mechanism between organizers and participants.
-
-### Messaging (Slack-like) — Post-MVP
-
-- DMs (1:1) and Channels (named, PUBLIC or PRIVATE).
-- Every trip and group auto-creates a PRIVATE channel mirroring its membership and roles.
-- PUBLIC channels: anyone can enter as VIEWER (read-only, no approval) or join as MEMBER (can post, no approval).
-- All members see full message history regardless of when they joined.
-- Channel membership in Firestore is always derived from PostgreSQL — never managed independently.
-- **Firestore is not used until messaging is implemented.** The MVP does not require Firestore; FCM is the only Firebase service active in MVP.
-
-### Itinerary (Post-MVP)
-
-- The full structured itinerary builder is **post-MVP**. MVP uses `itinerary_notes` (free text) instead.
-- Five item categories: `TRANSPORT`, `AIRPORT`, `PLACE`, `FOOD`, `OTHER` — each with detailed subtype enums.
-- Day 0 is the pre-departure day for logistical items before the official trip start.
-- Items have `duration_minutes`, `participant_ids` (subset scoping), multi-currency fields with `exchange_rate_snapshot`.
-- Discovery Map in MVP is derived from `trip_destinations` (country + city) of completed trips, not from `PLACE` itinerary items (which are post-MVP).
+- Only one active `PENDING_REQUEST` or `INVITED` record per user per trip/group at a time.
+- Cancel = record deleted (no terminal status set), slot freed immediately.
+- Waitlist = `PENDING_REQUEST` records ordered by `initiated_at`. In `WAITLIST_MODE`, the organizer cannot skip a request to accept a later one.
+- Role promotion requires a role invitation (`trip_role_invitations`); role downgrade is a direct organizer action with no invitation.
 
 ### Expenses
 
-- **No real money is processed.** The expense module is a collaborative ledger. Settlement is computed at trip end (Splitwise-style minimal debt graph) and participants settle outside the app.
-- Two layers: **planned costs** (`trip_budget_items` — required or optional, defined by organizer) and **actual expenses** (`expenses` — the live ledger). Planned and actual can be linked.
-- Expense ownership: `SHARED` (split among participants, generates debt) or `INDIVIDUAL` (personal spend, no debt, recorded in the group ledger for reference and aggregate totals).
-- Optional budget items: each participant opts in; organizer marks as paid. `SHARED` optional items have a max group size — the participant who opts in declares who they share with.
-- Split types: `EQUAL`, `EXACT`, `PERCENTAGE`, `SHARES`. The expense **creator** controls payers, split type, and distribution. Organizers (and co-organizers with `MANAGE_EXPENSES`) can edit any expense.
-- Multiple payers per expense are supported (`expense_payers` table). Sum of payer amounts must equal the total.
-- `exchange_rate_snapshot` is immutable — snapshotted at time of recording, never overwritten.
-- Splits and settlement only include participants with `did_travel = true`. Confirmed participants who did not travel (`did_travel = false`) are excluded from expense splits.
+- `exchange_rate_snapshot` is **immutable** — snapshotted at time of recording, never overwritten.
+- Settlement excludes participants with `did_travel = false`.
+- No real money is processed — ledger only.
 
 ### Gamification
 
-- **Traveler Score** — composite metric computed from completed trips, countries visited, km traveled, achievements, and feedback received. Used for global ranking. Never editable.
-- **Achievements** — auto-triggered badges at defined milestones (trips, geography, distance, social). Earned once, never lost.
-- **Chamuco Points** — soft in-app currency. Earned at trip completion and achievement unlocks. Spent on cosmetic profile customizations. No real monetary value; non-transferable; non-expiring.
-- **Discovery Map** — personal geographic visualization of visited places. In MVP, derived from `trip_destinations` (country + city) of completed trips. Post-MVP: enriched from `PLACE` itinerary items. Displayed on the public profile.
-- **Group Member Tier** — per-group progression: `NEWCOMER` → `NOVICE` (1 trip) → `EXPLORER` (5 trips) → `VETERAN` (10+ trips). Independent of global reputation and of `GroupRole`.
-- **Recognitions** — peer-awarded badges. Sources: trip organizer at completion, group admin annually, event organizer at event completion.
-- **Trip Feedback** — structured post-trip feedback (scored + optional comment) directed at organizers, plus optional peer-to-peer notes. Window: 7 days after `COMPLETED`.
-- **Trip Completion Flow** — when a trip reaches `COMPLETED`: stats updated, achievements evaluated, points distributed, feedback window opened, recognition window unlocked for organizers.
-
-### Events
-
-- Three modes: `FREE` (standalone), `GROUP` (linked to a group), `TRIP` (linked to a trip).
-- Five categories: `PRESENTATION`, `PLANNING`, `CELEBRATION`, `AWARDS`, `OTHER`.
-- Optional gamification: events may award Chamuco Points and/or unlock a recognition window for the organizer.
-- RSVP states: `CONFIRMED`, `TENTATIVE`, `DECLINED`. Attendance is always opt-in.
+- Traveler Score is **never editable**.
+- Achievements are earned once, never lost.
 
 ---
 
 ## Documentation Structure
 
-All design documentation lives in `documentation/`. Key files:
+Full specs live in `documentation/`. Key files:
 
-| File                                   | Contents                                                                                                                                                                                                                                       |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `overview/tech-stack.md`               | Full stack decisions with rationale                                                                                                                                                                                                            |
-| `overview/project-overview.md`         | Vision, goals, principles                                                                                                                                                                                                                      |
-| `overview/mvp.md`                      | MVP scope: confirmed modules, simplified trips, out-of-scope features                                                                                                                                                                          |
-| `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger                                                                                                                                                                                                    |
-| `architecture/database-design.md`      | Schema philosophy, JSONB usage                                                                                                                                                                                                                 |
-| `architecture/monorepo-structure.md`   | Directory layout                                                                                                                                                                                                                               |
-| `features/users.md`                    | User account, personal profile, passports, emergency contacts, health profile, loyalty programs, traveler stats, achievements                                                                                                                  |
-| `features/agencies.md`                 | Travel agencies: coordinators, agency trips, public profile                                                                                                                                                                                    |
-| `features/trips.md`                    | MVP trip entity: lifecycle, roles, visibility, departure/return locations, destinations, itinerary notes, budget items, notes, key dates, completion flow. Post-MVP: full itinerary builder, expense tracking, budget estimate, trip resources |
-| `features/participants.md`             | Membership flows, states, waitlist mechanics, guest participants                                                                                                                                                                               |
-| `features/community.md`                | Groups (CRUD, membership, announcements, discovery), Slack-like messaging (post-MVP), Firestore architecture, group member tiers                                                                                                               |
-| `features/notifications.md`            | Notifications system: in-app feed, FCM tokens, transient messages, channel strategies, opt-out preferences, frontend integration                                                                                                               |
-| `features/expenses.md`                 | Expense model, splits, settlements, multi-currency                                                                                                                                                                                             |
-| `features/reservations.md`             | Booking records, metadata by type                                                                                                                                                                                                              |
-| `features/pre-trip-planning.md`        | Pre-trip tasks, route planning, budget envelopes                                                                                                                                                                                               |
-| `features/gamification.md`             | Traveler Score, achievements, Chamuco Points, discovery map, recognitions, feedback                                                                                                                                                            |
-| `features/events.md`                   | Events system: modes, categories, RSVP, waitlist, gamification integration                                                                                                                                                                     |
-| `features/calendar.md`                 | Calendar views: monthly grid + upcoming list, aggregating trips and events                                                                                                                                                                     |
-| `infrastructure/auth.md`               | Firebase Authentication integration                                                                                                                                                                                                            |
-| `infrastructure/cloud.md`              | GCP services, CI/CD pipelines, Cloud SQL configuration                                                                                                                                                                                         |
-| `infrastructure/cloud-sql-setup.md`    | Complete Cloud SQL provisioning guide (manual setup steps, VPC connector, IAM, Cloud SQL Auth Proxy)                                                                                                                                           |
-| `infrastructure/cloud-sql-config.md`   | Project-specific Cloud SQL configuration for chamuco-app-mn (connection strings, deployment commands, monitoring)                                                                                                                              |
-| `infrastructure/backup-restore.md`     | Backup and restore workflow for syncing production data to local (backup scripts, restore process, troubleshooting)                                                                                                                            |
-| `infrastructure/local-development.md`  | Local Docker Compose setup, database management scripts, development workflow                                                                                                                                                                  |
-| `design/localization.md`               | i18n spec, key naming, enforcement                                                                                                                                                                                                             |
+| File                                   | Contents                                             |
+| -------------------------------------- | ---------------------------------------------------- |
+| `overview/mvp.md`                      | MVP scope and out-of-scope features                  |
+| `overview/project-overview.md`         | Vision, goals, principles                            |
+| `overview/tech-stack.md`               | Full stack decisions with rationale                  |
+| `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger          |
+| `architecture/database-design.md`      | Schema philosophy, JSONB usage                       |
+| `architecture/monorepo-structure.md`   | Directory layout, import aliases, pnpm catalog       |
+| `features/users.md`                    | User account, profile, passports, health             |
+| `features/agencies.md`                 | Travel agencies, coordinators                        |
+| `features/trips.md`                    | Trip lifecycle, roles, destinations, completion flow |
+| `features/participants.md`             | Membership flows, states, waitlist                   |
+| `features/community.md`                | Groups, messaging (post-MVP), Firestore              |
+| `features/expenses.md`                 | Expense model, splits, settlements, multi-currency   |
+| `features/gamification.md`             | Traveler Score, achievements, Chamuco Points         |
+| `features/notifications.md`            | FCM, in-app feed, opt-out preferences                |
+| `features/reservations.md`             | Booking records, metadata by type                    |
+| `features/pre-trip-planning.md`        | Pre-trip tasks, route planning, budget envelopes     |
+| `features/events.md`                   | Events: modes, categories, RSVP, gamification        |
+| `features/calendar.md`                 | Calendar views: monthly grid + upcoming list         |
+| `infrastructure/auth.md`               | Firebase Authentication integration                  |
+| `infrastructure/cloud.md`              | GCP services, CI/CD pipelines                        |
+| `infrastructure/cloud-sql-setup.md`    | Cloud SQL provisioning guide                         |
+| `infrastructure/cloud-sql-config.md`   | Project-specific Cloud SQL config                    |
+| `infrastructure/backup-restore.md`     | Backup and restore workflow                          |
+| `infrastructure/local-development.md`  | Docker Compose, database scripts, dev workflow       |
+| `design/localization.md`               | i18n spec, key naming, enforcement                   |
 
 ---
 
-## Standing Rules for AI Assistants
-
-These rules apply to every session, regardless of what task is being performed.
+## Standing Rules
 
 ### 1. Documentation cross-reference integrity
 
-When any file under `documentation/` is modified, before closing the task:
+When any file under `documentation/` is modified:
 
-- Scan all other documentation files for references to the modified file (by name or by the concepts it owns).
-- If any reference is stale, incorrect, or inconsistent with the change just made, update it in the same session.
+- Scan all other documentation files for references to the modified file (by name or concept).
+- Update stale or inconsistent references in the same session.
 - This includes `CLAUDE.md` itself — if a decision or rule changes, update the relevant section here too.
 
 ### 2. No relative imports — always use path aliases
 
-When writing or modifying any TypeScript file, **never use relative imports that navigate upward** (`../`). Always use the appropriate alias:
+Never use relative imports that navigate upward (`../`). Always use:
 
-- `@/*` for imports within the same app (`apps/api` or `apps/web`).
-- `@chamuco/shared-types` and `@chamuco/shared-utils` for cross-package imports.
+- `@/*` — within the same app (`apps/api` or `apps/web`)
+- `@chamuco/shared-types`, `@chamuco/shared-utils` — cross-package imports
 
 ```ts
 // ✅ Correct
@@ -263,266 +184,81 @@ See `documentation/architecture/monorepo-structure.md` — "Import Aliases" sect
 
 Every commit must pass all five gates enforced by the Husky pre-commit hook:
 
-1. **Format** — `prettier --write` on staged files. If a file is touched, it must be correctly formatted.
-2. **Lint** — `eslint --fix` on staged files. Auto-fixable violations are fixed automatically; non-auto-fixable violations block the commit.
-3. **Security audit** — `pnpm audit --audit-level=high` checks for high or critical security vulnerabilities in dependencies. If vulnerabilities are found, run `pnpm audit --fix` to auto-fix or manually address them before committing.
-4. **Unit tests** — `turbo run test --filter=[HEAD^1]` runs unit tests for all packages affected by the commit.
-5. **Coverage** — 90% threshold on lines, statements, functions, and branches for affected packages. A commit that drops any metric below 90% is rejected.
+1. **Format** — `prettier --write` on staged files.
+2. **Lint** — `eslint --fix` on staged files.
+3. **Security audit** — `pnpm audit --audit-level=high`.
+4. **Unit tests** — `turbo run test --filter=[HEAD^1]` for affected packages.
+5. **Coverage** — 90% threshold on lines, statements, functions, and branches.
 
-**Manual validation:** To run all quality checks across the entire codebase without committing, use:
+Manual validation across all packages:
 
 ```bash
 pnpm validate
 ```
 
-This runs format check, lint, security audit, type checking, tests, and coverage on all packages — useful for pre-push validation or after pulling changes.
+Every new function, service method, or component must have corresponding unit tests **in the same commit** — never defer.
 
-When writing new code:
+### 4. Truncate test and lint output
 
-- Every new function, service method, or component must have corresponding unit tests.
-- New tests must be added in the same commit as the code they cover — never defer test writing to a later commit.
-- Coverage thresholds are configured in `apps/api/jest.config.ts` (backend) and `apps/web/vitest.config.ts` (frontend).
-
-### 4. Truncate test and lint output to conserve context
-
-When running tests or linters via the Bash tool, always pipe the output through `tail` to display only the **last 50–100 lines**. As the codebase grows, full test suite output can consume thousands of lines, but only the final summary and any errors are actionable.
-
-**Pattern:**
+Always pipe through `tail -n 100` when running tests or linters:
 
 ```bash
-# ✅ Correct — truncate output
 pnpm --filter api test 2>&1 | tail -n 100
-pnpm --filter api test:cov 2>&1 | tail -n 100
-pnpm --filter api lint:check 2>&1 | tail -n 100
 pnpm --filter web test 2>&1 | tail -n 100
-
-# ❌ Wrong — full output floods context
-pnpm --filter api test
-pnpm --filter api lint:check
+pnpm --filter api lint:check 2>&1 | tail -n 100
 ```
 
-**Lint command variants:**
+Use `lint` to auto-fix, `lint:check` to report only. Do **not** truncate build commands.
 
-- `lint` — auto-fixes errors with `--fix` flag. Use during development to correct issues automatically.
-- `lint:check` — reports errors without modifying files. Use for verification, CI/CD, or when you want to see all issues before fixing.
+### 5. Strict TypeScript — avoid `any` and `unknown`
 
-**When to use truncation:**
+- Prefer `@ts-expect-error` over `as any` (self-documenting; TypeScript warns when the error disappears).
+- Narrow `unknown` immediately with type guards.
+- Create proper type definitions instead of using `any` for untyped libraries.
+- Use generic constraints (`T extends Record<string, unknown>`) instead of `any`.
 
-- Running test suites (`test`, `test:cov`, `test:e2e`)
-- Running linters (`lint`, `lint:check`)
-- Running type checks (`typecheck`)
-
-**When NOT to use:**
-
-- Build commands (need to see the full output for debugging)
-- Single file operations
-- Commands with expected short output (<50 lines)
-
-The final lines contain the test summary (passed/failed counts, coverage percentages) and any error messages or stack traces. Earlier output (individual test progress, file processing) is usually noise. If an error is truncated, the user will ask for the full output explicitly.
-
-### 5. Strict TypeScript typing — avoid `any` and `unknown`
-
-TypeScript's type system is a critical safety net. **Never use `any` or `unknown` unless absolutely necessary.** These types bypass type checking and should be treated as code smells.
-
-**When `any` or `unknown` might be acceptable:**
-
-- External library type definitions are missing or incorrect
-- Temporary workaround for version mismatches between dependencies (e.g., plugin type conflicts)
-- Interfacing with truly dynamic data where the shape cannot be known at compile time
-
-**Best practices when you must use loose types:**
-
-1. **Prefer `@ts-expect-error` over `as any`** — It documents that the issue is known and temporary, and TypeScript will warn you if the error disappears.
-
-   ```ts
-   // ✅ Correct — explicit, self-documenting, will warn when fixed
-   // @ts-expect-error - Vite version mismatch between vitest and @vitejs/plugin-react
-   plugins: [react()],
-
-   // ❌ Wrong — silences all type checking, hides the real problem
-   plugins: [react() as any],
-   ```
-
-2. **Narrow `unknown` immediately** — If you must use `unknown`, validate and narrow the type as soon as possible with type guards.
-
-   ```ts
-   // ✅ Correct — narrow unknown with type guard
-   function processData(data: unknown) {
-     if (typeof data === 'string') {
-       return data.toUpperCase();
-     }
-     throw new Error('Expected string');
-   }
-
-   // ❌ Wrong — casting without validation
-   function processData(data: unknown) {
-     return (data as string).toUpperCase();
-   }
-   ```
-
-3. **Create proper type definitions** — If a library is missing types, define them properly instead of using `any`.
-
-   ```ts
-   // ✅ Correct — define the interface
-   interface ExternalLibConfig {
-     apiKey: string;
-     timeout: number;
-   }
-   declare module 'external-lib' {
-     export function init(config: ExternalLibConfig): void;
-   }
-
-   // ❌ Wrong — escape hatch that defeats the type system
-   const externalLib: any = require('external-lib');
-   ```
-
-4. **Use generic constraints** — When writing generic functions, constrain the type parameter instead of accepting `any`.
-
-   ```ts
-   // ✅ Correct — constrained generic
-   function getValue<T extends Record<string, unknown>>(obj: T, key: keyof T): T[keyof T] {
-     return obj[key];
-   }
-
-   // ❌ Wrong — any defeats the purpose of generics
-   function getValue(obj: any, key: string): any {
-     return obj[key];
-   }
-   ```
-
-**In code reviews:**
-
-- Every use of `any` or `unknown` requires a comment explaining why it's necessary.
-- If a better-typed alternative exists, request changes.
-- Temporary workarounds with `@ts-expect-error` should reference a tracking issue or version number.
-
-### 7. Cloud Storage — always delete replaced or removed assets
-
-Media is stored as normalized `assets` records (see `documentation/architecture/database-design.md`). Entity tables hold a `UUID FK → assets.id`, never a raw URL. When an asset is replaced or removed:
-
-1. **After the DB transaction commits**, call `cloudStorage.deleteObject(oldAsset.target)` if `oldAsset.source === 'gcs'`.
-2. Then `DELETE FROM assets WHERE id = oldAsset.id`.
-3. For new GCS uploads with a public-intent prefix (`avatars/`, `group-covers/`), call `cloudStorage.makePublic(newObjectKey)` after the transaction.
-
-Step order matters: GCS delete happens after the DB commit to avoid rollback leaving a deleted object with a live DB record. If the GCS delete fails, the orphaned object will be caught by the storage audit job — surface the error but do not block the user.
-
-```ts
-// ✅ Correct — asset replacement pattern (see UsersService.updateAvatar)
-const oldAsset = user.avatar
-  ? await db.query.assets.findFirst({ where: eq(assets.id, user.avatar) })
-  : null;
-
-await db.transaction(async (trx) => {
-  const [newAsset] = await trx.insert(assets).values({ ... }).returning();
-  await trx.update(users).set({ avatar: newAsset.id }).where(eq(users.id, userId));
-});
-
-// After commit:
-if (dto.source === 'gcs' && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
-  await cloudStorage.makePublic(dto.target);
-}
-if (oldAsset?.source === 'gcs') {
-  await cloudStorage.deleteObject(oldAsset.target);
-}
-if (oldAsset) {
-  await db.delete(assets).where(eq(assets.id, oldAsset.id));
-}
-
-// ❌ Wrong — orphaned GCS object and stale assets record
-await db.update(users).set({ avatar: newAssetId }).where(eq(users.id, userId));
-```
-
-**Applies to:** user avatar, trip cover image, agency logo, and any future entity field that holds an `assets` FK. When implementing a new uploadable resource, always fetch the old asset before the transaction and clean it up after commit.
-
-### 8. Cloud Run deployment — invariants that must never be dropped
-
-When modifying `.github/workflows/api.yml`, `.github/workflows/web.yml`, or any `gcloud run deploy` command, the following flags are **required**. Omitting them silently reverts Cloud Run to defaults on every deploy.
-
-| Flag                      | Value  | Applies to | Why                                                    |
-| ------------------------- | ------ | ---------- | ------------------------------------------------------ |
-| `--execution-environment` | `gen2` | api, web   | Faster cold starts, better Unix socket support         |
-| `--no-use-http2`          | (flag) | api, web   | Required for NestJS WebSocket / SSE compatibility      |
-| `--memory`                | `1Gi`  | web        | Next.js SSR requires >256 Mi default; OOM without this |
-
-```bash
-# ✅ Must always be present in gcloud run deploy (api)
-gcloud run deploy chamuco-api \
-  --execution-environment=gen2 \
-  --no-use-http2 \
-  ...
-
-# ✅ Must always be present in gcloud run deploy (web)
-gcloud run deploy chamuco-web \
-  --execution-environment=gen2 \
-  --no-use-http2 \
-  --memory=1Gi \
-  ...
-```
-
-**Migrations run inside the container — never in GitHub Actions.**
-
-GitHub Actions has no access to Cloud SQL (private VPC only). Migrations are applied by `apps/api/scripts/startup.sh` at container start, before the NestJS process launches. Do not add a migration step to the CI/CD pipeline.
-
-```
-Container start:
-  startup.sh → get-iam-token.js → run-migrations.js → pnpm start:prod
-```
-
-If migrations fail, the container exits with code 1 and Cloud Run keeps the previous revision live.
-
-**IAM token for Cloud SQL must be fetched dynamically per connection.**
-
-Tokens expire after ~1 hour. Setting `PGPASSWORD` once at startup (via `startup.sh`) is only safe for `run-migrations.js`, which runs and exits immediately. The long-lived NestJS process (`drizzle.provider.ts`) must use an async `password` function that fetches a fresh token on every new pool connection.
-
-```ts
-// ✅ Correct — drizzle.provider.ts production path
-password: async () => {
-  const res = await fetch(
-    'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
-    { headers: { 'Metadata-Flavor': 'Google' } },
-  );
-  const data = (await res.json()) as { access_token: string };
-  return data.access_token;
-},
-
-// ❌ Wrong — token is stale after ~1 hour, new connections fail
-password: process.env.PGPASSWORD || '',
-```
-
-**Correct OAuth2 scope for Cloud SQL IAM database auth: `sqlservice.login`**
-
-`scripts/get-iam-token.js` (used by `startup.sh` for migrations) must request the token with the `sqlservice.login` scope. Using `sqlservice.admin` (instance management) or no scope restriction are both incorrect: the former restricts the token to admin operations, the latter returns a broad token unrelated to DB login.
-
-```js
-// ✅ Correct
-?scopes=https://www.googleapis.com/auth/sqlservice.login
-
-// ❌ Wrong — admin scope, not for DB authentication
-?scopes=https://www.googleapis.com/auth/sqlservice.admin
-```
+Every use of `any` or `unknown` requires a comment explaining why it's necessary.
 
 ### 6. pnpm catalog — shared devDependency versioning
 
-Shared `devDependencies` that appear in more than one package are versioned exactly once in the `catalog:` block of `pnpm-workspace.yaml`. Individual `package.json` files reference them with `"catalog:"` instead of a pinned version string.
+Shared `devDependencies` that appear in more than one package are versioned once in `pnpm-workspace.yaml`. Reference them with `"catalog:"` in individual `package.json` files — never add a duplicate pinned version.
 
-**Rule:** When adding a new `devDependency` that already exists in another package, or upgrading a shared tool, always update `pnpm-workspace.yaml` — never add a duplicate pinned version to an individual `package.json`.
+Currently cataloged: `@types/node`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `@vitest/coverage-v8`, `eslint`, `eslint-config-prettier`, `eslint-plugin-i18next`, `eslint-plugin-prettier`, `prettier`, `typescript`, `vitest`.
 
-Currently cataloged packages: `@types/node`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `@vitest/coverage-v8`, `eslint`, `eslint-config-prettier`, `eslint-plugin-i18next`, `eslint-plugin-prettier`, `prettier`, `typescript`, `vitest`.
+See `documentation/architecture/monorepo-structure.md` — "pnpm Catalog" section.
 
-See [`documentation/architecture/monorepo-structure.md`](documentation/architecture/monorepo-structure.md) — "pnpm Catalog" section for the full spec.
+### 7. Cloud Storage — always delete replaced or removed assets
+
+Assets are normalized records in the `assets` table. Entity tables hold a `UUID FK → assets.id`, never a raw URL. When replacing an asset:
+
+1. Fetch the old asset record **before** the transaction.
+2. Run the DB transaction (insert new asset, update entity FK).
+3. After commit: call `cloudStorage.makePublic(newKey)` if public-intent prefix (`avatars/`, `group-covers/`).
+4. After commit: call `cloudStorage.deleteObject(oldAsset.target)` then `DELETE FROM assets WHERE id = oldAsset.id`.
+
+GCS delete happens **after** commit — a failed GCS delete surfaces as an error but does not block the user (the storage audit job cleans up orphaned objects). See `UsersService.updateAvatar` as the reference implementation.
+
+Applies to: user avatar, trip cover, agency logo, and any future `assets` FK.
+
+### 8. Cloud Run deployment — required flags
+
+When modifying `.github/workflows/api.yml`, `.github/workflows/web.yml`, or any `gcloud run deploy` command, these flags are **required**:
+
+| Flag                      | Value  | Applies to | Why                                     |
+| ------------------------- | ------ | ---------- | --------------------------------------- |
+| `--execution-environment` | `gen2` | api, web   | Faster cold starts, Unix socket support |
+| `--no-use-http2`          | (flag) | api, web   | NestJS WebSocket / SSE compatibility    |
+| `--memory`                | `1Gi`  | web only   | Next.js SSR OOMs on the 256 Mi default  |
+
+**Migrations run inside the container, never in GitHub Actions.** GitHub Actions has no VPC access to Cloud SQL. `startup.sh` runs migrations before `pnpm start:prod`. Sequence: `startup.sh → get-iam-token.js → run-migrations.js → pnpm start:prod`.
+
+**IAM token must be fetched dynamically per connection** in `drizzle.provider.ts` — tokens expire after ~1 hour. Only `startup.sh` (which runs and exits immediately) may use a static `PGPASSWORD`.
+
+**Cloud SQL IAM auth scope:** always use `sqlservice.login`, not `sqlservice.admin`.
 
 ---
 
-### Package-specific standing rules
-
-Additional standing rules that apply only within a specific package are kept close to the code they govern:
-
-- `apps/api/CLAUDE.md` — OpenAPI decorator requirements, Drizzle migration file generation
-- `apps/web/CLAUDE.md` — Frontend env variable sync, i18n key validation
-
----
-
-## Open Decisions (Still Pending)
+## Open Decisions
 
 All major technical and architectural decisions have been resolved. No open items remain at this time.
 
@@ -530,63 +266,26 @@ All major technical and architectural decisions have been resolved. No open item
 
 ## Project Tracking
 
-Work is tracked in a **GitHub Projects v2** kanban board:
+Work is tracked in a **GitHub Projects v2** kanban board at <https://github.com/users/manuelnt11/projects/4> (project number 4, owner `manuelnt11`).
 
-| Field          | Value                                          |
-| -------------- | ---------------------------------------------- |
-| URL            | https://github.com/users/manuelnt11/projects/4 |
-| Project number | 4                                              |
-| Owner          | `manuelnt11`                                   |
+| Field    | Options                                                             |
+| -------- | ------------------------------------------------------------------- |
+| Status   | Backlog, In Progress, In Review, Done                               |
+| Area     | Backend, Frontend, Infrastructure, Database, Documentation, Testing |
+| Priority | High, Medium, Low                                                   |
+| Size     | XS, S, M, L, XL                                                     |
 
-### Fields
-
-| Field    | Type          | Options                                                             |
-| -------- | ------------- | ------------------------------------------------------------------- |
-| Status   | Single select | Backlog, In Progress, In Review, Done                               |
-| Area     | Single select | Backend, Frontend, Infrastructure, Database, Documentation, Testing |
-| Priority | Single select | High, Medium, Low                                                   |
-| Size     | Single select | XS, S, M, L, XL                                                     |
-
-### Epics
-
-Epics are represented as **GitHub Issues with sub-issues**. GitHub's native parent-child issue relationship is used — no custom field or label is required.
-
-**Conventions:**
-
-- An epic is a regular issue with the label `epic` and a title that names the feature or initiative (e.g., `Epic: Trip entity — MVP`).
-- Child issues (tasks) are linked to the epic using GitHub's **Add sub-issue** button on the parent issue page.
-- Every sub-issue should also be added to the project board and assigned the appropriate Status, Area, Priority, and Size fields.
-- An epic is considered done when all its sub-issues are in `Done` status. The epic issue itself is closed at that point.
-- Epics are not assigned a Size field — sizing applies to individual sub-issues only.
-
-**CLI reference (epics):**
+**Epics** — GitHub Issues with label `epic`. Sub-issues linked via GitHub's native parent-child relationship. An epic is closed when all sub-issues reach Done. Epics are not assigned a Size field.
 
 ```bash
-# Create an epic issue in the repo
+# Create epic
 gh issue create --title "Epic: <name>" --label "epic" --body "<description>"
 
-# List open epics
+# List epics
 gh issue list --label epic
 
-# Add a sub-issue (requires the sub-issue feature; use the GitHub UI or API)
-gh api graphql -f query='
-  mutation {
-    addSubIssue(input: { issueId: "<parent_node_id>", subIssueId: "<child_node_id>" }) {
-      issue { title }
-    }
-  }
-'
-```
-
-### CLI reference
-
-```bash
-# List all items
+# Project board
 gh project item-list 4 --owner manuelnt11
-
-# Create a new item (draft issue)
 gh project item-create 4 --owner manuelnt11 --title "Title here"
-
-# View project fields
 gh project field-list 4 --owner manuelnt11
 ```

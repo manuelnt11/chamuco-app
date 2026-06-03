@@ -2,6 +2,11 @@
 
 This file extends the root `CLAUDE.md` with rules specific to the `apps/api` NestJS package. Read the root `CLAUDE.md` first.
 
+**Sub-package instructions** — read the relevant file when working in these directories:
+
+- `src/database/CLAUDE.md` — Schema, migration workflow, Drizzle client, seeds, Drizzle Studio
+- `src/i18n/CLAUDE.md` — Backend i18n: translation files, key conventions, interpolation syntax
+
 ---
 
 ## Standing Rules

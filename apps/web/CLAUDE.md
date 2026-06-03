@@ -21,10 +21,8 @@ This file extends the root `CLAUDE.md` with rules specific to the `apps/web` Nex
 
 1. **When to use the default namespace (`common`):**
    - Shared UI elements across the entire app (navigation, actions, status messages)
-   - Generic validation messages
-   - Time/date formatting
-   - Home page content
-   - Offline page content
+   - Generic validation messages, time/date formatting
+   - Home page and offline page content
 
    ```tsx
    // ✅ Correct - uses default 'common' namespace
@@ -32,68 +30,46 @@ This file extends the root `CLAUDE.md` with rules specific to the `apps/web` Nex
 
    <h1>{t('home.title')}</h1>              // resolves to common.home.title
    <button>{t('actions.save')}</button>    // resolves to common.actions.save
-   <span>{t('navigation.trips')}</span>    // resolves to common.navigation.trips
    ```
 
 2. **When to use specific namespaces:**
-   - Feature-specific pages should use their own namespace
-   - Each major section (trips, groups, profile, etc.) has its own namespace
-   - Auth flows use the `auth` namespace
-   - Error messages use the `errors` namespace
+   - Feature-specific pages use their own namespace
+   - Auth flows use `auth`, error messages use `errors`
 
    ```tsx
    // ✅ Correct - trips page uses 'trips' namespace
    const { t } = useTranslation('trips');
 
-   <h1>{t('title')}</h1>           // resolves to trips.title
-   <p>{t('myTrips')}</p>           // resolves to trips.myTrips
+   <h1>{t('title')}</h1>            // resolves to trips.title
    <span>{t('status.draft')}</span> // resolves to trips.status.draft
-   ```
-
-   ```tsx
-   // ✅ Correct - groups page uses 'groups' namespace
-   const { t } = useTranslation('groups');
-
-   <h1>{t('title')}</h1>      // resolves to groups.title
-   <p>{t('myGroups')}</p>     // resolves to groups.myGroups
    ```
 
 3. **What NOT to do:**
 
    ```tsx
-   // ❌ WRONG - using fully qualified keys when a namespace is available
-   const { t } = useTranslation();
-   <h1>{t('trips.title')}</h1>  // This will look in common.trips.title (doesn't exist!)
-
-   // ❌ WRONG - using fully qualified keys with specific namespace
+   // ❌ WRONG - fully qualified key when namespace is set
    const { t } = useTranslation('trips');
-   <h1>{t('trips.title')}</h1>  // This will look in trips.trips.title (doesn't exist!)
+   <h1>{t('trips.title')}</h1>  // looks in trips.trips.title (doesn't exist!)
 
    // ❌ WRONG - hardcoded strings
-   <h1>Trips</h1>  // Fails eslint-plugin-i18next check
+   <h1>Trips</h1>  // fails eslint-plugin-i18next check
    ```
 
 4. **Cross-namespace references:**
-
-   If you need to reference keys from a different namespace within a component:
 
    ```tsx
    // ✅ Correct - access multiple namespaces
    const { t } = useTranslation(['trips', 'common']);
 
-   <h1>{t('title')}</h1>                    // from trips namespace
-   <button>{t('common:actions.save')}</button>  // explicitly from common namespace
+   <h1>{t('title')}</h1>                        // from trips namespace
+   <button>{t('common:actions.save')}</button>  // explicitly from common
    ```
 
-5. **Validation:**
-
-   Always run the i18n validation script after modifying translation keys:
+5. **Validation** — always run after modifying translation keys:
 
    ```bash
    ./scripts/validate-i18n-keys.sh
    ```
-
-   The script automatically detects the namespace from `useTranslation('namespace')` calls and validates that all keys exist in the corresponding JSON files.
 
 **File Organization Pattern:**
 
@@ -111,24 +87,11 @@ apps/web/src/
 ├── components/
 │   ├── navigation/               → useTranslation() = 'common'
 │   ├── header/                   → useTranslation() = 'common'
-│   ├── layout/                   → useTranslation() = 'common'
 │   └── feedback/                 → useTranslation('feedback')
 └── locales/
-    ├── en/
-    │   ├── auth.json             → auth namespace
-    │   ├── common.json           → common namespace (default)
-    │   ├── errors.json           → errors namespace
-    │   ├── explore.json          → explore namespace
-    │   ├── feedback.json         → feedback namespace
-    │   ├── groups.json           → groups namespace
-    │   ├── legal.json            → legal namespace
-    │   ├── profile.json          → profile namespace
-    │   └── trips.json            → trips namespace
-    └── es/
-        └── ...                   → mirrors en/ structure exactly
+    ├── en/{namespace}.json
+    └── es/{namespace}.json       → mirrors en/ structure exactly
 ```
-
-**Key takeaway:** Match the `useTranslation()` namespace to the feature you're working in, and use keys relative to that namespace. The validation script enforces this convention.
 
 ---
 
@@ -136,7 +99,7 @@ apps/web/src/
 
 ### 1. Frontend environment variables — three files must always stay in sync
 
-All frontend environment variables are validated at startup by `apps/web/src/config/env.ts`. Adding a new `NEXT_PUBLIC_` variable requires updating **three files together** — missing any one of them will cause either a runtime crash or a failing test:
+All frontend environment variables are validated at startup by `apps/web/src/config/env.ts`. Adding a new `NEXT_PUBLIC_` variable requires updating **three files together** — missing any one causes a runtime crash or failing test:
 
 | File                                   | What to do                                                                                                                                       |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -144,7 +107,7 @@ All frontend environment variables are validated at startup by `apps/web/src/con
 | `apps/web/src/config/env.ts`           | Add `KEY: process.env.KEY` to the `raw` object (literal access is required — Next.js does not replace `process.env[variable]` in client bundles) |
 | `apps/web/src/config/env.test.ts`      | Add the key to `setAllEnv()` and `clearAllEnv()`, and update the `toEqual` assertion in "returns all env vars when all are set"                  |
 
-Also update `.env.example` with the new key (empty value) so other developers know to set it.
+Also update `.env.example` with the new key (empty value).
 
 **Current required variables:**
 
@@ -161,13 +124,7 @@ Also update `.env.example` with the new key (empty value) so other developers kn
 
 ### 2. Validate i18n keys when modifying translations
 
-When any of the following changes are made to the frontend codebase:
-
-- Adding or modifying `t('key')` calls in components
-- Adding, removing, or modifying keys in translation files (`locales/en/{namespace}.json`, `locales/es/{namespace}.json`)
-- Refactoring components that use i18n
-
-**You must run the i18n validation script:**
+When adding/modifying `t('key')` calls or editing translation files, run:
 
 ```bash
 ./scripts/validate-i18n-keys.sh
@@ -175,37 +132,22 @@ When any of the following changes are made to the frontend codebase:
 
 **The script validates:**
 
-1. **Missing keys** — Keys used in code (`t('key')`) but not defined in the corresponding `locales/en/{namespace}.json`
-2. **Translation parity** — Keys in `locales/en/` that don't exist in `locales/es/`
-3. **Unused keys** — Keys defined in translation files but not referenced in code
+1. **Missing keys** — keys used in code but not in `locales/en/{namespace}.json`
+2. **Translation parity** — keys in `en/` that don't exist in `es/`
+3. **Unused keys** — keys in translation files not referenced in code
 
-**Script limitations — known blind spots:**
-
-The script uses regex, not AST analysis. It will NOT detect keys used via:
-
-- **Template literals**: ``t(`namespace.${variable}`)`` — the script whitelists all keys under the static prefix (e.g. ``t(`members.role.${role}`)`` covers all `groups.members.role.*` keys). This means truly unused keys under a shared prefix will not be reported as orphaned.
-- Dynamic key construction via variables: `const key = condition ? 'a' : 'b'; t(key)` — never detected.
-
-When reviewing unused keys, keep this in mind: a key reported as "unused" is genuinely unused. A key **not** reported as unused may still be dead if it lives under a template-literal prefix.
-
-**Key conventions:**
-
-- The default namespace is `common` (configured in `apps/web/src/lib/i18n/config.ts`)
-- When using `t('home.title')`, it resolves to `common.home.title` in the JSON
-- For other namespaces, use explicit prefixes: `t('auth.signIn')`, `t('trips.title')`, `t('groups.members')`
-- Never use hardcoded strings in user-facing components — use i18n keys instead
-- Brand name "Chamuco" and proper nouns can have `eslint-disable-next-line i18next/no-literal-string` comments
+**Script limitations:** uses regex, not AST. Template literals (``t(`namespace.${variable}`)``) and dynamic key construction are not fully analyzed — the script whitelists all keys under the static prefix.
 
 **Fix workflow:**
 
-- If keys are missing, add them to the appropriate `locales/en/{namespace}.json`
-- If keys are missing in `es`, translate and add them to `locales/es/{namespace}.json` (maintain parity)
-- If unused keys are reported, classify them before acting:
-  - **Pre-planned keys** (auth flows, trips page, groups features not yet built) — keep them; they are intentionally defined ahead of implementation
-  - **Dead keys** (key exists in JSON, but code uses a different key, or the feature was removed) — delete from both `locales/en/{namespace}.json` and `locales/es/{namespace}.json`
-  - **~100 pre-planned keys** currently exist across `auth`, `common.actions`, `common.status`, `common.time`, `common.validation`, `errors`, `explore`, `groups`, `profile`, and `trips` namespaces — this is expected and not a problem
+- Missing keys → add to `locales/en/{namespace}.json`
+- Missing in `es` → translate and add to `locales/es/{namespace}.json`
+- Unused keys — classify first:
+  - **Pre-planned** (not yet built) → keep
+  - **Dead** (code uses different key, or feature removed) → delete from both `en` and `es`
+  - ~100 pre-planned keys currently exist across namespaces — expected, not a problem
 
-**The script exits with code 1 if any keys are missing**, blocking commits via pre-commit hooks if integrated. All i18n keys must be valid before merging.
+The script exits with code 1 if any keys are missing, blocking commits.
 
 ### 3. File uploads — use FileUploadButton + useFileUpload
 
@@ -213,10 +155,10 @@ All user-generated media uploads use the signed URL infrastructure. Never upload
 
 **Key files:**
 
-- `src/components/ui/file-upload-button.tsx` — drop-in trigger button with progress bar, error display, and retry
+- `src/components/ui/file-upload-button.tsx` — drop-in button with progress, error, retry
 - `src/hooks/useFileUpload.ts` — fetches signed URL, drives XHR upload, exposes `upload`, `progress`, `isUploading`, `error`, `reset`
 - `src/services/gcs-upload.ts` — low-level XHR PUT with progress events and 5-minute abort timeout
-- `UploadType` enum imported from `@chamuco/shared-types` (re-exported by both `useFileUpload` and `file-upload-button`)
+- `UploadType` enum imported from `@chamuco/shared-types`
 
 **Usage:**
 
@@ -233,58 +175,16 @@ import { FileUploadButton, UploadType } from '@/components/ui/file-upload-button
 
 **Error handling contract:**
 
-- `useFileUpload` logs the raw error to `console.error('[useFileUpload]', message)` and sets `error` state with the technical message.
-- `FileUploadButton` always shows the localized `t('upload.errorDefault')` string — never exposes the raw error to the user.
-- Callers receive the original `Error` object via `onError` for upstream handling.
+- `useFileUpload` logs raw error to `console.error('[useFileUpload]', message)` and sets `error` state.
+- `FileUploadButton` always shows `t('upload.errorDefault')` — never exposes the raw error to the user.
+- Callers receive the original `Error` via `onError` for upstream handling.
 
 **i18n keys** (all in `common` namespace under `upload.*`):
-
-- `upload.chooseFile` — default button label
-- `upload.uploading` — label while upload is in progress
-- `upload.retry` — retry button label
-- `upload.errorDefault` — user-facing error message
-- `upload.progressLabel` — ARIA label for the progress bar (`Upload progress: {{progress}}%`)
-
-### 6. Never display raw user IDs — always use @username
-
-Any user-facing string that references who performed an action must display `@username` (formatted as `@${user.createdByUsername}` or `@${member.username}`), never a raw UUID. Backend response DTOs must expose `username` fields, not `id` fields, for display purposes.
-
-```tsx
-// ✅ Correct
-t('announcementsPostedBy', { name: `@${a.createdByUsername}` });
-
-// ❌ Wrong — UUID is meaningless to users
-t('announcementsPostedBy', { name: a.createdBy });
-```
-
-If an API response returns only a user ID where a username is needed, that is a backend bug — fix the DTO to include `username` rather than working around it on the frontend.
-
-### 5. React imports — always use named imports
-
-Next.js uses the automatic JSX transform. **Never use `import React from 'react'` or `import * as React from 'react'`** — neither is needed for JSX and both pull in the entire module as a namespace.
-
-**Rules:**
-
-- Import only the specific APIs you need: `useState`, `useRef`, `type ComponentProps`, etc.
-- Use `import type` (or the `type` modifier per-import) for type-only imports.
-- Never reference `React.X` — always destructure the name you need.
-
-```tsx
-// ✅ Correct
-import { useState, type ComponentProps, type ReactNode } from 'react';
-import { type ComponentPropsWithoutRef } from 'react';
-
-// ❌ Wrong — never use these patterns
-import React from 'react';
-import * as React from 'react';
-// and never use React.useState, React.ComponentProps, React.ReactNode, etc.
-```
-
-**Exception:** `React.createElement` must be replaced with the named `createElement` import.
+`upload.chooseFile`, `upload.uploading`, `upload.retry`, `upload.errorDefault`, `upload.progressLabel`
 
 ### 4. React event types — use the React 19 replacements, not FormEvent
 
-`FormEvent` and `FormEventHandler` are **deprecated** in React 19 (`@deprecated FormEvent doesn't actually exist`). Use the specific React event types instead.
+`FormEvent` and `FormEventHandler` are **deprecated** in React 19. Use the specific React event types:
 
 | Deprecated                          | Replacement                           |
 | ----------------------------------- | ------------------------------------- |
@@ -295,25 +195,58 @@ import * as React from 'react';
 // ✅ Correct — React 19 SubmitEvent
 import { type SubmitEvent } from 'react';
 async function handleSave(e: SubmitEvent<HTMLFormElement>) { e.preventDefault(); }
-onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
 
 // ❌ Wrong — FormEvent is deprecated in React 19
 import { type FormEvent } from 'react';
 async function handleSave(e: FormEvent<HTMLFormElement>) { ... }
 ```
 
-React's `SubmitEvent<T>` extends `SyntheticEvent<T, NativeSubmitEvent>` and is what `onSubmit` prop now expects (`SubmitEventHandler<T>`). Import from `'react'`, not from `lib.dom.d.ts`.
+Import from `'react'`, not from `lib.dom.d.ts`.
+
+### 5. React imports — always use named imports
+
+Next.js uses the automatic JSX transform. **Never use `import React from 'react'` or `import * as React from 'react'`**.
+
+- Import only the specific APIs you need: `useState`, `useRef`, `type ComponentProps`, etc.
+- Use `import type` (or the `type` modifier per-import) for type-only imports.
+- Never reference `React.X` — always destructure.
+
+```tsx
+// ✅ Correct
+import { useState, type ComponentProps, type ReactNode } from 'react';
+
+// ❌ Wrong — never use these
+import React from 'react';
+import * as React from 'react';
+// and never use React.useState, React.ComponentProps, etc.
+```
+
+**Exception:** `React.createElement` → use the named `createElement` import.
+
+### 6. Never display raw user IDs — always use @username
+
+Any user-facing string that references who performed an action must display `@username`, never a raw UUID.
+
+```tsx
+// ✅ Correct
+t('announcementsPostedBy', { name: `@${a.createdByUsername}` });
+
+// ❌ Wrong — UUID is meaningless to users
+t('announcementsPostedBy', { name: a.createdBy });
+```
+
+If an API response returns only a user ID where a username is needed, that is a backend bug — fix the DTO to include `username`.
 
 ### 7. Iconic UI — prefer icons over text labels for actions
 
-Action buttons that have a clear icon equivalent should use an icon-only button with the text as a `title` tooltip and `aria-label`. Avoid redundant text labels when context already makes the action clear.
+Action buttons with a clear icon equivalent should use icon-only with a `title` tooltip and `aria-label`. Avoid redundant text labels when context makes the action clear.
 
 **Rules:**
 
-- Use `title={t('...')}` + `aria-label={t('...')}` on icon buttons so the text is accessible and visible on hover.
-- Add `aria-hidden="true"` to the icon element itself.
+- `title={t('...')}` + `aria-label={t('...')}` on icon buttons.
+- `aria-hidden="true"` on the icon element itself.
 - Use `p-2` padding (square) instead of `px-3 py-1.5` (wide) for icon-only buttons.
-- The translated string still lives in the i18n JSON — never hardcode the tooltip text.
+- Tooltip text still lives in i18n JSON — never hardcode.
 
 ```tsx
 // ✅ Correct — icon button with tooltip

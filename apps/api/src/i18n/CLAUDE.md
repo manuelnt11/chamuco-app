@@ -181,7 +181,7 @@ When adding new translation keys:
 1. **Add to both `en.json` and `es.json`** - Keys must exist in both files
 2. **Use the correct namespace** - Place keys in the appropriate domain section
 3. **Follow naming conventions** - Use camelCase, English keys, descriptive names
-4. **Test interpolation** - If using `{{variables}}`, verify they work in both languages
+4. **Test interpolation** - If using `{variables}` (single braces), verify they work in both languages
 5. **Update tests** - Add test cases for new keys if they're in critical paths
 
 ## Cross-Stack Consistency
