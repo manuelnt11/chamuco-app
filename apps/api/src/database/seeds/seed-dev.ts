@@ -133,7 +133,7 @@ async function seedDev(): Promise<void> {
       .values(
         AVATAR_ASSET_IDS.map((id) => ({
           id,
-          type: 'text' as const,
+          type: 'image' as const,
           source: 'emoji' as const,
           target: '🤖',
           isPublic: true,
@@ -148,7 +148,7 @@ async function seedDev(): Promise<void> {
       .values(
         COVER_ASSET_IDS.map((id) => ({
           id,
-          type: 'text' as const,
+          type: 'image' as const,
           source: 'emoji' as const,
           target: '🤖',
           isPublic: true,
