@@ -110,27 +110,29 @@ describe('LoyaltyProgramsSection', () => {
 
     it('renders Add program button', () => {
       setup();
-      expect(screen.getByRole('button', { name: 'loyaltyPrograms.add' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'common:actions.create' })).toBeInTheDocument();
     });
   });
 
   describe('adding a program', () => {
     it('shows add form when Add button is clicked', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('loyaltyPrograms.programName')).toBeInTheDocument();
       expect(screen.getByLabelText('loyaltyPrograms.memberId')).toBeInTheDocument();
     });
 
     it('hides Add button while add form is open', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
-      expect(screen.queryByRole('button', { name: 'loyaltyPrograms.add' })).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
+      expect(
+        screen.queryByRole('button', { name: 'common:actions.create' }),
+      ).not.toBeInTheDocument();
     });
 
     it('calls POST /users/me/loyalty-programs with form values on submit', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), 'Avianca');
       await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
@@ -146,7 +148,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('calls onRefresh after adding', async () => {
       const { user, onRefresh } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), 'Avianca');
       await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
@@ -155,7 +157,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('shows success toast on add', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), 'Avianca');
       await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
@@ -166,7 +168,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('hides add form after successful add', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), 'Avianca');
       await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
@@ -177,7 +179,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('cancels add form when Cancel is clicked', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.cancel' }));
       expect(screen.queryByLabelText('loyaltyPrograms.programName')).not.toBeInTheDocument();
     });
@@ -185,7 +187,7 @@ describe('LoyaltyProgramsSection', () => {
     it('shows error toast when add fails', async () => {
       mocks.mockPost.mockRejectedValue(new Error('network error'));
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), 'Avianca');
       await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
@@ -196,7 +198,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('includes notes in POST payload when notes are entered', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), 'Avianca');
       await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
       await user.type(screen.getByLabelText('loyaltyPrograms.notes'), 'Silver tier');
@@ -338,7 +340,7 @@ describe('LoyaltyProgramsSection', () => {
   describe('input constraints', () => {
     it('sets maxLength 100 on programName input in add form', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
         'maxLength',
         '100',
@@ -347,7 +349,7 @@ describe('LoyaltyProgramsSection', () => {
 
     it('sets maxLength 100 on memberId input in add form', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('loyaltyPrograms.memberId')).toHaveAttribute('maxLength', '100');
     });
 

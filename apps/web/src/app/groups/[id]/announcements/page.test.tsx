@@ -59,6 +59,7 @@ vi.mock('@/hooks/useUser', () => ({
 vi.mock('@phosphor-icons/react', () => ({
   ArrowLeftIcon: () => <span data-testid="arrow-left-icon" />,
   MegaphoneIcon: () => <span data-testid="megaphone-icon" />,
+  PlusIcon: () => <span data-testid="plus-icon" />,
 }));
 
 vi.mock('@/components/ui/announcement-card', () => ({
@@ -196,7 +197,7 @@ describe('GroupAnnouncementsPage', () => {
     render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
 
     await waitFor(() => {
-      const link = screen.getByRole('link', { name: 'announcementsNewButton' });
+      const link = screen.getByRole('link', { name: 'announcementsSubmit' });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute('href', '/groups/group-id/announcements/new');
     });
@@ -207,9 +208,7 @@ describe('GroupAnnouncementsPage', () => {
     render(<GroupAnnouncementsPage params={Promise.resolve({ id: 'group-id' })} />);
 
     await waitFor(() => {
-      expect(
-        screen.queryByRole('link', { name: 'announcementsNewButton' }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'announcementsSubmit' })).not.toBeInTheDocument();
     });
   });
 

@@ -4,7 +4,7 @@ import { useState, type SubmitEvent } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getCountryDataList, getEmojiFlag, type TCountryCode } from 'countries-list';
-import { CaretDownIcon, GlobeIcon, IdentificationCardIcon } from '@phosphor-icons/react';
+import { CaretDownIcon, GlobeIcon, IdentificationCardIcon, PlusIcon } from '@phosphor-icons/react';
 import { PassportStatus } from '@chamuco/shared-types';
 import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 
@@ -251,7 +251,7 @@ interface NationalitiesSectionProps {
 }
 
 export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionProps) {
-  const { t } = useTranslation('profile');
+  const { t } = useTranslation(['profile', 'common']);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedNatId, setExpandedNatId] = useState<string | null>(null);
@@ -441,7 +441,21 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
 
   return (
     <div className="max-w-lg space-y-6">
-      <h2 className="text-xl font-semibold">{t('nationalities.heading')}</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">{t('nationalities.heading')}</h2>
+        {!isAdding && (
+          <Button
+            type="button"
+            size="icon"
+            onClick={startAdd}
+            disabled={isSaving}
+            title={t('common:actions.create')}
+            aria-label={t('common:actions.create')}
+          >
+            <PlusIcon aria-hidden="true" />
+          </Button>
+        )}
+      </div>
 
       {data.length === 0 && !isAdding && (
         <p className="text-sm text-muted-foreground">{t('nationalities.empty')}</p>
@@ -554,12 +568,6 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
           onCancel={cancelAdd}
           saveLabel={t('nationalities.save')}
         />
-      )}
-
-      {!isAdding && (
-        <Button type="button" variant="outline" onClick={startAdd} disabled={isSaving}>
-          {t('nationalities.add')}
-        </Button>
       )}
     </div>
   );

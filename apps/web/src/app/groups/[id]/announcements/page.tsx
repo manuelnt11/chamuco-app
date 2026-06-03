@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { GroupRole } from '@chamuco/shared-types';
-import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon, MegaphoneIcon, PlusIcon } from '@phosphor-icons/react';
 
 import { apiClient } from '@/services/api-client';
 import { useAuth } from '@/hooks/useAuth';
@@ -103,9 +103,11 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
         {isAdmin && (
           <Link
             href={`/groups/${id}/announcements/new`}
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-lg bg-primary p-2 text-primary-foreground transition-colors hover:bg-primary/90"
+            title={t('announcementsSubmit')}
+            aria-label={t('announcementsSubmit')}
           >
-            {t('announcementsNewButton')}
+            <PlusIcon className="size-5" aria-hidden="true" />
           </Link>
         )}
       </div>

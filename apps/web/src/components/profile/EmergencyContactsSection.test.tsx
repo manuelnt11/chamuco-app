@@ -144,29 +144,29 @@ describe('EmergencyContactsSection', () => {
 
     it('renders Add contact button', () => {
       setup();
-      expect(screen.getByRole('button', { name: 'emergencyContacts.add' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'common:actions.create' })).toBeInTheDocument();
     });
   });
 
   describe('adding a contact', () => {
     it('shows add form when Add button is clicked', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('emergencyContacts.fullName')).toBeInTheDocument();
       expect(screen.getByLabelText('emergencyContacts.relationship')).toBeInTheDocument();
     });
 
     it('hides Add button while add form is open', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(
-        screen.queryByRole('button', { name: 'emergencyContacts.add' }),
+        screen.queryByRole('button', { name: 'common:actions.create' }),
       ).not.toBeInTheDocument();
     });
 
     it('calls POST /users/me/emergency-contacts with form values on submit', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
@@ -185,7 +185,7 @@ describe('EmergencyContactsSection', () => {
 
     it('strips internal spaces from phone number before POST', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '300 987 6543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
@@ -204,13 +204,13 @@ describe('EmergencyContactsSection', () => {
 
     it('defaults isPrimary to true when list is empty', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByRole('checkbox', { name: 'emergencyContacts.isPrimary' })).toBeChecked();
     });
 
     it('defaults isPrimary to false when list is non-empty', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(
         screen.getByRole('checkbox', { name: 'emergencyContacts.isPrimary' }),
       ).not.toBeChecked();
@@ -218,7 +218,7 @@ describe('EmergencyContactsSection', () => {
 
     it('calls onRefresh after adding', async () => {
       const { user, onRefresh } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
@@ -228,7 +228,7 @@ describe('EmergencyContactsSection', () => {
 
     it('shows success toast on add', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
@@ -240,7 +240,7 @@ describe('EmergencyContactsSection', () => {
 
     it('hides add form after successful add', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
@@ -252,7 +252,7 @@ describe('EmergencyContactsSection', () => {
 
     it('cancels add form when Cancel is clicked', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.cancel' }));
       expect(screen.queryByLabelText('emergencyContacts.fullName')).not.toBeInTheDocument();
     });
@@ -260,7 +260,7 @@ describe('EmergencyContactsSection', () => {
     it('shows error toast when add fails', async () => {
       mocks.mockPost.mockRejectedValue(new Error('network error'));
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
@@ -274,7 +274,7 @@ describe('EmergencyContactsSection', () => {
   describe('form validation', () => {
     it('shows fullName error when name is empty', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
@@ -284,7 +284,7 @@ describe('EmergencyContactsSection', () => {
 
     it('shows relationship error when relationship is empty', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
@@ -294,7 +294,7 @@ describe('EmergencyContactsSection', () => {
 
     it('shows phone required error when phone is empty', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
@@ -305,7 +305,7 @@ describe('EmergencyContactsSection', () => {
     it('shows invalid phone error when phone fails validation', async () => {
       mocks.mockIsValidPhoneNumber.mockReturnValue(false);
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '123');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
@@ -316,7 +316,7 @@ describe('EmergencyContactsSection', () => {
 
     it('shows fullNameInvalid error when name contains special characters', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana123!');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
@@ -327,7 +327,7 @@ describe('EmergencyContactsSection', () => {
 
     it('shows relationshipInvalid error when relationship contains special characters', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sis@ter!');
@@ -338,7 +338,7 @@ describe('EmergencyContactsSection', () => {
 
     it('shows relationshipRequired error when relationship is one character', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'A');
@@ -349,7 +349,7 @@ describe('EmergencyContactsSection', () => {
 
     it('accepts accented characters in fullName and relationship', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'María José');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Hermana');
@@ -535,7 +535,7 @@ describe('EmergencyContactsSection', () => {
   describe('input constraints', () => {
     it('sets maxLength 100 on fullName input in add form', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('emergencyContacts.fullName')).toHaveAttribute(
         'maxLength',
         '100',
@@ -544,7 +544,7 @@ describe('EmergencyContactsSection', () => {
 
     it('sets maxLength 50 on relationship input in add form', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('emergencyContacts.relationship')).toHaveAttribute(
         'maxLength',
         '50',
@@ -575,7 +575,7 @@ describe('EmergencyContactsSection', () => {
   describe('isPrimary toggle', () => {
     it('sends isPrimary: true when checkbox is checked on add', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'emergencyContacts.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Carlos Pérez');
       await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Father');

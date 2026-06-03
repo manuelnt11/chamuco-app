@@ -189,26 +189,28 @@ describe('NationalitiesSection', () => {
 
     it('renders Add button', () => {
       setup();
-      expect(screen.getByRole('button', { name: 'nationalities.add' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'common:actions.create' })).toBeInTheDocument();
     });
   });
 
   describe('adding a nationality', () => {
     it('shows add form when Add button is clicked', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('nationalities.nationalIdNumber')).toBeInTheDocument();
     });
 
     it('hides Add button while add form is open', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
-      expect(screen.queryByRole('button', { name: 'nationalities.add' })).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
+      expect(
+        screen.queryByRole('button', { name: 'common:actions.create' }),
+      ).not.toBeInTheDocument();
     });
 
     it('calls POST with correct payload on submit', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), '9876543210');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -226,7 +228,7 @@ describe('NationalitiesSection', () => {
 
     it('calls POST with passport fields when all three provided', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456');
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
@@ -246,14 +248,14 @@ describe('NationalitiesSection', () => {
 
     it('auto-fills expiry date to issue date + 10 years when expiry is empty', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
       expect(screen.getByLabelText('nationalities.passportExpiryDate')).toHaveValue('2030-01-15');
     });
 
     it('does not overwrite expiry date when already set', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2025-06-01');
       await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
       expect(screen.getByLabelText('nationalities.passportExpiryDate')).toHaveValue('2025-06-01');
@@ -261,13 +263,13 @@ describe('NationalitiesSection', () => {
 
     it('defaults isPrimary to true when list is empty', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' })).toBeChecked();
     });
 
     it('defaults isPrimary to false when list is non-empty', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(
         screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }),
       ).not.toBeChecked();
@@ -275,7 +277,7 @@ describe('NationalitiesSection', () => {
 
     it('calls onRefresh after adding', async () => {
       const { user, onRefresh } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
@@ -283,7 +285,7 @@ describe('NationalitiesSection', () => {
 
     it('shows success toast on add', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
@@ -293,7 +295,7 @@ describe('NationalitiesSection', () => {
 
     it('hides add form after successful add', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
@@ -303,7 +305,7 @@ describe('NationalitiesSection', () => {
 
     it('cancels add form when Cancel is clicked', async () => {
       const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.cancel' }));
       expect(screen.queryByLabelText('nationalities.nationalIdNumber')).not.toBeInTheDocument();
     });
@@ -311,7 +313,7 @@ describe('NationalitiesSection', () => {
     it('shows error toast when add fails', async () => {
       mocks.mockPost.mockRejectedValue(new Error('network error'));
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
@@ -323,7 +325,7 @@ describe('NationalitiesSection', () => {
   describe('form validation', () => {
     it('shows nationalIdFormat error when national ID has spaces', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'AB 123');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -333,14 +335,14 @@ describe('NationalitiesSection', () => {
 
     it('auto-uppercases national ID input', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'ab-123');
       expect(screen.getByLabelText('nationalities.nationalIdNumber')).toHaveValue('AB-123');
     });
 
     it('accepts national ID with hyphens', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'AB-123');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -349,7 +351,7 @@ describe('NationalitiesSection', () => {
 
     it('shows nationalIdFormat error when national ID starts with a hyphen', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), '-AB123');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -359,7 +361,7 @@ describe('NationalitiesSection', () => {
 
     it('shows nationalIdFormat error when national ID ends with a hyphen', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'AB123-');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -369,13 +371,13 @@ describe('NationalitiesSection', () => {
 
     it('disables save button when no country selected in add form', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByRole('button', { name: 'nationalities.save' })).toBeDisabled();
     });
 
     it('shows passportIncomplete error when only passport number provided', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -385,7 +387,7 @@ describe('NationalitiesSection', () => {
 
     it('shows passportIncomplete error when only issue date provided', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
@@ -395,7 +397,7 @@ describe('NationalitiesSection', () => {
 
     it('shows expiryBeforeIssue error when expiry <= issue date', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456');
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2020-01-01');
@@ -407,7 +409,7 @@ describe('NationalitiesSection', () => {
 
     it('auto-uppercases passport number input', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'ab-123456');
       expect(screen.getByLabelText('nationalities.passportNumber')).toHaveValue('AB-123456');
@@ -415,7 +417,7 @@ describe('NationalitiesSection', () => {
 
     it('shows passportFormat error when passport number has spaces', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB 123456');
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
@@ -427,7 +429,7 @@ describe('NationalitiesSection', () => {
 
     it('shows passportFormat error when passport number starts with a hyphen', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), '-AB123456');
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
@@ -439,7 +441,7 @@ describe('NationalitiesSection', () => {
 
     it('shows passportFormat error when passport number ends with a hyphen', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456-');
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
@@ -451,7 +453,7 @@ describe('NationalitiesSection', () => {
 
     it('accepts passport number with hyphens', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB-123456');
       await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
@@ -467,7 +469,7 @@ describe('NationalitiesSection', () => {
 
     it('accepts nationality with no passport fields', async () => {
       const { user } = setup([]);
-      await user.click(screen.getByRole('button', { name: 'nationalities.add' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() => expect(mocks.mockPost).toHaveBeenCalledOnce());
