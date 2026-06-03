@@ -2,6 +2,7 @@
 
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { PlusIcon } from '@phosphor-icons/react';
 
 import { Button } from '@/components/ui/button';
 import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
@@ -105,7 +106,7 @@ function ProgramForm({
 }
 
 export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsSectionProps) {
-  const { t } = useTranslation('profile');
+  const { t } = useTranslation(['profile', 'common']);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -214,7 +215,21 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
 
   return (
     <div className="space-y-6 max-w-lg">
-      <h2 className="text-xl font-semibold">{t('loyaltyPrograms.heading')}</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">{t('loyaltyPrograms.heading')}</h2>
+        {!isAdding && (
+          <Button
+            type="button"
+            size="icon"
+            onClick={startAdd}
+            disabled={isSaving}
+            title={t('common:actions.create')}
+            aria-label={t('common:actions.create')}
+          >
+            <PlusIcon aria-hidden="true" />
+          </Button>
+        )}
+      </div>
 
       {programs.length === 0 && !isAdding && (
         <p className="text-sm text-muted-foreground">{t('loyaltyPrograms.empty')}</p>
@@ -273,12 +288,6 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
           onCancel={cancelAdd}
           saveLabel={t('loyaltyPrograms.save')}
         />
-      )}
-
-      {!isAdding && (
-        <Button type="button" variant="outline" onClick={startAdd} disabled={isSaving}>
-          {t('loyaltyPrograms.add')}
-        </Button>
       )}
     </div>
   );

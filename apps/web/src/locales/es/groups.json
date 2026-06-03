@@ -63,10 +63,6 @@
     },
     "invitation": {
       "received": "Has sido invitado a unirte a este grupo",
-      "accept": "Aceptar invitación",
-      "decline": "Rechazar",
-      "accepting": "Aceptando...",
-      "declining": "Rechazando...",
       "acceptError": "Error al aceptar la invitación",
       "declineError": "Error al rechazar la invitación"
     },
@@ -102,7 +98,6 @@
   "announcements": "Anuncios",
   "announcementsEmpty": "Aún no hay anuncios.",
   "announcementsNew": "Nuevo Anuncio",
-  "announcementsNewButton": "Nuevo anuncio",
   "announcementsPublish": "Anunciar",
   "announcementsPlaceholder": "Escribe un anuncio para todos los miembros...",
   "announcementsSubmit": "Publicar",

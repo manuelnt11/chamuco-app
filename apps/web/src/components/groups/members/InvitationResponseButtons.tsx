@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CheckIcon, XIcon } from '@phosphor-icons/react';
 import { apiClient } from '@/services/api-client';
 import { Button } from '@/components/ui/button';
 
@@ -16,7 +17,7 @@ export function InvitationResponseButtons({
   onSuccess,
   showMessage = true,
 }: InvitationResponseButtonsProps) {
-  const { t } = useTranslation('groups');
+  const { t } = useTranslation(['groups', 'common']);
   const [isAccepting, setIsAccepting] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +54,24 @@ export function InvitationResponseButtons({
         <p className="text-sm text-muted-foreground">{t('members.invitation.received')}</p>
       )}
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={handleDecline} disabled={isBusy}>
-          {isDeclining ? t('members.invitation.declining') : t('members.invitation.decline')}
+        <Button
+          size="icon"
+          onClick={handleAccept}
+          disabled={isBusy}
+          title={t('common:actions.accept')}
+          aria-label={t('common:actions.accept')}
+        >
+          <CheckIcon aria-hidden="true" />
         </Button>
-        <Button size="sm" onClick={handleAccept} disabled={isBusy}>
-          {isAccepting ? t('members.invitation.accepting') : t('members.invitation.accept')}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleDecline}
+          disabled={isBusy}
+          title={t('common:actions.decline')}
+          aria-label={t('common:actions.decline')}
+        >
+          <XIcon aria-hidden="true" />
         </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}

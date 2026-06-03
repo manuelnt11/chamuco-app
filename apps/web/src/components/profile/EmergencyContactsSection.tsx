@@ -3,6 +3,7 @@
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCountryDataList } from 'countries-list';
+import { PlusIcon } from '@phosphor-icons/react';
 
 import { Button } from '@/components/ui/button';
 import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
@@ -189,7 +190,7 @@ interface EmergencyContactsSectionProps {
 }
 
 export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyContactsSectionProps) {
-  const { t } = useTranslation('profile');
+  const { t } = useTranslation(['profile', 'common']);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -358,7 +359,21 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
 
   return (
     <div className="max-w-lg space-y-6">
-      <h2 className="text-xl font-semibold">{t('emergencyContacts.heading')}</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">{t('emergencyContacts.heading')}</h2>
+        {!isAdding && (
+          <Button
+            type="button"
+            size="icon"
+            onClick={startAdd}
+            disabled={isSaving}
+            title={t('common:actions.create')}
+            aria-label={t('common:actions.create')}
+          >
+            <PlusIcon aria-hidden="true" />
+          </Button>
+        )}
+      </div>
 
       {contacts.length === 0 && !isAdding && (
         <p className="text-sm text-muted-foreground">{t('emergencyContacts.empty')}</p>
@@ -422,12 +437,6 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
           onCancel={cancelAdd}
           saveLabel={t('emergencyContacts.save')}
         />
-      )}
-
-      {!isAdding && (
-        <Button type="button" variant="outline" onClick={startAdd} disabled={isSaving}>
-          {t('emergencyContacts.add')}
-        </Button>
       )}
     </div>
   );

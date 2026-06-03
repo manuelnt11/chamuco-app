@@ -2,20 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TrashIcon } from '@phosphor-icons/react';
 
 import { Button } from '@/components/ui/button';
-import type { buttonVariants } from '@/components/ui/button';
-import type { VariantProps } from 'class-variance-authority';
-
-type ButtonSize = NonNullable<VariantProps<typeof buttonVariants>['size']>;
 
 interface DeleteConfirmButtonProps {
   onDelete: () => void | Promise<void>;
   disabled?: boolean;
-  size?: ButtonSize;
 }
 
-export function DeleteConfirmButton({ onDelete, disabled, size = 'sm' }: DeleteConfirmButtonProps) {
+export function DeleteConfirmButton({ onDelete, disabled }: DeleteConfirmButtonProps) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
   const confirmBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -43,12 +39,17 @@ export function DeleteConfirmButton({ onDelete, disabled, size = 'sm' }: DeleteC
     <Button
       ref={confirming ? confirmBtnRef : undefined}
       type="button"
-      size={size}
+      size="icon"
       variant={confirming ? 'destructive' : 'outline'}
       onClick={handleClick}
       disabled={disabled}
+      className={confirming ? 'w-auto px-2.5' : undefined}
+      {...(!confirming && {
+        title: t('actions.delete'),
+        'aria-label': t('actions.delete'),
+      })}
     >
-      {confirming ? t('actions.deleteConfirm') : t('actions.delete')}
+      {confirming ? t('actions.deleteConfirm') : <TrashIcon aria-hidden="true" />}
     </Button>
   );
 }

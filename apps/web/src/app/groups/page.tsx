@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { MagnifyingGlassIcon, PlusIcon } from '@phosphor-icons/react';
 
 import { apiClient } from '@/services/api-client';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,7 +12,7 @@ import { InvitationsSection } from '@/components/groups/InvitationsSection';
 import type { Group } from '@/types/group';
 
 export default function GroupsPage() {
-  const { t } = useTranslation('groups');
+  const { t } = useTranslation(['groups', 'common']);
   const { isLoading: isAuthLoading } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,15 +37,19 @@ export default function GroupsPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/explore/groups"
-            className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
+            title={t('common:actions.search')}
+            aria-label={t('common:actions.search')}
           >
-            {t('search.searchGroups')}
+            <MagnifyingGlassIcon className="size-5" aria-hidden="true" />
           </Link>
           <Link
             href="/groups/new"
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-lg bg-primary p-2 text-primary-foreground transition-colors hover:bg-primary/90"
+            title={t('common:actions.create')}
+            aria-label={t('common:actions.create')}
           >
-            {t('createGroup')}
+            <PlusIcon className="size-5" aria-hidden="true" />
           </Link>
         </div>
       </div>
@@ -59,7 +64,7 @@ export default function GroupsPage() {
             href="/groups/new"
             className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {t('createGroup')}
+            {t('common:actions.create')}
           </Link>
         </div>
       ) : (

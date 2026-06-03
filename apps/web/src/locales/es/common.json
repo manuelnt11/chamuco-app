@@ -18,7 +18,11 @@
     "loading": "Cargando...",
     "viewMore": "Ver Más",
     "viewLess": "Ver Menos",
-    "backToSignIn": "Volver al inicio de sesión"
+    "backToSignIn": "Volver al inicio de sesión",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "accepting": "Aceptando...",
+    "declining": "Rechazando..."
   },
   "navigation": {
     "home": "Inicio",

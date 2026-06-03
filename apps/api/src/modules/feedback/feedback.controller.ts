@@ -15,11 +15,12 @@ export class FeedbackController {
 
   @Post()
   @HttpCode(201)
-  @Throttle({ default: { ttl: 86_400_000, limit: 3 } })
+  // TODO: revert limit to 3 after testing phase
+  @Throttle({ default: { ttl: 86_400_000, limit: 50 } })
   @ApiOperation({
     summary: 'Submit user feedback',
     description:
-      'Creates a GitHub issue with the user comment. Limited to 3 submissions per user per 24 hours.',
+      'Creates a GitHub issue with the user comment. Limited to 50 submissions per user per 24 hours.',
   })
   @ApiResponse({
     status: 201,
@@ -29,7 +30,7 @@ export class FeedbackController {
   @ApiResponse({ status: 400, description: 'Validation error — comment too short or too long.' })
   @ApiResponse({
     status: 429,
-    description: 'Rate limit exceeded — max 3 submissions per 24 hours.',
+    description: 'Rate limit exceeded — max 50 submissions per 24 hours.',
   })
   @ApiResponse({ status: 503, description: 'GitHub API unavailable.' })
   async create(

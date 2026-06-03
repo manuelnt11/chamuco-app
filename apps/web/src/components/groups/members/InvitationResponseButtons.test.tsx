@@ -26,15 +26,15 @@ describe('InvitationResponseButtons', () => {
     render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
 
     expect(screen.getByText('members.invitation.received')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'members.invitation.accept' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'members.invitation.decline' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'common:actions.accept' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'common:actions.decline' })).toBeInTheDocument();
   });
 
   describe('accept', () => {
     it('calls PATCH invitations/accept when accept is clicked', async () => {
       const user = userEvent.setup();
       render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
-      await user.click(screen.getByRole('button', { name: 'members.invitation.accept' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.accept' }));
 
       await waitFor(() => {
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/groups/g1/invitations/accept');
@@ -44,23 +44,23 @@ describe('InvitationResponseButtons', () => {
     it('calls onSuccess after accepting', async () => {
       const user = userEvent.setup();
       render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
-      await user.click(screen.getByRole('button', { name: 'members.invitation.accept' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.accept' }));
 
       await waitFor(() => {
         expect(mocks.mockOnSuccess).toHaveBeenCalled();
       });
     });
 
-    it('shows accepting label while in flight', async () => {
+    it('disables both buttons while accept is in flight', async () => {
       let resolve!: () => void;
       mocks.mockPatch.mockReturnValue(new Promise<void>((r) => (resolve = r)));
 
       const user = userEvent.setup();
       render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
-      await user.click(screen.getByRole('button', { name: 'members.invitation.accept' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.accept' }));
 
-      expect(screen.getByRole('button', { name: 'members.invitation.accepting' })).toBeDisabled();
-      expect(screen.getByRole('button', { name: 'members.invitation.decline' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'common:actions.accept' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'common:actions.decline' })).toBeDisabled();
       resolve();
     });
 
@@ -68,12 +68,12 @@ describe('InvitationResponseButtons', () => {
       mocks.mockPatch.mockRejectedValue(new Error('fail'));
       const user = userEvent.setup();
       render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
-      await user.click(screen.getByRole('button', { name: 'members.invitation.accept' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.accept' }));
 
       await waitFor(() => {
         expect(screen.getByText('members.invitation.acceptError')).toBeInTheDocument();
       });
-      expect(screen.getByRole('button', { name: 'members.invitation.accept' })).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: 'common:actions.accept' })).not.toBeDisabled();
     });
   });
 
@@ -81,7 +81,7 @@ describe('InvitationResponseButtons', () => {
     it('calls PATCH invitations/decline when decline is clicked', async () => {
       const user = userEvent.setup();
       render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
-      await user.click(screen.getByRole('button', { name: 'members.invitation.decline' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.decline' }));
 
       await waitFor(() => {
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/groups/g1/invitations/decline');
@@ -91,23 +91,23 @@ describe('InvitationResponseButtons', () => {
     it('calls onSuccess after declining', async () => {
       const user = userEvent.setup();
       render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
-      await user.click(screen.getByRole('button', { name: 'members.invitation.decline' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.decline' }));
 
       await waitFor(() => {
         expect(mocks.mockOnSuccess).toHaveBeenCalled();
       });
     });
 
-    it('shows declining label while in flight', async () => {
+    it('disables both buttons while decline is in flight', async () => {
       let resolve!: () => void;
       mocks.mockPatch.mockReturnValue(new Promise<void>((r) => (resolve = r)));
 
       const user = userEvent.setup();
       render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
-      await user.click(screen.getByRole('button', { name: 'members.invitation.decline' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.decline' }));
 
-      expect(screen.getByRole('button', { name: 'members.invitation.declining' })).toBeDisabled();
-      expect(screen.getByRole('button', { name: 'members.invitation.accept' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'common:actions.decline' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'common:actions.accept' })).toBeDisabled();
       resolve();
     });
 
@@ -115,12 +115,12 @@ describe('InvitationResponseButtons', () => {
       mocks.mockPatch.mockRejectedValue(new Error('fail'));
       const user = userEvent.setup();
       render(<InvitationResponseButtons groupId="g1" onSuccess={mocks.mockOnSuccess} />);
-      await user.click(screen.getByRole('button', { name: 'members.invitation.decline' }));
+      await user.click(screen.getByRole('button', { name: 'common:actions.decline' }));
 
       await waitFor(() => {
         expect(screen.getByText('members.invitation.declineError')).toBeInTheDocument();
       });
-      expect(screen.getByRole('button', { name: 'members.invitation.decline' })).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: 'common:actions.decline' })).not.toBeDisabled();
     });
   });
 });
