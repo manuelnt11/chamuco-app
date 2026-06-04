@@ -9,8 +9,10 @@ import type { GroupMember } from '@/types/group';
 interface MemberListProps {
   groupId: string;
   members: GroupMember[];
+  currentUserId: string | null;
   currentUserRole: GroupRole | null;
   onInviteSuccess: () => void;
+  onMemberAction: () => void;
   excludedIds?: string[];
 }
 
@@ -19,8 +21,10 @@ const ADMIN_ROLES: GroupRole[] = [GroupRole.OWNER, GroupRole.ADMIN];
 export function MemberList({
   groupId,
   members,
+  currentUserId,
   currentUserRole,
   onInviteSuccess,
+  onMemberAction,
   excludedIds,
 }: MemberListProps) {
   const { t } = useTranslation('groups');
@@ -46,7 +50,14 @@ export function MemberList({
       ) : (
         <ul className="divide-y divide-border px-4">
           {members.map((member) => (
-            <MemberListItem key={member.userId} member={member} />
+            <MemberListItem
+              key={member.userId}
+              member={member}
+              groupId={groupId}
+              currentUserId={currentUserId}
+              currentUserRole={currentUserRole}
+              onActionSuccess={onMemberAction}
+            />
           ))}
         </ul>
       )}

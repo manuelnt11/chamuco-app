@@ -42,5 +42,17 @@
   "achievementUnlocked": {
     "title": "Achievement Unlocked",
     "body": "You unlocked a new achievement: {achievementName}."
+  },
+  "groupMemberRemoved": {
+    "title": "Removed from group",
+    "body": "You have been removed from {groupName}."
+  },
+  "groupMemberPromoted": {
+    "title": "Role updated",
+    "body": "You are now an admin of {groupName}."
+  },
+  "groupMemberDemoted": {
+    "title": "Role updated",
+    "body": "Your role in {groupName} has been changed to Member."
   }
 }

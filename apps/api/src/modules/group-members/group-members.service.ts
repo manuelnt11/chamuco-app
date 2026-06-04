@@ -432,6 +432,21 @@ export class GroupMembersService {
         decidedBy: requestingUserId,
       })
       .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
+
+    const group = await this.db.query.groups.findFirst({
+      where: eq(groups.id, groupId),
+      columns: { name: true },
+    });
+    await this.notifications
+      .notify(
+        targetUserId,
+        NotificationType.GROUP_MEMBER_REMOVED,
+        { groupId, groupName: group?.name ?? '' },
+        [NotificationChannel.PUSH],
+      )
+      .catch((err: unknown) => {
+        this.logger.error('Failed to send GROUP_MEMBER_REMOVED notification', err);
+      });
   }
 
   // ─── Role management ──────────────────────────────────────────────────────────
@@ -493,6 +508,22 @@ export class GroupMembersService {
       .update(groupMembers)
       .set({ role: dto.role })
       .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
+
+    const group = await this.db.query.groups.findFirst({
+      where: eq(groups.id, groupId),
+      columns: { name: true },
+    });
+    const roleNotificationType =
+      dto.role === GroupRole.ADMIN
+        ? NotificationType.GROUP_MEMBER_PROMOTED
+        : NotificationType.GROUP_MEMBER_DEMOTED;
+    await this.notifications
+      .notify(targetUserId, roleNotificationType, { groupId, groupName: group?.name ?? '' }, [
+        NotificationChannel.PUSH,
+      ])
+      .catch((err: unknown) => {
+        this.logger.error(`Failed to send ${roleNotificationType} notification`, err);
+      });
   }
 
   // ─── My membership ───────────────────────────────────────────────────────────

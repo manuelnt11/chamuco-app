@@ -28,9 +28,13 @@ function buildNotificationUrl(
   switch (type) {
     case NotificationType.GROUP_INVITATION:
       return '/groups';
+    case NotificationType.GROUP_MEMBER_REMOVED:
+      return '/groups';
     case NotificationType.GROUP_INVITATION_ACCEPTED:
     case NotificationType.GROUP_JOIN_ACCEPTED:
     case NotificationType.GROUP_ANNOUNCEMENT:
+    case NotificationType.GROUP_MEMBER_PROMOTED:
+    case NotificationType.GROUP_MEMBER_DEMOTED:
       return typeof payload.groupId === 'string' ? `/groups/${payload.groupId}` : null;
     case NotificationType.PASSPORT_EXPIRING_SOON:
     case NotificationType.PASSPORT_EXPIRED:
