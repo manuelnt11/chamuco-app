@@ -1,4 +1,4 @@
-import { sanitizeName, sanitizeProperNoun } from './proper-noun.transform';
+import { sanitizeName, sanitizeProperNoun } from './name.transform';
 
 describe('sanitizeProperNoun', () => {
   it('trims leading and trailing whitespace', () => {

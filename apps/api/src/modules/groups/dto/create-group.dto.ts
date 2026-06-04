@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 
 import { GroupVisibility } from '@chamuco/shared-types';
-import { sanitizeName } from '@/common/transforms/proper-noun.transform';
+import { sanitizeName } from '@/common/transforms/name.transform';
 import { GroupCoverDto } from './group-cover.dto';
 
 export class CreateGroupDto {
