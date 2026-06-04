@@ -209,5 +209,17 @@ describe('MemberListItem', () => {
 
       expect(mocks.mockToastError).toHaveBeenCalledWith('members.actions.demoteError');
     });
+
+    it('shows toast error when remove fails', async () => {
+      mocks.mockDelete.mockRejectedValueOnce(new Error('fail'));
+      renderItem({ role: GroupRole.MEMBER }, GroupRole.OWNER, CURRENT_USER_ID, vi.fn());
+
+      const deleteBtn = screen.getByRole('button', { name: 'actions.delete' });
+      await userEvent.click(deleteBtn);
+      const confirmBtn = screen.getByRole('button', { name: 'actions.deleteConfirm' });
+      await userEvent.click(confirmBtn);
+
+      expect(mocks.mockToastError).toHaveBeenCalledWith('members.actions.removeError');
+    });
   });
 });

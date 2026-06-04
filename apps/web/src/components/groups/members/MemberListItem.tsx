@@ -43,6 +43,7 @@ export function MemberListItem({
   onActionSuccess,
 }: MemberListItemProps) {
   const { t } = useTranslation('groups');
+  const [isRemoving, setIsRemoving] = useState(false);
   const [isPromoting, setIsPromoting] = useState(false);
   const [isDemoting, setIsDemoting] = useState(false);
 
@@ -63,14 +64,16 @@ export function MemberListItem({
 
   const showPromote = showActions && member.role === GroupRole.MEMBER;
   const showDemote = showActions && member.role === GroupRole.ADMIN;
-  const hasActions = showActions || showPromote || showDemote;
 
   async function handleRemove() {
+    setIsRemoving(true);
     try {
       await apiClient.delete(`/v1/groups/${groupId}/members/${member.userId}`);
       onActionSuccess();
     } catch {
       toast.error(t('members.actions.removeError'));
+    } finally {
+      setIsRemoving(false);
     }
   }
 
@@ -112,7 +115,6 @@ export function MemberListItem({
         className="mt-0.5 sm:mt-0"
       />
 
-      {/* Name + badges + actions — stack vertically on mobile, row on sm+ */}
       <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center sm:gap-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{member.displayName}</p>
@@ -123,7 +125,7 @@ export function MemberListItem({
           <Badge variant={ROLE_VARIANT[member.role]}>{t(`members.role.${member.role}`)}</Badge>
           <Badge variant={TIER_VARIANT[member.tier]}>{t(`members.tier.${member.tier}`)}</Badge>
 
-          {hasActions && (
+          {showActions && (
             <div className="flex gap-1 ml-auto sm:ml-0.5 shrink-0">
               {showPromote && (
                 <Button
@@ -151,7 +153,7 @@ export function MemberListItem({
                   <UserMinusIcon aria-hidden="true" />
                 </Button>
               )}
-              {showActions && <DeleteConfirmButton onDelete={handleRemove} />}
+              <DeleteConfirmButton onDelete={handleRemove} disabled={isRemoving} />
             </div>
           )}
         </div>

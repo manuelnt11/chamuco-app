@@ -433,7 +433,7 @@ export class GroupMembersService {
       })
       .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
 
-    const removedGroup = await this.db.query.groups.findFirst({
+    const group = await this.db.query.groups.findFirst({
       where: eq(groups.id, groupId),
       columns: { name: true },
     });
@@ -441,7 +441,7 @@ export class GroupMembersService {
       .notify(
         targetUserId,
         NotificationType.GROUP_MEMBER_REMOVED,
-        { groupId, groupName: removedGroup?.name ?? '' },
+        { groupId, groupName: group?.name ?? '' },
         [NotificationChannel.PUSH],
       )
       .catch((err: unknown) => {
@@ -509,7 +509,7 @@ export class GroupMembersService {
       .set({ role: dto.role })
       .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
 
-    const roleGroup = await this.db.query.groups.findFirst({
+    const group = await this.db.query.groups.findFirst({
       where: eq(groups.id, groupId),
       columns: { name: true },
     });
@@ -518,7 +518,7 @@ export class GroupMembersService {
         ? NotificationType.GROUP_MEMBER_PROMOTED
         : NotificationType.GROUP_MEMBER_DEMOTED;
     await this.notifications
-      .notify(targetUserId, roleNotificationType, { groupId, groupName: roleGroup?.name ?? '' }, [
+      .notify(targetUserId, roleNotificationType, { groupId, groupName: group?.name ?? '' }, [
         NotificationChannel.PUSH,
       ])
       .catch((err: unknown) => {
