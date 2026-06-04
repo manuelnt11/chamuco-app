@@ -17,7 +17,7 @@ import { DateOfBirthDto } from '@/modules/users/dto/date-of-birth.dto';
 import { CreateNationalityDto } from '@/modules/users/dto/nationality.dto';
 import { EmergencyContactDto } from '@/modules/users/dto/emergency-contact.dto';
 import { IsMinimumAge } from '@/modules/users/dto/minimum-age.validator';
-import { sanitizeProperNoun } from '@/common/transforms/proper-noun.transform';
+import { sanitizeProperNoun } from '@/common/transforms/name.transform';
 
 export class RegisterDto {
   @ApiProperty({

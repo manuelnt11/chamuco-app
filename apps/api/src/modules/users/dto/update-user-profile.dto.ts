@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { DateOfBirthDto } from './date-of-birth.dto';
-import { sanitizeProperNoun } from '@/common/transforms/proper-noun.transform';
+import { sanitizeProperNoun } from '@/common/transforms/name.transform';
 
 export class UpdateUserProfileDto {
   @ApiProperty({
