@@ -177,13 +177,13 @@ describe('GroupAnnouncementsService', () => {
       expect(result.createdByUsername).toBe(ADMIN_USERNAME);
     });
 
-    it('calls notifyMany with all active member IDs', async () => {
+    it('excludes the caller from notifyMany', async () => {
       mockSelect.mockReturnValue(makeChain([{ userId: MEMBER_ID }, { userId: ADMIN_ID }]));
 
       await service.create(GROUP_ID, ADMIN_ID, ADMIN_USERNAME, dto);
 
       expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
-        [MEMBER_ID, ADMIN_ID],
+        [MEMBER_ID],
         NotificationType.GROUP_ANNOUNCEMENT,
         expect.objectContaining({ groupId: GROUP_ID }),
         [NotificationChannel.PUSH],

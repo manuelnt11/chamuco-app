@@ -89,10 +89,15 @@ describe('PushChannelStrategy', () => {
       expect(sendEachForMulticast).toHaveBeenCalledWith(
         expect.objectContaining({
           tokens: ['tok-a', 'tok-b'],
-          notification: { title: FAKE_NOTIFICATION.title, body: FAKE_NOTIFICATION.body },
-          data: { key: 'val' },
+          data: expect.objectContaining({
+            key: 'val',
+            title: FAKE_NOTIFICATION.title,
+            body: FAKE_NOTIFICATION.body,
+          }),
         }),
       );
+      const call = sendEachForMulticast.mock.calls[0]![0] as Record<string, unknown>;
+      expect(call).not.toHaveProperty('notification');
       expect(db.delete).not.toHaveBeenCalled();
       expect(getSetArgs()?.status).toBe(DeliveryStatus.SENT);
       expect(getSetArgs()?.sentAt).toBeInstanceOf(Date);
@@ -200,14 +205,14 @@ describe('PushChannelStrategy', () => {
 
       expect(sendEachForMulticast).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: { count: '3', flag: 'true', nested: '{"x":1}' },
+          data: expect.objectContaining({ count: '3', flag: 'true', nested: '{"x":1}' }),
         }),
       );
     });
   });
 
-  describe('webpush click-action URL', () => {
-    it('sets webpush.fcmOptions.link when notification has a url', async () => {
+  describe('url in data', () => {
+    it('sets data.url when notification has a url', async () => {
       const sendEachForMulticast = jest
         .fn()
         .mockResolvedValue(makeBatchResponse([{ success: true }]));
@@ -218,12 +223,12 @@ describe('PushChannelStrategy', () => {
 
       expect(sendEachForMulticast).toHaveBeenCalledWith(
         expect.objectContaining({
-          webpush: { fcmOptions: { link: '/groups/abc' } },
+          data: expect.objectContaining({ url: '/groups/abc' }),
         }),
       );
     });
 
-    it('omits webpush when notification url is null', async () => {
+    it('omits data.url when notification url is null', async () => {
       const sendEachForMulticast = jest
         .fn()
         .mockResolvedValue(makeBatchResponse([{ success: true }]));
@@ -231,8 +236,8 @@ describe('PushChannelStrategy', () => {
 
       await strategy.send(FAKE_NOTIFICATION, {});
 
-      const call = sendEachForMulticast.mock.calls[0]![0] as Record<string, unknown>;
-      expect(call).not.toHaveProperty('webpush');
+      const call = sendEachForMulticast.mock.calls[0]![0] as { data: Record<string, string> };
+      expect(call.data).not.toHaveProperty('url');
     });
   });
 });

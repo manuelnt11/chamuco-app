@@ -130,9 +130,9 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[FCM] Background message received:', payload);
 
-  const notificationTitle = payload.notification?.title || 'Chamuco Travel';
+  const notificationTitle = payload.data?.title || 'Chamuco Travel';
   const notificationOptions = {
-    body: payload.notification?.body || '',
+    body: payload.data?.body || '',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
     data: payload.data,
