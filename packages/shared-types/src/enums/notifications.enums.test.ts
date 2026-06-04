@@ -17,11 +17,14 @@ describe('NotificationType', () => {
     expect(NotificationType.PASSPORT_EXPIRING_SOON).toBe('PASSPORT_EXPIRING_SOON');
     expect(NotificationType.PASSPORT_EXPIRED).toBe('PASSPORT_EXPIRED');
     expect(NotificationType.ACHIEVEMENT_UNLOCKED).toBe('ACHIEVEMENT_UNLOCKED');
+    expect(NotificationType.GROUP_MEMBER_REMOVED).toBe('GROUP_MEMBER_REMOVED');
+    expect(NotificationType.GROUP_MEMBER_PROMOTED).toBe('GROUP_MEMBER_PROMOTED');
+    expect(NotificationType.GROUP_MEMBER_DEMOTED).toBe('GROUP_MEMBER_DEMOTED');
   });
 
-  it('has exactly 10 members', () => {
+  it('has exactly 14 members', () => {
     const values = Object.values(NotificationType);
-    expect(values).toHaveLength(11);
+    expect(values).toHaveLength(14);
   });
 
   it('is exported from the enums barrel', () => {

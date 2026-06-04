@@ -75,6 +75,14 @@
       "statusRequest": "Quiere unirse",
       "statusInvited": "Invitado"
     },
+    "actions": {
+      "remove": "Eliminar miembro",
+      "promote": "Promover a admin",
+      "demote": "Degradar a miembro",
+      "removeError": "Error al eliminar miembro",
+      "promoteError": "Error al promover miembro",
+      "demoteError": "Error al degradar miembro"
+    },
     "empty": "Aún no hay miembros",
     "loading": "Cargando miembros...",
     "loadError": "Error al cargar miembros"

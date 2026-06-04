@@ -34,8 +34,10 @@ describe('MemberList', () => {
         <MemberList
           groupId="g1"
           members={[makeMember(), makeMember({ userId: 'user-2', username: 'bob' })]}
+          currentUserId="current-user"
           currentUserRole={GroupRole.MEMBER}
           onInviteSuccess={vi.fn()}
+          onMemberAction={vi.fn()}
         />,
       );
       expect(screen.getByText('members.title (2)')).toBeInTheDocument();
@@ -49,8 +51,10 @@ describe('MemberList', () => {
             makeMember({ displayName: 'Alice' }),
             makeMember({ userId: 'user-2', displayName: 'Bob', username: 'bob' }),
           ]}
+          currentUserId="current-user"
           currentUserRole={GroupRole.MEMBER}
           onInviteSuccess={vi.fn()}
+          onMemberAction={vi.fn()}
         />,
       );
       expect(screen.getByText('Alice')).toBeInTheDocument();
@@ -62,8 +66,10 @@ describe('MemberList', () => {
         <MemberList
           groupId="g1"
           members={[]}
+          currentUserId="current-user"
           currentUserRole={GroupRole.MEMBER}
           onInviteSuccess={vi.fn()}
+          onMemberAction={vi.fn()}
         />,
       );
       expect(screen.getByText('members.empty')).toBeInTheDocument();
@@ -76,8 +82,10 @@ describe('MemberList', () => {
         <MemberList
           groupId="g1"
           members={[makeMember()]}
+          currentUserId="current-user"
           currentUserRole={GroupRole.OWNER}
           onInviteSuccess={vi.fn()}
+          onMemberAction={vi.fn()}
         />,
       );
       expect(screen.getByText('members.invite.button')).toBeInTheDocument();
@@ -88,8 +96,10 @@ describe('MemberList', () => {
         <MemberList
           groupId="g1"
           members={[makeMember()]}
+          currentUserId="current-user"
           currentUserRole={GroupRole.ADMIN}
           onInviteSuccess={vi.fn()}
+          onMemberAction={vi.fn()}
         />,
       );
       expect(screen.getByText('members.invite.button')).toBeInTheDocument();
@@ -100,8 +110,10 @@ describe('MemberList', () => {
         <MemberList
           groupId="g1"
           members={[makeMember()]}
+          currentUserId="current-user"
           currentUserRole={GroupRole.MEMBER}
           onInviteSuccess={vi.fn()}
+          onMemberAction={vi.fn()}
         />,
       );
       expect(screen.queryByText('members.invite.button')).not.toBeInTheDocument();
@@ -112,8 +124,10 @@ describe('MemberList', () => {
         <MemberList
           groupId="g1"
           members={[makeMember()]}
+          currentUserId={null}
           currentUserRole={null}
           onInviteSuccess={vi.fn()}
+          onMemberAction={vi.fn()}
         />,
       );
       expect(screen.queryByText('members.invite.button')).not.toBeInTheDocument();

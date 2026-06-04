@@ -754,6 +754,34 @@ describe('GroupMembersService', () => {
 
       expect(mockTransaction).toHaveBeenCalledTimes(1);
     });
+
+    it('sends GROUP_MEMBER_REMOVED notification to removed member', async () => {
+      mockGroupMembersFindFirst
+        .mockResolvedValueOnce(activeMembership) // target
+        .mockResolvedValueOnce(ownerMembership); // requester
+
+      await service.removeMember(GROUP_ID, USER_ID, ADMIN_ID);
+
+      expect(mockNotificationsNotify).toHaveBeenCalledWith(
+        USER_ID,
+        NotificationType.GROUP_MEMBER_REMOVED,
+        expect.objectContaining({ groupId: GROUP_ID, groupName: mockPublicGroup.name }),
+        [NotificationChannel.PUSH],
+      );
+    });
+
+    it('does NOT send notification when member self-leaves', async () => {
+      mockGroupMembersFindFirst.mockResolvedValue(activeMembership);
+
+      await service.removeMember(GROUP_ID, USER_ID, USER_ID);
+
+      expect(mockNotificationsNotify).not.toHaveBeenCalledWith(
+        expect.anything(),
+        NotificationType.GROUP_MEMBER_REMOVED,
+        expect.anything(),
+        expect.anything(),
+      );
+    });
   });
 
   // ─── updateMemberRole ────────────────────────────────────────────────────────
@@ -842,6 +870,38 @@ describe('GroupMembersService', () => {
       await expect(
         service.updateMemberRole(GROUP_ID, TARGET_ID, promoteDto, ADMIN_ID),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('sends GROUP_MEMBER_PROMOTED notification when promoting MEMBER → ADMIN', async () => {
+      mockGroupMembersFindFirst
+        .mockResolvedValueOnce(ownerMembership)
+        .mockResolvedValueOnce(activeMembership);
+
+      await service.updateMemberRole(GROUP_ID, USER_ID, promoteDto, ADMIN_ID);
+
+      expect(mockNotificationsNotify).toHaveBeenCalledWith(
+        USER_ID,
+        NotificationType.GROUP_MEMBER_PROMOTED,
+        expect.objectContaining({ groupId: GROUP_ID, groupName: mockPublicGroup.name }),
+        [NotificationChannel.PUSH],
+      );
+    });
+
+    it('sends GROUP_MEMBER_DEMOTED notification when demoting ADMIN → MEMBER', async () => {
+      const adminMembership = makeMembership(USER_ID, GroupMemberStatus.ACTIVE, GroupRole.ADMIN);
+      mockGroupMembersFindFirst
+        .mockResolvedValueOnce(ownerMembership)
+        .mockResolvedValueOnce(adminMembership);
+      mockGroupMembersFindMany.mockResolvedValueOnce([ownerMembership, adminMembership]);
+
+      await service.updateMemberRole(GROUP_ID, USER_ID, demoteDto, ADMIN_ID);
+
+      expect(mockNotificationsNotify).toHaveBeenCalledWith(
+        USER_ID,
+        NotificationType.GROUP_MEMBER_DEMOTED,
+        expect.objectContaining({ groupId: GROUP_ID, groupName: mockPublicGroup.name }),
+        [NotificationChannel.PUSH],
+      );
     });
   });
 

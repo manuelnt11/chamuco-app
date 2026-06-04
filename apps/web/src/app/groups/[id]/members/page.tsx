@@ -143,8 +143,10 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
           <MemberList
             groupId={id}
             members={members}
+            currentUserId={appUser?.id ?? null}
             currentUserRole={currentUserRole}
             onInviteSuccess={() => void loadData()}
+            onMemberAction={() => void loadData()}
             excludedIds={[...members.map((m) => m.userId), ...pending.map((p) => p.userId)]}
           />
         </>

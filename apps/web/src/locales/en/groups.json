@@ -79,6 +79,14 @@
       "statusRequest": "Wants to join",
       "statusInvited": "Invited"
     },
+    "actions": {
+      "remove": "Remove member",
+      "promote": "Promote to admin",
+      "demote": "Demote to member",
+      "removeError": "Failed to remove member",
+      "promoteError": "Failed to promote member",
+      "demoteError": "Failed to demote member"
+    },
     "empty": "No members yet",
     "loading": "Loading members...",
     "loadError": "Failed to load members"
