@@ -151,9 +151,7 @@ describe('usePushNotifications', () => {
     expect(onMessage).toHaveBeenCalledWith(mockMessaging, expect.any(Function));
 
     act(() => {
-      capturedHandler?.({
-        notification: { title: 'Hello', body: 'World' },
-      } as MessagePayload);
+      capturedHandler?.({ data: { title: 'Hello', body: 'World' } } as unknown as MessagePayload);
     });
 
     expect(toast.info).toHaveBeenCalledWith('Hello', 'World');
@@ -177,7 +175,7 @@ describe('usePushNotifications', () => {
     window.addEventListener('chamuco:notification', listener);
 
     act(() => {
-      capturedHandler?.({ notification: { title: 'Hello' } } as MessagePayload);
+      capturedHandler?.({ data: { title: 'Hello' } } as unknown as MessagePayload);
     });
 
     expect(listener).toHaveBeenCalledTimes(1);
@@ -199,7 +197,7 @@ describe('usePushNotifications', () => {
     });
 
     act(() => {
-      capturedHandler?.({ notification: {} } as MessagePayload);
+      capturedHandler?.({ data: {} } as unknown as MessagePayload);
     });
 
     expect(toast.info).toHaveBeenCalledWith('Notification', undefined);

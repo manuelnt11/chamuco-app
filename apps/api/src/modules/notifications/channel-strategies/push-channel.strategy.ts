@@ -43,9 +43,12 @@ export class PushChannelStrategy implements NotificationChannelStrategy {
     try {
       batchResponse = await this.firebaseAdmin.messaging().sendEachForMulticast({
         tokens,
-        notification: { title: notification.title, body: notification.body },
-        data,
-        ...(notification.url ? { webpush: { fcmOptions: { link: notification.url } } } : {}),
+        data: {
+          ...data,
+          title: notification.title,
+          body: notification.body,
+          ...(notification.url ? { url: notification.url } : {}),
+        },
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

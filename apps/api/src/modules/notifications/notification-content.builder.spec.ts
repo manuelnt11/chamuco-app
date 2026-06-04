@@ -63,11 +63,11 @@ describe('buildNotificationContent()', () => {
   });
 
   describe('url derivation', () => {
-    it('derives /groups/:id url for GROUP_INVITATION when groupId is present', () => {
+    it('derives /groups url for GROUP_INVITATION regardless of groupId', () => {
       const result = buildNotificationContent(NotificationType.GROUP_INVITATION, {
         groupId: 'g-123',
       });
-      expect(result.url).toBe('/groups/g-123');
+      expect(result.url).toBe('/groups');
     });
 
     it('derives /groups/:id url for GROUP_JOIN_ACCEPTED', () => {
@@ -84,9 +84,9 @@ describe('buildNotificationContent()', () => {
       expect(result.url).toBe('/groups/g-789');
     });
 
-    it('returns null for group types when groupId is missing', () => {
+    it('derives /groups url for GROUP_INVITATION when groupId is missing', () => {
       const result = buildNotificationContent(NotificationType.GROUP_INVITATION, {});
-      expect(result.url).toBeNull();
+      expect(result.url).toBe('/groups');
     });
 
     it('derives /profile/passport for PASSPORT_EXPIRING_SOON', () => {

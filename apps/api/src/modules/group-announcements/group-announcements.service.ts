@@ -57,7 +57,7 @@ export class GroupAnnouncementsService {
       }),
     ]);
 
-    const userIds = memberRows.map((r) => r.userId);
+    const userIds = memberRows.map((r) => r.userId).filter((id) => id !== callerId);
 
     this.notifications
       .notifyMany(

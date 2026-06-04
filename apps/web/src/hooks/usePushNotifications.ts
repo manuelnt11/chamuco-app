@@ -43,8 +43,8 @@ export function usePushNotifications(): void {
 
       if (cancelled) return;
       unsubscribeForeground = onMessage(messaging, (payload) => {
-        const title = payload.notification?.title ?? 'Notification';
-        const body = payload.notification?.body;
+        const title = payload.data?.['title'] ?? 'Notification';
+        const body = payload.data?.['body'];
         toast.info(title, body);
         window.dispatchEvent(new window.CustomEvent('chamuco:notification'));
       });

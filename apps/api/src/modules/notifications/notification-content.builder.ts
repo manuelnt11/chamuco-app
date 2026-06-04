@@ -27,6 +27,7 @@ function buildNotificationUrl(
 ): string | null {
   switch (type) {
     case NotificationType.GROUP_INVITATION:
+      return '/groups';
     case NotificationType.GROUP_JOIN_ACCEPTED:
     case NotificationType.GROUP_ANNOUNCEMENT:
       return typeof payload.groupId === 'string' ? `/groups/${payload.groupId}` : null;
