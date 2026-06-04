@@ -51,13 +51,13 @@ describe('GroupCoverDto', () => {
 });
 
 describe('CreateGroupDto', () => {
-  it('trims and uppercases name via Transform', () => {
+  it('trims and collapses whitespace in name via Transform', () => {
     const dto = plainToInstance(CreateGroupDto, {
       name: '  mountain crew  ',
       visibility: GroupVisibility.PUBLIC,
       cover: { source: 'emoji', target: '🏔️' },
     });
-    expect(dto.name).toBe('MOUNTAIN CREW');
+    expect(dto.name).toBe('mountain crew');
   });
 
   it('creates nested GroupCoverDto via Type', () => {
@@ -71,9 +71,9 @@ describe('CreateGroupDto', () => {
 });
 
 describe('UpdateGroupDto', () => {
-  it('trims and uppercases name via Transform', () => {
+  it('trims and collapses whitespace in name via Transform', () => {
     const dto = plainToInstance(UpdateGroupDto, { name: '  updated crew  ' });
-    expect(dto.name).toBe('UPDATED CREW');
+    expect(dto.name).toBe('updated crew');
   });
 
   it('creates nested GroupCoverDto via Type', () => {

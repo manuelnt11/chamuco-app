@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 
 import { GroupVisibility } from '@chamuco/shared-types';
-import { sanitizeProperNoun } from '@/common/transforms/proper-noun.transform';
+import { sanitizeName } from '@/common/transforms/proper-noun.transform';
 import { GroupCoverDto } from './group-cover.dto';
 
 export class CreateGroupDto {
@@ -25,7 +25,7 @@ export class CreateGroupDto {
   @IsNotEmpty()
   @MinLength(2)
   @MaxLength(100)
-  @Transform(({ value }) => sanitizeProperNoun(value))
+  @Transform(({ value }) => sanitizeName(value))
   name!: string;
 
   @ApiProperty({
