@@ -26,6 +26,7 @@ const TYPE_ICONS: Record<NotificationType, Icon> = {
   [NotificationType.TRIP_KEY_DATE_REMINDER]: CalendarBlankIcon,
   [NotificationType.TRIP_COMPLETED]: CheckCircleIcon,
   [NotificationType.GROUP_INVITATION]: UsersThreeIcon,
+  [NotificationType.GROUP_INVITATION_ACCEPTED]: UserCheckIcon,
   [NotificationType.GROUP_JOIN_ACCEPTED]: UserCheckIcon,
   [NotificationType.GROUP_ANNOUNCEMENT]: MegaphoneIcon,
   [NotificationType.PASSPORT_EXPIRING_SOON]: WarningIcon,

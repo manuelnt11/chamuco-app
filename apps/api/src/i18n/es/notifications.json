@@ -11,6 +11,10 @@
     "title": "Invitación a Grupo",
     "body": "Has sido invitado a unirte a {groupName}."
   },
+  "groupInvitationAccepted": {
+    "title": "Nuevo Miembro en el Grupo",
+    "body": "@{username} aceptó la invitación para unirse a {groupName}."
+  },
   "groupJoinAccepted": {
     "title": "Solicitud Aceptada",
     "body": "Tu solicitud para unirte a {groupName} ha sido aceptada."

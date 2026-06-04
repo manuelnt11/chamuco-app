@@ -7,6 +7,7 @@ import * as barrel from './index';
 describe('NotificationType', () => {
   it('has all required values', () => {
     expect(NotificationType.GROUP_INVITATION).toBe('GROUP_INVITATION');
+    expect(NotificationType.GROUP_INVITATION_ACCEPTED).toBe('GROUP_INVITATION_ACCEPTED');
     expect(NotificationType.GROUP_JOIN_ACCEPTED).toBe('GROUP_JOIN_ACCEPTED');
     expect(NotificationType.GROUP_ANNOUNCEMENT).toBe('GROUP_ANNOUNCEMENT');
     expect(NotificationType.TRIP_INVITATION).toBe('TRIP_INVITATION');
@@ -20,7 +21,7 @@ describe('NotificationType', () => {
 
   it('has exactly 10 members', () => {
     const values = Object.values(NotificationType);
-    expect(values).toHaveLength(10);
+    expect(values).toHaveLength(11);
   });
 
   it('is exported from the enums barrel', () => {

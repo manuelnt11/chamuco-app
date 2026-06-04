@@ -279,6 +279,36 @@ export class GroupMembersService {
         .values({ groupId, userId: requestingUserId, joinedAt: now })
         .onConflictDoNothing();
     });
+
+    const [group, acceptingUser, adminMembers] = await Promise.all([
+      this.db.query.groups.findFirst({ where: eq(groups.id, groupId), columns: { name: true } }),
+      this.db.query.users.findFirst({
+        where: eq(users.id, requestingUserId),
+        columns: { username: true },
+      }),
+      this.db.query.groupMembers.findMany({
+        where: and(
+          eq(groupMembers.groupId, groupId),
+          eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+          inArray(groupMembers.role, [...ADMIN_ROLES]),
+        ),
+        columns: { userId: true },
+      }),
+    ]);
+
+    const adminIds = adminMembers.map((m) => m.userId);
+    if (adminIds.length > 0) {
+      await this.notifications
+        .notifyMany(
+          adminIds,
+          NotificationType.GROUP_INVITATION_ACCEPTED,
+          { groupId, groupName: group?.name ?? '', username: acceptingUser?.username ?? '' },
+          [NotificationChannel.PUSH],
+        )
+        .catch((err: unknown) => {
+          this.logger.error('Failed to send GROUP_INVITATION_ACCEPTED notification', err);
+        });
+    }
   }
 
   async declineInvitation(groupId: string, requestingUserId: string): Promise<void> {

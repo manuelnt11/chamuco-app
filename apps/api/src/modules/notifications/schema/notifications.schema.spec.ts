@@ -58,7 +58,7 @@ describe('notifications schema', () => {
     });
   });
 
-  it('notificationTypeEnum has exactly 10 values', () => {
-    expect(notificationTypeEnum.enumValues).toHaveLength(10);
+  it('notificationTypeEnum has exactly 11 values', () => {
+    expect(notificationTypeEnum.enumValues).toHaveLength(11);
   });
 });

@@ -528,8 +528,10 @@ describe('GroupMembersService', () => {
   // ─── acceptInvitation ────────────────────────────────────────────────────────
 
   describe('acceptInvitation', () => {
-    it('transitions INVITED → ACTIVE and upserts stats', async () => {
+    it('transitions INVITED → ACTIVE, upserts stats, and notifies admins', async () => {
       mockGroupMembersFindFirst.mockResolvedValue(invitedMembership);
+      mockGroupMembersFindMany.mockResolvedValue([{ userId: ADMIN_ID }]);
+      mockUsersFindFirst.mockResolvedValue(mockUserRow); // user accepting the invite
 
       await service.acceptInvitation(GROUP_ID, USER_ID);
 
@@ -538,6 +540,34 @@ describe('GroupMembersService', () => {
         expect.objectContaining({ status: GroupMemberStatus.ACTIVE }),
       );
       expect(mockInsertOnConflict).toHaveBeenCalledTimes(1);
+      expect(mockNotificationsNotifyMany).toHaveBeenCalledWith(
+        [ADMIN_ID],
+        NotificationType.GROUP_INVITATION_ACCEPTED,
+        expect.objectContaining({
+          groupId: GROUP_ID,
+          groupName: mockPublicGroup.name,
+          username: mockUserRow.username,
+        }),
+        [NotificationChannel.PUSH],
+      );
+    });
+
+    it('does not throw when notifyMany fails', async () => {
+      mockGroupMembersFindFirst.mockResolvedValue(invitedMembership);
+      mockGroupMembersFindMany.mockResolvedValue([{ userId: ADMIN_ID }]);
+      mockUsersFindFirst.mockResolvedValue(mockUserRow);
+      mockNotificationsNotifyMany.mockRejectedValue(new Error('FCM error'));
+
+      await expect(service.acceptInvitation(GROUP_ID, USER_ID)).resolves.toBeUndefined();
+    });
+
+    it('skips notification when no active admins exist', async () => {
+      mockGroupMembersFindFirst.mockResolvedValue(invitedMembership);
+      mockGroupMembersFindMany.mockResolvedValue([]);
+
+      await service.acceptInvitation(GROUP_ID, USER_ID);
+
+      expect(mockNotificationsNotifyMany).not.toHaveBeenCalled();
     });
 
     it('throws ConflictException when no INVITED record exists', async () => {
