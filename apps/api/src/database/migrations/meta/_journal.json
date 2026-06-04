@@ -183,6 +183,13 @@
       "when": 1780015641418,
       "tag": "0025_steep_blob",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1780539437739,
+      "tag": "0026_blue_red_skull",
+      "breakpoints": true
     }
   ]
 }

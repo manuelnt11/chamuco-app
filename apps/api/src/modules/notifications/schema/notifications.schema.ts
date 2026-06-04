@@ -6,6 +6,7 @@ import { users } from '@/modules/users/schema/users.schema';
 
 export const notificationTypeEnum = pgEnum('notification_type', [
   NotificationType.GROUP_INVITATION,
+  NotificationType.GROUP_INVITATION_ACCEPTED,
   NotificationType.GROUP_JOIN_ACCEPTED,
   NotificationType.GROUP_ANNOUNCEMENT,
   NotificationType.TRIP_INVITATION,
