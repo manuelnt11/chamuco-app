@@ -31,7 +31,7 @@ export function NavItem({ item, layout, showLabel = true, badge }: NavItemProps)
       ? showLabel
         ? 'px-3 py-2 justify-start'
         : 'px-0 py-2 justify-center'
-      : 'flex-col px-2 py-2 text-xs justify-center';
+      : 'flex-col px-2 py-2 text-xs justify-center w-full h-full';
 
   const badgeLabel = badge && badge > 0 ? (badge > 99 ? '99+' : String(badge)) : null;
 

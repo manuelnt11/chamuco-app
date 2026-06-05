@@ -15,14 +15,14 @@ export function MobileBottomNav() {
     <nav
       className={cn(
         'fixed bottom-0 left-0 right-0 z-40 h-nav-safe pb-nav-inset bg-card border-t border-border flex md:hidden',
-        'transition-transform duration-300',
-        hidden ? 'translate-y-full' : 'translate-y-0',
+        'transition-transform duration-300 will-change-transform',
+        hidden ? 'translate-y-full pointer-events-none' : 'translate-y-0',
       )}
       aria-label="Mobile navigation"
       aria-hidden={hidden}
     >
       {NAV_ITEMS.map((item) => (
-        <div key={item.key} className="flex-1">
+        <div key={item.key} className="flex-1 h-full">
           <NavItem
             item={item}
             layout="bottom-bar"

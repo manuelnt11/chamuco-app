@@ -82,7 +82,7 @@ function Toaster() {
     <ToastPrimitive.Viewport
       className={cn(
         'fixed bottom-0 right-0 z-100 flex max-h-screen w-full flex-col gap-2 p-4 md:max-w-sm',
-        'pb-safe-bottom',
+        'pb-safe-bottom pointer-events-none',
       )}
     >
       {toasts.map((toast) => (
@@ -91,6 +91,7 @@ function Toaster() {
           toast={toast}
           className={cn(
             toastVariants({ type: toast.type as keyof typeof typeIconMap }),
+            'pointer-events-auto',
             'data-starting-style:translate-y-2 data-starting-style:opacity-0',
             'data-ending-style:translate-y-2 data-ending-style:opacity-0',
             'transition-all duration-200',
