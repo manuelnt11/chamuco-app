@@ -127,7 +127,25 @@ describe('NavItem', () => {
     it('applies bottom-bar layout classes', () => {
       render(<NavItem item={mockItem} layout="bottom-bar" />);
       const link = screen.getByRole('link');
-      expect(link).toHaveClass('flex-col', 'px-2', 'py-2', 'text-xs', 'justify-center');
+      expect(link).toHaveClass(
+        'flex-col',
+        'px-2',
+        'py-2',
+        'text-xs',
+        'justify-center',
+        'w-full',
+        'h-full',
+      );
+    });
+
+    it('does not apply rounded-lg in bottom-bar layout', () => {
+      render(<NavItem item={mockItem} layout="bottom-bar" />);
+      expect(screen.getByRole('link')).not.toHaveClass('rounded-lg');
+    });
+
+    it('applies rounded-lg in sidebar layout', () => {
+      render(<NavItem item={mockItem} layout="sidebar" />);
+      expect(screen.getByRole('link')).toHaveClass('rounded-lg');
     });
   });
 

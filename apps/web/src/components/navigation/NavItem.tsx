@@ -21,7 +21,7 @@ export function NavItem({ item, layout, showLabel = true, badge }: NavItemProps)
   const label = t(`navigation.${item.key}`);
   const Icon = item.icon;
 
-  const baseClasses = 'flex items-center gap-2 rounded-lg transition-colors';
+  const baseClasses = 'flex items-center gap-2 transition-colors';
   const activeClasses = isActive
     ? 'bg-primary text-primary-foreground'
     : 'hover:bg-muted text-foreground';
@@ -29,8 +29,8 @@ export function NavItem({ item, layout, showLabel = true, badge }: NavItemProps)
   const layoutClasses =
     layout === 'sidebar'
       ? showLabel
-        ? 'px-3 py-2 justify-start'
-        : 'px-0 py-2 justify-center'
+        ? 'px-3 py-2 justify-start rounded-lg'
+        : 'px-0 py-2 justify-center rounded-lg'
       : 'flex-col px-2 py-2 text-xs justify-center w-full h-full';
 
   const badgeLabel = badge && badge > 0 ? (badge > 99 ? '99+' : String(badge)) : null;
