@@ -71,7 +71,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
   return (
     <div className="p-8 max-w-2xl">
-      <div className="mb-6">
+      <div className="flex items-center justify-between mb-6">
         <Link
           href="/groups"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -79,26 +79,6 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           <ArrowLeftIcon className="size-4" />
           {t('title')}
         </Link>
-      </div>
-
-      <div className="flex items-start gap-6 mb-6">
-        <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted flex items-center justify-center">
-          <img src={group.coverUrl} alt="" className="size-full object-cover" />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold truncate">{group.name}</h1>
-            <span className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
-              {group.visibility === GroupVisibility.PUBLIC
-                ? t('visibility.public')
-                : t('visibility.private')}
-            </span>
-          </div>
-          {group.description && (
-            <p className="mt-1 text-sm text-muted-foreground">{group.description}</p>
-          )}
-        </div>
 
         <div className="flex shrink-0 gap-2">
           <Link
@@ -128,6 +108,26 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             >
               <GearSixIcon className="size-5" aria-hidden="true" />
             </Link>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-start gap-6 mb-6">
+        <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted flex items-center justify-center">
+          <img src={group.coverUrl} alt="" className="size-full object-cover" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold truncate">{group.name}</h1>
+            <span className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+              {group.visibility === GroupVisibility.PUBLIC
+                ? t('visibility.public')
+                : t('visibility.private')}
+            </span>
+          </div>
+          {group.description && (
+            <p className="mt-1 text-sm text-muted-foreground">{group.description}</p>
           )}
         </div>
       </div>

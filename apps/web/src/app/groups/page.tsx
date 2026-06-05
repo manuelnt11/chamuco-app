@@ -31,7 +31,7 @@ export default function GroupsPage() {
   }, [isAuthLoading]);
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-2xl">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">{t('title')}</h1>
         <div className="flex items-center gap-2">
