@@ -197,6 +197,13 @@
       "when": 1780604781227,
       "tag": "0027_steady_penance",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1780768648933,
+      "tag": "0028_glossy_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

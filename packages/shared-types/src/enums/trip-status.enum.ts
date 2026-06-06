@@ -1,0 +1,8 @@
+export enum TripStatus {
+  DRAFT = 'DRAFT',
+  OPEN = 'OPEN',
+  CONFIRMED = 'CONFIRMED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}

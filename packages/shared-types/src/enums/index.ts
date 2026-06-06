@@ -26,4 +26,6 @@ export * from './upload-type.enum';
 export * from './visa-coverage-type.enum';
 export * from './visa-entries.enum';
 export * from './visa-type.enum';
+export * from './trip-status.enum';
+export * from './trip-visibility.enum';
 export * from './visa-zone.enum';
