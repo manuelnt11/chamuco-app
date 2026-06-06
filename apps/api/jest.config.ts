@@ -36,6 +36,7 @@ const config: Config = {
     '!src/**/index.ts',
     '!src/config/environment.schema.ts',
     '!src/database/seeds/**/*.ts',
+    '!src/**/*.schema.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
