@@ -43,10 +43,12 @@ describe('trips schema', () => {
     );
   });
 
-  it('has CHECK constraint enforcing date order', () => {
+  it('has CHECK constraints for date order and capacity minimum', () => {
     const config = getTableConfig(trips);
-    expect(config.checks).toHaveLength(1);
-    expect(config.checks[0]?.name).toBe('trips_date_order');
+    expect(config.checks).toHaveLength(2);
+    const checkNames = config.checks.map((c) => c.name);
+    expect(checkNames).toContain('trips_date_order');
+    expect(checkNames).toContain('trips_participant_capacity_min');
   });
 
   it('has timestamptz columns for created_at and updated_at', () => {

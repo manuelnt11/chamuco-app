@@ -36,9 +36,7 @@ export const trips = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     name: varchar('name', { length: 100 }).notNull(),
     description: text('description'),
-    cover: uuid('cover').references(/* istanbul ignore next */ () => assets.id, {
-      onDelete: 'restrict',
-    }),
+    cover: uuid('cover').references(() => assets.id, { onDelete: 'restrict' }),
     status: tripStatusEnum('status').notNull().default(TripStatus.DRAFT),
     visibility: tripVisibilityEnum('visibility').notNull(),
     startDate: date('start_date').notNull(),
@@ -55,11 +53,14 @@ export const trips = pgTable(
     agencyId: uuid('agency_id'),
     createdBy: uuid('created_by')
       .notNull()
-      .references(/* istanbul ignore next */ () => users.id, { onDelete: 'restrict' }),
+      .references(() => users.id, { onDelete: 'restrict' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [check('trips_date_order', sql`${table.endDate} >= ${table.startDate}`)],
+  (table) => [
+    check('trips_date_order', sql`${table.endDate} >= ${table.startDate}`),
+    check('trips_participant_capacity_min', sql`${table.participantCapacity} >= 1`),
+  ],
 );
 
 export const tripsRelations = relations(trips, ({ one }) => ({
