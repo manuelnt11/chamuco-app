@@ -40,6 +40,9 @@ Schema files live next to the module they belong to (`src/modules/<module>/schem
 | `user_visas`              | users  | 1:many — visas held, linked to a nationality record                                               |
 | `user_etas`               | users  | 1:many — electronic travel authorizations, linked to a nationality record and a specific passport |
 | `support_admin_audit_log` | users  | Append-only audit trail for all SUPPORT_ADMIN writes                                              |
+| `trips`                   | trips  | Core trip entity — status, visibility, dates, capacity, departure/landing                         |
+| `trip_destinations`       | trips  | 1:many — ordered stop list for a trip; UNIQUE `(trip_id, position)`, position ≥ 1                 |
+| `group_trips`             | trips  | M:M junction — groups linked to a trip; linking triggers bulk member invitations (app logic)      |
 
 ### `updated_at` triggers
 
@@ -203,6 +206,18 @@ Each step is a separate migration file and a separate PR. Document the steps in 
 | 0016 | `0016_groups_core.sql`          | `groups` table; `group_visibility` enum                                                                                                          |
 | 0017 | `0017_perpetual_unicorn.sql`    | `group_members` and `group_member_stats` tables (composite PKs); `group_member_status`, `group_role`, `group_member_tier` enums                  |
 | 0018 | `0018_condemned_pestilence.sql` | `groups.cover` made nullable; `groups.deleted_at` added (soft-delete support)                                                                    |
+| 0019 | `0019_fluffy_fabian_cortez.sql` | Indexes on `group_members (user_id, status)` and `(group_id, status)`                                                                            |
+| 0020 | `0020_normal_fat_cobra.sql`     | `notifications` and `notification_deliveries` tables; `notification_type`, `notification_channel`, `delivery_status` enums                       |
+| 0021 | `0021_tranquil_lester.sql`      | `user_fcm_tokens` table                                                                                                                          |
+| 0022 | `0022_eager_joseph.sql`         | `user_preferences.notification_opt_outs` JSONB column                                                                                            |
+| 0023 | `0023_moaning_the_phantom.sql`  | `group_announcements` table                                                                                                                      |
+| 0024 | `0024_good_colonel_america.sql` | Dropped `notifications.title` and `notifications.body`                                                                                           |
+| 0025 | `0025_steep_blob.sql`           | `group_announcements.updated_at` column + `set_updated_at` trigger                                                                               |
+| 0026 | `0026_blue_red_skull.sql`       | Added `GROUP_INVITATION_ACCEPTED` value to `notification_type` enum                                                                              |
+| 0027 | `0027_steady_penance.sql`       | Added `GROUP_MEMBER_REMOVED`, `GROUP_MEMBER_PROMOTED`, `GROUP_MEMBER_DEMOTED` to `notification_type` enum                                        |
+| 0028 | `0028_glossy_lethal_legion.sql` | `trips` table; `trip_status`, `trip_visibility` enums                                                                                            |
+| 0029 | `0029_tan_marrow.sql`           | `trips_participant_capacity_min` CHECK constraint on `trips`                                                                                     |
+| 0030 | `0030_rapid_boomerang.sql`      | `trip_destinations` table (ordered stops, UNIQUE `(trip_id, position)`); `group_trips` junction table (composite PK `(trip_id, group_id)`)       |
 
 ---
 

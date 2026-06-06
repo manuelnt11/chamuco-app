@@ -211,6 +211,13 @@
       "when": 1780772874179,
       "tag": "0029_tan_marrow",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1780787861295,
+      "tag": "0030_rapid_boomerang",
+      "breakpoints": true
     }
   ]
 }

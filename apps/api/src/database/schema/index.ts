@@ -17,6 +17,8 @@ export * from '@/modules/groups/schema/groups.schema';
 export * from '@/modules/notifications/schema/notification-deliveries.schema';
 export * from '@/modules/notifications/schema/notifications.schema';
 export * from '@/modules/notifications/schema/user-fcm-tokens.schema';
+export * from '@/modules/trips/schema/group-trips.schema';
+export * from '@/modules/trips/schema/trip-destinations.schema';
 export * from '@/modules/trips/schema/trips.schema';
 export * from '@/modules/users/schema/support-admin-audit-log.schema';
 export * from '@/modules/users/schema/user-etas.schema';
