@@ -163,7 +163,7 @@ export class TripAnnouncementsService {
     const [updated] = await this.db
       .update(tripAnnouncements)
       .set({ content: dto.content })
-      .where(eq(tripAnnouncements.id, announcementId))
+      .where(and(eq(tripAnnouncements.id, announcementId), eq(tripAnnouncements.tripId, tripId)))
       .returning();
 
     if (!updated) throw new Error('Failed to update announcement');
