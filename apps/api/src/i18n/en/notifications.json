@@ -28,8 +28,8 @@
     "body": "You have been invited to join a trip."
   },
   "tripAnnouncement": {
-    "title": "New Trip Announcement",
-    "body": "Your trip has a new announcement."
+    "title": "New announcement in {tripName}",
+    "body": "@{senderUsername} posted a new announcement."
   },
   "tripKeyDateReminder": {
     "title": "Trip Date Reminder",

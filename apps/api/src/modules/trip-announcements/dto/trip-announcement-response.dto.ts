@@ -1,0 +1,24 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export class TripAnnouncementResponseDto {
+  @ApiProperty({ description: 'Announcement UUID.' })
+  id!: string;
+
+  @ApiProperty({ description: 'Trip UUID.' })
+  tripId!: string;
+
+  @ApiProperty({
+    description: 'Username of the user who created the announcement.',
+    example: 'jsmith',
+  })
+  createdByUsername!: string;
+
+  @ApiProperty({ description: 'Announcement content.' })
+  content!: string;
+
+  @ApiProperty({ description: 'ISO 8601 creation timestamp.' })
+  createdAt!: Date;
+
+  @ApiProperty({ description: 'ISO 8601 last-updated timestamp.' })
+  updatedAt!: Date;
+}

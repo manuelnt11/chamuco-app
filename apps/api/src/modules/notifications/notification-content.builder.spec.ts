@@ -108,5 +108,17 @@ describe('buildNotificationContent()', () => {
       const result = buildNotificationContent(NotificationType.TRIP_COMPLETED, {});
       expect(result.url).toBeNull();
     });
+
+    it('derives /trips/:id url for TRIP_ANNOUNCEMENT', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_ANNOUNCEMENT, {
+        tripId: 't-123',
+      });
+      expect(result.url).toBe('/trips/t-123');
+    });
+
+    it('returns null for TRIP_ANNOUNCEMENT when tripId is missing', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_ANNOUNCEMENT, {});
+      expect(result.url).toBeNull();
+    });
   });
 });

@@ -36,6 +36,8 @@ function buildNotificationUrl(
     case NotificationType.GROUP_MEMBER_PROMOTED:
     case NotificationType.GROUP_MEMBER_DEMOTED:
       return typeof payload.groupId === 'string' ? `/groups/${payload.groupId}` : null;
+    case NotificationType.TRIP_ANNOUNCEMENT:
+      return typeof payload.tripId === 'string' ? `/trips/${payload.tripId}` : null;
     case NotificationType.PASSPORT_EXPIRING_SOON:
     case NotificationType.PASSPORT_EXPIRED:
       return '/profile/passport';

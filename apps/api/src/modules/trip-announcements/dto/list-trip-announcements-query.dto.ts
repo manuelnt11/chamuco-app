@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
 
-export class ListAnnouncementsQueryDto {
+export class ListTripAnnouncementsQueryDto {
   @ApiPropertyOptional({ description: 'Number of items to return.', default: 20, maximum: 100 })
   @IsOptional()
   @Type(() => Number)

@@ -14,6 +14,8 @@ import { userFcmTokens } from '@/modules/notifications/schema/user-fcm-tokens.sc
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { groups } from '@/modules/groups/schema/groups.schema';
 import { groupAnnouncements } from '@/modules/group-announcements/schema/group-announcements.schema';
+import { trips } from '@/modules/trips/schema/trips.schema';
+import { tripAnnouncements } from '@/modules/trip-announcements/schema/trip-announcements.schema';
 import { users } from '@/modules/users/schema/users.schema';
 import { buildNotificationContent } from './notification-content.builder';
 import { EMAIL_STRATEGY, PUSH_STRATEGY, SMS_STRATEGY } from './notifications.constants';
@@ -234,7 +236,9 @@ export class NotificationsService {
     const result = new Map<string, Record<string, unknown>>();
 
     const groupIdsNeeded = new Set<string>();
-    const announcementIdsNeeded = new Set<string>();
+    const groupAnnouncementIdsNeeded = new Set<string>();
+    const tripIdsNeeded = new Set<string>();
+    const tripAnnouncementIdsNeeded = new Set<string>();
 
     for (const row of rows) {
       const data = (row.data ?? {}) as Record<string, unknown>;
@@ -248,12 +252,24 @@ export class NotificationsService {
         typeof data.announcementId === 'string' &&
         typeof data.senderUsername !== 'string'
       ) {
-        announcementIdsNeeded.add(data.announcementId);
+        groupAnnouncementIdsNeeded.add(data.announcementId);
+      }
+      if (typeof data.tripId === 'string' && typeof data.tripName !== 'string') {
+        tripIdsNeeded.add(data.tripId);
+      }
+      if (
+        row.type === NotificationType.TRIP_ANNOUNCEMENT &&
+        typeof data.announcementId === 'string' &&
+        typeof data.senderUsername !== 'string'
+      ) {
+        tripAnnouncementIdsNeeded.add(data.announcementId);
       }
     }
 
     const groupNameMap = new Map<string, string>();
-    const senderUsernameMap = new Map<string, string>();
+    const groupAnnouncementSenderMap = new Map<string, string>();
+    const tripNameMap = new Map<string, string>();
+    const tripAnnouncementSenderMap = new Map<string, string>();
 
     await Promise.all([
       (async () => {
@@ -265,13 +281,30 @@ export class NotificationsService {
         for (const r of fetched) groupNameMap.set(r.id, r.name);
       })(),
       (async () => {
-        if (announcementIdsNeeded.size === 0) return;
+        if (groupAnnouncementIdsNeeded.size === 0) return;
         const fetched = await this.db
           .select({ id: groupAnnouncements.id, username: users.username })
           .from(groupAnnouncements)
           .innerJoin(users, eq(groupAnnouncements.createdBy, users.id))
-          .where(inArray(groupAnnouncements.id, [...announcementIdsNeeded]));
-        for (const r of fetched) senderUsernameMap.set(r.id, r.username);
+          .where(inArray(groupAnnouncements.id, [...groupAnnouncementIdsNeeded]));
+        for (const r of fetched) groupAnnouncementSenderMap.set(r.id, r.username);
+      })(),
+      (async () => {
+        if (tripIdsNeeded.size === 0) return;
+        const fetched = await this.db
+          .select({ id: trips.id, name: trips.name })
+          .from(trips)
+          .where(inArray(trips.id, [...tripIdsNeeded]));
+        for (const r of fetched) tripNameMap.set(r.id, r.name);
+      })(),
+      (async () => {
+        if (tripAnnouncementIdsNeeded.size === 0) return;
+        const fetched = await this.db
+          .select({ id: tripAnnouncements.id, username: users.username })
+          .from(tripAnnouncements)
+          .innerJoin(users, eq(tripAnnouncements.createdBy, users.id))
+          .where(inArray(tripAnnouncements.id, [...tripAnnouncementIdsNeeded]));
+        for (const r of fetched) tripAnnouncementSenderMap.set(r.id, r.username);
       })(),
     ]);
 
@@ -281,8 +314,16 @@ export class NotificationsService {
         const name = groupNameMap.get(enriched.groupId as string);
         if (name !== undefined) enriched.groupName = name;
       }
-      if (announcementIdsNeeded.has(enriched.announcementId as string)) {
-        const username = senderUsernameMap.get(enriched.announcementId as string);
+      if (groupAnnouncementIdsNeeded.has(enriched.announcementId as string)) {
+        const username = groupAnnouncementSenderMap.get(enriched.announcementId as string);
+        if (username !== undefined) enriched.senderUsername = username;
+      }
+      if (tripIdsNeeded.has(enriched.tripId as string)) {
+        const name = tripNameMap.get(enriched.tripId as string);
+        if (name !== undefined) enriched.tripName = name;
+      }
+      if (tripAnnouncementIdsNeeded.has(enriched.announcementId as string)) {
+        const username = tripAnnouncementSenderMap.get(enriched.announcementId as string);
         if (username !== undefined) enriched.senderUsername = username;
       }
     }
