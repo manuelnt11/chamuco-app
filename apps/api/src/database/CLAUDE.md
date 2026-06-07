@@ -31,18 +31,19 @@ Schema files live next to the module they belong to (`src/modules/<module>/schem
 
 ### Current tables
 
-| Table                     | Module | Description                                                                                       |
-| ------------------------- | ------ | ------------------------------------------------------------------------------------------------- |
-| `users`                   | users  | Core auth identity record                                                                         |
-| `user_preferences`        | users  | 1:1 — display/UX preferences                                                                      |
-| `user_profiles`           | users  | 1:1 — personal profile, health data (JSONB), emergency contacts, loyalty programs                 |
-| `user_nationalities`      | users  | 1:many — citizenships + passport documents                                                        |
-| `user_visas`              | users  | 1:many — visas held, linked to a nationality record                                               |
-| `user_etas`               | users  | 1:many — electronic travel authorizations, linked to a nationality record and a specific passport |
-| `support_admin_audit_log` | users  | Append-only audit trail for all SUPPORT_ADMIN writes                                              |
-| `trips`                   | trips  | Core trip entity — status, visibility, dates, capacity, departure/landing                         |
-| `trip_destinations`       | trips  | 1:many — ordered stop list for a trip; UNIQUE `(trip_id, position)`, position ≥ 1                 |
-| `group_trips`             | trips  | M:M junction — groups linked to a trip; linking triggers bulk member invitations (app logic)      |
+| Table                     | Module | Description                                                                                                                                               |
+| ------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`                   | users  | Core auth identity record                                                                                                                                 |
+| `user_preferences`        | users  | 1:1 — display/UX preferences                                                                                                                              |
+| `user_profiles`           | users  | 1:1 — personal profile, health data (JSONB), emergency contacts, loyalty programs                                                                         |
+| `user_nationalities`      | users  | 1:many — citizenships + passport documents                                                                                                                |
+| `user_visas`              | users  | 1:many — visas held, linked to a nationality record                                                                                                       |
+| `user_etas`               | users  | 1:many — electronic travel authorizations, linked to a nationality record and a specific passport                                                         |
+| `support_admin_audit_log` | users  | Append-only audit trail for all SUPPORT_ADMIN writes                                                                                                      |
+| `trips`                   | trips  | Core trip entity — status, visibility, dates, capacity, departure/landing                                                                                 |
+| `trip_destinations`       | trips  | 1:many — ordered stop list for a trip; UNIQUE `(trip_id, position)`, position ≥ 1                                                                         |
+| `group_trips`             | trips  | M:M junction — groups linked to a trip; linking triggers bulk member invitations (app logic)                                                              |
+| `trip_participants`       | trips  | M:M — one active record per user per trip; composite PK `(trip_id, user_id)`; status state machine (INVITED → ACCEPTED → CONFIRMED); `updated_at` trigger |
 
 ### `updated_at` triggers
 
@@ -54,7 +55,7 @@ CREATE TRIGGER <table>_set_updated_at
   FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 ```
 
-Tables with triggers: `users`, `user_preferences`, `user_profiles`, `user_nationalities`, `user_visas`, `user_etas`, `group_member_stats`.
+Tables with triggers: `users`, `user_preferences`, `user_profiles`, `user_nationalities`, `user_visas`, `user_etas`, `group_member_stats`, `trip_participants`.
 
 ### Primary key strategy for relation tables
 
@@ -142,6 +143,10 @@ groups
 | `notification_type`        | 10 values — see `NotificationType` in shared-types                                                               | `notifications.type`                         |
 | `notification_channel`     | `PUSH`, `EMAIL`, `SMS`                                                                                           | `notification_deliveries.channel`            |
 | `delivery_status`          | `PENDING`, `SENT`, `FAILED`                                                                                      | `notification_deliveries.status`             |
+| `trip_status`              | `DRAFT`, `OPEN`, `CONFIRMED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`                                            | `trips.status`                               |
+| `trip_visibility`          | `PUBLIC`, `PRIVATE`                                                                                              | `trips.visibility`                           |
+| `trip_role`                | `ORGANIZER`, `CO_ORGANIZER`, `PARTICIPANT`                                                                       | `trip_participants.role`                     |
+| `trip_participant_status`  | `INVITED`, `PENDING_REQUEST`, `ACCEPTED`, `CONFIRMED`, `DECLINED`                                                | `trip_participants.status`                   |
 
 All enum values are sourced from `@chamuco/shared-types` — never hardcode them in schema files.
 
@@ -218,6 +223,8 @@ Each step is a separate migration file and a separate PR. Document the steps in 
 | 0028 | `0028_glossy_lethal_legion.sql` | `trips` table; `trip_status`, `trip_visibility` enums                                                                                            |
 | 0029 | `0029_tan_marrow.sql`           | `trips_participant_capacity_min` CHECK constraint on `trips`                                                                                     |
 | 0030 | `0030_rapid_boomerang.sql`      | `trip_destinations` table (ordered stops, UNIQUE `(trip_id, position)`); `group_trips` junction table (composite PK `(trip_id, group_id)`)       |
+| 0031 | `0031_wet_wendell_vaughn.sql`   | `idx_group_trips_group_id` index on `group_trips`                                                                                                |
+| 0032 | `0032_cold_vector.sql`          | `trip_participants` table (composite PK `(trip_id, user_id)`); `trip_role`, `trip_participant_status` enums; `updated_at` trigger                |
 
 ---
 

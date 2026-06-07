@@ -1,0 +1,7 @@
+export enum TripParticipantStatus {
+  INVITED = 'INVITED',
+  PENDING_REQUEST = 'PENDING_REQUEST',
+  ACCEPTED = 'ACCEPTED',
+  CONFIRMED = 'CONFIRMED',
+  DECLINED = 'DECLINED',
+}

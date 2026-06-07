@@ -225,6 +225,13 @@
       "when": 1780790379376,
       "tag": "0031_wet_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1780802956511,
+      "tag": "0032_cold_vector",
+      "breakpoints": true
     }
   ]
 }

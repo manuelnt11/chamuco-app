@@ -22,6 +22,8 @@ export * from './physical-limitation-type.enum';
 export * from './platform-role.enum';
 export * from './profile-visibility.enum';
 export * from './transient-message-type.enum';
+export * from './trip-participant-status.enum';
+export * from './trip-role.enum';
 export * from './trip-status.enum';
 export * from './trip-visibility.enum';
 export * from './upload-type.enum';

@@ -1,0 +1,5 @@
+export enum TripRole {
+  ORGANIZER = 'ORGANIZER',
+  CO_ORGANIZER = 'CO_ORGANIZER',
+  PARTICIPANT = 'PARTICIPANT',
+}

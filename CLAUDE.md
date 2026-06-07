@@ -103,7 +103,7 @@ These are the rules that directly affect how code is written. Full domain specs 
 - Only one active `PENDING_REQUEST` or `INVITED` record per user per trip/group at a time.
 - Cancel = record deleted (no terminal status set), slot freed immediately.
 - Waitlist = `PENDING_REQUEST` records ordered by `initiated_at`. In `WAITLIST_MODE`, the organizer cannot skip a request to accept a later one.
-- Role promotion requires a role invitation (`trip_role_invitations`); role downgrade is a direct organizer action with no invitation.
+- Both role promotion and role downgrade are direct organizer actions with no invitation or acceptance flow. `trip_role_invitations` does not exist.
 
 ### Expenses
 
