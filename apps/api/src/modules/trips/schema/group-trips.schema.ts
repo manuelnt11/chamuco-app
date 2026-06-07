@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { groups } from '@/modules/groups/schema/groups.schema';
 import { trips } from '@/modules/trips/schema/trips.schema';
@@ -17,7 +17,10 @@ export const groupTrips = pgTable(
       .references(() => groups.id, { onDelete: 'cascade' }),
     addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.tripId, t.groupId] })],
+  (t) => [
+    primaryKey({ columns: [t.tripId, t.groupId] }),
+    index('idx_group_trips_group_id').on(t.groupId),
+  ],
 );
 
 export const groupTripsRelations = relations(groupTrips, ({ one }) => ({

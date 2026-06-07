@@ -22,9 +22,15 @@ describe('group_trips schema', () => {
     const config = getTableConfig(groupTrips);
     expect(config.primaryKeys).toHaveLength(1);
     const pk = config.primaryKeys[0];
-    expect(pk).toBeDefined();
-    const pkColumns = pk!.columns.map((c) => c.name);
+    if (!pk) throw new Error('Expected composite PK to exist');
+    const pkColumns = pk.columns.map((c) => c.name);
     expect(pkColumns).toEqual(expect.arrayContaining(['trip_id', 'group_id']));
+  });
+
+  it('has index on group_id', () => {
+    const config = getTableConfig(groupTrips);
+    const indexNames = config.indexes.map((i) => i.config.name);
+    expect(indexNames).toContain('idx_group_trips_group_id');
   });
 
   it('added_at is timestamptz', () => {
