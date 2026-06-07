@@ -17,6 +17,7 @@ import { CloudStorageModule } from '@/modules/cloud-storage/cloud-storage.module
 import { GroupsModule } from '@/modules/groups/groups.module';
 import { GroupMembersModule } from '@/modules/group-members/group-members.module';
 import { GroupAnnouncementsModule } from '@/modules/group-announcements/group-announcements.module';
+import { TripAnnouncementsModule } from '@/modules/trip-announcements/trip-announcements.module';
 import { UploadsModule } from '@/modules/uploads/uploads.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
 import { I18nModule } from 'nestjs-i18n';
@@ -37,6 +38,7 @@ import * as path from 'path';
     GroupMembersModule,
     GroupsModule,
     GroupAnnouncementsModule,
+    TripAnnouncementsModule,
     UploadsModule,
     HealthModule,
     FeedbackModule,

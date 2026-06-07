@@ -538,6 +538,48 @@ describe('NotificationsService', () => {
       );
     });
 
+    it('enriches tripName from tripId when missing from payload', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.TRIP_ANNOUNCEMENT,
+        data: { tripId: 'trip-1' },
+      };
+      db.select
+        .mockReturnValueOnce(makeSelect([row]))
+        .mockReturnValueOnce(makeEnrichSelect([{ id: 'trip-1', name: 'Cartagena 2026' }]));
+
+      await service.findAll('user-1');
+
+      expect(i18n.translate).toHaveBeenCalledWith(
+        expect.stringContaining('tripAnnouncement'),
+        expect.objectContaining({ args: expect.objectContaining({ tripName: 'Cartagena 2026' }) }),
+      );
+    });
+
+    it('enriches senderUsername from announcementId for TRIP_ANNOUNCEMENT when missing', async () => {
+      const row = {
+        ...FAKE_NOTIFICATION,
+        type: NotificationType.TRIP_ANNOUNCEMENT,
+        data: { tripId: 'trip-1', announcementId: 'ann-1' },
+      };
+      db.select
+        .mockReturnValueOnce(makeSelect([row]))
+        .mockReturnValueOnce(makeEnrichSelect([{ id: 'trip-1', name: 'Cartagena 2026' }]))
+        .mockReturnValueOnce(makeEnrichSelect([{ id: 'ann-1', username: 'organizer-user' }]));
+
+      await service.findAll('user-1');
+
+      expect(i18n.translate).toHaveBeenCalledWith(
+        expect.stringContaining('tripAnnouncement'),
+        expect.objectContaining({
+          args: expect.objectContaining({
+            tripName: 'Cartagena 2026',
+            senderUsername: 'organizer-user',
+          }),
+        }),
+      );
+    });
+
     it('does not make enrichment DB calls when payload already has resolved fields', async () => {
       const row = {
         ...FAKE_NOTIFICATION,

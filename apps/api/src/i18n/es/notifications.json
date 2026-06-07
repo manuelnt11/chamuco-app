@@ -28,8 +28,8 @@
     "body": "Has sido invitado a unirte a un viaje."
   },
   "tripAnnouncement": {
-    "title": "Nuevo Anuncio del Viaje",
-    "body": "Tu viaje tiene un nuevo anuncio."
+    "title": "Nuevo anuncio en {tripName}",
+    "body": "@{senderUsername} publicó un nuevo anuncio."
   },
   "tripKeyDateReminder": {
     "title": "Recordatorio de Fecha del Viaje",

@@ -164,7 +164,9 @@ export class GroupAnnouncementsService {
     const [updated] = await this.db
       .update(groupAnnouncements)
       .set({ content: dto.content })
-      .where(eq(groupAnnouncements.id, announcementId))
+      .where(
+        and(eq(groupAnnouncements.id, announcementId), eq(groupAnnouncements.groupId, groupId)),
+      )
       .returning();
 
     if (!updated) throw new Error('Failed to update announcement');
