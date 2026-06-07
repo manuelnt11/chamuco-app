@@ -1,5 +1,5 @@
 {
-  "id": "4b501c01-e3e5-4534-b7b4-3699168d93be",
+  "id": "778d97ed-b2b1-452a-b93c-2761d9a4e21e",
   "prevId": "865912fd-14d6-4832-b6cd-8988765aff14",
   "version": "7",
   "dialect": "postgresql",
@@ -945,6 +945,18 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "initiated_by": {
+          "name": "initiated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "decided_by": {
+          "name": "decided_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -1006,6 +1018,24 @@
           "tableFrom": "trip_participants",
           "tableTo": "users",
           "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "trip_participants_initiated_by_users_id_fk": {
+          "name": "trip_participants_initiated_by_users_id_fk",
+          "tableFrom": "trip_participants",
+          "tableTo": "users",
+          "columnsFrom": ["initiated_by"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "trip_participants_decided_by_users_id_fk": {
+          "name": "trip_participants_decided_by_users_id_fk",
+          "tableFrom": "trip_participants",
+          "tableTo": "users",
+          "columnsFrom": ["decided_by"],
           "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"

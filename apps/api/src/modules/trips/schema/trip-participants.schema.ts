@@ -44,6 +44,10 @@ export const tripParticipants = pgTable(
     initiatedAt: timestamp('initiated_at', { withTimezone: true }).notNull().defaultNow(),
     confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    initiatedBy: uuid('initiated_by')
+      .references(() => users.id, { onDelete: 'restrict' })
+      .notNull(),
+    decidedBy: uuid('decided_by').references(() => users.id, { onDelete: 'restrict' }),
   },
   (t) => [
     primaryKey({ columns: [t.tripId, t.userId] }),
@@ -59,4 +63,14 @@ export const tripParticipants = pgTable(
 export const tripParticipantsRelations = relations(tripParticipants, ({ one }) => ({
   trip: one(trips, { fields: [tripParticipants.tripId], references: [trips.id] }),
   user: one(users, { fields: [tripParticipants.userId], references: [users.id] }),
+  initiator: one(users, {
+    fields: [tripParticipants.initiatedBy],
+    references: [users.id],
+    relationName: 'initiator',
+  }),
+  decider: one(users, {
+    fields: [tripParticipants.decidedBy],
+    references: [users.id],
+    relationName: 'decider',
+  }),
 }));
