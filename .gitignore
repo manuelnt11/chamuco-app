@@ -69,6 +69,10 @@ backups/
 **/backups/*.sql
 *.dump.sql
 
+# Claude Code
+.claude/plans/
+.claude/worktrees/
+
 # Misc
 .cache
 .parcel-cache
