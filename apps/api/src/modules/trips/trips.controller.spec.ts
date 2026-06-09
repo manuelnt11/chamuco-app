@@ -12,6 +12,13 @@ import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 import type { TripResponseDto } from './dto/trip-response.dto';
+import type { CreateDestinationDto } from './dto/create-destination.dto';
+import type { UpdateDestinationDto } from './dto/update-destination.dto';
+import type { ReorderDestinationsDto } from './dto/reorder-destinations.dto';
+import type {
+  DestinationResponseDto,
+  DestinationWriteResponseDto,
+} from './dto/destination-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 const mockUser: AuthenticatedUser = {
@@ -54,6 +61,21 @@ const mockResponse: TripResponseDto = {
   feedbackOpenUntil: null,
 };
 
+const mockDestResponse: DestinationResponseDto = {
+  id: 'dest-uuid',
+  tripId: 'trip-uuid',
+  position: 1,
+  countryCode: 'MX',
+  city: 'CANCUN',
+  label: null,
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
+const mockDestWriteResponse: DestinationWriteResponseDto = {
+  ...mockDestResponse,
+  requiresConfirmation: false,
+};
+
 describe('TripsController', () => {
   let controller: TripsController;
   let mockCreateTrip: jest.Mock;
@@ -61,6 +83,11 @@ describe('TripsController', () => {
   let mockUpdateTrip: jest.Mock;
   let mockDeleteTrip: jest.Mock;
   let mockTransitionStatus: jest.Mock;
+  let mockListDestinations: jest.Mock;
+  let mockAddDestination: jest.Mock;
+  let mockUpdateDestination: jest.Mock;
+  let mockDeleteDestination: jest.Mock;
+  let mockReorderDestinations: jest.Mock;
 
   beforeEach(async () => {
     mockCreateTrip = jest.fn().mockResolvedValue(mockResponse);
@@ -68,6 +95,11 @@ describe('TripsController', () => {
     mockUpdateTrip = jest.fn().mockResolvedValue(mockResponse);
     mockDeleteTrip = jest.fn().mockResolvedValue(undefined);
     mockTransitionStatus = jest.fn().mockResolvedValue(mockResponse);
+    mockListDestinations = jest.fn().mockResolvedValue([mockDestResponse]);
+    mockAddDestination = jest.fn().mockResolvedValue(mockDestWriteResponse);
+    mockUpdateDestination = jest.fn().mockResolvedValue(mockDestWriteResponse);
+    mockDeleteDestination = jest.fn().mockResolvedValue(undefined);
+    mockReorderDestinations = jest.fn().mockResolvedValue([mockDestResponse]);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TripsController],
@@ -80,6 +112,11 @@ describe('TripsController', () => {
             updateTrip: mockUpdateTrip,
             deleteTrip: mockDeleteTrip,
             transitionStatus: mockTransitionStatus,
+            listDestinations: mockListDestinations,
+            addDestination: mockAddDestination,
+            updateDestination: mockUpdateDestination,
+            deleteDestination: mockDeleteDestination,
+            reorderDestinations: mockReorderDestinations,
           },
         },
       ],
@@ -137,5 +174,45 @@ describe('TripsController', () => {
 
     expect(mockTransitionStatus).toHaveBeenCalledWith(mockUser, 'trip-uuid', dto);
     expect(result).toBe(mockResponse);
+  });
+
+  it('listDestinations delegates to service', async () => {
+    const result = await controller.listDestinations('trip-uuid');
+
+    expect(mockListDestinations).toHaveBeenCalledWith('trip-uuid');
+    expect(result).toEqual([mockDestResponse]);
+  });
+
+  it('addDestination delegates to service', async () => {
+    const dto: CreateDestinationDto = { countryCode: 'MX', city: 'CANCUN' };
+
+    const result = await controller.addDestination(mockUser, 'trip-uuid', dto);
+
+    expect(mockAddDestination).toHaveBeenCalledWith(mockUser, 'trip-uuid', dto);
+    expect(result).toBe(mockDestWriteResponse);
+  });
+
+  it('updateDestination delegates to service', async () => {
+    const dto: UpdateDestinationDto = { city: 'TULUM' };
+
+    const result = await controller.updateDestination(mockUser, 'trip-uuid', 'dest-uuid', dto);
+
+    expect(mockUpdateDestination).toHaveBeenCalledWith(mockUser, 'trip-uuid', 'dest-uuid', dto);
+    expect(result).toBe(mockDestWriteResponse);
+  });
+
+  it('deleteDestination delegates to service', async () => {
+    await controller.deleteDestination(mockUser, 'trip-uuid', 'dest-uuid');
+
+    expect(mockDeleteDestination).toHaveBeenCalledWith(mockUser, 'trip-uuid', 'dest-uuid');
+  });
+
+  it('reorderDestinations delegates to service', async () => {
+    const dto: ReorderDestinationsDto = { destinationIds: ['dest-uuid'] };
+
+    const result = await controller.reorderDestinations(mockUser, 'trip-uuid', dto);
+
+    expect(mockReorderDestinations).toHaveBeenCalledWith(mockUser, 'trip-uuid', dto);
+    expect(result).toEqual([mockDestResponse]);
   });
 });
