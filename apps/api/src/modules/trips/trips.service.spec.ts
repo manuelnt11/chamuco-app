@@ -92,6 +92,8 @@ describe('TripsService', () => {
   let mockUpdateWhere: jest.Mock;
   let mockUpdateSet: jest.Mock;
   let mockUpdate: jest.Mock;
+  let mockDeleteWhere: jest.Mock;
+  let mockDelete: jest.Mock;
   let mockInsertReturning: jest.Mock;
   let mockInsertValues: jest.Mock;
   let mockInsert: jest.Mock;
@@ -109,6 +111,9 @@ describe('TripsService', () => {
     mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
     mockUpdate = jest.fn().mockReturnValue({ set: mockUpdateSet });
 
+    mockDeleteWhere = jest.fn().mockResolvedValue(undefined);
+    mockDelete = jest.fn().mockReturnValue({ where: mockDeleteWhere });
+
     mockInsertReturning = jest.fn().mockResolvedValue([mockTripRow]);
     mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
     mockInsert = jest.fn().mockReturnValue({ values: mockInsertValues });
@@ -119,6 +124,7 @@ describe('TripsService', () => {
         callback({
           insert: mockInsert,
           update: mockUpdate,
+          delete: mockDelete,
         }),
       );
 
@@ -135,6 +141,7 @@ describe('TripsService', () => {
             select: mockSelect,
             update: mockUpdate,
             insert: mockInsert,
+            delete: mockDelete,
             transaction: mockTransaction,
           },
         },
@@ -283,36 +290,39 @@ describe('TripsService', () => {
     });
   });
 
-  describe('cancelTrip', () => {
-    it('sets status to CANCELLED', async () => {
-      await service.cancelTrip(mockUser, 'trip-uuid');
+  describe('deleteTrip', () => {
+    it('deletes trip for DRAFT + organizer', async () => {
+      await service.deleteTrip(mockUser, 'trip-uuid');
 
-      expect(mockUpdate).toHaveBeenCalled();
-      expect(mockUpdateSet).toHaveBeenCalledWith({ status: TripStatus.CANCELLED });
-    });
-
-    it('throws BadRequestException when already COMPLETED', async () => {
-      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.COMPLETED });
-
-      await expect(service.cancelTrip(mockUser, 'trip-uuid')).rejects.toThrow(BadRequestException);
-    });
-
-    it('throws BadRequestException when already CANCELLED', async () => {
-      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.CANCELLED });
-
-      await expect(service.cancelTrip(mockUser, 'trip-uuid')).rejects.toThrow(BadRequestException);
-    });
-
-    it('throws ForbiddenException for non-organizer', async () => {
-      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
-
-      await expect(service.cancelTrip(mockUser, 'trip-uuid')).rejects.toThrow(ForbiddenException);
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+      // delete called twice inside transaction: announcements + trip
+      expect(mockDelete).toHaveBeenCalledTimes(2);
     });
 
     it('throws NotFoundException for unknown trip', async () => {
       mockTripsFindFirst.mockResolvedValue(undefined);
 
-      await expect(service.cancelTrip(mockUser, 'trip-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.deleteTrip(mockUser, 'trip-uuid')).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws ForbiddenException for non-organizer', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.deleteTrip(mockUser, 'trip-uuid')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('throws ForbiddenException when organizer deletes non-DRAFT trip', async () => {
+      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.OPEN });
+
+      await expect(service.deleteTrip(mockUser, 'trip-uuid')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('SUPPORT_ADMIN can delete non-DRAFT trip', async () => {
+      const adminUser = { ...mockUser, platformRole: PlatformRole.SUPPORT_ADMIN };
+      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.CONFIRMED });
+
+      await expect(service.deleteTrip(adminUser, 'trip-uuid')).resolves.toBeUndefined();
+      expect(mockDelete).toHaveBeenCalledTimes(2);
     });
   });
 

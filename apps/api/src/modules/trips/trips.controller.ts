@@ -90,21 +90,24 @@ export class TripsController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Cancel a trip',
+    summary: 'Delete a trip',
     description:
-      'Sets the trip status to CANCELLED. ORGANIZER only. ' +
-      'Trips already in COMPLETED or CANCELLED status cannot be cancelled again.',
+      'Permanently deletes a trip and all its related data. ' +
+      'ORGANIZER may delete their own DRAFT trips only. ' +
+      'SUPPORT_ADMIN may delete trips in any status.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiResponse({ status: 204, description: 'Trip cancelled.' })
-  @ApiBadRequestResponse({ description: 'Trip is already in a terminal status.' })
-  @ApiForbiddenResponse({ description: 'Only the trip organizer can cancel this trip.' })
+  @ApiResponse({ status: 204, description: 'Trip deleted.' })
+  @ApiForbiddenResponse({
+    description:
+      'User is not the trip organizer, or trip is not in DRAFT status (non-SUPPORT_ADMIN).',
+  })
   @ApiNotFoundResponse({ description: 'Trip not found.' })
-  async cancelTrip(
+  async deleteTrip(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
-    return this.tripsService.cancelTrip(user, id);
+    return this.tripsService.deleteTrip(user, id);
   }
 
   @Patch(':id/status')

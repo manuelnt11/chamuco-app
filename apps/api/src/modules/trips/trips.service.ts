@@ -7,7 +7,8 @@ import {
 } from '@nestjs/common';
 import { and, count, eq, inArray } from 'drizzle-orm';
 
-import { TripParticipantStatus, TripRole, TripStatus } from '@chamuco/shared-types';
+import { PlatformRole, TripParticipantStatus, TripRole, TripStatus } from '@chamuco/shared-types';
+import { tripAnnouncements } from '@/modules/trip-announcements/schema/trip-announcements.schema';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import type { AuthenticatedUser } from '@/types/express';
 import { trips } from './schema/trips.schema';
@@ -142,17 +143,25 @@ export class TripsService {
     return this.fetchAndMapTrip(id);
   }
 
-  async cancelTrip(user: AuthenticatedUser, id: string): Promise<void> {
+  async deleteTrip(user: AuthenticatedUser, id: string): Promise<void> {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, id) });
     if (!trip) throw new NotFoundException('Trip not found');
 
-    if (trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED) {
-      throw new BadRequestException('Trip is already in a terminal status');
+    if (user.platformRole === PlatformRole.SUPPORT_ADMIN) {
+      // SUPPORT_ADMIN: allowed regardless of status
+    } else {
+      await this.assertOrganizerRole(id, user.id, false);
+      if (trip.status !== TripStatus.DRAFT) {
+        throw new ForbiddenException(
+          'Only SUPPORT_ADMIN can delete a trip that is not in DRAFT status',
+        );
+      }
     }
 
-    await this.assertOrganizerRole(id, user.id, false);
-
-    await this.db.update(trips).set({ status: TripStatus.CANCELLED }).where(eq(trips.id, id));
+    await this.db.transaction(async (trx) => {
+      await trx.delete(tripAnnouncements).where(eq(tripAnnouncements.tripId, id));
+      await trx.delete(trips).where(eq(trips.id, id));
+    });
   }
 
   async transitionStatus(

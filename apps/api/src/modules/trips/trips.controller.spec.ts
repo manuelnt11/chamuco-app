@@ -59,14 +59,14 @@ describe('TripsController', () => {
   let mockCreateTrip: jest.Mock;
   let mockGetTrip: jest.Mock;
   let mockUpdateTrip: jest.Mock;
-  let mockCancelTrip: jest.Mock;
+  let mockDeleteTrip: jest.Mock;
   let mockTransitionStatus: jest.Mock;
 
   beforeEach(async () => {
     mockCreateTrip = jest.fn().mockResolvedValue(mockResponse);
     mockGetTrip = jest.fn().mockResolvedValue(mockResponse);
     mockUpdateTrip = jest.fn().mockResolvedValue(mockResponse);
-    mockCancelTrip = jest.fn().mockResolvedValue(undefined);
+    mockDeleteTrip = jest.fn().mockResolvedValue(undefined);
     mockTransitionStatus = jest.fn().mockResolvedValue(mockResponse);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -78,7 +78,7 @@ describe('TripsController', () => {
             createTrip: mockCreateTrip,
             getTrip: mockGetTrip,
             updateTrip: mockUpdateTrip,
-            cancelTrip: mockCancelTrip,
+            deleteTrip: mockDeleteTrip,
             transitionStatus: mockTransitionStatus,
           },
         },
@@ -124,10 +124,10 @@ describe('TripsController', () => {
     expect(result).toBe(mockResponse);
   });
 
-  it('cancelTrip delegates to service', async () => {
-    await controller.cancelTrip(mockUser, 'trip-uuid');
+  it('deleteTrip delegates to service', async () => {
+    await controller.deleteTrip(mockUser, 'trip-uuid');
 
-    expect(mockCancelTrip).toHaveBeenCalledWith(mockUser, 'trip-uuid');
+    expect(mockDeleteTrip).toHaveBeenCalledWith(mockUser, 'trip-uuid');
   });
 
   it('transitionStatus delegates to service', async () => {
