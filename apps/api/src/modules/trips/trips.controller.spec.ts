@@ -19,6 +19,7 @@ import type {
   DestinationResponseDto,
   DestinationWriteResponseDto,
 } from './dto/destination-response.dto';
+import type { TripGroupResponseDto } from './dto/trip-group-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 const mockUser: AuthenticatedUser = {
@@ -76,6 +77,12 @@ const mockDestWriteResponse: DestinationWriteResponseDto = {
   requiresConfirmation: false,
 };
 
+const mockGroupTripResponse: TripGroupResponseDto = {
+  tripId: 'trip-uuid',
+  groupId: 'group-uuid',
+  addedAt: '2026-01-01T00:00:00.000Z',
+};
+
 describe('TripsController', () => {
   let controller: TripsController;
   let mockCreateTrip: jest.Mock;
@@ -88,6 +95,9 @@ describe('TripsController', () => {
   let mockUpdateDestination: jest.Mock;
   let mockDeleteDestination: jest.Mock;
   let mockReorderDestinations: jest.Mock;
+  let mockListTripGroups: jest.Mock;
+  let mockAddTripGroup: jest.Mock;
+  let mockRemoveTripGroup: jest.Mock;
 
   beforeEach(async () => {
     mockCreateTrip = jest.fn().mockResolvedValue(mockResponse);
@@ -100,6 +110,9 @@ describe('TripsController', () => {
     mockUpdateDestination = jest.fn().mockResolvedValue(mockDestWriteResponse);
     mockDeleteDestination = jest.fn().mockResolvedValue(undefined);
     mockReorderDestinations = jest.fn().mockResolvedValue([mockDestResponse]);
+    mockListTripGroups = jest.fn().mockResolvedValue([mockGroupTripResponse]);
+    mockAddTripGroup = jest.fn().mockResolvedValue(mockGroupTripResponse);
+    mockRemoveTripGroup = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TripsController],
@@ -117,6 +130,9 @@ describe('TripsController', () => {
             updateDestination: mockUpdateDestination,
             deleteDestination: mockDeleteDestination,
             reorderDestinations: mockReorderDestinations,
+            listTripGroups: mockListTripGroups,
+            addTripGroup: mockAddTripGroup,
+            removeTripGroup: mockRemoveTripGroup,
           },
         },
       ],
@@ -214,5 +230,27 @@ describe('TripsController', () => {
 
     expect(mockReorderDestinations).toHaveBeenCalledWith(mockUser, 'trip-uuid', dto);
     expect(result).toEqual([mockDestResponse]);
+  });
+
+  it('listTripGroups delegates to service', async () => {
+    const result = await controller.listTripGroups(mockUser, 'trip-uuid');
+
+    expect(mockListTripGroups).toHaveBeenCalledWith(mockUser, 'trip-uuid');
+    expect(result).toEqual([mockGroupTripResponse]);
+  });
+
+  it('addTripGroup delegates to service', async () => {
+    const dto = { groupId: 'group-uuid' };
+
+    const result = await controller.addTripGroup(mockUser, 'trip-uuid', dto);
+
+    expect(mockAddTripGroup).toHaveBeenCalledWith(mockUser, 'trip-uuid', dto);
+    expect(result).toBe(mockGroupTripResponse);
+  });
+
+  it('removeTripGroup delegates to service', async () => {
+    await controller.removeTripGroup(mockUser, 'trip-uuid', 'group-uuid');
+
+    expect(mockRemoveTripGroup).toHaveBeenCalledWith(mockUser, 'trip-uuid', 'group-uuid');
   });
 });

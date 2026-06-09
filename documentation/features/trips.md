@@ -106,16 +106,33 @@ Within a trip, each member holds a role (enum: `TripRole`). See [`features/parti
 
 Enum: `TripVisibility`. **Visibility controls discoverability only** — it does not determine who can be invited. Organizers can always invite any user regardless of visibility setting.
 
-| Value     | Description                                                                                                                                                                                                                  |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PUBLIC`  | Listed publicly in the community feed. Any registered user can discover and view the trip.                                                                                                                                   |
-| `PRIVATE` | Not searchable and not publicly listed. Visible only to members of groups explicitly listed in `trip_visible_to_groups`. If no groups are defined, the trip is invisible to everyone except its members and direct invitees. |
+| Value     | Description                                                                                                                                                                                         |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PUBLIC`  | Listed publicly in the community feed. Any registered user can discover and view the trip.                                                                                                          |
+| `PRIVATE` | Not searchable and not publicly listed. Only accessible to direct members, existing invitees, and users who receive invitations through a linked group (see [Trip-Group Links](#trip-group-links)). |
 
 **Visibility is required at creation** — no default is applied. It may be changed by the organizer at any time; changing visibility does not affect pending requests or invitations already in flight.
 
-### Private Trip — Visible Groups
+---
 
-A `PRIVATE` trip may define a set of groups whose members can see it, stored in a `trip_visible_to_groups` join table (`trip_id`, `group_id`). Any member of a listed group can see the trip and submit a join request.
+## Trip-Group Links
+
+An organizer can link one or more groups to a trip, stored in the `group_trips` join table (`trip_id`, `group_id`). Linking a group to a trip:
+
+1. **Counts the trip toward that group's stats and gamification** — the trip appears in the group's trip history and feeds into group-level metrics.
+2. **Triggers bulk invitations** — all active members of the linked group receive a trip invitation (side-effect handled by `GroupTripsService`).
+
+Linking makes sense for both `PUBLIC` and `PRIVATE` trips. For `PRIVATE` trips, the invitation sent to group members is the mechanism through which they gain access — there is no separate discovery layer.
+
+### API
+
+| Method   | Path                            | Description                            |
+| -------- | ------------------------------- | -------------------------------------- |
+| `GET`    | `/v1/trips/:id/groups`          | List groups linked to this trip        |
+| `POST`   | `/v1/trips/:id/groups`          | Link a group to this trip (idempotent) |
+| `DELETE` | `/v1/trips/:id/groups/:groupId` | Unlink a group from this trip          |
+
+Organizer only. Adding a group that is already linked is a no-op (no error).
 
 ---
 
