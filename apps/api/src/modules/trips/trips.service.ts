@@ -103,7 +103,10 @@ export class TripsService {
       throw new BadRequestException('endDate must be on or after startDate');
     }
 
-    if (dto.participantCapacity !== undefined) {
+    if (
+      dto.participantCapacity !== undefined &&
+      dto.participantCapacity < trip.participantCapacity
+    ) {
       const [row] = await this.db
         .select({ total: count() })
         .from(tripParticipants)
