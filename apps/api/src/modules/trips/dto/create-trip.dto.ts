@@ -21,7 +21,11 @@ import {
 } from 'class-validator';
 
 import { TripVisibility } from '@chamuco/shared-types';
-import { sanitizeName, sanitizeProperNoun } from '@/common/transforms/name.transform';
+import {
+  sanitizeName,
+  sanitizeProperNoun,
+  sanitizeUpperCase,
+} from '@/common/transforms/name.transform';
 
 @ValidatorConstraint({ name: 'isAfterOrEqualStartDate', async: false })
 class IsAfterOrEqualStartDateConstraint implements ValidatorConstraintInterface {
@@ -103,6 +107,7 @@ export class CreateTripDto {
   })
   @IsString()
   @Length(2, 2)
+  @Transform(({ value }) => sanitizeUpperCase(value))
   departureCountry!: string;
 
   @ApiProperty({ description: 'Departure city name.', example: 'CIUDAD DE MEXICO' })
@@ -123,6 +128,7 @@ export class CreateTripDto {
   })
   @IsString()
   @Length(2, 2)
+  @Transform(({ value }) => sanitizeUpperCase(value))
   landingCountry!: string;
 
   @ApiProperty({ description: 'Landing city name.', example: 'CANCUN' })
@@ -156,6 +162,7 @@ export class CreateTripDto {
   @IsOptional()
   @IsString()
   @Length(3, 3)
+  @Transform(({ value }) => sanitizeUpperCase(value))
   defaultCurrency?: string;
 
   @ApiProperty({

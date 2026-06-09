@@ -1,4 +1,20 @@
-import { sanitizeName, sanitizeProperNoun } from './name.transform';
+import { sanitizeName, sanitizeProperNoun, sanitizeUpperCase } from './name.transform';
+
+describe('sanitizeUpperCase', () => {
+  it('converts string to uppercase', () => {
+    expect(sanitizeUpperCase('mx')).toBe('MX');
+  });
+
+  it('handles already-uppercase strings', () => {
+    expect(sanitizeUpperCase('MXN')).toBe('MXN');
+  });
+
+  it('returns non-string values unchanged', () => {
+    expect(sanitizeUpperCase(null)).toBeNull();
+    expect(sanitizeUpperCase(undefined)).toBeUndefined();
+    expect(sanitizeUpperCase(42)).toBe(42);
+  });
+});
 
 describe('sanitizeProperNoun', () => {
   it('trims leading and trailing whitespace', () => {

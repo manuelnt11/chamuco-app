@@ -2,10 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { TripStatusJob } from './trip-status.job';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 describe('TripStatusJob', () => {
   let job: TripStatusJob;
   let mockUpdateWhere: jest.Mock;

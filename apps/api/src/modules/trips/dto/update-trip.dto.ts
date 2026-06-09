@@ -14,7 +14,11 @@ import {
 } from 'class-validator';
 
 import { TripVisibility } from '@chamuco/shared-types';
-import { sanitizeName, sanitizeProperNoun } from '@/common/transforms/name.transform';
+import {
+  sanitizeName,
+  sanitizeProperNoun,
+  sanitizeUpperCase,
+} from '@/common/transforms/name.transform';
 
 export class UpdateTripDto {
   @ApiProperty({ required: false, description: 'Trip name', minLength: 1, maxLength: 100 })
@@ -68,6 +72,7 @@ export class UpdateTripDto {
   @IsOptional()
   @IsString()
   @Length(2, 2)
+  @Transform(({ value }) => sanitizeUpperCase(value))
   departureCountry?: string;
 
   @ApiProperty({ required: false, description: 'Departure city.', example: 'CIUDAD DE MEXICO' })
@@ -89,6 +94,7 @@ export class UpdateTripDto {
   @IsOptional()
   @IsString()
   @Length(2, 2)
+  @Transform(({ value }) => sanitizeUpperCase(value))
   landingCountry?: string;
 
   @ApiProperty({ required: false, description: 'Landing city.', example: 'CANCUN' })
@@ -120,6 +126,7 @@ export class UpdateTripDto {
   @IsOptional()
   @IsString()
   @Length(3, 3)
+  @Transform(({ value }) => sanitizeUpperCase(value))
   defaultCurrency?: string;
 
   @ApiProperty({ required: false, description: 'Itinerary notes.' })

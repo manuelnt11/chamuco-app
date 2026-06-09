@@ -183,13 +183,6 @@ describe('TripsService', () => {
 
       await expect(service.getTrip('unknown-uuid')).rejects.toThrow(NotFoundException);
     });
-
-    it('throws NotFoundException when fetchAndMapTrip cannot reload trip', async () => {
-      // First call (getTrip) finds the trip, second call (fetchAndMapTrip) returns undefined
-      mockTripsFindFirst.mockResolvedValueOnce(mockTripRow).mockResolvedValueOnce(undefined);
-
-      await expect(service.getTrip('trip-uuid')).rejects.toThrow(NotFoundException);
-    });
   });
 
   describe('updateTrip', () => {
@@ -270,6 +263,23 @@ describe('TripsService', () => {
       await service.updateTrip(mockUser, 'trip-uuid', {});
 
       expect(mockUpdate).not.toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException when endDate is before existing startDate', async () => {
+      const dto: UpdateTripDto = { endDate: '2026-11-30' };
+
+      await expect(service.updateTrip(mockUser, 'trip-uuid', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('throws ForbiddenException for non-organizer even on COMPLETED trip', async () => {
+      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.COMPLETED });
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.updateTrip(mockUser, 'trip-uuid', {})).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 

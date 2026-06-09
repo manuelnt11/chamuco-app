@@ -19,7 +19,7 @@ import type { TripResponseDto } from './dto/trip-response.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 
 // TODO: migrate to system settings module when admin config is available
-const FEEDBACK_WINDOW_DAYS = parseInt(process.env['TRIP_FEEDBACK_WINDOW_DAYS'] ?? '7', 10);
+const FEEDBACK_WINDOW_DAYS = parseInt(process.env['TRIP_FEEDBACK_WINDOW_DAYS'] ?? '7', 10) || 7;
 
 const VALID_TRANSITIONS: Partial<Record<TripStatus, TripStatus[]>> = {
   [TripStatus.DRAFT]: [TripStatus.OPEN, TripStatus.CANCELLED],
@@ -79,7 +79,7 @@ export class TripsService {
   async getTrip(tripId: string): Promise<TripResponseDto> {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
     if (!trip) throw new NotFoundException('Trip not found');
-    return this.fetchAndMapTrip(tripId);
+    return this.mapTrip(trip);
   }
 
   async updateTrip(
@@ -90,11 +90,17 @@ export class TripsService {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, id) });
     if (!trip) throw new NotFoundException('Trip not found');
 
+    await this.assertOrganizerRole(id, user.id, true);
+
     if (trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED) {
       throw new BadRequestException('Trip is immutable in its current status');
     }
 
-    await this.assertOrganizerRole(id, user.id, true);
+    const effectiveStartDate = dto.startDate ?? trip.startDate;
+    const effectiveEndDate = dto.endDate ?? trip.endDate;
+    if (effectiveEndDate < effectiveStartDate) {
+      throw new BadRequestException('endDate must be on or after startDate');
+    }
 
     if (dto.participantCapacity !== undefined) {
       const [row] = await this.db
@@ -207,7 +213,10 @@ export class TripsService {
   private async fetchAndMapTrip(id: string): Promise<TripResponseDto> {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, id) });
     if (!trip) throw new NotFoundException('Trip not found');
+    return this.mapTrip(trip);
+  }
 
+  private mapTrip(trip: typeof trips.$inferSelect): TripResponseDto {
     const requiresConfirmation =
       trip.status === TripStatus.CONFIRMED || trip.status === TripStatus.IN_PROGRESS;
 
