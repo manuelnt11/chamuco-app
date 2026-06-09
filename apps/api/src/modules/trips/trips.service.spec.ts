@@ -477,8 +477,8 @@ describe('TripsService', () => {
     });
 
     it('inserts destination with position = 1 when no existing destinations', async () => {
-      // select count returns 0 existing
-      mockSelectWhere.mockResolvedValue([{ maxPos: 0 }]);
+      // select max returns null for empty trip; ?? 0 fallback → nextPosition = 1
+      mockSelectWhere.mockResolvedValue([{ maxPos: null }]);
 
       const result = await service.addDestination(mockUser, 'trip-uuid', addDto);
 
@@ -499,6 +499,14 @@ describe('TripsService', () => {
 
     it('returns requiresConfirmation=true when trip is IN_PROGRESS', async () => {
       mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.IN_PROGRESS });
+
+      const result = await service.addDestination(mockUser, 'trip-uuid', addDto);
+
+      expect(result.requiresConfirmation).toBe(true);
+    });
+
+    it('returns requiresConfirmation=true when trip is CONFIRMED', async () => {
+      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.CONFIRMED });
 
       const result = await service.addDestination(mockUser, 'trip-uuid', addDto);
 
@@ -583,6 +591,16 @@ describe('TripsService', () => {
 
     it('returns requiresConfirmation=true when trip is IN_PROGRESS', async () => {
       mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.IN_PROGRESS });
+
+      const result = await service.updateDestination(mockUser, 'trip-uuid', 'dest-uuid', {
+        city: 'TULUM',
+      });
+
+      expect(result.requiresConfirmation).toBe(true);
+    });
+
+    it('returns requiresConfirmation=true when trip is CONFIRMED', async () => {
+      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, status: TripStatus.CONFIRMED });
 
       const result = await service.updateDestination(mockUser, 'trip-uuid', 'dest-uuid', {
         city: 'TULUM',

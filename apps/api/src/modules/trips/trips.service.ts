@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { and, asc, count, eq, inArray } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, max } from 'drizzle-orm';
 
 import { PlatformRole, TripParticipantStatus, TripRole, TripStatus } from '@chamuco/shared-types';
 import { tripAnnouncements } from '@/modules/trip-announcements/schema/trip-announcements.schema';
@@ -228,7 +228,7 @@ export class TripsService {
     const { trip, requiresConfirmation } = await this.assertDestinationWrite(tripId, user.id);
 
     const [maxRow] = await this.db
-      .select({ maxPos: count() })
+      .select({ maxPos: max(tripDestinations.position) })
       .from(tripDestinations)
       .where(eq(tripDestinations.tripId, trip.id));
 
@@ -352,7 +352,8 @@ export class TripsService {
 
     await this.assertOrganizerRole(tripId, userId, true);
 
-    const requiresConfirmation = trip.status === TripStatus.IN_PROGRESS;
+    const requiresConfirmation =
+      trip.status === TripStatus.CONFIRMED || trip.status === TripStatus.IN_PROGRESS;
     return { trip, requiresConfirmation };
   }
 

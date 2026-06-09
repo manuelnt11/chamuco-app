@@ -138,7 +138,7 @@ export class TripsController {
     summary: 'Add a destination',
     description:
       'Appends a destination to the trip. ORGANIZER or CO_ORGANIZER only. ' +
-      'Returns requiresConfirmation=true when trip is IN_PROGRESS.',
+      'Returns requiresConfirmation=true when trip is CONFIRMED or IN_PROGRESS.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiResponse({ status: 201, type: DestinationWriteResponseDto })
@@ -178,7 +178,7 @@ export class TripsController {
     summary: 'Update a destination',
     description:
       'Updates country, city, or label. ORGANIZER or CO_ORGANIZER only. ' +
-      'Returns requiresConfirmation=true when trip is IN_PROGRESS.',
+      'Returns requiresConfirmation=true when trip is CONFIRMED or IN_PROGRESS.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiParam({ name: 'destId', type: String, description: 'Destination UUID' })
