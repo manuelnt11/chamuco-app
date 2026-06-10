@@ -29,7 +29,7 @@ import { MemberResponseDto } from './dto/member-response.dto';
 import { MyMembershipResponseDto } from './dto/my-membership-response.dto';
 import { PendingItemResponseDto } from './dto/pending-item-response.dto';
 
-@ApiTags('group-members')
+@ApiTags({ name: 'group-members', parent: 'groups' })
 @ApiBearerAuth()
 @Controller('v1/groups/:id')
 export class GroupMembersController {

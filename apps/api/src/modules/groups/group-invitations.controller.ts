@@ -31,7 +31,7 @@ import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { BulkInvitationResponseDto } from './dto/bulk-invitation-response.dto';
 import { MyInvitationResponseDto } from './dto/my-invitation-response.dto';
 
-@ApiTags('group-members')
+@ApiTags({ name: 'group-invitations', parent: 'groups' })
 @ApiBearerAuth()
 @Controller('v1/groups')
 export class GroupInvitationsController {

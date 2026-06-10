@@ -33,7 +33,7 @@ import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { AnnouncementResponseDto } from './dto/announcement-response.dto';
 import { ListAnnouncementsQueryDto } from './dto/list-announcements-query.dto';
 
-@ApiTags('group-announcements')
+@ApiTags({ name: 'group-announcements', parent: 'groups' })
 @ApiBearerAuth()
 @Controller('v1/groups/:id')
 export class GroupAnnouncementsController {

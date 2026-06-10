@@ -33,7 +33,7 @@ import { UpdateTripAnnouncementDto } from './dto/update-trip-announcement.dto';
 import { TripAnnouncementResponseDto } from './dto/trip-announcement-response.dto';
 import { ListTripAnnouncementsQueryDto } from './dto/list-trip-announcements-query.dto';
 
-@ApiTags('trip-announcements')
+@ApiTags({ name: 'trip-announcements', parent: 'trips' })
 @ApiBearerAuth()
 @Controller('v1/trips/:id')
 export class TripAnnouncementsController {

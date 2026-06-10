@@ -23,7 +23,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { GroupJoinRequestsService } from './group-join-requests.service';
 
-@ApiTags('group-members')
+@ApiTags({ name: 'group-join-requests', parent: 'groups' })
 @ApiBearerAuth()
 @Controller('v1/groups/:id')
 export class GroupJoinRequestsController {

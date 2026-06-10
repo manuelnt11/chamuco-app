@@ -25,7 +25,7 @@ import { TripsGroupsService } from './trips-groups.service';
 import { TripGroupResponseDto } from './dto/trip-group-response.dto';
 import { AddTripGroupDto } from './dto/add-trip-group.dto';
 
-@ApiTags('trips')
+@ApiTags({ name: 'trip-groups', parent: 'trips' })
 @ApiBearerAuth()
 @Controller('v1/trips')
 export class TripsGroupsController {
