@@ -16,7 +16,7 @@ import {
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { TripsDestinationsService } from './trips-destinations.service';
-import { TripsService } from './trips.service';
+import { TripsService } from '@/modules/trips/trips.service';
 import type { CreateDestinationDto } from './dto/create-destination.dto';
 import type { UpdateDestinationDto } from './dto/update-destination.dto';
 import type { ReorderDestinationsDto } from './dto/reorder-destinations.dto';

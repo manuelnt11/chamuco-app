@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import { GroupInvitationsController } from './group-invitations.controller';
-import { GroupMembersService } from './group-members.service';
+import { GroupMembersService } from '@/modules/groups/members/group-members.service';
 import { GroupInvitationsService } from './group-invitations.service';
 import type { CreateInvitationDto } from './dto/create-invitation.dto';
 import type { BulkInvitationResponseDto } from './dto/bulk-invitation-response.dto';
-import type { MyInvitationResponseDto } from './dto/my-invitation-response.dto';
+import type { MyInvitationResponseDto } from '@/modules/groups/dto/my-invitation-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 jest.mock('@google-cloud/storage', () => ({

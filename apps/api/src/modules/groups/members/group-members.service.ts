@@ -27,7 +27,7 @@ import type { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import type { MemberResponseDto } from './dto/member-response.dto';
 import type { PendingItemResponseDto } from './dto/pending-item-response.dto';
 import type { MyMembershipResponseDto } from './dto/my-membership-response.dto';
-import type { MyInvitationResponseDto } from './dto/my-invitation-response.dto';
+import type { MyInvitationResponseDto } from '@/modules/groups/dto/my-invitation-response.dto';
 
 const ADMIN_ROLES = [GroupRole.OWNER, GroupRole.ADMIN] as const;
 

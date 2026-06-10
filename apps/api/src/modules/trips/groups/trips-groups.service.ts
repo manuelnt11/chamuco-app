@@ -4,9 +4,9 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import type { AuthenticatedUser } from '@/types/express';
 import { groups } from '@/modules/groups/schema/groups.schema';
-import { groupTrips } from './schema/group-trips.schema';
-import { trips } from './schema/trips.schema';
-import { TripsService } from './trips.service';
+import { groupTrips } from '@/modules/trips/schema/group-trips.schema';
+import { trips } from '@/modules/trips/schema/trips.schema';
+import { TripsService } from '@/modules/trips/trips.service';
 import type { TripGroupResponseDto } from './dto/trip-group-response.dto';
 import type { AddTripGroupDto } from './dto/add-trip-group.dto';
 

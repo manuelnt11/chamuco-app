@@ -25,11 +25,11 @@ import {
 
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
-import { GroupMembersService } from './group-members.service';
+import { GroupMembersService } from '@/modules/groups/members/group-members.service';
 import { GroupInvitationsService } from './group-invitations.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { BulkInvitationResponseDto } from './dto/bulk-invitation-response.dto';
-import { MyInvitationResponseDto } from './dto/my-invitation-response.dto';
+import { MyInvitationResponseDto } from '@/modules/groups/dto/my-invitation-response.dto';
 
 @ApiTags({ name: 'group-invitations', parent: 'groups' })
 @ApiBearerAuth()

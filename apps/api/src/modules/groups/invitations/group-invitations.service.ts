@@ -12,7 +12,7 @@ import { groupMembers } from '@/modules/groups/schema/group-members.schema';
 import { groupMemberStats } from '@/modules/groups/schema/group-member-stats.schema';
 import { groups } from '@/modules/groups/schema/groups.schema';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
-import { GroupMembersService } from './group-members.service';
+import { GroupMembersService } from '@/modules/groups/members/group-members.service';
 import type { CreateInvitationDto } from './dto/create-invitation.dto';
 import type {
   BulkInvitationResponseDto,

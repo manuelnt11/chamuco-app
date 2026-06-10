@@ -12,7 +12,7 @@ import { users } from '@/modules/users/schema/users.schema';
 import { groups } from '@/modules/groups/schema/groups.schema';
 import { groupMembers } from '@/modules/groups/schema/group-members.schema';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
-import { groupAnnouncements } from './schema/group-announcements.schema';
+import { groupAnnouncements } from '@/modules/groups/schema/group-announcements.schema';
 import type { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import type { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import type { AnnouncementResponseDto } from './dto/announcement-response.dto';

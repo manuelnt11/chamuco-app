@@ -12,7 +12,7 @@ import { users } from '@/modules/users/schema/users.schema';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
-import { tripAnnouncements } from './schema/trip-announcements.schema';
+import { tripAnnouncements } from '@/modules/trips/schema/trip-announcements.schema';
 import type { CreateTripAnnouncementDto } from './dto/create-trip-announcement.dto';
 import type { UpdateTripAnnouncementDto } from './dto/update-trip-announcement.dto';
 import type { TripAnnouncementResponseDto } from './dto/trip-announcement-response.dto';

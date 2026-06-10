@@ -13,7 +13,7 @@ import {
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { GroupJoinRequestsService } from './group-join-requests.service';
-import { GroupMembersService } from './group-members.service';
+import { GroupMembersService } from '@/modules/groups/members/group-members.service';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 
 const GROUP_ID = 'group-uuid';

@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { NotificationsModule } from '@/modules/notifications/notifications.module';
-import { GroupInvitationsController } from './group-invitations.controller';
-import { GroupMembersController } from './group-members.controller';
-import { GroupJoinRequestsController } from './group-join-requests.controller';
-import { GroupAnnouncementsController } from './group-announcements.controller';
+import { GroupInvitationsController } from './invitations/group-invitations.controller';
+import { GroupMembersController } from './members/group-members.controller';
+import { GroupJoinRequestsController } from './join-requests/group-join-requests.controller';
+import { GroupAnnouncementsController } from './announcements/group-announcements.controller';
 import { GroupsController } from './groups.controller';
 import { GroupsService } from './groups.service';
 import { GroupsDiscoveryService } from './groups-discovery.service';
-import { GroupMembersService } from './group-members.service';
-import { GroupInvitationsService } from './group-invitations.service';
-import { GroupJoinRequestsService } from './group-join-requests.service';
-import { GroupAnnouncementsService } from './group-announcements.service';
+import { GroupMembersService } from './members/group-members.service';
+import { GroupInvitationsService } from './invitations/group-invitations.service';
+import { GroupJoinRequestsService } from './join-requests/group-join-requests.service';
+import { GroupAnnouncementsService } from './announcements/group-announcements.service';
 
 @Module({
   imports: [NotificationsModule],

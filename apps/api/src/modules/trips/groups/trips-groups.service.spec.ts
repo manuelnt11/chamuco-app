@@ -8,7 +8,7 @@ import {
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { TripsGroupsService } from './trips-groups.service';
-import { TripsService } from './trips.service';
+import { TripsService } from '@/modules/trips/trips.service';
 import type { AuthenticatedUser } from '@/types/express';
 
 const mockUser: AuthenticatedUser = {
