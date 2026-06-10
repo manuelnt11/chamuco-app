@@ -4,8 +4,8 @@ import { index, pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core
 import { groups } from '@/modules/groups/schema/groups.schema';
 import { trips } from '@/modules/trips/schema/trips.schema';
 
-// Linking a group to a trip triggers bulk trip invitations for all active group members.
-// This side-effect is handled by GroupTripsService, not enforced at the DB level.
+// Linking a group to a trip: (1) counts the trip toward group stats/gamification,
+// (2) triggers bulk invitations for all active group members (side-effect handled by GroupTripsService).
 export const groupTrips = pgTable(
   'group_trips',
   {
