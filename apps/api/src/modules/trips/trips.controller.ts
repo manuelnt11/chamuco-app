@@ -19,7 +19,6 @@ import {
   ApiParam,
   ApiResponse,
   ApiTags,
-  ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -29,15 +28,6 @@ import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { TripResponseDto } from './dto/trip-response.dto';
 import { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
-import { CreateDestinationDto } from './dto/create-destination.dto';
-import { UpdateDestinationDto } from './dto/update-destination.dto';
-import { ReorderDestinationsDto } from './dto/reorder-destinations.dto';
-import {
-  DestinationResponseDto,
-  DestinationWriteResponseDto,
-} from './dto/destination-response.dto';
-import { TripGroupResponseDto } from './dto/trip-group-response.dto';
-import { AddTripGroupDto } from './dto/add-trip-group.dto';
 
 @ApiTags('trips')
 @ApiBearerAuth()
@@ -118,157 +108,6 @@ export class TripsController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
     return this.tripsService.deleteTrip(user, id);
-  }
-
-  @Get(':id/destinations')
-  @ApiOperation({
-    summary: 'List trip destinations',
-    description: 'Returns all destinations ordered by position.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiResponse({ status: 200, type: [DestinationResponseDto] })
-  @ApiNotFoundResponse({ description: 'Trip not found.' })
-  async listDestinations(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<DestinationResponseDto[]> {
-    return this.tripsService.listDestinations(id);
-  }
-
-  @Post(':id/destinations')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Add a destination',
-    description:
-      'Appends a destination to the trip. ORGANIZER or CO_ORGANIZER only. ' +
-      'Returns requiresConfirmation=true when trip is CONFIRMED or IN_PROGRESS.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiResponse({ status: 201, type: DestinationWriteResponseDto })
-  @ApiBadRequestResponse({ description: 'Validation error.' })
-  @ApiForbiddenResponse({ description: 'Not an organizer, or trip is COMPLETED/CANCELLED.' })
-  @ApiNotFoundResponse({ description: 'Trip not found.' })
-  async addDestination(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: CreateDestinationDto,
-  ): Promise<DestinationWriteResponseDto> {
-    return this.tripsService.addDestination(user, id, dto);
-  }
-
-  @Patch(':id/destinations/reorder')
-  @ApiOperation({
-    summary: 'Reorder destinations',
-    description:
-      'Reassigns positions atomically. Must include all destination IDs for the trip. ' +
-      'Array index 0 → position 1.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiResponse({ status: 200, type: [DestinationResponseDto] })
-  @ApiBadRequestResponse({ description: "destinationIds does not match the trip's destinations." })
-  @ApiForbiddenResponse({ description: 'Not an organizer, or trip is COMPLETED/CANCELLED.' })
-  @ApiNotFoundResponse({ description: 'Trip not found.' })
-  async reorderDestinations(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: ReorderDestinationsDto,
-  ): Promise<DestinationResponseDto[]> {
-    return this.tripsService.reorderDestinations(user, id, dto);
-  }
-
-  @Patch(':id/destinations/:destId')
-  @ApiOperation({
-    summary: 'Update a destination',
-    description:
-      'Updates country, city, or label. ORGANIZER or CO_ORGANIZER only. ' +
-      'Returns requiresConfirmation=true when trip is CONFIRMED or IN_PROGRESS.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiParam({ name: 'destId', type: String, description: 'Destination UUID' })
-  @ApiResponse({ status: 200, type: DestinationWriteResponseDto })
-  @ApiBadRequestResponse({ description: 'Validation error.' })
-  @ApiForbiddenResponse({ description: 'Not an organizer, or trip is COMPLETED/CANCELLED.' })
-  @ApiNotFoundResponse({ description: 'Trip or destination not found.' })
-  async updateDestination(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('destId', ParseUUIDPipe) destId: string,
-    @Body() dto: UpdateDestinationDto,
-  ): Promise<DestinationWriteResponseDto> {
-    return this.tripsService.updateDestination(user, id, destId, dto);
-  }
-
-  @Delete(':id/destinations/:destId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Remove a destination',
-    description: 'Deletes a destination. Cannot delete if it is the last one.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiParam({ name: 'destId', type: String, description: 'Destination UUID' })
-  @ApiResponse({ status: 204, description: 'Destination deleted.' })
-  @ApiForbiddenResponse({ description: 'Not an organizer, or trip is COMPLETED/CANCELLED.' })
-  @ApiNotFoundResponse({ description: 'Trip or destination not found.' })
-  @ApiUnprocessableEntityResponse({ description: 'Cannot delete the last destination.' })
-  async deleteDestination(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('destId', ParseUUIDPipe) destId: string,
-  ): Promise<void> {
-    return this.tripsService.deleteDestination(user, id, destId);
-  }
-
-  @Get(':id/groups')
-  @ApiOperation({
-    summary: 'List groups linked to a trip',
-    description: 'Returns all groups associated with the trip. ORGANIZER only.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiResponse({ status: 200, type: [TripGroupResponseDto] })
-  @ApiForbiddenResponse({ description: 'Only the trip organizer can manage linked groups.' })
-  @ApiNotFoundResponse({ description: 'Trip not found.' })
-  async listTripGroups(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<TripGroupResponseDto[]> {
-    return this.tripsService.listTripGroups(user, id);
-  }
-
-  @Post(':id/groups')
-  @ApiOperation({
-    summary: 'Link a group to a trip',
-    description:
-      'Associates a group with a trip. Idempotent — linking an already-linked group is a no-op. ' +
-      'ORGANIZER only.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiResponse({ status: 200, type: TripGroupResponseDto })
-  @ApiForbiddenResponse({ description: 'Only the trip organizer can manage linked groups.' })
-  @ApiNotFoundResponse({ description: 'Trip or group not found.' })
-  async addTripGroup(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: AddTripGroupDto,
-  ): Promise<TripGroupResponseDto> {
-    return this.tripsService.addTripGroup(user, id, dto);
-  }
-
-  @Delete(':id/groups/:groupId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Unlink a group from a trip',
-    description: 'Removes the association between a group and a trip. ORGANIZER only.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
-  @ApiParam({ name: 'groupId', type: String, description: 'Group UUID' })
-  @ApiResponse({ status: 204, description: 'Group unlinked.' })
-  @ApiForbiddenResponse({ description: 'Only the trip organizer can manage linked groups.' })
-  @ApiNotFoundResponse({ description: 'Trip not found, or group is not linked to this trip.' })
-  async removeTripGroup(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('groupId', ParseUUIDPipe) groupId: string,
-  ): Promise<void> {
-    return this.tripsService.removeTripGroup(user, id, groupId);
   }
 
   @Patch(':id/status')

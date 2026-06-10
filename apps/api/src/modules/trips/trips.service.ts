@@ -4,32 +4,20 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-  UnprocessableEntityException,
 } from '@nestjs/common';
-import { and, asc, count, eq, inArray, isNull, max } from 'drizzle-orm';
+import { and, count, eq, inArray } from 'drizzle-orm';
 
 import { PlatformRole, TripParticipantStatus, TripRole, TripStatus } from '@chamuco/shared-types';
 import { tripAnnouncements } from '@/modules/trip-announcements/schema/trip-announcements.schema';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import type { AuthenticatedUser } from '@/types/express';
-import { groups } from '@/modules/groups/schema/groups.schema';
 import { trips } from './schema/trips.schema';
-import { groupTrips } from './schema/group-trips.schema';
 import { tripDestinations } from './schema/trip-destinations.schema';
 import { tripParticipants } from './schema/trip-participants.schema';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TripResponseDto } from './dto/trip-response.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
-import type { CreateDestinationDto } from './dto/create-destination.dto';
-import type { UpdateDestinationDto } from './dto/update-destination.dto';
-import type { ReorderDestinationsDto } from './dto/reorder-destinations.dto';
-import type {
-  DestinationResponseDto,
-  DestinationWriteResponseDto,
-} from './dto/destination-response.dto';
-import type { TripGroupResponseDto } from './dto/trip-group-response.dto';
-import type { AddTripGroupDto } from './dto/add-trip-group.dto';
 
 // TODO: migrate to system settings module when admin config is available
 const FEEDBACK_WINDOW_DAYS = parseInt(process.env['TRIP_FEEDBACK_WINDOW_DAYS'] ?? '7', 10) || 7;
@@ -211,169 +199,7 @@ export class TripsService {
     return this.fetchAndMapTrip(id);
   }
 
-  async listDestinations(tripId: string): Promise<DestinationResponseDto[]> {
-    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
-    if (!trip) throw new NotFoundException('Trip not found');
-
-    const rows = await this.db
-      .select()
-      .from(tripDestinations)
-      .where(eq(tripDestinations.tripId, tripId))
-      .orderBy(asc(tripDestinations.position));
-
-    return rows.map((d) => this.mapDestination(d));
-  }
-
-  async addDestination(
-    user: AuthenticatedUser,
-    tripId: string,
-    dto: CreateDestinationDto,
-  ): Promise<DestinationWriteResponseDto> {
-    const { trip, requiresConfirmation } = await this.assertDestinationWrite(tripId, user.id);
-
-    const [maxRow] = await this.db
-      .select({ maxPos: max(tripDestinations.position) })
-      .from(tripDestinations)
-      .where(eq(tripDestinations.tripId, trip.id));
-
-    const nextPosition = (maxRow?.maxPos ?? 0) + 1;
-
-    const [dest] = await this.db
-      .insert(tripDestinations)
-      .values({
-        tripId: trip.id,
-        position: nextPosition,
-        countryCode: dto.countryCode,
-        city: dto.city,
-        label: dto.label ?? null,
-      })
-      .returning();
-
-    if (!dest) throw new Error('Failed to insert destination');
-
-    return { ...this.mapDestination(dest), requiresConfirmation };
-  }
-
-  async updateDestination(
-    user: AuthenticatedUser,
-    tripId: string,
-    destId: string,
-    dto: UpdateDestinationDto,
-  ): Promise<DestinationWriteResponseDto> {
-    const { requiresConfirmation } = await this.assertDestinationWrite(tripId, user.id);
-
-    const dest = await this.db.query.tripDestinations.findFirst({
-      where: and(eq(tripDestinations.id, destId), eq(tripDestinations.tripId, tripId)),
-    });
-    if (!dest) throw new NotFoundException('Destination not found');
-
-    const patch: Partial<typeof tripDestinations.$inferInsert> = {};
-    if (dto.countryCode !== undefined) patch.countryCode = dto.countryCode;
-    if (dto.city !== undefined) patch.city = dto.city;
-    if (dto.label !== undefined) patch.label = dto.label;
-
-    const [updated] =
-      Object.keys(patch).length > 0
-        ? await this.db
-            .update(tripDestinations)
-            .set(patch)
-            .where(eq(tripDestinations.id, destId))
-            .returning()
-        : [dest];
-
-    if (!updated) throw new Error('Failed to update destination');
-
-    return { ...this.mapDestination(updated), requiresConfirmation };
-  }
-
-  async deleteDestination(user: AuthenticatedUser, tripId: string, destId: string): Promise<void> {
-    await this.assertDestinationWrite(tripId, user.id);
-
-    const dest = await this.db.query.tripDestinations.findFirst({
-      where: and(eq(tripDestinations.id, destId), eq(tripDestinations.tripId, tripId)),
-    });
-    if (!dest) throw new NotFoundException('Destination not found');
-
-    const [countRow] = await this.db
-      .select({ total: count() })
-      .from(tripDestinations)
-      .where(eq(tripDestinations.tripId, tripId));
-
-    if ((countRow?.total ?? 0) <= 1) {
-      throw new UnprocessableEntityException(
-        'Cannot delete the last destination — trips must have at least one destination',
-      );
-    }
-
-    await this.db.delete(tripDestinations).where(eq(tripDestinations.id, destId));
-  }
-
-  async reorderDestinations(
-    user: AuthenticatedUser,
-    tripId: string,
-    dto: ReorderDestinationsDto,
-  ): Promise<DestinationResponseDto[]> {
-    await this.assertDestinationWrite(tripId, user.id);
-
-    const existing = await this.db
-      .select({ id: tripDestinations.id })
-      .from(tripDestinations)
-      .where(eq(tripDestinations.tripId, tripId));
-
-    const existingIds = new Set(existing.map((d) => d.id));
-
-    if (
-      dto.destinationIds.length !== existingIds.size ||
-      !dto.destinationIds.every((id) => existingIds.has(id))
-    ) {
-      throw new BadRequestException(
-        'destinationIds must contain exactly all destination IDs for this trip',
-      );
-    }
-
-    await this.db.transaction(async (trx) => {
-      for (let i = 0; i < dto.destinationIds.length; i++) {
-        await trx
-          .update(tripDestinations)
-          .set({ position: i + 1 })
-          .where(eq(tripDestinations.id, dto.destinationIds[i]!));
-      }
-    });
-
-    return this.listDestinations(tripId);
-  }
-
-  private async assertDestinationWrite(
-    tripId: string,
-    userId: string,
-  ): Promise<{ trip: typeof trips.$inferSelect; requiresConfirmation: boolean }> {
-    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
-    if (!trip) throw new NotFoundException('Trip not found');
-
-    if (trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED) {
-      throw new ForbiddenException('Trip destinations cannot be modified in its current status');
-    }
-
-    await this.assertOrganizerRole(tripId, userId, true);
-
-    const requiresConfirmation =
-      trip.status === TripStatus.CONFIRMED || trip.status === TripStatus.IN_PROGRESS;
-    return { trip, requiresConfirmation };
-  }
-
-  private mapDestination(dest: typeof tripDestinations.$inferSelect): DestinationResponseDto {
-    return {
-      id: dest.id,
-      tripId: dest.tripId,
-      position: dest.position,
-      countryCode: dest.countryCode,
-      city: dest.city,
-      label: dest.label,
-      createdAt: dest.createdAt.toISOString(),
-    };
-  }
-
-  private async assertOrganizerRole(
+  async assertOrganizerRole(
     tripId: string,
     userId: string,
     allowCoOrganizer: boolean,
@@ -394,63 +220,6 @@ export class TripsService {
     if (!participant) {
       throw new ForbiddenException('Only trip organizers can perform this action');
     }
-  }
-
-  async listTripGroups(user: AuthenticatedUser, tripId: string): Promise<TripGroupResponseDto[]> {
-    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
-    if (!trip) throw new NotFoundException('Trip not found');
-    await this.assertOrganizerRole(tripId, user.id, false);
-
-    const rows = await this.db.select().from(groupTrips).where(eq(groupTrips.tripId, tripId));
-    return rows.map((r) => this.mapTripGroup(r));
-  }
-
-  async addTripGroup(
-    user: AuthenticatedUser,
-    tripId: string,
-    dto: AddTripGroupDto,
-  ): Promise<TripGroupResponseDto> {
-    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
-    if (!trip) throw new NotFoundException('Trip not found');
-    await this.assertOrganizerRole(tripId, user.id, false);
-
-    const group = await this.db.query.groups.findFirst({
-      where: and(eq(groups.id, dto.groupId), isNull(groups.deletedAt)),
-    });
-    if (!group) throw new NotFoundException('Group not found');
-
-    await this.db.insert(groupTrips).values({ tripId, groupId: dto.groupId }).onConflictDoNothing();
-
-    const [row] = await this.db
-      .select()
-      .from(groupTrips)
-      .where(and(eq(groupTrips.tripId, tripId), eq(groupTrips.groupId, dto.groupId)));
-
-    if (!row) throw new Error('Failed to retrieve group trip link');
-    return this.mapTripGroup(row);
-  }
-
-  async removeTripGroup(user: AuthenticatedUser, tripId: string, groupId: string): Promise<void> {
-    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
-    if (!trip) throw new NotFoundException('Trip not found');
-    await this.assertOrganizerRole(tripId, user.id, false);
-
-    const link = await this.db.query.groupTrips.findFirst({
-      where: and(eq(groupTrips.tripId, tripId), eq(groupTrips.groupId, groupId)),
-    });
-    if (!link) throw new NotFoundException('Group is not linked to this trip');
-
-    await this.db
-      .delete(groupTrips)
-      .where(and(eq(groupTrips.tripId, tripId), eq(groupTrips.groupId, groupId)));
-  }
-
-  private mapTripGroup(row: typeof groupTrips.$inferSelect): TripGroupResponseDto {
-    return {
-      tripId: row.tripId,
-      groupId: row.groupId,
-      addedAt: row.addedAt.toISOString(),
-    };
   }
 
   private async fetchAndMapTrip(id: string): Promise<TripResponseDto> {
