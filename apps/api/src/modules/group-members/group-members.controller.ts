@@ -245,7 +245,8 @@ export class GroupMembersController {
   @ApiOperation({
     summary: 'Get my membership',
     description:
-      "Returns the authenticated user's current membership status and role for the group, or null if no membership record exists.",
+      "Returns the authenticated user's current membership status and role for the group. " +
+      'Throws 404 if the group does not exist or the caller is not a member.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 200, type: MyMembershipResponseDto })

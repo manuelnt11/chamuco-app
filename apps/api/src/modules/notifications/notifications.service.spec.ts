@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeliveryStatus, NotificationChannel, NotificationType } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
@@ -621,7 +621,6 @@ describe('NotificationsService', () => {
     });
 
     it('throws NotFoundException when notification not found for this user', async () => {
-      const { NotFoundException } = await import('@nestjs/common');
       db.update.mockReturnValue(makeUpdateReturning([]));
 
       await expect(service.markRead('user-1', 'notif-99')).rejects.toThrow(NotFoundException);
