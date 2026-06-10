@@ -12,15 +12,16 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
-  ApiBadRequestResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -48,6 +49,7 @@ export class GroupsController {
   })
   @ApiResponse({ status: 201, type: GroupResponseDto })
   @ApiBadRequestResponse({ description: 'Validation error in request body.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   async createGroup(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateGroupDto,
@@ -63,6 +65,7 @@ export class GroupsController {
       'Currently returns an empty list until group membership is implemented.',
   })
   @ApiResponse({ status: 200, type: [GroupResponseDto] })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   async listMyGroups(@CurrentUser() user: AuthenticatedUser): Promise<GroupResponseDto[]> {
     return this.groupsService.listMyGroups(user.id);
   }
@@ -94,6 +97,7 @@ export class GroupsController {
   })
   @ApiResponse({ status: 200, type: GroupSearchResponseDto })
   @ApiBadRequestResponse({ description: 'Validation error in query params.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   async searchGroups(
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: SearchGroupsQueryDto,
@@ -105,6 +109,7 @@ export class GroupsController {
   @ApiOperation({ summary: 'Get a group by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 200, type: GroupResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async getGroup(
     @CurrentUser() user: AuthenticatedUser,
@@ -124,6 +129,7 @@ export class GroupsController {
     description:
       'Validation error in request body, or GROUP_CANNOT_BE_MADE_PUBLIC: group has non-owner members and cannot be switched to PUBLIC.',
   })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Only the group owner can update this group.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async updateGroup(
@@ -142,6 +148,7 @@ export class GroupsController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 204, description: 'Group deleted.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Only the group owner can delete this group.' })
   @ApiNotFoundResponse({ description: 'Group not found.' })
   async deleteGroup(

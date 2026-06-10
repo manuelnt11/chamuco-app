@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeliveryStatus, NotificationChannel, NotificationType } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
@@ -29,6 +29,14 @@ const makeInsertNoReturn = () => ({
 const makeUpdate = () => ({
   set: jest.fn().mockReturnValue({
     where: jest.fn().mockResolvedValue(undefined),
+  }),
+});
+
+const makeUpdateReturning = (rows: object[]) => ({
+  set: jest.fn().mockReturnValue({
+    where: jest.fn().mockReturnValue({
+      returning: jest.fn().mockResolvedValue(rows),
+    }),
   }),
 });
 
@@ -602,7 +610,7 @@ describe('NotificationsService', () => {
 
   describe('markRead()', () => {
     it('updates readAt for the given user and notification', async () => {
-      db.update.mockReturnValue(makeUpdate());
+      db.update.mockReturnValue(makeUpdateReturning([{ id: 'notif-1' }]));
 
       await service.markRead('user-1', 'notif-1');
 
@@ -610,6 +618,12 @@ describe('NotificationsService', () => {
       const setFn = db.update.mock.results[0]!.value.set as jest.Mock;
       const setArg = setFn.mock.calls[0]![0] as { readAt: unknown };
       expect(setArg.readAt).toBeInstanceOf(Date);
+    });
+
+    it('throws NotFoundException when notification not found for this user', async () => {
+      db.update.mockReturnValue(makeUpdateReturning([]));
+
+      await expect(service.markRead('user-1', 'notif-99')).rejects.toThrow(NotFoundException);
     });
   });
 

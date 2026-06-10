@@ -1102,4 +1102,33 @@ describe('GroupMembersService', () => {
       expect(result).toEqual([]);
     });
   });
+
+  // ─── getMyMembership ─────────────────────────────────────────────────────────
+
+  describe('getMyMembership', () => {
+    it('returns membership dto when user is an active member', async () => {
+      mockGroupsFindFirst.mockResolvedValue(mockPublicGroup);
+      mockGroupMembersFindFirst.mockResolvedValue(activeMembership);
+
+      const result = await service.getMyMembership(GROUP_ID, USER_ID);
+
+      expect(result).toEqual({
+        status: GroupMemberStatus.ACTIVE,
+        role: GroupRole.MEMBER,
+      });
+    });
+
+    it('throws NotFoundException when group does not exist', async () => {
+      mockGroupsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getMyMembership(GROUP_ID, USER_ID)).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException when user is not a member of the group', async () => {
+      mockGroupsFindFirst.mockResolvedValue(mockPublicGroup);
+      mockGroupMembersFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.getMyMembership(GROUP_ID, USER_ID)).rejects.toThrow(NotFoundException);
+    });
+  });
 });

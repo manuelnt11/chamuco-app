@@ -41,7 +41,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
     Promise.all([
       apiClient.get<Group>(`/v1/groups/${id}`),
       apiClient
-        .get<{ status: string; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
+        .get<{ status: string; role: GroupRole }>(`/v1/groups/${id}/members/me`)
         .catch(() => null),
       apiClient
         .get<GroupAnnouncementsResponse>(`/v1/groups/${id}/announcements?limit=3&offset=0`)

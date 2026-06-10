@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { and, count, desc, eq, inArray, isNull, lt, sql } from 'drizzle-orm';
 import {
   DeliveryStatus,
@@ -168,10 +168,13 @@ export class NotificationsService {
   }
 
   async markRead(userId: string, notificationId: string): Promise<void> {
-    await this.db
+    const [updated] = await this.db
       .update(notifications)
       .set({ readAt: new Date() })
-      .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)));
+      .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)))
+      .returning({ id: notifications.id });
+
+    if (!updated) throw new NotFoundException('Notification not found');
   }
 
   async markAllRead(userId: string): Promise<void> {

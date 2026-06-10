@@ -37,7 +37,7 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
       try {
         const [membershipRes, announcementRes] = await Promise.all([
           apiClient
-            .get<{ status: string; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
+            .get<{ status: string; role: GroupRole }>(`/v1/groups/${id}/members/me`)
             .catch(() => null),
           apiClient.get<GroupAnnouncement>(`/v1/groups/${id}/announcements/${announcementId}`),
         ]);

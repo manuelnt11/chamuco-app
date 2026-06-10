@@ -11,13 +11,16 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
@@ -56,8 +59,8 @@ export class NotificationsController {
       'Pass the returned `nextCursor` as `cursor` to fetch the next page.',
   })
   @ApiResponse({ status: 200, type: NotificationsPageDto })
-  @ApiResponse({ status: 400, description: 'Invalid cursor — must be an ISO 8601 timestamp' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiBadRequestResponse({ description: 'Invalid cursor — must be an ISO 8601 timestamp.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
   async getNotifications(
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: GetNotificationsQueryDto,
@@ -79,8 +82,8 @@ export class NotificationsController {
     summary: 'Mark all notifications as read',
     description: 'Sets readAt on every unread notification belonging to the authenticated user.',
   })
-  @ApiResponse({ status: 204, description: 'All unread notifications marked as read' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 204, description: 'All unread notifications marked as read.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
   async markAllRead(@CurrentUser() user: AuthenticatedUser): Promise<void> {
     return this.notificationsService.markAllRead(user.id);
   }
@@ -91,11 +94,12 @@ export class NotificationsController {
     summary: 'Mark a single notification as read',
     description:
       'Sets readAt on the specified notification. ' +
-      'Silently succeeds if the notification is already read or belongs to a different user.',
+      'Idempotent — marking an already-read notification succeeds.',
   })
   @ApiParam({ name: 'id', description: 'UUID of the notification to mark as read', format: 'uuid' })
-  @ApiResponse({ status: 204, description: 'Notification marked as read' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 204, description: 'Notification marked as read.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Notification not found.' })
   async markRead(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) id: string,
@@ -112,9 +116,9 @@ export class NotificationsController {
       'Idempotent — registering the same token again updates last_used_at.',
   })
   @ApiBody({ type: RegisterFcmTokenDto })
-  @ApiResponse({ status: 204, description: 'Token registered' })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 204, description: 'Token registered.' })
+  @ApiBadRequestResponse({ description: 'Validation error.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
   async registerFcmToken(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: RegisterFcmTokenDto,
@@ -130,9 +134,9 @@ export class NotificationsController {
       'Deletes the given FCM token on logout. ' + 'Returns 204 even if the token does not exist.',
   })
   @ApiBody({ type: DeleteFcmTokenDto })
-  @ApiResponse({ status: 204, description: 'Token removed (or was not present)' })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiResponse({ status: 204, description: 'Token removed (or was not present).' })
+  @ApiBadRequestResponse({ description: 'Validation error.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
   async deleteFcmToken(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: DeleteFcmTokenDto,
