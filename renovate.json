@@ -1,0 +1,61 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["after 8am and before 9am on monday"],
+  "timezone": "America/Mexico_City",
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 10,
+  "packageRules": [
+    {
+      "groupName": "NestJS",
+      "matchPackagePatterns": ["^@nestjs/"]
+    },
+    {
+      "groupName": "Drizzle",
+      "matchPackagePatterns": ["^drizzle-"]
+    },
+    {
+      "groupName": "Firebase",
+      "matchPackageNames": ["firebase", "firebase-admin"]
+    },
+    {
+      "groupName": "React",
+      "matchPackageNames": ["react", "react-dom"]
+    },
+    {
+      "groupName": "Next.js",
+      "matchPackageNames": ["next", "next-themes", "eslint-config-next"]
+    },
+    {
+      "groupName": "Tailwind CSS",
+      "matchPackageNames": ["tailwindcss", "tailwind-merge", "autoprefixer", "postcss"]
+    },
+    {
+      "groupName": "i18n",
+      "matchPackagePatterns": ["^i18next", "^react-i18next$", "^nestjs-i18n$"]
+    },
+    {
+      "groupName": "Testing",
+      "matchPackagePatterns": ["^@testing-library/", "^vitest$", "^@vitest/", "^jest$", "^@swc/"]
+    },
+    {
+      "groupName": "TypeScript ESLint",
+      "matchPackagePatterns": ["^@typescript-eslint/"]
+    },
+    {
+      "groupName": "ESLint",
+      "matchPackageNames": ["eslint"],
+      "matchPackagePatterns": ["^eslint-config-", "^eslint-plugin-"]
+    },
+    {
+      "groupName": "Types",
+      "matchPackagePatterns": ["^@types/"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "labels": ["dependencies", "ci"],
+      "prConcurrentLimit": 5
+    }
+  ]
+}
