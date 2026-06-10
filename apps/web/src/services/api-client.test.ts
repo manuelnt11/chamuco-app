@@ -255,60 +255,35 @@ const groupLinkFixture: TripGroupResponse = {
 
 // ─── Trip methods ─────────────────────────────────────────────────────────────
 
+const minCreateTripPayload = {
+  name: 'Trip',
+  visibility: TripVisibility.PUBLIC,
+  startDate: '2026-12-01',
+  endDate: '2026-12-08',
+  participantCapacity: 1,
+  departureCountry: 'MX',
+  departureCity: 'CDMX',
+  landingCountry: 'MX',
+  landingCity: 'Cancun',
+  isTravelingParticipant: true,
+};
+
 describe('createTrip', () => {
   it('posts to /v1/trips and returns the trip', async () => {
     mockPost.mockResolvedValueOnce({ data: tripFixture });
-    const payload = {
-      name: 'Cancún 2026',
-      visibility: TripVisibility.PUBLIC,
-      startDate: '2026-12-01',
-      endDate: '2026-12-08',
-      participantCapacity: 10,
-      departureCountry: 'MX',
-      departureCity: 'CDMX',
-      landingCountry: 'MX',
-      landingCity: 'Cancun',
-      isTravelingParticipant: true,
-    };
-    const result = await createTrip(payload);
-    expect(mockPost).toHaveBeenCalledWith('/v1/trips', payload);
+    const result = await createTrip(minCreateTripPayload);
+    expect(mockPost).toHaveBeenCalledWith('/v1/trips', minCreateTripPayload);
     expect(result).toEqual(tripFixture);
   });
 
   it('propagates 401 errors', async () => {
     mockPost.mockRejectedValueOnce({ response: { status: 401 } });
-    await expect(
-      createTrip({
-        name: 'x',
-        visibility: TripVisibility.PUBLIC,
-        startDate: '2026-12-01',
-        endDate: '2026-12-08',
-        participantCapacity: 1,
-        departureCountry: 'MX',
-        departureCity: 'CDMX',
-        landingCountry: 'MX',
-        landingCity: 'Cancun',
-        isTravelingParticipant: true,
-      }),
-    ).rejects.toEqual({ response: { status: 401 } });
+    await expect(createTrip(minCreateTripPayload)).rejects.toEqual({ response: { status: 401 } });
   });
 
   it('propagates 404 errors', async () => {
     mockPost.mockRejectedValueOnce({ response: { status: 404 } });
-    await expect(
-      createTrip({
-        name: 'x',
-        visibility: TripVisibility.PUBLIC,
-        startDate: '2026-12-01',
-        endDate: '2026-12-08',
-        participantCapacity: 1,
-        departureCountry: 'MX',
-        departureCity: 'CDMX',
-        landingCountry: 'MX',
-        landingCity: 'Cancun',
-        isTravelingParticipant: true,
-      }),
-    ).rejects.toEqual({ response: { status: 404 } });
+    await expect(createTrip(minCreateTripPayload)).rejects.toEqual({ response: { status: 404 } });
   });
 });
 
@@ -448,14 +423,18 @@ describe('reorderTripDestinations', () => {
 
   it('propagates 401 errors', async () => {
     mockPatch.mockRejectedValueOnce({ response: { status: 401 } });
-    await expect(reorderTripDestinations('trip-uuid-1', { destinationIds: [] })).rejects.toEqual({
+    await expect(
+      reorderTripDestinations('trip-uuid-1', { destinationIds: ['dest-uuid-1'] }),
+    ).rejects.toEqual({
       response: { status: 401 },
     });
   });
 
   it('propagates 404 errors', async () => {
     mockPatch.mockRejectedValueOnce({ response: { status: 404 } });
-    await expect(reorderTripDestinations('trip-uuid-1', { destinationIds: [] })).rejects.toEqual({
+    await expect(
+      reorderTripDestinations('trip-uuid-1', { destinationIds: ['dest-uuid-1'] }),
+    ).rejects.toEqual({
       response: { status: 404 },
     });
   });

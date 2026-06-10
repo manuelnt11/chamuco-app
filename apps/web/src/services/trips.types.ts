@@ -1,5 +1,8 @@
 import type { TripStatus, TripVisibility } from '@chamuco/shared-types';
 
+// Mirrors the NestJS DTOs in apps/api/src/modules/trips/dto/.
+// When the backend adds or removes fields, update this file to match.
+
 // ─── Request payloads ────────────────────────────────────────────────────────
 
 export interface CreateTripPayload {
