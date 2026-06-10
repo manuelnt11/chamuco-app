@@ -17,7 +17,7 @@ import { UpdateNotificationPreferencesDto } from './dto/update-notification-pref
 import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import { UserPreferencesResponseDto } from './dto/user-preferences-response.dto';
 
-@ApiTags({ name: 'user-preferences', parent: 'users' })
+@ApiTags('user-preferences')
 @ApiBearerAuth()
 @Controller('v1/users')
 export class UsersPreferencesController {

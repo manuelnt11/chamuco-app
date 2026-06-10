@@ -33,7 +33,7 @@ import {
   DestinationWriteResponseDto,
 } from './dto/destination-response.dto';
 
-@ApiTags({ name: 'trip-destinations', parent: 'trips' })
+@ApiTags('trip-destinations')
 @ApiBearerAuth()
 @Controller('v1/trips')
 export class TripsDestinationsController {
