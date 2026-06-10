@@ -4,7 +4,7 @@ import { GroupMemberStatus, GroupVisibility } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { GroupsDiscoveryService } from './groups-discovery.service';
-import type { SearchGroupsQueryDto } from './dto/search-groups-query.dto';
+import type { SearchGroupsQueryDto } from '@/modules/groups/dto/search-groups-query.dto';
 
 jest.mock('@google-cloud/storage', () => ({
   Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),

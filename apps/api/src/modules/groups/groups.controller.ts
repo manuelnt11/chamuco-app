@@ -27,7 +27,7 @@ import {
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { GroupsService } from './groups.service';
-import { GroupsDiscoveryService } from './groups-discovery.service';
+import { GroupsDiscoveryService } from './discovery/groups-discovery.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupResponseDto } from './dto/group-response.dto';

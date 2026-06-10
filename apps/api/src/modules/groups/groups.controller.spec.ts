@@ -7,7 +7,7 @@ import {
 } from '@chamuco/shared-types';
 import { GroupsController } from './groups.controller';
 import { GroupsService } from './groups.service';
-import { GroupsDiscoveryService } from './groups-discovery.service';
+import { GroupsDiscoveryService } from './discovery/groups-discovery.service';
 import type { CreateGroupDto } from './dto/create-group.dto';
 import type { UpdateGroupDto } from './dto/update-group.dto';
 import type { GroupResponseDto } from './dto/group-response.dto';

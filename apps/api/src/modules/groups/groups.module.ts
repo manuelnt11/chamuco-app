@@ -6,7 +6,7 @@ import { GroupJoinRequestsController } from './join-requests/group-join-requests
 import { GroupAnnouncementsController } from './announcements/group-announcements.controller';
 import { GroupsController } from './groups.controller';
 import { GroupsService } from './groups.service';
-import { GroupsDiscoveryService } from './groups-discovery.service';
+import { GroupsDiscoveryService } from './discovery/groups-discovery.service';
 import { GroupMembersService } from './members/group-members.service';
 import { GroupInvitationsService } from './invitations/group-invitations.service';
 import { GroupJoinRequestsService } from './join-requests/group-join-requests.service';

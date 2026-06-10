@@ -5,11 +5,11 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { assetRowToAsset } from '@/modules/assets/asset.utils';
-import { groups } from './schema/groups.schema';
-import { groupMembers } from './schema/group-members.schema';
-import type { GroupResponseDto } from './dto/group-response.dto';
-import type { SearchGroupsQueryDto } from './dto/search-groups-query.dto';
-import type { GroupSearchResponseDto } from './dto/group-search-result.dto';
+import { groups } from '@/modules/groups/schema/groups.schema';
+import { groupMembers } from '@/modules/groups/schema/group-members.schema';
+import type { GroupResponseDto } from '@/modules/groups/dto/group-response.dto';
+import type { SearchGroupsQueryDto } from '@/modules/groups/dto/search-groups-query.dto';
+import type { GroupSearchResponseDto } from '@/modules/groups/dto/group-search-result.dto';
 
 @Injectable()
 export class GroupsDiscoveryService {
