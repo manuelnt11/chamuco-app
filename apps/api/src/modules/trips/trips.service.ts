@@ -8,7 +8,7 @@ import {
 import { and, count, eq, inArray } from 'drizzle-orm';
 
 import { PlatformRole, TripParticipantStatus, TripRole, TripStatus } from '@chamuco/shared-types';
-import { tripAnnouncements } from '@/modules/trip-announcements/schema/trip-announcements.schema';
+import { tripAnnouncements } from '@/modules/trips/schema/trip-announcements.schema';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import type { AuthenticatedUser } from '@/types/express';
 import { trips } from './schema/trips.schema';

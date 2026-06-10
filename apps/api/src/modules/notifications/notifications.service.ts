@@ -15,7 +15,7 @@ import { userPreferences } from '@/modules/users/schema/user-preferences.schema'
 import { groups } from '@/modules/groups/schema/groups.schema';
 import { groupAnnouncements } from '@/modules/groups/schema/group-announcements.schema';
 import { trips } from '@/modules/trips/schema/trips.schema';
-import { tripAnnouncements } from '@/modules/trip-announcements/schema/trip-announcements.schema';
+import { tripAnnouncements } from '@/modules/trips/schema/trip-announcements.schema';
 import { users } from '@/modules/users/schema/users.schema';
 import { buildNotificationContent } from './notification-content.builder';
 import { EMAIL_STRATEGY, PUSH_STRATEGY, SMS_STRATEGY } from './notifications.constants';
