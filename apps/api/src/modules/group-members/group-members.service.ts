@@ -528,14 +528,14 @@ export class GroupMembersService {
 
   // ─── My membership ───────────────────────────────────────────────────────────
 
-  async getMyMembership(groupId: string, userId: string): Promise<MyMembershipResponseDto | null> {
+  async getMyMembership(groupId: string, userId: string): Promise<MyMembershipResponseDto> {
     await this.assertGroupExists(groupId);
 
     const membership = await this.db.query.groupMembers.findFirst({
       where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)),
     });
 
-    if (!membership) return null;
+    if (!membership) throw new NotFoundException('Membership not found');
 
     return {
       status: membership.status as GroupMemberStatus,

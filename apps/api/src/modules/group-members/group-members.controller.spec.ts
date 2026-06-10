@@ -68,6 +68,7 @@ let mockRemoveMember: jest.Mock;
 let mockUpdateMemberRole: jest.Mock;
 let mockListActiveMembers: jest.Mock;
 let mockListPendingMembers: jest.Mock;
+let mockGetMyMembership: jest.Mock;
 
 describe('GroupMembersController', () => {
   let controller: GroupMembersController;
@@ -84,6 +85,10 @@ describe('GroupMembersController', () => {
     mockUpdateMemberRole = jest.fn().mockResolvedValue(undefined);
     mockListActiveMembers = jest.fn().mockResolvedValue([mockMemberResponse]);
     mockListPendingMembers = jest.fn().mockResolvedValue([mockPendingResponse]);
+    mockGetMyMembership = jest.fn().mockResolvedValue({
+      status: GroupMemberStatus.ACTIVE,
+      role: GroupRole.MEMBER,
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GroupMembersController],
@@ -102,6 +107,7 @@ describe('GroupMembersController', () => {
             updateMemberRole: mockUpdateMemberRole,
             listActiveMembers: mockListActiveMembers,
             listPendingMembers: mockListPendingMembers,
+            getMyMembership: mockGetMyMembership,
           },
         },
       ],
@@ -219,6 +225,24 @@ describe('GroupMembersController', () => {
 
       expect(mockListPendingMembers).toHaveBeenCalledWith('group-uuid', mockAuthUser.id);
       expect(result).toEqual([mockPendingResponse]);
+    });
+  });
+
+  describe('GET /v1/groups/:id/me/membership', () => {
+    it('delegates to GroupMembersService.getMyMembership and returns the result', async () => {
+      const result = await controller.getMyMembership(mockAuthUser, 'group-uuid');
+
+      expect(mockGetMyMembership).toHaveBeenCalledWith('group-uuid', mockAuthUser.id);
+      expect(result).toEqual({ status: GroupMemberStatus.ACTIVE, role: GroupRole.MEMBER });
+    });
+
+    it('propagates NotFoundException when service throws', async () => {
+      const { NotFoundException } = await import('@nestjs/common');
+      mockGetMyMembership.mockRejectedValue(new NotFoundException('Membership not found'));
+
+      await expect(controller.getMyMembership(mockAuthUser, 'group-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

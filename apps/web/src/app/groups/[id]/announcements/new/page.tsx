@@ -39,7 +39,7 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
         const [groupRes, membershipRes] = await Promise.all([
           apiClient.get<Group>(`/v1/groups/${id}`),
           apiClient
-            .get<{ status: string; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
+            .get<{ status: string; role: GroupRole }>(`/v1/groups/${id}/members/me`)
             .catch(() => null),
         ]);
 

@@ -12,13 +12,17 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBody,
   ApiBearerAuth,
+  ApiConflictResponse,
+  ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -66,8 +70,8 @@ export class UsersController {
       'phone number, and bio.',
   })
   @ApiResponse({ status: 200, type: UserProfileResponseDto })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile not found.' })
   getProfile(@CurrentUser() user: AuthenticatedUser): Promise<UserProfileResponseDto> {
     return this.usersService.getProfile(user.id);
   }
@@ -84,9 +88,9 @@ export class UsersController {
       'Email must be a valid address when provided; updating it resets emailVerified to false.',
   })
   @ApiResponse({ status: 200, type: UserProfileResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed — invalid field value.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile not found.' })
   updateProfile(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateUserProfileDto,
@@ -103,8 +107,8 @@ export class UsersController {
       'Chamuco registration (i.e. has not chosen a username).',
   })
   @ApiResponse({ status: 200, type: UserResponseDto })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User record not found — registration not completed' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User record not found — registration not completed.' })
   getMe(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
     return this.usersService.getMe(user);
   }
@@ -118,9 +122,9 @@ export class UsersController {
       'Updates any subset of editable user fields: displayName, timezone, profileVisibility.',
   })
   @ApiResponse({ status: 200, type: UserResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed — invalid field value.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User not found.' })
   async updateMe(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateUserDto,
@@ -140,8 +144,8 @@ export class UsersController {
       'The previous avatar asset is deleted after the new one is stored.',
   })
   @ApiResponse({ status: 200, type: UserResponseDto })
-  @ApiResponse({ status: 400, description: 'Invalid source or target' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiBadRequestResponse({ description: 'Invalid source or target.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
   updateAvatar(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateAvatarDto,
@@ -158,8 +162,8 @@ export class UsersController {
       'phobias, physical limitations, and medical conditions.',
   })
   @ApiResponse({ status: 200, type: UserHealthResponseDto })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile not found.' })
   getHealthProfile(@CurrentUser() user: AuthenticatedUser): Promise<UserHealthResponseDto> {
     return this.usersService.getHealth(user.id);
   }
@@ -175,12 +179,11 @@ export class UsersController {
       'description is required when the enum value is OTHER.',
   })
   @ApiResponse({ status: 200, type: UserHealthResponseDto })
-  @ApiResponse({
-    status: 400,
-    description: 'Validation failed — invalid enum value or missing description for OTHER',
+  @ApiBadRequestResponse({
+    description: 'Validation failed — invalid enum value or missing description for OTHER.',
   })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile not found.' })
   updateHealthProfile(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateUserHealthDto,
@@ -194,8 +197,8 @@ export class UsersController {
     description: "Returns all emergency contacts stored on the authenticated user's profile.",
   })
   @ApiResponse({ status: 200, type: EmergencyContactDto, isArray: true })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile not found.' })
   getEmergencyContacts(@CurrentUser() user: AuthenticatedUser): Promise<EmergencyContactDto[]> {
     return this.usersService.getEmergencyContacts(user.id);
   }
@@ -210,9 +213,9 @@ export class UsersController {
       'If isPrimary is true, the current primary contact is automatically demoted.',
   })
   @ApiResponse({ status: 201, type: EmergencyContactDto })
-  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed — invalid field value.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile not found.' })
   addEmergencyContact(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: EmergencyContactDto,
@@ -231,13 +234,12 @@ export class UsersController {
       'If isPrimary is set to true, all other contacts are automatically demoted.',
   })
   @ApiResponse({ status: 200, type: EmergencyContactDto })
-  @ApiResponse({
-    status: 400,
+  @ApiBadRequestResponse({
     description:
-      'Validation failed — invalid field value, or isPrimary: false (assign a new primary instead)',
+      'Validation failed — invalid field value, or isPrimary: false (assign a new primary instead).',
   })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile or emergency contact not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile or emergency contact not found.' })
   updateEmergencyContact(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) contactId: string,
@@ -255,13 +257,10 @@ export class UsersController {
       'Removes a single emergency contact. ' +
       'Returns 409 if the contact is the primary and other contacts exist — re-assign primary first.',
   })
-  @ApiResponse({ status: 204, description: 'Contact deleted' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile or emergency contact not found' })
-  @ApiResponse({
-    status: 409,
-    description: 'Cannot delete primary contact while other contacts exist',
-  })
+  @ApiResponse({ status: 204, description: 'Contact deleted.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile or emergency contact not found.' })
+  @ApiConflictResponse({ description: 'Cannot delete primary contact while other contacts exist.' })
   deleteEmergencyContact(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) contactId: string,
@@ -276,7 +275,7 @@ export class UsersController {
       'Returns all nationality records for the authenticated user, ordered by primary first.',
   })
   @ApiResponse({ status: 200, type: NationalityResponseDto, isArray: true })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
   getNationalities(@CurrentUser() user: AuthenticatedUser): Promise<NationalityResponseDto[]> {
     return this.usersService.getNationalities(user.id);
   }
@@ -292,12 +291,11 @@ export class UsersController {
       'If any passport field is provided, all three must be present.',
   })
   @ApiResponse({ status: 201, type: NationalityResponseDto })
-  @ApiResponse({
-    status: 400,
-    description: 'Validation failed — invalid field value or incomplete passport data',
+  @ApiBadRequestResponse({
+    description: 'Validation failed — invalid field value or incomplete passport data.',
   })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 409, description: 'Nationality for this country already exists' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiConflictResponse({ description: 'Nationality for this country already exists.' })
   addNationality(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateNationalityDto,
@@ -318,13 +316,12 @@ export class UsersController {
       'If any passport field is provided, all three must be present.',
   })
   @ApiResponse({ status: 200, type: NationalityResponseDto })
-  @ApiResponse({
-    status: 400,
+  @ApiBadRequestResponse({
     description:
-      'Validation failed — invalid field value, incomplete passport data, or isPrimary: false',
+      'Validation failed — invalid field value, incomplete passport data, or isPrimary: false.',
   })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality not found.' })
   updateNationality(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) nationalityId: string,
@@ -342,12 +339,11 @@ export class UsersController {
       'Removes a single nationality record. ' +
       'Returns 409 if the record is the primary and other nationalities exist — re-assign primary first.',
   })
-  @ApiResponse({ status: 204, description: 'Nationality deleted' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality not found' })
-  @ApiResponse({
-    status: 409,
-    description: 'Cannot delete primary nationality while other nationalities exist',
+  @ApiResponse({ status: 204, description: 'Nationality deleted.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality not found.' })
+  @ApiConflictResponse({
+    description: 'Cannot delete primary nationality while other nationalities exist.',
   })
   deleteNationality(
     @CurrentUser() user: AuthenticatedUser,
@@ -364,8 +360,8 @@ export class UsersController {
       'Visible only to the user themselves.',
   })
   @ApiResponse({ status: 200, type: LoyaltyProgramDto, isArray: true })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile not found.' })
   getLoyaltyPrograms(@CurrentUser() user: AuthenticatedUser): Promise<LoyaltyProgramDto[]> {
     return this.usersService.getLoyaltyPrograms(user.id);
   }
@@ -380,9 +376,9 @@ export class UsersController {
       'No uniqueness check — a user may hold multiple memberships in the same program.',
   })
   @ApiResponse({ status: 201, type: LoyaltyProgramDto })
-  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed — invalid field value.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile not found.' })
   addLoyaltyProgram(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: LoyaltyProgramDto,
@@ -399,9 +395,9 @@ export class UsersController {
     description: 'Updates any subset of fields on a single loyalty program identified by its UUID.',
   })
   @ApiResponse({ status: 200, type: LoyaltyProgramDto })
-  @ApiResponse({ status: 400, description: 'Validation failed — invalid field value' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile or loyalty program not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed — invalid field value.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile or loyalty program not found.' })
   updateLoyaltyProgram(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) programId: string,
@@ -417,9 +413,9 @@ export class UsersController {
     summary: 'Delete a loyalty program',
     description: 'Removes a single loyalty program identified by its UUID.',
   })
-  @ApiResponse({ status: 204, description: 'Loyalty program deleted' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User profile or loyalty program not found' })
+  @ApiResponse({ status: 204, description: 'Loyalty program deleted.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User profile or loyalty program not found.' })
   deleteLoyaltyProgram(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) programId: string,
@@ -433,8 +429,8 @@ export class UsersController {
     description: "Returns the authenticated user's preferences: language, currency, theme.",
   })
   @ApiResponse({ status: 200, type: UserPreferencesResponseDto })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User preferences not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User preferences not found.' })
   getPreferences(@CurrentUser() user: AuthenticatedUser): Promise<UserPreferencesResponseDto> {
     return this.usersService.getPreferences(user.id);
   }
@@ -447,9 +443,9 @@ export class UsersController {
     description: 'Updates any subset of preference fields: language, currency, theme.',
   })
   @ApiResponse({ status: 200, type: UserPreferencesResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed — invalid enum value' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User preferences not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed — invalid enum value.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User preferences not found.' })
   updatePreferences(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateUserPreferencesDto,
@@ -467,8 +463,8 @@ export class UsersController {
       'IN_APP delivery (the notifications row) is always created regardless of preferences.',
   })
   @ApiResponse({ status: 200, type: NotificationPreferencesResponseDto })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User preferences not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User preferences not found.' })
   getNotificationPreferences(
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<NotificationPreferencesResponseDto> {
@@ -488,9 +484,9 @@ export class UsersController {
       'To re-enable all channels for a type, omit the key.',
   })
   @ApiResponse({ status: 200, type: NotificationPreferencesResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed — body must be an object' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'User preferences not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed — body must be an object.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'User preferences not found.' })
   updateNotificationPreferences(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateNotificationPreferencesDto,
@@ -511,9 +507,9 @@ export class UsersController {
   })
   @ApiQuery({ name: 'username', description: 'Username to check (3–30 chars, a-z 0-9 _ -)' })
   @ApiResponse({ status: 200, type: UsernameAvailabilityDto })
-  @ApiResponse({ status: 400, description: 'Invalid username format' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase token' })
-  @ApiResponse({ status: 429, description: 'Too many requests' })
+  @ApiBadRequestResponse({ description: 'Invalid username format.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase token.' })
+  @ApiResponse({ status: 429, description: 'Too many requests.' })
   checkUsernameAvailability(@Query('username') username: string): Promise<UsernameAvailabilityDto> {
     const normalized = (username ?? '').toLowerCase();
     if (!/^[a-z0-9_-]{3,30}$/.test(normalized)) {
@@ -536,8 +532,8 @@ export class UsersController {
     format: 'uuid',
   })
   @ApiResponse({ status: 200, type: VisaResponseDto, isArray: true })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality not found.' })
   getVisas(
     @CurrentUser() user: AuthenticatedUser,
     @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
@@ -554,9 +550,9 @@ export class UsersController {
   })
   @ApiBody({ type: CreateVisaDto })
   @ApiResponse({ status: 201, type: VisaResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality not found.' })
   addVisa(
     @CurrentUser() user: AuthenticatedUser,
     @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
@@ -576,9 +572,9 @@ export class UsersController {
   @ApiParam({ name: 'id', description: 'UUID of the visa record', format: 'uuid' })
   @ApiBody({ type: UpdateVisaDto })
   @ApiResponse({ status: 200, type: VisaResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality or visa not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality or visa not found.' })
   updateVisa(
     @CurrentUser() user: AuthenticatedUser,
     @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
@@ -597,9 +593,9 @@ export class UsersController {
     format: 'uuid',
   })
   @ApiParam({ name: 'id', description: 'UUID of the visa record', format: 'uuid' })
-  @ApiResponse({ status: 204, description: 'Visa deleted' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality or visa not found' })
+  @ApiResponse({ status: 204, description: 'Visa deleted.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality or visa not found.' })
   deleteVisa(
     @CurrentUser() user: AuthenticatedUser,
     @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
@@ -620,8 +616,8 @@ export class UsersController {
     format: 'uuid',
   })
   @ApiResponse({ status: 200, type: EtaResponseDto, isArray: true })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality not found.' })
   getEtas(
     @CurrentUser() user: AuthenticatedUser,
     @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
@@ -638,9 +634,9 @@ export class UsersController {
   })
   @ApiBody({ type: CreateEtaDto })
   @ApiResponse({ status: 201, type: EtaResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality not found.' })
   addEta(
     @CurrentUser() user: AuthenticatedUser,
     @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
@@ -660,9 +656,9 @@ export class UsersController {
   @ApiParam({ name: 'id', description: 'UUID of the ETA record', format: 'uuid' })
   @ApiBody({ type: UpdateEtaDto })
   @ApiResponse({ status: 200, type: EtaResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality or ETA not found' })
+  @ApiBadRequestResponse({ description: 'Validation failed.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality or ETA not found.' })
   updateEta(
     @CurrentUser() user: AuthenticatedUser,
     @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
@@ -681,9 +677,9 @@ export class UsersController {
     format: 'uuid',
   })
   @ApiParam({ name: 'id', description: 'UUID of the ETA record', format: 'uuid' })
-  @ApiResponse({ status: 204, description: 'ETA deleted' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
-  @ApiResponse({ status: 404, description: 'Nationality or ETA not found' })
+  @ApiResponse({ status: 204, description: 'ETA deleted.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
+  @ApiNotFoundResponse({ description: 'Nationality or ETA not found.' })
   deleteEta(
     @CurrentUser() user: AuthenticatedUser,
     @Param('nationalityId', ParseUUIDPipe) nationalityId: string,
@@ -715,8 +711,8 @@ export class UsersController {
     example: 10,
   })
   @ApiResponse({ status: 200, type: UserSearchResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation error in query params' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid Firebase ID token' })
+  @ApiBadRequestResponse({ description: 'Validation error in query params.' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid Firebase ID token.' })
   searchUsers(
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: SearchUsersQueryDto,
@@ -737,8 +733,8 @@ export class UsersController {
   })
   @ApiParam({ name: 'username', description: 'Username without @ prefix' })
   @ApiResponse({ status: 200, type: PublicProfileResponseDto })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 429, description: 'Too many requests' })
+  @ApiNotFoundResponse({ description: 'User not found.' })
+  @ApiResponse({ status: 429, description: 'Too many requests.' })
   getPublicProfile(@Param('username') username: string): Promise<PublicProfileResponseDto> {
     return this.usersService.getPublicProfile(username);
   }

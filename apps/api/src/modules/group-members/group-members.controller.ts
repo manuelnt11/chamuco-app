@@ -248,17 +248,13 @@ export class GroupMembersController {
       "Returns the authenticated user's current membership status and role for the group, or null if no membership record exists.",
   })
   @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
-  @ApiResponse({
-    status: 200,
-    type: MyMembershipResponseDto,
-    description: 'Membership record, or null if none.',
-  })
+  @ApiResponse({ status: 200, type: MyMembershipResponseDto })
   @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
-  @ApiNotFoundResponse({ description: 'Group not found.' })
+  @ApiNotFoundResponse({ description: 'Group not found, or caller is not a member.' })
   async getMyMembership(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<MyMembershipResponseDto | null> {
+  ): Promise<MyMembershipResponseDto> {
     return this.groupMembersService.getMyMembership(id, user.id);
   }
 
