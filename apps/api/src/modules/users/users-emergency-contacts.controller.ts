@@ -26,7 +26,7 @@ import type { AuthenticatedUser } from '@/types/express';
 import { UsersEmergencyContactsService } from './users-emergency-contacts.service';
 import { EmergencyContactDto, UpdateEmergencyContactDto } from './dto/emergency-contact.dto';
 
-@ApiTags('users')
+@ApiTags({ name: 'user-emergency-contacts', parent: 'users' })
 @ApiBearerAuth()
 @Controller('v1/users')
 export class UsersEmergencyContactsController {

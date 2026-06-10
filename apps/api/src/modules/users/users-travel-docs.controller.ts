@@ -32,7 +32,7 @@ import {
 import { CreateVisaDto, UpdateVisaDto, VisaResponseDto } from './dto/visa.dto';
 import { CreateEtaDto, EtaResponseDto, UpdateEtaDto } from './dto/eta.dto';
 
-@ApiTags('users')
+@ApiTags({ name: 'user-travel-docs', parent: 'users' })
 @ApiBearerAuth()
 @Controller('v1/users')
 export class UsersTravelDocsController {

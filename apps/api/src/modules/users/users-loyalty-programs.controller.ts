@@ -25,7 +25,7 @@ import type { AuthenticatedUser } from '@/types/express';
 import { UsersLoyaltyProgramsService } from './users-loyalty-programs.service';
 import { LoyaltyProgramDto, UpdateLoyaltyProgramDto } from './dto/loyalty-program.dto';
 
-@ApiTags('users')
+@ApiTags({ name: 'user-loyalty-programs', parent: 'users' })
 @ApiBearerAuth()
 @Controller('v1/users')
 export class UsersLoyaltyProgramsController {

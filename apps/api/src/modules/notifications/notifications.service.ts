@@ -13,7 +13,7 @@ import { notificationDeliveries } from '@/modules/notifications/schema/notificat
 import { userFcmTokens } from '@/modules/notifications/schema/user-fcm-tokens.schema';
 import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
 import { groups } from '@/modules/groups/schema/groups.schema';
-import { groupAnnouncements } from '@/modules/group-announcements/schema/group-announcements.schema';
+import { groupAnnouncements } from '@/modules/groups/schema/group-announcements.schema';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripAnnouncements } from '@/modules/trip-announcements/schema/trip-announcements.schema';
 import { users } from '@/modules/users/schema/users.schema';

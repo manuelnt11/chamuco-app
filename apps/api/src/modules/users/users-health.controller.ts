@@ -15,7 +15,7 @@ import { UsersHealthService } from './users-health.service';
 import { UpdateUserHealthDto } from './dto/update-user-health.dto';
 import { UserHealthResponseDto } from './dto/user-health-response.dto';
 
-@ApiTags('users')
+@ApiTags({ name: 'user-health', parent: 'users' })
 @ApiBearerAuth()
 @Controller('v1/users')
 export class UsersHealthController {
