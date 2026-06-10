@@ -15,9 +15,6 @@ import { UsersModule } from '@/modules/users/users.module';
 import { AssetsModule } from '@/modules/assets/assets.module';
 import { CloudStorageModule } from '@/modules/cloud-storage/cloud-storage.module';
 import { GroupsModule } from '@/modules/groups/groups.module';
-import { GroupMembersModule } from '@/modules/group-members/group-members.module';
-import { GroupAnnouncementsModule } from '@/modules/group-announcements/group-announcements.module';
-import { TripAnnouncementsModule } from '@/modules/trip-announcements/trip-announcements.module';
 import { TripsModule } from '@/modules/trips/trips.module';
 import { UploadsModule } from '@/modules/uploads/uploads.module';
 import { I18nHelperModule } from '@/i18n/i18n.module';
@@ -34,13 +31,8 @@ import * as path from 'path';
     UsersModule,
     AssetsModule,
     CloudStorageModule,
-    // GroupMembersModule must be registered before GroupsModule so that
-    // GET /v1/groups/invitations (static) takes priority over GET /v1/groups/:id (dynamic param).
-    GroupMembersModule,
     GroupsModule,
-    GroupAnnouncementsModule,
     TripsModule,
-    TripAnnouncementsModule,
     UploadsModule,
     HealthModule,
     FeedbackModule,

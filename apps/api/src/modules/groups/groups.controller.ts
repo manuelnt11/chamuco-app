@@ -27,6 +27,7 @@ import {
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { GroupsService } from './groups.service';
+import { GroupsDiscoveryService } from './discovery/groups-discovery.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupResponseDto } from './dto/group-response.dto';
@@ -37,7 +38,10 @@ import { GroupSearchResponseDto } from './dto/group-search-result.dto';
 @ApiBearerAuth()
 @Controller('v1/groups')
 export class GroupsController {
-  constructor(private readonly groupsService: GroupsService) {}
+  constructor(
+    private readonly groupsService: GroupsService,
+    private readonly groupsDiscoveryService: GroupsDiscoveryService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -67,7 +71,7 @@ export class GroupsController {
   @ApiResponse({ status: 200, type: [GroupResponseDto] })
   @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   async listMyGroups(@CurrentUser() user: AuthenticatedUser): Promise<GroupResponseDto[]> {
-    return this.groupsService.listMyGroups(user.id);
+    return this.groupsDiscoveryService.listMyGroups(user.id);
   }
 
   @Get('search')
@@ -102,7 +106,7 @@ export class GroupsController {
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: SearchGroupsQueryDto,
   ): Promise<GroupSearchResponseDto> {
-    return this.groupsService.searchGroups(user.id, query);
+    return this.groupsDiscoveryService.searchGroups(user.id, query);
   }
 
   @Get(':id')

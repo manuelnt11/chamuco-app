@@ -30,6 +30,32 @@ async function bootstrap(): Promise<void> {
       .setDescription('API documentation for Chamuco Travel application')
       .setVersion('1.0')
       .addBearerAuth()
+      .addTag('auth')
+      // users sub-tags
+      .addTag('users')
+      .addTag('user-profile', '', undefined, { parent: 'users' })
+      .addTag('user-health', '', undefined, { parent: 'users' })
+      .addTag('user-emergency-contacts', '', undefined, { parent: 'users' })
+      .addTag('user-travel-docs', '', undefined, { parent: 'users' })
+      .addTag('user-loyalty-programs', '', undefined, { parent: 'users' })
+      .addTag('user-preferences', '', undefined, { parent: 'users' })
+      // groups sub-tags
+      .addTag('groups')
+      .addTag('group-members', '', undefined, { parent: 'groups' })
+      .addTag('group-invitations', '', undefined, { parent: 'groups' })
+      .addTag('group-join-requests', '', undefined, { parent: 'groups' })
+      .addTag('group-announcements', '', undefined, { parent: 'groups' })
+      // trips sub-tags
+      .addTag('trips')
+      .addTag('trip-destinations', '', undefined, { parent: 'trips' })
+      .addTag('trip-groups', '', undefined, { parent: 'trips' })
+      .addTag('trip-announcements', '', undefined, { parent: 'trips' })
+      // Root-level tags — standalone
+      .addTag('notifications')
+      .addTag('uploads')
+      .addTag('locations')
+      .addTag('feedback')
+      .addTag('health')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

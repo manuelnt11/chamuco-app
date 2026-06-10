@@ -7,9 +7,12 @@ import {
 } from '@chamuco/shared-types';
 import { GroupsController } from './groups.controller';
 import { GroupsService } from './groups.service';
+import { GroupsDiscoveryService } from './discovery/groups-discovery.service';
 import type { CreateGroupDto } from './dto/create-group.dto';
 import type { UpdateGroupDto } from './dto/update-group.dto';
 import type { GroupResponseDto } from './dto/group-response.dto';
+import type { GroupSearchResponseDto } from './dto/group-search-result.dto';
+import type { SearchGroupsQueryDto } from './dto/search-groups-query.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 jest.mock('@google-cloud/storage', () => ({
@@ -46,20 +49,24 @@ const mockGroupResponse: GroupResponseDto = {
 };
 
 let mockCreateGroup: jest.Mock;
-let mockListMyGroups: jest.Mock;
 let mockGetGroup: jest.Mock;
 let mockUpdateGroup: jest.Mock;
 let mockDeleteGroup: jest.Mock;
+let mockListMyGroups: jest.Mock;
+let mockSearchGroups: jest.Mock;
 
 describe('GroupsController', () => {
   let controller: GroupsController;
 
   beforeEach(async () => {
     mockCreateGroup = jest.fn().mockResolvedValue(mockGroupResponse);
-    mockListMyGroups = jest.fn().mockResolvedValue([mockGroupResponse]);
     mockGetGroup = jest.fn().mockResolvedValue(mockGroupResponse);
     mockUpdateGroup = jest.fn().mockResolvedValue(mockGroupResponse);
     mockDeleteGroup = jest.fn().mockResolvedValue(undefined);
+    mockListMyGroups = jest.fn().mockResolvedValue([mockGroupResponse]);
+    mockSearchGroups = jest
+      .fn()
+      .mockResolvedValue({ data: [mockGroupResponse], total: 1 } as GroupSearchResponseDto);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GroupsController],
@@ -68,10 +75,16 @@ describe('GroupsController', () => {
           provide: GroupsService,
           useValue: {
             createGroup: mockCreateGroup,
-            listMyGroups: mockListMyGroups,
             getGroup: mockGetGroup,
             updateGroup: mockUpdateGroup,
             deleteGroup: mockDeleteGroup,
+          },
+        },
+        {
+          provide: GroupsDiscoveryService,
+          useValue: {
+            listMyGroups: mockListMyGroups,
+            searchGroups: mockSearchGroups,
           },
         },
       ],
@@ -96,11 +109,22 @@ describe('GroupsController', () => {
   });
 
   describe('GET /v1/groups', () => {
-    it('delegates to GroupsService.listMyGroups and returns the list', async () => {
+    it('delegates to GroupsDiscoveryService.listMyGroups and returns the list', async () => {
       const result = await controller.listMyGroups(mockAuthUser);
 
       expect(mockListMyGroups).toHaveBeenCalledWith(mockAuthUser.id);
       expect(result).toEqual([mockGroupResponse]);
+    });
+  });
+
+  describe('GET /v1/groups/search', () => {
+    it('delegates to GroupsDiscoveryService.searchGroups and returns the result', async () => {
+      const query: SearchGroupsQueryDto = { q: 'mountain', limit: 10, offset: 0 };
+
+      const result = await controller.searchGroups(mockAuthUser, query);
+
+      expect(mockSearchGroups).toHaveBeenCalledWith(mockAuthUser.id, query);
+      expect(result).toEqual({ data: [mockGroupResponse], total: 1 });
     });
   });
 

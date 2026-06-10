@@ -10,14 +10,14 @@
  */
 
 export * from '@/modules/assets/schema/assets.schema';
-export * from '@/modules/group-announcements/schema/group-announcements.schema';
+export * from '@/modules/groups/schema/group-announcements.schema';
 export * from '@/modules/groups/schema/group-member-stats.schema';
 export * from '@/modules/groups/schema/group-members.schema';
 export * from '@/modules/groups/schema/groups.schema';
 export * from '@/modules/notifications/schema/notification-deliveries.schema';
 export * from '@/modules/notifications/schema/notifications.schema';
 export * from '@/modules/notifications/schema/user-fcm-tokens.schema';
-export * from '@/modules/trip-announcements/schema/trip-announcements.schema';
+export * from '@/modules/trips/schema/trip-announcements.schema';
 export * from '@/modules/trips/schema/group-trips.schema';
 export * from '@/modules/trips/schema/trip-destinations.schema';
 export * from '@/modules/trips/schema/trip-participants.schema';
