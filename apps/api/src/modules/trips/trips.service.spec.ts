@@ -118,6 +118,7 @@ describe('TripsService', () => {
   let mockTripParticipantsFindFirst: jest.Mock;
   let mockTripDestinationsFindFirst: jest.Mock;
   let mockGroupsFindFirst: jest.Mock;
+  let mockGroupTripsFindFirst: jest.Mock;
   let mockSelectWhere: jest.Mock;
   let mockSelectFrom: jest.Mock;
   let mockSelect: jest.Mock;
@@ -137,6 +138,7 @@ describe('TripsService', () => {
     mockTripParticipantsFindFirst = jest.fn().mockResolvedValue(mockOrganizerParticipant);
     mockTripDestinationsFindFirst = jest.fn().mockResolvedValue(mockDestRow);
     mockGroupsFindFirst = jest.fn().mockResolvedValue(mockGroupRow);
+    mockGroupTripsFindFirst = jest.fn().mockResolvedValue(mockGroupTripRow);
 
     mockSelectWhere = jest.fn().mockResolvedValue([{ total: 0 }]);
     mockSelectFrom = jest.fn().mockReturnValue({ where: mockSelectWhere });
@@ -178,6 +180,7 @@ describe('TripsService', () => {
               tripParticipants: { findFirst: mockTripParticipantsFindFirst },
               tripDestinations: { findFirst: mockTripDestinationsFindFirst },
               groups: { findFirst: mockGroupsFindFirst },
+              groupTrips: { findFirst: mockGroupTripsFindFirst },
             },
             select: mockSelect,
             update: mockUpdate,
@@ -886,6 +889,14 @@ describe('TripsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
+    it('throws NotFoundException when group is soft-deleted', async () => {
+      mockGroupsFindFirst.mockResolvedValue(null); // isNull(deletedAt) filter excludes it
+
+      await expect(
+        service.addTripGroup(mockUser, 'trip-uuid', { groupId: 'group-uuid' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
     it('throws ForbiddenException for non-organizer', async () => {
       mockTripParticipantsFindFirst.mockResolvedValue(null);
 
@@ -905,6 +916,14 @@ describe('TripsService', () => {
 
     it('throws NotFoundException when trip does not exist', async () => {
       mockTripsFindFirst.mockResolvedValue(null);
+
+      await expect(service.removeTripGroup(mockUser, 'trip-uuid', 'group-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws NotFoundException when group link does not exist', async () => {
+      mockGroupTripsFindFirst.mockResolvedValue(null);
 
       await expect(service.removeTripGroup(mockUser, 'trip-uuid', 'group-uuid')).rejects.toThrow(
         NotFoundException,

@@ -262,7 +262,7 @@ export class TripsController {
   @ApiParam({ name: 'groupId', type: String, description: 'Group UUID' })
   @ApiResponse({ status: 204, description: 'Group unlinked.' })
   @ApiForbiddenResponse({ description: 'Only the trip organizer can manage linked groups.' })
-  @ApiNotFoundResponse({ description: 'Trip not found.' })
+  @ApiNotFoundResponse({ description: 'Trip not found, or group is not linked to this trip.' })
   async removeTripGroup(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) id: string,

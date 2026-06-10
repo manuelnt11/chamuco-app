@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { and, asc, count, eq, inArray, max } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, isNull, max } from 'drizzle-orm';
 
 import { PlatformRole, TripParticipantStatus, TripRole, TripStatus } from '@chamuco/shared-types';
 import { tripAnnouncements } from '@/modules/trip-announcements/schema/trip-announcements.schema';
@@ -414,7 +414,9 @@ export class TripsService {
     if (!trip) throw new NotFoundException('Trip not found');
     await this.assertOrganizerRole(tripId, user.id, false);
 
-    const group = await this.db.query.groups.findFirst({ where: eq(groups.id, dto.groupId) });
+    const group = await this.db.query.groups.findFirst({
+      where: and(eq(groups.id, dto.groupId), isNull(groups.deletedAt)),
+    });
     if (!group) throw new NotFoundException('Group not found');
 
     await this.db.insert(groupTrips).values({ tripId, groupId: dto.groupId }).onConflictDoNothing();
@@ -432,6 +434,11 @@ export class TripsService {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
     if (!trip) throw new NotFoundException('Trip not found');
     await this.assertOrganizerRole(tripId, user.id, false);
+
+    const link = await this.db.query.groupTrips.findFirst({
+      where: and(eq(groupTrips.tripId, tripId), eq(groupTrips.groupId, groupId)),
+    });
+    if (!link) throw new NotFoundException('Group is not linked to this trip');
 
     await this.db
       .delete(groupTrips)
