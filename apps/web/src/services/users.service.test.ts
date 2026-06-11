@@ -17,7 +17,6 @@ import {
   getMyLoyaltyPrograms,
   getMyNationalities,
   getMyNotificationPreferences,
-  getMyPersonalDetails,
   getMyPreferences,
   getMyProfile,
   getMyVisas,
@@ -36,7 +35,6 @@ import {
   updateVisa,
 } from './users.service';
 import type {
-  BasicInfoProfile,
   CreateEmergencyContactPayload,
   CreateEtaPayload,
   CreateLoyaltyProgramPayload,
@@ -48,7 +46,6 @@ import type {
   LoyaltyProgramDto,
   NationalityDto,
   NotificationPreferencesData,
-  PersonalDetailsProfile,
   PreferencesData,
   PublicProfileData,
   UpdateAvatarPayload,
@@ -58,6 +55,7 @@ import type {
   UpdateMePayload,
   UpdateNationalityPayload,
   UpdateVisaPayload,
+  UserProfileResponse,
   VisaDto,
 } from '@/services/users.types';
 import type { AppUser } from '@/store/user';
@@ -123,12 +121,9 @@ const publicProfileFixture: PublicProfileData = {
   discoveryMap: null,
 };
 
-const basicInfoFixture: BasicInfoProfile = {
+const userProfileFixture: UserProfileResponse = {
   bio: 'Travel enthusiast',
   homeCountry: 'MX',
-};
-
-const personalDetailsFixture: PersonalDetailsProfile = {
   firstName: 'John',
   lastName: 'Doe',
   dateOfBirth: { day: 15, month: 6, year: 1990, yearVisible: true },
@@ -136,7 +131,6 @@ const personalDetailsFixture: PersonalDetailsProfile = {
   phoneLocalNumber: '5551234567',
   birthCountry: null,
   birthCity: null,
-  homeCountry: 'MX',
   homeCity: null,
   email: 'john@example.com',
   emailVerified: true,
@@ -339,11 +333,11 @@ describe('updateMe', () => {
 // ─── Profile methods ──────────────────────────────────────────────────────────
 
 describe('getMyProfile', () => {
-  it('gets /v1/users/me/profile and returns basic info', async () => {
-    mockGet.mockResolvedValueOnce({ data: basicInfoFixture });
+  it('gets /v1/users/me/profile and returns the full profile response', async () => {
+    mockGet.mockResolvedValueOnce({ data: userProfileFixture });
     const result = await getMyProfile();
     expect(mockGet).toHaveBeenCalledWith('/v1/users/me/profile');
-    expect(result).toEqual(basicInfoFixture);
+    expect(result).toEqual(userProfileFixture);
   });
 
   it('propagates 401 errors', async () => {
@@ -354,25 +348,6 @@ describe('getMyProfile', () => {
   it('propagates 404 errors', async () => {
     mockGet.mockRejectedValueOnce({ response: { status: 404 } });
     await expect(getMyProfile()).rejects.toEqual({ response: { status: 404 } });
-  });
-});
-
-describe('getMyPersonalDetails', () => {
-  it('gets /v1/users/me/profile and returns personal details', async () => {
-    mockGet.mockResolvedValueOnce({ data: personalDetailsFixture });
-    const result = await getMyPersonalDetails();
-    expect(mockGet).toHaveBeenCalledWith('/v1/users/me/profile');
-    expect(result).toEqual(personalDetailsFixture);
-  });
-
-  it('propagates 401 errors', async () => {
-    mockGet.mockRejectedValueOnce({ response: { status: 401 } });
-    await expect(getMyPersonalDetails()).rejects.toEqual({ response: { status: 401 } });
-  });
-
-  it('propagates 404 errors', async () => {
-    mockGet.mockRejectedValueOnce({ response: { status: 404 } });
-    await expect(getMyPersonalDetails()).rejects.toEqual({ response: { status: 404 } });
   });
 });
 
@@ -1003,10 +978,12 @@ describe('deleteVisa', () => {
 // ─── Username availability ────────────────────────────────────────────────────
 
 describe('checkUsernameAvailable', () => {
-  it('gets /v1/users/username-available with username baked into URL and returns the result', async () => {
+  it('gets /v1/users/username-available with username as query param and returns the result', async () => {
     mockGet.mockResolvedValueOnce({ data: { available: true } });
     const result = await checkUsernameAvailable('johndoe');
-    expect(mockGet).toHaveBeenCalledWith('/v1/users/username-available?username=johndoe');
+    expect(mockGet).toHaveBeenCalledWith('/v1/users/username-available', {
+      params: { username: 'johndoe' },
+    });
     expect(result).toEqual({ available: true });
   });
 

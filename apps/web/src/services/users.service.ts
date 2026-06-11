@@ -2,7 +2,6 @@ import { apiClient } from '@/services/api-client';
 import type { AppUser } from '@/store/user';
 import type { UserSearchResponse } from '@/types/user';
 import type {
-  BasicInfoProfile,
   CreateEmergencyContactPayload,
   CreateEtaPayload,
   CreateLoyaltyProgramPayload,
@@ -14,7 +13,6 @@ import type {
   LoyaltyProgramDto,
   NationalityDto,
   NotificationPreferencesData,
-  PersonalDetailsProfile,
   PreferencesData,
   PublicProfileData,
   UpdateAvatarPayload,
@@ -25,6 +23,7 @@ import type {
   UpdateMyProfilePayload,
   UpdateNationalityPayload,
   UpdateVisaPayload,
+  UserProfileResponse,
   VisaDto,
 } from '@/services/users.types';
 
@@ -46,13 +45,8 @@ export async function updateMe(dto: UpdateMePayload): Promise<void> {
 
 // ─── Profile methods ──────────────────────────────────────────────────────────
 
-export async function getMyProfile(): Promise<BasicInfoProfile> {
-  const { data } = await apiClient.get<BasicInfoProfile>('/v1/users/me/profile');
-  return data;
-}
-
-export async function getMyPersonalDetails(): Promise<PersonalDetailsProfile> {
-  const { data } = await apiClient.get<PersonalDetailsProfile>('/v1/users/me/profile');
+export async function getMyProfile(): Promise<UserProfileResponse> {
+  const { data } = await apiClient.get<UserProfileResponse>('/v1/users/me/profile');
   return data;
 }
 
@@ -217,9 +211,9 @@ export async function deleteVisa(nationalityId: string, id: string): Promise<voi
 // ─── Username availability ────────────────────────────────────────────────────
 
 export async function checkUsernameAvailable(username: string): Promise<{ available: boolean }> {
-  const { data } = await apiClient.get<{ available: boolean }>(
-    `/v1/users/username-available?username=${username}`,
-  );
+  const { data } = await apiClient.get<{ available: boolean }>('/v1/users/username-available', {
+    params: { username },
+  });
   return data;
 }
 

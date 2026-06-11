@@ -1,4 +1,4 @@
-import type { GroupRole, GroupVisibility } from '@chamuco/shared-types';
+import type { GroupMemberStatus, GroupRole, GroupVisibility } from '@chamuco/shared-types';
 
 // ─── Payload types ────────────────────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ export interface UpdateGroupPayload {
 // ─── Response types ───────────────────────────────────────────────────────────
 
 export interface GroupMembershipResponse {
-  status: string;
+  status: GroupMemberStatus;
   role: GroupRole;
 }
 

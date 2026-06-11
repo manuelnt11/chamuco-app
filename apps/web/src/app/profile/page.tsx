@@ -163,13 +163,9 @@ export default function ProfilePage() {
 
       setData({
         userProfile:
-          profileRes.status === 'fulfilled'
-            ? (profileRes.value as unknown as BasicInfoProfile)
-            : { bio: null, homeCountry: null },
+          profileRes.status === 'fulfilled' ? profileRes.value : { bio: null, homeCountry: null },
         personalDetails:
-          profileRes.status === 'fulfilled'
-            ? (profileRes.value as unknown as PersonalDetailsProfile)
-            : DEFAULT_PERSONAL_DETAILS,
+          profileRes.status === 'fulfilled' ? profileRes.value : DEFAULT_PERSONAL_DETAILS,
         loyaltyPrograms: loyaltyRes.status === 'fulfilled' ? loyaltyRes.value : [],
         health: healthRes.status === 'fulfilled' ? healthRes.value : DEFAULT_HEALTH_DATA,
         emergencyContacts: emergencyRes.status === 'fulfilled' ? emergencyRes.value : [],

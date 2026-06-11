@@ -45,6 +45,9 @@ export interface PersonalDetailsProfile {
   phoneVerified: boolean;
 }
 
+// Full shape returned by GET /v1/users/me/profile — superset of BasicInfoProfile and PersonalDetailsProfile
+export type UserProfileResponse = BasicInfoProfile & PersonalDetailsProfile;
+
 // ─── Preferences ──────────────────────────────────────────────────────────────
 
 export interface PreferencesData {
