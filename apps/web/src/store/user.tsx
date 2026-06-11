@@ -6,7 +6,7 @@ import { preload } from 'react-dom';
 import type { ProfileVisibility, ResolvedAsset } from '@chamuco/shared-types';
 
 import { useAuth } from '@/hooks/useAuth';
-import { apiClient } from '@/services/api-client';
+import { getMe } from '@/services/users.service';
 
 export interface AppUser {
   id: string;
@@ -32,8 +32,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     try {
-      const res = await apiClient.get<AppUser>('/v1/users/me');
-      setAppUser(res.data);
+      const user = await getMe();
+      setAppUser(user);
     } catch {
       setAppUser(null);
     } finally {

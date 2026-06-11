@@ -30,7 +30,7 @@ vi.mock('react-i18next', () => ({
 
 import { PreferencesSection } from './PreferencesSection';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
-import type { PreferencesData } from './PreferencesSection';
+import type { PreferencesData } from '@/services/users.types';
 
 const basePreferences: PreferencesData = {
   language: AppLanguage.EN,

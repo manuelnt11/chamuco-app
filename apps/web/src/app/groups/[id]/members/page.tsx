@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { GroupMemberStatus, GroupRole, GroupVisibility } from '@chamuco/shared-types';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
-import { apiClient } from '@/services/api-client';
+import {
+  getGroup,
+  getGroupMembers,
+  getGroupMembership,
+  getPendingGroupMembers,
+} from '@/services/groups.service';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { MemberList } from '@/components/groups/members/MemberList';
@@ -43,34 +48,30 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
 
   const loadData = async () => {
     try {
-      const [groupRes, membersRes] = await Promise.all([
-        apiClient.get<Group>(`/v1/groups/${id}`),
-        apiClient.get<GroupMember[]>(`/v1/groups/${id}/members`).catch(() => null),
+      const [group, members] = await Promise.all([
+        getGroup(id),
+        getGroupMembers(id).catch(() => null),
       ]);
 
-      setGroup(groupRes.data);
+      setGroup(group);
 
-      if (!membersRes) {
+      if (!members) {
         // 403 → not an active member; check for pending request/invitation
-        const myMembershipRes = await apiClient
-          .get<{ status: GroupMemberStatus; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
-          .catch(() => null);
-        setPendingStatus(myMembershipRes?.data?.status ?? null);
+        const membership = await getGroupMembership(id).catch(() => null);
+        setPendingStatus((membership?.status ?? null) as GroupMemberStatus | null);
         setPageState('not-member');
         return;
       }
 
-      setMembers(membersRes.data);
+      setMembers(members);
 
-      const me = appUser ? membersRes.data.find((m) => m.userId === appUser.id) : undefined;
+      const me = appUser ? members.find((m) => m.userId === appUser.id) : undefined;
       setCurrentUserRole(me?.role ?? null);
 
       // Load pending for admins
       if (me && [GroupRole.OWNER, GroupRole.ADMIN].includes(me.role)) {
-        const pendingRes = await apiClient
-          .get<PendingGroupMember[]>(`/v1/groups/${id}/pending`)
-          .catch(() => null);
-        if (pendingRes) setPending(pendingRes.data);
+        const pending = await getPendingGroupMembers(id).catch(() => null);
+        if (pending) setPending(pending);
       }
 
       setPageState('ready');

@@ -4,13 +4,8 @@ import { useEffect, useRef } from 'react';
 import { useTheme } from 'next-themes';
 
 import { useAuth } from '@/hooks/useAuth';
-import { apiClient } from '@/services/api-client';
+import { getMyPreferences } from '@/services/users.service';
 import { changeLanguage } from '@/lib/i18n/client';
-
-interface UserPreferences {
-  language: string;
-  theme: string;
-}
 
 /**
  * Invisible component that fetches the user's saved preferences from the DB
@@ -32,9 +27,9 @@ export function PreferencesSync() {
 
     void (async () => {
       try {
-        const res = await apiClient.get<UserPreferences>('/v1/users/me/preferences');
-        await changeLanguage(res.data.language.toLowerCase());
-        setTheme(res.data.theme.toLowerCase());
+        const prefs = await getMyPreferences();
+        await changeLanguage(prefs.language.toLowerCase());
+        setTheme(prefs.theme.toLowerCase());
         appliedForUid.current = currentUser.uid;
       } catch {
         // Silently fall back to browser defaults if preferences can't be loaded.

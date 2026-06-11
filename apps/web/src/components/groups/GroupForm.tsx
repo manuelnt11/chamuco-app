@@ -11,19 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
+import { createGroup, updateGroup } from '@/services/groups.service';
+import { getSignedUrl } from '@/services/uploads.service';
 import { uploadToGcs } from '@/services/gcs-upload';
 import { AVATAR_EMOJIS } from '@/lib/avatar-emojis';
 import type { Group } from '@/types/group';
 import { CropModal } from '@/components/ui/crop-modal';
 
 type CoverTab = 'emoji' | 'photo';
-
-interface SignedUrlResponse {
-  uploadUrl: string;
-  objectKey: string;
-  expiresAt: string;
-}
 
 interface GroupFormProps {
   mode: 'create' | 'edit';
@@ -86,41 +81,36 @@ export function GroupForm({
     setIsSaving(true);
     try {
       if (mode === 'create') {
-        const res = await apiClient.post<Group>('/v1/groups', {
+        let group = await createGroup({
           name,
           description: description.trim() || undefined,
           visibility,
           cover: { source: 'emoji', target: selectedEmoji },
         });
-        let group = res.data;
 
         if (coverTab === 'photo' && croppedBlob) {
           const file = new File([croppedBlob], 'cover.jpg', { type: 'image/jpeg' });
-          const { data: signed } = await apiClient.post<SignedUrlResponse>(
-            '/v1/uploads/signed-url',
-            {
-              uploadType: UploadType.GROUP_COVER,
-              contextId: group.id,
-              contentType: 'image/jpeg',
-              fileSize: croppedBlob.size,
-            },
-          );
+          const signed = await getSignedUrl({
+            uploadType: UploadType.GROUP_COVER,
+            contextId: group.id,
+            contentType: 'image/jpeg',
+            fileSize: croppedBlob.size,
+          });
           await uploadToGcs(signed.uploadUrl, file, () => {});
-          const patchRes = await apiClient.patch<Group>(`/v1/groups/${group.id}`, {
+          group = await updateGroup(group.id, {
             cover: { source: 'gcs', target: signed.objectKey, fileSize: croppedBlob.size },
           });
-          group = patchRes.data;
         }
 
         onSuccess(group);
       } else {
-        const res = await apiClient.patch<Group>(`/v1/groups/${groupId}`, {
+        const group = await updateGroup(groupId!, {
           name,
           description: description.trim() || undefined,
           visibility,
         });
         setShowPrivateConfirm(false);
-        onSuccess(res.data);
+        onSuccess(group);
       }
     } catch (err) {
       const isCannotMakePublic =

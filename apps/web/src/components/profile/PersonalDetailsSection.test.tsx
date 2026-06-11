@@ -81,7 +81,7 @@ vi.mock('@/components/ui/city-combobox', () => ({
 }));
 
 import { PersonalDetailsSection } from './PersonalDetailsSection';
-import type { PersonalDetailsProfile } from './PersonalDetailsSection';
+import type { PersonalDetailsProfile } from '@/services/users.types';
 
 const baseProfile: PersonalDetailsProfile = {
   firstName: 'Juan',

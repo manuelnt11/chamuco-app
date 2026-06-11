@@ -14,7 +14,9 @@ import { getCountryData, type TCountryCode } from 'countries-list';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
-import { apiClient } from '@/services/api-client';
+import type { AppLanguage, AppTheme, AppCurrency } from '@chamuco/shared-types';
+import { checkMe, register } from '@/services/auth.service';
+import { checkUsernameAvailable, updateMyPreferences } from '@/services/users.service';
 import { Logo } from '@/components/header/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -238,8 +240,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (isLoading || !currentUser) return;
     let cancelled = false;
-    apiClient
-      .get('/v1/users/me')
+    checkMe()
       .then(() => {
         if (!cancelled) {
           document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
@@ -267,9 +268,8 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (usernameStatus !== 'checking') return;
     const timer = setTimeout(() => {
-      apiClient
-        .get<{ available: boolean }>(`/v1/users/username-available?username=${username}`)
-        .then(({ data }) => setUsernameStatus(data.available ? 'available' : 'taken'))
+      checkUsernameAvailable(username)
+        .then(({ available }) => setUsernameStatus(available ? 'available' : 'taken'))
         .catch(() => setUsernameStatus('idle'));
     }, 300);
     return () => clearTimeout(timer);
@@ -335,7 +335,7 @@ export default function OnboardingPage() {
     }
     setIsSubmitting(true);
     try {
-      await apiClient.post('/v1/auth/register', {
+      await register({
         username,
         displayName: displayName.trim(),
         firstName: normalizeName(firstName),
@@ -354,13 +354,11 @@ export default function OnboardingPage() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
       document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
-      void apiClient
-        .patch('/v1/users/me/preferences', {
-          theme: resolveTheme(theme),
-          language: resolveLanguage(i18n.language),
-          currency: deriveCurrency(homeCountry),
-        })
-        .catch(() => {});
+      void updateMyPreferences({
+        theme: resolveTheme(theme) as AppTheme,
+        language: resolveLanguage(i18n.language) as AppLanguage,
+        currency: deriveCurrency(homeCountry) as AppCurrency,
+      }).catch(() => {});
       // TODO: localStorage.setItem(PROFILE_INCOMPLETE_KEY, 'true'); // TODO: re-enable with banner
       void refreshUser();
       router.replace('/');

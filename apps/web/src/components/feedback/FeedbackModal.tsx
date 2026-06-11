@@ -15,15 +15,11 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
+import { submitFeedback } from '@/services/feedback.service';
 
 const MAX_CHARS = 2000;
 const MIN_CHARS = 10;
 const SUCCESS_CLOSE_DELAY_MS = 5000;
-
-interface FeedbackResponseDto {
-  issueUrl: string;
-}
 
 interface FeedbackModalProps {
   open: boolean;
@@ -64,7 +60,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
     if (!isValid) return;
     setLoading(true);
     try {
-      await apiClient.post<FeedbackResponseDto>('/v1/feedback', {
+      await submitFeedback({
         comment: trimmed,
         currentPage: window.location.pathname,
         userAgent: navigator.userAgent,

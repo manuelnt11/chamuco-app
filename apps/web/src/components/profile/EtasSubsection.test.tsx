@@ -61,7 +61,7 @@ vi.mock('@/components/ui/country-combobox', () => ({
 }));
 
 import { EtasSubsection } from './EtasSubsection';
-import type { EtaDto } from './EtasSubsection';
+import type { EtaDto } from '@/services/users.types';
 
 const NATIONALITY_ID = 'nat-1';
 const PASSPORT_NUMBER = 'AB123456';

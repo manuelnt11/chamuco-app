@@ -74,8 +74,8 @@ Object.defineProperty(globalThis, 'crypto', {
   configurable: true,
 });
 
+import type { EmergencyContactDto } from '@/services/users.types';
 import { EmergencyContactsSection } from './EmergencyContactsSection';
-import type { EmergencyContactDto } from './EmergencyContactsSection';
 
 const sampleContacts: EmergencyContactDto[] = [
   {
@@ -173,7 +173,6 @@ describe('EmergencyContactsSection', () => {
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/emergency-contacts', {
-          id: 'test-uuid-1234',
           fullName: 'ANA LÓPEZ',
           phoneCountryCode: '+57',
           phoneLocalNumber: '3009876543',
@@ -192,7 +191,6 @@ describe('EmergencyContactsSection', () => {
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/emergency-contacts', {
-          id: 'test-uuid-1234',
           fullName: 'ANA LÓPEZ',
           phoneCountryCode: '+57',
           phoneLocalNumber: '3009876543',

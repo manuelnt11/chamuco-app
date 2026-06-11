@@ -8,12 +8,12 @@ import { ArrowLeftIcon } from '@phosphor-icons/react';
 
 import { GroupRole } from '@chamuco/shared-types';
 
-import { apiClient } from '@/services/api-client';
+import { getGroup, getGroupMembers, deleteGroup } from '@/services/groups.service';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/toast';
 import { GroupCoverEditor } from '@/components/groups/GroupCoverEditor';
 import { GroupForm } from '@/components/groups/GroupForm';
-import type { Group, GroupMember } from '@/types/group';
+import type { Group } from '@/types/group';
 
 interface GroupSettingsPageProps {
   params: Promise<{ id: string }>;
@@ -31,13 +31,10 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
 
   const fetchGroup = useCallback(() => {
     if (isAuthLoading) return;
-    Promise.all([
-      apiClient.get<Group>(`/v1/groups/${id}`),
-      apiClient.get<GroupMember[]>(`/v1/groups/${id}/members`),
-    ])
-      .then(([groupRes, membersRes]) => {
-        setGroup(groupRes.data);
-        setHasNonOwnerMembers(membersRes.data.some((m) => m.role !== GroupRole.OWNER));
+    Promise.all([getGroup(id), getGroupMembers(id)])
+      .then(([group, members]) => {
+        setGroup(group);
+        setHasNonOwnerMembers(members.some((m) => m.role !== GroupRole.OWNER));
       })
       .catch(() => router.replace('/groups'))
       .finally(() => setIsLoading(false));
@@ -51,7 +48,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
     if (!window.confirm(t('settings.deleteConfirm'))) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/v1/groups/${id}`);
+      await deleteGroup(id);
       router.replace('/groups');
     } catch {
       toast.error(t('errors.deleteFailed'));

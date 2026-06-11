@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/services/api-client';
-import type { UserSearchResponse, UserSearchResult } from '@/types/user';
+import { searchUsers } from '@/services/users.service';
+import type { UserSearchResult } from '@/types/user';
 
 export function useUserSearch(query: string, limit = 10) {
   const [results, setResults] = useState<UserSearchResult[]>([]);
@@ -19,13 +19,9 @@ export function useUserSearch(query: string, limit = 10) {
     const timer = setTimeout(() => {
       setIsLoading(true);
 
-      apiClient
-        .get<UserSearchResponse>('/v1/users/search', {
-          params: { q: query, limit },
-          signal: controller.signal,
-        })
+      searchUsers({ q: query, limit }, controller.signal)
         .then((res) => {
-          setResults(res.data.data);
+          setResults(res.data);
         })
         .catch((err: unknown) => {
           if (!axios.isCancel(err)) {

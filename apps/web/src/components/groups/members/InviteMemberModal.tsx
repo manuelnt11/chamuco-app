@@ -3,7 +3,8 @@
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserPlusIcon } from '@phosphor-icons/react';
-import { apiClient } from '@/services/api-client';
+import type { InvitationResult } from '@/services/groups.types';
+import { inviteGroupMembers } from '@/services/groups.service';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,18 +16,6 @@ import {
 } from '@/components/ui/dialog';
 import { UserAutocomplete } from '@/components/ui/user-autocomplete';
 import type { UserSearchResult } from '@/types/user';
-
-type InvitationResultStatus =
-  | 'INVITED'
-  | 'ALREADY_MEMBER'
-  | 'ALREADY_INVITED'
-  | 'HAS_PENDING_REQUEST'
-  | 'NOT_FOUND';
-
-interface InvitationResult {
-  username: string;
-  status: InvitationResultStatus;
-}
 
 interface InviteMemberModalProps {
   groupId: string;
@@ -81,11 +70,10 @@ export function InviteMemberModal({ groupId, onSuccess, excludedIds }: InviteMem
     setError(null);
 
     try {
-      const res = await apiClient.post<{ results: InvitationResult[] }>(
-        `/v1/groups/${groupId}/invitations`,
-        { usernames: selectedUsers.map((u) => u.username) },
-      );
-      setResults(res.data.results);
+      const res = await inviteGroupMembers(groupId, {
+        usernames: selectedUsers.map((u) => u.username),
+      });
+      setResults(res.results);
     } catch {
       setError(t('members.invite.error'));
     } finally {

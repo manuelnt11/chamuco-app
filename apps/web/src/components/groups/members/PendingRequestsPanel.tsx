@@ -5,7 +5,11 @@ import { GroupMemberStatus } from '@chamuco/shared-types';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { apiClient } from '@/services/api-client';
+import {
+  acceptJoinRequest,
+  rejectJoinRequest,
+  cancelGroupInvitation,
+} from '@/services/groups.service';
 import type { PendingGroupMember } from '@/types/group';
 
 interface PendingRequestsPanelProps {
@@ -18,17 +22,17 @@ export function PendingRequestsPanel({ groupId, items, onUpdate }: PendingReques
   const { t } = useTranslation('groups');
 
   const handleAccept = async (userId: string) => {
-    await apiClient.patch(`/v1/groups/${groupId}/join-requests/${userId}/accept`);
+    await acceptJoinRequest(groupId, userId);
     onUpdate();
   };
 
   const handleReject = async (userId: string) => {
-    await apiClient.patch(`/v1/groups/${groupId}/join-requests/${userId}/reject`);
+    await rejectJoinRequest(groupId, userId);
     onUpdate();
   };
 
   const handleRevoke = async (userId: string) => {
-    await apiClient.delete(`/v1/groups/${groupId}/invitations/${userId}`);
+    await cancelGroupInvitation(groupId, userId);
     onUpdate();
   };
 

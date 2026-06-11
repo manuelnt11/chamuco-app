@@ -44,7 +44,7 @@ vi.mock('@/components/ui/label', () => ({
 }));
 
 import { HealthSection } from './HealthSection';
-import type { HealthData } from './HealthSection';
+import type { HealthData } from '@/services/users.types';
 import { BloodType, DietaryPreference } from '@chamuco/shared-types';
 
 const baseHealth: HealthData = {

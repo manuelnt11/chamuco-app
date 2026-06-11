@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
-import { apiClient } from '@/services/api-client';
+import { getMyGroupInvitations } from '@/services/groups.service';
 import type { GroupInvitation } from '@/types/group';
 
 export interface GroupInvitationsContextValue {
@@ -23,8 +23,8 @@ export function GroupInvitationsProvider({ children }: { children: ReactNode }) 
 
   const fetchInvitations = useCallback(async () => {
     try {
-      const res = await apiClient.get<GroupInvitation[]>('/v1/groups/invitations');
-      setInvitations(res.data);
+      const data = await getMyGroupInvitations();
+      setInvitations(data);
     } catch {
       setInvitations([]);
     } finally {

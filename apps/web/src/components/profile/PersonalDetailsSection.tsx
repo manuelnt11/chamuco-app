@@ -13,23 +13,9 @@ import { CityCombobox } from '@/components/ui/city-combobox';
 import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
-import { apiClient } from '@/services/api-client';
+import type { PersonalDetailsProfile } from '@/services/users.types';
+import { updateMyProfile } from '@/services/users.service';
 import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
-
-export interface PersonalDetailsProfile {
-  firstName: string;
-  lastName: string;
-  dateOfBirth: { day: number; month: number; year: number; yearVisible: boolean };
-  phoneCountryCode: string;
-  phoneLocalNumber: string;
-  birthCountry: string | null;
-  birthCity: string | null;
-  homeCountry: string;
-  homeCity: string | null;
-  email: string;
-  emailVerified: boolean;
-  phoneVerified: boolean;
-}
 
 interface PersonalDetailsSectionProps {
   profile: PersonalDetailsProfile;
@@ -175,7 +161,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
 
     setIsSaving(true);
     try {
-      await apiClient.patch('/v1/users/me/profile', {
+      await updateMyProfile({
         firstName: normalizedFirst,
         lastName: normalizedLast,
         dateOfBirth: { day, month, year, yearVisible },

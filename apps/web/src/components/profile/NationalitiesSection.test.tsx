@@ -76,7 +76,7 @@ vi.mock('./EtasSubsection', () => ({
 }));
 
 import { NationalitiesSection } from './NationalitiesSection';
-import type { NationalityDto } from './NationalitiesSection';
+import type { NationalityDto } from '@/services/users.types';
 
 const sampleNationalities: NationalityDto[] = [
   {

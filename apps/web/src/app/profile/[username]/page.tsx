@@ -14,23 +14,8 @@ import {
   PublicProfileRecognitions,
   PublicProfileDiscoveryMap,
 } from '@/components/public-profile';
-import type { KeyStats } from '@/components/public-profile';
-import { apiClient } from '@/services/api-client';
-import type { ResolvedAsset } from '@chamuco/shared-types';
-import { ProfileVisibility } from '@chamuco/shared-types';
-
-interface PublicProfileData {
-  username: string;
-  displayName: string;
-  avatar: ResolvedAsset | null;
-  bio: string | null;
-  profileVisibility: ProfileVisibility;
-  travelerScore: number | null;
-  achievements: string[] | null;
-  recognitions: string[] | null;
-  keyStats: KeyStats | null;
-  discoveryMap: string[] | null;
-}
+import { getPublicProfile } from '@/services/users.service';
+import type { PublicProfileData } from '@/services/users.types';
 
 export default function PublicProfilePage() {
   const { t } = useTranslation('profile');
@@ -48,8 +33,8 @@ export default function PublicProfilePage() {
     setIsNotFound(false);
     setHasError(false);
     try {
-      const res = await apiClient.get(`/v1/users/${username}/profile`);
-      setProfileData(res.data as PublicProfileData);
+      const profile = await getPublicProfile(username);
+      setProfileData(profile);
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (status === 404) {

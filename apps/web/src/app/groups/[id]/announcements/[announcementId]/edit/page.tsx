@@ -7,11 +7,14 @@ import { useTranslation } from 'react-i18next';
 import { GroupRole } from '@chamuco/shared-types';
 import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
 
-import { apiClient } from '@/services/api-client';
+import {
+  getGroupMembership,
+  getGroupAnnouncement,
+  updateAnnouncement,
+} from '@/services/groups.service';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import type { GroupAnnouncement } from '@/types/group';
 
 interface EditAnnouncementPageProps {
   params: Promise<{ id: string; announcementId: string }>;
@@ -35,14 +38,12 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
     const load = async () => {
       setIsLoading(true);
       try {
-        const [membershipRes, announcementRes] = await Promise.all([
-          apiClient
-            .get<{ status: string; role: GroupRole }>(`/v1/groups/${id}/members/me`)
-            .catch(() => null),
-          apiClient.get<GroupAnnouncement>(`/v1/groups/${id}/announcements/${announcementId}`),
+        const [membership, announcement] = await Promise.all([
+          getGroupMembership(id).catch(() => null),
+          getGroupAnnouncement(id, announcementId),
         ]);
 
-        const role = membershipRes?.data?.role ?? null;
+        const role = membership?.role ?? null;
         const isAdmin = role !== null && [GroupRole.OWNER, GroupRole.ADMIN].includes(role);
 
         if (!isAdmin) {
@@ -50,7 +51,7 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
           return;
         }
 
-        setContent(announcementRes.data.content);
+        setContent(announcement.content);
       } catch {
         router.replace(`/groups/${id}/announcements`);
       } finally {
@@ -69,9 +70,7 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
     setIsSubmitting(true);
     setSubmitError(false);
     try {
-      await apiClient.patch<GroupAnnouncement>(`/v1/groups/${id}/announcements/${announcementId}`, {
-        content: content.trim(),
-      });
+      await updateAnnouncement(id, announcementId, { content: content.trim() });
       router.push(`/groups/${id}/announcements`);
     } catch {
       setSubmitError(true);

@@ -54,7 +54,7 @@ vi.mock('@/components/ui/country-combobox', () => ({
 }));
 
 import { VisasSubsection } from './VisasSubsection';
-import type { VisaDto } from './VisasSubsection';
+import type { VisaDto } from '@/services/users.types';
 
 const NATIONALITY_ID = 'nat-1';
 

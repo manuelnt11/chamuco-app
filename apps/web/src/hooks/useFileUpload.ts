@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { UploadType } from '@chamuco/shared-types';
-import { apiClient } from '@/services/api-client';
+import { getSignedUrl } from '@/services/uploads.service';
 import { uploadToGcs } from '@/services/gcs-upload';
 
 export { UploadType } from '@chamuco/shared-types';
@@ -18,12 +18,6 @@ export interface UseFileUploadReturn {
   isUploading: boolean;
   error: string | null;
   reset: () => void;
-}
-
-interface SignedUrlResponse {
-  uploadUrl: string;
-  objectKey: string;
-  expiresAt: string;
 }
 
 export function useFileUpload({
@@ -47,7 +41,7 @@ export function useFileUpload({
       setError(null);
 
       try {
-        const { data } = await apiClient.post<SignedUrlResponse>('/v1/uploads/signed-url', {
+        const data = await getSignedUrl({
           uploadType,
           contextId,
           contentType: file.type,

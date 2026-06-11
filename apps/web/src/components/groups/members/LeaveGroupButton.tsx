@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { apiClient } from '@/services/api-client';
+import { leaveGroup } from '@/services/groups.service';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -33,7 +33,7 @@ export function LeaveGroupButton({ groupId, userId }: LeaveGroupButtonProps) {
     setIsLeaving(true);
     setError(null);
     try {
-      await apiClient.delete(`/v1/groups/${groupId}/members/${userId}`);
+      await leaveGroup(groupId, userId);
       setOpen(false);
       router.push('/groups');
     } catch (err) {

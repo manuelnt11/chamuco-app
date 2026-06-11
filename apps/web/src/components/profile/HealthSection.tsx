@@ -9,7 +9,8 @@ import { SaveButton } from '@/components/ui/save-button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
-import { apiClient } from '@/services/api-client';
+import type { HealthArrayItem, HealthData } from '@/services/users.types';
+import { updateMyHealth } from '@/services/users.service';
 import {
   BloodType,
   DietaryPreference,
@@ -19,22 +20,6 @@ import {
   MedicalConditionType,
 } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
-
-export interface HealthArrayItem {
-  code: string;
-  description: string;
-}
-
-export interface HealthData {
-  bloodType: BloodType | null;
-  dietaryPreference: DietaryPreference | null;
-  dietaryNotes: string | null;
-  generalMedicalNotes: string | null;
-  foodAllergies: { allergen: FoodAllergen; description: string | null }[];
-  phobias: { phobia: PhobiaType; description: string | null }[];
-  physicalLimitations: { limitation: PhysicalLimitationType; description: string | null }[];
-  medicalConditions: { condition: MedicalConditionType; description: string | null }[];
-}
 
 interface HealthSectionProps {
   health: HealthData;
@@ -251,26 +236,26 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
 
     setIsSaving(true);
     try {
-      await apiClient.patch('/v1/users/me/health', {
+      await updateMyHealth({
         bloodType,
         dietaryPreference,
         dietaryNotes:
           dietaryPreference === DietaryPreference.OTHER ? dietaryNotes.trim() || null : null,
         generalMedicalNotes: generalMedicalNotes.trim() || null,
         foodAllergies: foodAllergies.map((i) => ({
-          allergen: i.code,
+          allergen: i.code as FoodAllergen,
           description: i.description.trim() || null,
         })),
         phobias: phobias.map((i) => ({
-          phobia: i.code,
+          phobia: i.code as PhobiaType,
           description: i.description.trim() || null,
         })),
         physicalLimitations: physicalLimitations.map((i) => ({
-          limitation: i.code,
+          limitation: i.code as PhysicalLimitationType,
           description: i.description.trim() || null,
         })),
         medicalConditions: medicalConditions.map((i) => ({
-          condition: i.code,
+          condition: i.code as MedicalConditionType,
           description: i.description.trim() || null,
         })),
       });

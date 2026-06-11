@@ -15,7 +15,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
+import { updateMyAvatar } from '@/services/users.service';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUser } from '@/hooks/useUser';
 import type { AppUser } from '@/store/user';
@@ -55,7 +55,7 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
     try {
       const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
       const objectKey = await upload(file);
-      await apiClient.patch('/v1/users/me/avatar', {
+      await updateMyAvatar({
         source: 'gcs',
         target: objectKey,
         fileSize: blob.size,
@@ -78,7 +78,7 @@ export function AvatarEditor({ user }: AvatarEditorProps) {
   async function handleEmojiSelect(emoji: string) {
     setIsSaving(true);
     try {
-      await apiClient.patch('/v1/users/me/avatar', { source: 'emoji', target: emoji });
+      await updateMyAvatar({ source: 'emoji', target: emoji });
       toast.success(t('basicInfo.avatarEditor.emojiSuccess'));
       await refresh();
       setOpen(false);

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckIcon, XIcon } from '@phosphor-icons/react';
-import { apiClient } from '@/services/api-client';
+import { acceptGroupInvitation, declineGroupInvitation } from '@/services/groups.service';
 import { Button } from '@/components/ui/button';
 
 interface InvitationResponseButtonsProps {
@@ -28,7 +28,7 @@ export function InvitationResponseButtons({
     setIsAccepting(true);
     setError(null);
     try {
-      await apiClient.patch(`/v1/groups/${groupId}/invitations/accept`);
+      await acceptGroupInvitation(groupId);
       onSuccess();
     } catch {
       setError(t('members.invitation.acceptError'));
@@ -40,7 +40,7 @@ export function InvitationResponseButtons({
     setIsDeclining(true);
     setError(null);
     try {
-      await apiClient.patch(`/v1/groups/${groupId}/invitations/decline`);
+      await declineGroupInvitation(groupId);
       onSuccess();
     } catch {
       setError(t('members.invitation.declineError'));

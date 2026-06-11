@@ -62,8 +62,8 @@ Object.defineProperty(globalThis, 'crypto', {
   configurable: true,
 });
 
+import type { LoyaltyProgramDto } from '@/services/users.types';
 import { LoyaltyProgramsSection } from './LoyaltyProgramsSection';
-import type { LoyaltyProgramDto } from './LoyaltyProgramsSection';
 
 const samplePrograms: LoyaltyProgramDto[] = [
   { id: 'prog-1', programName: 'LifeMiles', memberId: 'LM123', notes: 'Gold tier' },
@@ -138,7 +138,6 @@ describe('LoyaltyProgramsSection', () => {
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/loyalty-programs', {
-          id: 'test-uuid-1234',
           programName: 'Avianca',
           memberId: 'AV999',
           notes: null,
@@ -205,7 +204,6 @@ describe('LoyaltyProgramsSection', () => {
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/loyalty-programs', {
-          id: 'test-uuid-1234',
           programName: 'Avianca',
           memberId: 'AV999',
           notes: 'Silver tier',

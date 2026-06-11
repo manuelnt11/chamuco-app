@@ -14,7 +14,8 @@ import {
   COOKIE_CHAMUCO_REGISTERED_SET,
   COOKIE_CHAMUCO_REGISTERED_CLEAR,
 } from '@/lib/auth-cookies';
-import { apiClient, setTokenProvider } from '@/services/api-client';
+import { setTokenProvider } from '@/services/api-client';
+import { checkMe, logout } from '@/services/auth.service';
 
 export interface AuthContextValue {
   currentUser: User | null;
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .some((c) => c.trim().startsWith(`${COOKIE_CHAMUCO_REGISTERED_NAME}=`));
         if (!hasRegisteredCookie) {
           try {
-            await apiClient.get('/v1/users/me');
+            await checkMe();
             document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
           } catch {
             // 404 = new user awaiting registration — middleware redirect to /onboarding is correct.
@@ -118,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // firebaseSignOut runs unconditionally so the client is never stuck in a signed-in
     // state if the server-side revocation call fails.
     try {
-      await apiClient.post('/v1/auth/logout');
+      await logout();
     } catch (err) {
       // 404 = user not yet registered (e.g. cancelling onboarding before completing
       // registration). No server session to revoke — proceed to Firebase sign-out.

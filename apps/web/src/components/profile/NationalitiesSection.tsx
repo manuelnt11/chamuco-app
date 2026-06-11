@@ -16,21 +16,11 @@ import { CountryCombobox } from '@/components/ui/country-combobox';
 import { SaveButton } from '@/components/ui/save-button';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
-import { apiClient } from '@/services/api-client';
+import type { NationalityDto } from '@/services/users.types';
+import { createNationality, updateNationality, deleteNationality } from '@/services/users.service';
 import { cn } from '@/lib/utils';
 import { VisasSubsection } from './VisasSubsection';
 import { EtasSubsection } from './EtasSubsection';
-
-export interface NationalityDto {
-  id: string;
-  countryCode: string;
-  isPrimary: boolean;
-  nationalIdNumber: string | null;
-  passportNumber: string | null;
-  passportIssueDate: string | null;
-  passportExpiryDate: string | null;
-  passportStatus: PassportStatus;
-}
 
 interface FormState {
   countryCode: string;
@@ -374,7 +364,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     if (!validate(addForm, setAddErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.post('/v1/users/me/nationalities', {
+      await createNationality({
         countryCode: addForm.countryCode,
         ...formToPayload(addForm),
       });
@@ -400,7 +390,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
     if (!validate(editForm, setEditErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.patch(`/v1/users/me/nationalities/${editingId}`, formToPayload(editForm));
+      await updateNationality(editingId, formToPayload(editForm));
       toast.success(t('nationalities.updateSuccess'));
       setEditingId(null);
       setEditForm(makeEmptyForm());
@@ -416,7 +406,7 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
   async function handleDelete(id: string) {
     setIsSaving(true);
     try {
-      await apiClient.delete(`/v1/users/me/nationalities/${id}`);
+      await deleteNationality(id);
       toast.success(t('nationalities.deleteSuccess'));
       onRefresh();
     } catch (err: unknown) {

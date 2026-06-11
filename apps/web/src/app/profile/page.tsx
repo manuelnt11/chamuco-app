@@ -21,17 +21,27 @@ import { LoyaltyProgramsSection } from '@/components/profile/LoyaltyProgramsSect
 import { HealthSection } from '@/components/profile/HealthSection';
 import { EmergencyContactsSection } from '@/components/profile/EmergencyContactsSection';
 import { NationalitiesSection } from '@/components/profile/NationalitiesSection';
-import type { BasicInfoProfile } from '@/components/profile/BasicInfoSection';
-import type { PersonalDetailsProfile } from '@/components/profile/PersonalDetailsSection';
-import type { PreferencesData } from '@/components/profile/PreferencesSection';
-import type { NotificationPreferencesData } from '@/components/profile/NotificationPreferencesSection';
-import type { LoyaltyProgramDto } from '@/components/profile/LoyaltyProgramsSection';
-import type { HealthData } from '@/components/profile/HealthSection';
-import type { EmergencyContactDto } from '@/components/profile/EmergencyContactsSection';
-import type { NationalityDto } from '@/components/profile/NationalitiesSection';
+import type {
+  BasicInfoProfile,
+  EmergencyContactDto,
+  HealthData,
+  LoyaltyProgramDto,
+  NationalityDto,
+  NotificationPreferencesData,
+  PersonalDetailsProfile,
+  PreferencesData,
+} from '@/services/users.types';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
-import { apiClient } from '@/services/api-client';
+import {
+  getMyProfile,
+  getMyPreferences,
+  getMyLoyaltyPrograms,
+  getMyHealth,
+  getMyEmergencyContacts,
+  getMyNationalities,
+  getMyNotificationPreferences,
+} from '@/services/users.service';
 import { toast } from '@/components/ui/toast';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
@@ -142,46 +152,34 @@ export default function ProfilePage() {
         nationalitiesRes,
         notifPrefRes,
       ] = await Promise.allSettled([
-        apiClient.get('/v1/users/me/profile'),
-        apiClient.get('/v1/users/me/preferences'),
-        apiClient.get('/v1/users/me/loyalty-programs'),
-        apiClient.get('/v1/users/me/health'),
-        apiClient.get('/v1/users/me/emergency-contacts'),
-        apiClient.get('/v1/users/me/nationalities'),
-        apiClient.get('/v1/users/me/notification-preferences'),
+        getMyProfile(),
+        getMyPreferences(),
+        getMyLoyaltyPrograms(),
+        getMyHealth(),
+        getMyEmergencyContacts(),
+        getMyNationalities(),
+        getMyNotificationPreferences(),
       ]);
 
       setData({
         userProfile:
           profileRes.status === 'fulfilled'
-            ? (profileRes.value.data as BasicInfoProfile)
+            ? (profileRes.value as unknown as BasicInfoProfile)
             : { bio: null, homeCountry: null },
         personalDetails:
           profileRes.status === 'fulfilled'
-            ? (profileRes.value.data as PersonalDetailsProfile)
+            ? (profileRes.value as unknown as PersonalDetailsProfile)
             : DEFAULT_PERSONAL_DETAILS,
-        loyaltyPrograms:
-          loyaltyRes.status === 'fulfilled' ? (loyaltyRes.value.data as LoyaltyProgramDto[]) : [],
-        health:
-          healthRes.status === 'fulfilled'
-            ? (healthRes.value.data as HealthData)
-            : DEFAULT_HEALTH_DATA,
-        emergencyContacts:
-          emergencyRes.status === 'fulfilled'
-            ? (emergencyRes.value.data as EmergencyContactDto[])
-            : [],
-        nationalities:
-          nationalitiesRes.status === 'fulfilled'
-            ? (nationalitiesRes.value.data as NationalityDto[])
-            : [],
+        loyaltyPrograms: loyaltyRes.status === 'fulfilled' ? loyaltyRes.value : [],
+        health: healthRes.status === 'fulfilled' ? healthRes.value : DEFAULT_HEALTH_DATA,
+        emergencyContacts: emergencyRes.status === 'fulfilled' ? emergencyRes.value : [],
+        nationalities: nationalitiesRes.status === 'fulfilled' ? nationalitiesRes.value : [],
         preferences:
           prefRes.status === 'fulfilled'
-            ? (prefRes.value.data as PreferencesData)
+            ? prefRes.value
             : { language: AppLanguage.ES, currency: AppCurrency.COP, theme: AppTheme.SYSTEM },
         notificationPreferences:
-          notifPrefRes.status === 'fulfilled'
-            ? (notifPrefRes.value.data as NotificationPreferencesData)
-            : { optOuts: {} },
+          notifPrefRes.status === 'fulfilled' ? notifPrefRes.value : { optOuts: {} },
       });
     } catch {
       if (!loadedOnce.current) {

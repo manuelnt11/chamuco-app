@@ -12,16 +12,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { TimezoneCombobox } from '@/components/ui/timezone-combobox';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
-import { apiClient } from '@/services/api-client';
+import type { BasicInfoProfile } from '@/services/users.types';
+import { updateMe, updateMyProfile } from '@/services/users.service';
 import { useUser } from '@/hooks/useUser';
 import type { AppUser } from '@/store/user';
 import { COUNTRY_TIMEZONE } from '@/lib/timezones';
 import { AvatarEditor } from './AvatarEditor';
-
-export interface BasicInfoProfile {
-  bio: string | null;
-  homeCountry: string | null;
-}
 
 interface BasicInfoSectionProps {
   user: AppUser;
@@ -62,12 +58,12 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
     setIsSaving(true);
     try {
       await Promise.all([
-        apiClient.patch('/v1/users/me', {
+        updateMe({
           displayName: trimmedName,
           timezone,
           profileVisibility: visibility,
         }),
-        apiClient.patch('/v1/users/me/profile', {
+        updateMyProfile({
           bio: bio.trim() || null,
         }),
       ]);
