@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import type * as admin from 'firebase-admin';
+import type { BatchResponse } from 'firebase-admin/messaging';
 import { and, eq, inArray } from 'drizzle-orm';
 import { DeliveryStatus, NotificationChannel } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -39,7 +39,7 @@ export class PushChannelStrategy implements NotificationChannelStrategy {
     const tokens = tokenRows.map((r) => r.token);
     const data = this.coercePayload(payload);
 
-    let batchResponse: admin.messaging.BatchResponse;
+    let batchResponse: BatchResponse;
     try {
       batchResponse = await this.firebaseAdmin.messaging().sendEachForMulticast({
         tokens,
