@@ -12,14 +12,12 @@ import { LoyaltyProgramCombobox } from '@/components/ui/loyalty-program-combobox
 import { SaveButton } from '@/components/ui/save-button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
-
-export interface LoyaltyProgramDto {
-  id: string;
-  programName: string;
-  memberId: string;
-  notes: string | null;
-}
+import type { LoyaltyProgramDto } from '@/services/users.types';
+import {
+  createLoyaltyProgram,
+  updateLoyaltyProgram,
+  deleteLoyaltyProgram,
+} from '@/services/users.service';
 
 interface FormState {
   programName: string;
@@ -162,8 +160,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     }
     setIsSaving(true);
     try {
-      await apiClient.post('/v1/users/me/loyalty-programs', {
-        id: globalThis.crypto.randomUUID(),
+      await createLoyaltyProgram({
         programName: addForm.programName.trim(),
         memberId: addForm.memberId.trim(),
         notes: addForm.notes.trim() || null,
@@ -184,7 +181,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     if (!editingId) return;
     setIsSaving(true);
     try {
-      await apiClient.patch(`/v1/users/me/loyalty-programs/${editingId}`, {
+      await updateLoyaltyProgram(editingId, {
         programName: editForm.programName.trim(),
         memberId: editForm.memberId.trim(),
         notes: editForm.notes.trim() || null,
@@ -203,7 +200,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
   async function handleDelete(id: string) {
     setIsSaving(true);
     try {
-      await apiClient.delete(`/v1/users/me/loyalty-programs/${id}`);
+      await deleteLoyaltyProgram(id);
       toast.success(t('loyaltyPrograms.deleteSuccess'));
       onRefresh();
     } catch {

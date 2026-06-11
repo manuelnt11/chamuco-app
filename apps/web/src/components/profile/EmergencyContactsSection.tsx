@@ -14,7 +14,12 @@ import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phon
 import { SaveButton } from '@/components/ui/save-button';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
-import { apiClient } from '@/services/api-client';
+import type { EmergencyContactDto } from '@/services/users.types';
+import {
+  createEmergencyContact,
+  updateEmergencyContact,
+  deleteEmergencyContact,
+} from '@/services/users.service';
 import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
 
 const RELATIONSHIP_KEYS = [
@@ -35,15 +40,6 @@ const RELATIONSHIP_KEYS = [
   'colleague',
   'other',
 ] as const;
-
-export interface EmergencyContactDto {
-  id: string;
-  fullName: string;
-  phoneCountryCode: string;
-  phoneLocalNumber: string;
-  relationship: string;
-  isPrimary: boolean;
-}
 
 interface FormState {
   fullName: string;
@@ -293,8 +289,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
     if (!validate(normalized, setAddErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.post('/v1/users/me/emergency-contacts', {
-        id: globalThis.crypto.randomUUID(),
+      await createEmergencyContact({
         fullName: normalized.fullName,
         phoneCountryCode: normalized.phoneCountryCode,
         phoneLocalNumber: cleanPhoneNumber(normalized.phoneLocalNumber),
@@ -325,7 +320,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
     if (!validate(normalized, setEditErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.patch(`/v1/users/me/emergency-contacts/${editingId}`, {
+      await updateEmergencyContact(editingId, {
         fullName: normalized.fullName,
         phoneCountryCode: normalized.phoneCountryCode,
         phoneLocalNumber: cleanPhoneNumber(normalized.phoneLocalNumber),
@@ -347,7 +342,7 @@ export function EmergencyContactsSection({ contacts, onRefresh }: EmergencyConta
   async function handleDelete(id: string) {
     setIsSaving(true);
     try {
-      await apiClient.delete(`/v1/users/me/emergency-contacts/${id}`);
+      await deleteEmergencyContact(id);
       toast.success(t('emergencyContacts.deleteSuccess'));
       onRefresh();
     } catch {

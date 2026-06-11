@@ -66,7 +66,7 @@ import { ProfileVisibility } from '@chamuco/shared-types';
 
 import type { AppUser } from '@/store/user';
 import { BasicInfoSection } from './BasicInfoSection';
-import type { BasicInfoProfile } from './BasicInfoSection';
+import type { BasicInfoProfile } from '@/services/users.types';
 
 const baseUser: AppUser = {
   id: 'user-uuid',

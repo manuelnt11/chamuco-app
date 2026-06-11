@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { apiClient } from '@/services/api-client';
+import { joinGroup, leaveGroup } from '@/services/groups.service';
 import { Button } from '@/components/ui/button';
 
 interface JoinRequestButtonProps {
@@ -24,7 +24,7 @@ export function JoinRequestButton({
   const handleJoinRequest = async () => {
     setIsLoading(true);
     try {
-      await apiClient.post(`/v1/groups/${groupId}/join-request`);
+      await joinGroup(groupId);
       onSuccess();
     } finally {
       setIsLoading(false);
@@ -34,7 +34,7 @@ export function JoinRequestButton({
   const handleWithdraw = async () => {
     setIsLoading(true);
     try {
-      await apiClient.delete(`/v1/groups/${groupId}/members/${userId}`);
+      await leaveGroup(groupId, userId);
       onSuccess();
     } finally {
       setIsLoading(false);

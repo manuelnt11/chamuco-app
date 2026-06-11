@@ -6,7 +6,7 @@ import { deleteToken, getToken, onMessage } from 'firebase/messaging';
 import { useAuth } from '@/hooks/useAuth';
 import { getFirebaseMessaging } from '@/lib/firebase/firebase';
 import { registerBeforeSignOut } from '@/store/auth';
-import { apiClient } from '@/services/api-client';
+import { registerFcmToken, unregisterFcmToken } from '@/services/notifications.service';
 import { toast } from '@/components/ui/toast';
 import { env } from '@/config/env';
 
@@ -39,7 +39,7 @@ export function usePushNotifications(): void {
       if (cancelled) return;
 
       fcmTokenRef.current = token;
-      await apiClient.post('/v1/notifications/fcm-token', { token });
+      await registerFcmToken(token);
 
       if (cancelled) return;
       unsubscribeForeground = onMessage(messaging, (payload) => {
@@ -59,7 +59,7 @@ export function usePushNotifications(): void {
     const unregisterBeforeSignOut = registerBeforeSignOut(async () => {
       const token = fcmTokenRef.current;
       if (!token) return;
-      await apiClient.delete('/v1/notifications/fcm-token', { data: { token } });
+      await unregisterFcmToken(token);
       await deleteToken(messaging);
       fcmTokenRef.current = null;
     });

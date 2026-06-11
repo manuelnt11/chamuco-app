@@ -14,7 +14,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
+import { updateGroup } from '@/services/groups.service';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { AVATAR_EMOJIS } from '@/lib/avatar-emojis';
 import { CropModal } from '@/components/ui/crop-modal';
@@ -51,7 +51,7 @@ export function GroupCoverEditor({ group, onUpdate }: GroupCoverEditorProps) {
     try {
       const file = new File([blob], 'cover.jpg', { type: 'image/jpeg' });
       const objectKey = await upload(file);
-      await apiClient.patch(`/v1/groups/${group.id}`, {
+      await updateGroup(group.id, {
         cover: { source: 'gcs', target: objectKey, fileSize: blob.size },
       });
       toast.success(t('cover.photoSuccess'));
@@ -72,7 +72,7 @@ export function GroupCoverEditor({ group, onUpdate }: GroupCoverEditorProps) {
   async function handleEmojiSelect(emoji: string) {
     setIsSaving(true);
     try {
-      await apiClient.patch(`/v1/groups/${group.id}`, {
+      await updateGroup(group.id, {
         cover: { source: 'emoji', target: emoji },
       });
       toast.success(t('cover.emojiSuccess'));

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { MagnifyingGlassIcon, PlusIcon } from '@phosphor-icons/react';
 
-import { apiClient } from '@/services/api-client';
+import { getGroups } from '@/services/groups.service';
 import { useAuth } from '@/hooks/useAuth';
 import { GroupCard } from '@/components/groups/GroupCard';
 import { InvitationsSection } from '@/components/groups/InvitationsSection';
@@ -18,9 +18,8 @@ export default function GroupsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchGroups = () => {
-    apiClient
-      .get<Group[]>('/v1/groups')
-      .then((res) => setGroups(res.data))
+    getGroups()
+      .then((groups) => setGroups(groups))
       .catch(() => setGroups([]))
       .finally(() => setIsLoading(false));
   };

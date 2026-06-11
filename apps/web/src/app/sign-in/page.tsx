@@ -7,7 +7,7 @@ import { isAxiosError } from 'axios';
 
 import { useAuth } from '@/hooks/useAuth';
 import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
-import { apiClient } from '@/services/api-client';
+import { checkMe } from '@/services/auth.service';
 import { Logo } from '@/components/header/Logo';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -95,7 +95,7 @@ export default function SignInPage() {
 
       // Determine if this is a new or returning Chamuco user
       try {
-        await apiClient.get('/v1/users/me');
+        await checkMe();
         document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
         hasNavigated.current = true;
         router.replace('/'); // 200 → returning user → home

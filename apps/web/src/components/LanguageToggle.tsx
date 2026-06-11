@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TranslateIcon } from '@phosphor-icons/react';
+import type { AppLanguage } from '@chamuco/shared-types';
 import type { SupportedLanguage } from '@/lib/i18n/config';
 import { getNextLanguage } from '@/lib/i18n/utils';
 import { changeLanguage } from '@/lib/i18n/client';
 import { useAuth } from '@/hooks/useAuth';
-import { apiClient } from '@/services/api-client';
+import { updateMyPreferences } from '@/services/users.service';
 
 const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
   en: 'English',
@@ -41,7 +42,7 @@ export function LanguageToggle() {
     const nextLang = getNextLanguage(currentLanguage);
     await changeLanguage(nextLang);
     if (currentUser) {
-      void apiClient.patch('/v1/users/me/preferences', { language: nextLang.toUpperCase() });
+      void updateMyPreferences({ language: nextLang.toUpperCase() as AppLanguage });
     }
   };
 

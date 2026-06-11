@@ -1,11 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { apiClient } from '@/services/api-client';
-
-export interface CityResult {
-  name: string;
-  region: string;
-}
+import type { CityResult } from '@/services/places.types';
+import { searchCities } from '@/services/places.service';
 
 export function useCitySearch(country: string, query: string) {
   const [results, setResults] = useState<CityResult[]>([]);
@@ -22,13 +18,9 @@ export function useCitySearch(country: string, query: string) {
     const timer = setTimeout(() => {
       setIsLoading(true);
 
-      apiClient
-        .get<CityResult[]>('/v1/locations/cities', {
-          params: { namePrefix: query, country },
-          signal: controller.signal,
-        })
-        .then((res) => {
-          setResults(res.data);
+      searchCities(country, query, controller.signal)
+        .then((results) => {
+          setResults(results);
         })
         .catch((err: unknown) => {
           if (!axios.isCancel(err)) {

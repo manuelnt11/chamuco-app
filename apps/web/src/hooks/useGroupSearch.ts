@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/services/api-client';
-import type { GroupSearchResponse, GroupSearchResult } from '@/types/group';
+import { searchGroups } from '@/services/groups.service';
+import type { GroupSearchResult } from '@/types/group';
 
 export function useGroupSearch(query: string, limit = 20, offset = 0) {
   const [results, setResults] = useState<GroupSearchResult[]>([]);
@@ -21,14 +21,10 @@ export function useGroupSearch(query: string, limit = 20, offset = 0) {
     const timer = setTimeout(() => {
       setIsLoading(true);
 
-      apiClient
-        .get<GroupSearchResponse>('/v1/groups/search', {
-          params: { q: query, limit, offset },
-          signal: controller.signal,
-        })
+      searchGroups({ q: query, limit, offset }, controller.signal)
         .then((res) => {
-          setResults(res.data.data);
-          setTotal(res.data.total);
+          setResults(res.data);
+          setTotal(res.total);
         })
         .catch((err: unknown) => {
           if (!axios.isCancel(err)) {

@@ -7,11 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { GroupRole } from '@chamuco/shared-types';
 import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
 
-import { apiClient } from '@/services/api-client';
+import { getGroup, getGroupMembership, createAnnouncement } from '@/services/groups.service';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import type { Group, GroupAnnouncement } from '@/types/group';
+import type { Group } from '@/types/group';
 
 interface NewAnnouncementPageProps {
   params: Promise<{ id: string }>;
@@ -36,14 +36,12 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
     const load = async () => {
       setIsLoading(true);
       try {
-        const [groupRes, membershipRes] = await Promise.all([
-          apiClient.get<Group>(`/v1/groups/${id}`),
-          apiClient
-            .get<{ status: string; role: GroupRole }>(`/v1/groups/${id}/members/me`)
-            .catch(() => null),
+        const [group, membership] = await Promise.all([
+          getGroup(id),
+          getGroupMembership(id).catch(() => null),
         ]);
 
-        const role = membershipRes?.data?.role ?? null;
+        const role = membership?.role ?? null;
         const isAdmin = role !== null && [GroupRole.OWNER, GroupRole.ADMIN].includes(role);
 
         if (!isAdmin) {
@@ -51,7 +49,7 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
           return;
         }
 
-        setGroup(groupRes.data);
+        setGroup(group);
       } catch {
         router.replace(`/groups/${id}`);
       } finally {
@@ -70,9 +68,7 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
     setIsSubmitting(true);
     setSubmitError(false);
     try {
-      await apiClient.post<GroupAnnouncement>(`/v1/groups/${id}/announcements`, {
-        content: content.trim(),
-      });
+      await createAnnouncement(id, { content: content.trim() });
       router.push(`/groups/${id}/announcements`);
     } catch {
       setSubmitError(true);

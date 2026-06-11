@@ -12,11 +12,11 @@ import {
   GearSixIcon,
 } from '@phosphor-icons/react';
 
-import { apiClient } from '@/services/api-client';
+import { getGroup, getGroupMembership, getGroupAnnouncements } from '@/services/groups.service';
 import { AnnouncementCard } from '@/components/ui/announcement-card';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
-import type { Group, GroupAnnouncement, GroupAnnouncementsResponse } from '@/types/group';
+import type { Group, GroupAnnouncement } from '@/types/group';
 
 interface GroupDetailPageProps {
   params: Promise<{ id: string }>;
@@ -39,18 +39,14 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
     if (isAuthLoading) return;
     setIsLoading(true);
     Promise.all([
-      apiClient.get<Group>(`/v1/groups/${id}`),
-      apiClient
-        .get<{ status: string; role: GroupRole }>(`/v1/groups/${id}/members/me`)
-        .catch(() => null),
-      apiClient
-        .get<GroupAnnouncementsResponse>(`/v1/groups/${id}/announcements?limit=3&offset=0`)
-        .catch(() => null),
+      getGroup(id),
+      getGroupMembership(id).catch(() => null),
+      getGroupAnnouncements(id, 3, 0).catch(() => null),
     ])
-      .then(([groupRes, membershipRes, announcementsRes]) => {
-        setGroup(groupRes.data);
-        setCallerRole(membershipRes?.data?.role ?? null);
-        setAnnouncements(announcementsRes?.data?.items ?? []);
+      .then(([group, membership, announcementsRes]) => {
+        setGroup(group);
+        setCallerRole(membership?.role ?? null);
+        setAnnouncements(announcementsRes?.items ?? []);
       })
       .catch(() => setNotFound(true))
       .finally(() => setIsLoading(false));

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DeleteConfirmButton } from '@/components/ui/delete-confirm-button';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
+import { removeGroupMember, updateMemberRole } from '@/services/groups.service';
 import type { GroupMember } from '@/types/group';
 
 interface MemberListItemProps {
@@ -68,7 +68,7 @@ export function MemberListItem({
   async function handleRemove() {
     setIsRemoving(true);
     try {
-      await apiClient.delete(`/v1/groups/${groupId}/members/${member.userId}`);
+      await removeGroupMember(groupId, member.userId);
       onActionSuccess();
     } catch {
       toast.error(t('members.actions.removeError'));
@@ -80,9 +80,7 @@ export function MemberListItem({
   async function handlePromote() {
     setIsPromoting(true);
     try {
-      await apiClient.patch(`/v1/groups/${groupId}/members/${member.userId}/role`, {
-        role: GroupRole.ADMIN,
-      });
+      await updateMemberRole(groupId, member.userId, GroupRole.ADMIN);
       onActionSuccess();
     } catch {
       toast.error(t('members.actions.promoteError'));
@@ -94,9 +92,7 @@ export function MemberListItem({
   async function handleDemote() {
     setIsDemoting(true);
     try {
-      await apiClient.patch(`/v1/groups/${groupId}/members/${member.userId}/role`, {
-        role: GroupRole.MEMBER,
-      });
+      await updateMemberRole(groupId, member.userId, GroupRole.MEMBER);
       onActionSuccess();
     } catch {
       toast.error(t('members.actions.demoteError'));

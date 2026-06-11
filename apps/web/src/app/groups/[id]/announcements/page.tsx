@@ -7,10 +7,15 @@ import { useTranslation } from 'react-i18next';
 import { GroupRole } from '@chamuco/shared-types';
 import { ArrowLeftIcon, MegaphoneIcon, PlusIcon } from '@phosphor-icons/react';
 
-import { apiClient } from '@/services/api-client';
+import {
+  getGroup,
+  getGroupMembership,
+  getGroupAnnouncements,
+  deleteAnnouncement,
+} from '@/services/groups.service';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
-import type { Group, GroupAnnouncement, GroupAnnouncementsResponse } from '@/types/group';
+import type { Group, GroupAnnouncement } from '@/types/group';
 import { AnnouncementCard } from '@/components/ui/announcement-card';
 
 interface AnnouncementsPageProps {
@@ -40,19 +45,15 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
       setIsLoading(true);
       setLoadError(false);
       try {
-        const [groupRes, myMembershipRes, announcementsRes] = await Promise.all([
-          apiClient.get<Group>(`/v1/groups/${id}`),
-          apiClient
-            .get<{ status: string; role: GroupRole } | null>(`/v1/groups/${id}/members/me`)
-            .catch(() => null),
-          apiClient
-            .get<GroupAnnouncementsResponse>(`/v1/groups/${id}/announcements?limit=20&offset=0`)
-            .catch(() => null),
+        const [group, membership, announcementsRes] = await Promise.all([
+          getGroup(id),
+          getGroupMembership(id).catch(() => null),
+          getGroupAnnouncements(id, 20, 0).catch(() => null),
         ]);
 
-        setGroup(groupRes.data);
-        setCallerRole(myMembershipRes?.data?.role ?? null);
-        setAnnouncements(announcementsRes?.data?.items ?? []);
+        setGroup(group);
+        setCallerRole(membership?.role ?? null);
+        setAnnouncements(announcementsRes?.items ?? []);
       } catch {
         setLoadError(true);
       } finally {
@@ -66,7 +67,7 @@ export default function GroupAnnouncementsPage({ params }: AnnouncementsPageProp
   const handleDelete = async (announcementId: string) => {
     setDeleteError(false);
     try {
-      await apiClient.delete(`/v1/groups/${id}/announcements/${announcementId}`);
+      await deleteAnnouncement(id, announcementId);
       setAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
     } catch {
       setDeleteError(true);

@@ -1,11 +1,12 @@
 'use client';
 
+import type { AppTheme } from '@chamuco/shared-types';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { SunDimIcon, MoonIcon, DesktopIcon } from '@phosphor-icons/react';
 
 import { useAuth } from '@/hooks/useAuth';
-import { apiClient } from '@/services/api-client';
+import { updateMyPreferences } from '@/services/users.service';
 
 const THEME_CYCLE = {
   light: 'dark',
@@ -45,7 +46,7 @@ export function ThemeToggle() {
     const next = getNextTheme(theme);
     setTheme(next);
     if (currentUser) {
-      void apiClient.patch('/v1/users/me/preferences', { theme: next.toUpperCase() });
+      void updateMyPreferences({ theme: next.toUpperCase() as AppTheme });
     }
   };
 

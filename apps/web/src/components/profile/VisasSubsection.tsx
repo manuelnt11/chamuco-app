@@ -22,23 +22,9 @@ import { SaveButton } from '@/components/ui/save-button';
 import { Spinner } from '@/components/ui/spinner';
 import { FieldMessage } from '@/components/ui/field-message';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
+import type { CreateVisaPayload, UpdateVisaPayload, VisaDto } from '@/services/users.types';
+import { getMyVisas, createVisa, updateVisa, deleteVisa } from '@/services/users.service';
 import { cn } from '@/lib/utils';
-
-export interface VisaDto {
-  id: string;
-  nationalityId: string;
-  coverageType: VisaCoverageType;
-  countryCode: string | null;
-  visaZone: VisaZone | null;
-  visaType: VisaType;
-  entries: VisaEntries;
-  expiryDate: string;
-  visaStatus: DocumentStatus;
-  notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface FormState {
   coverageType: VisaCoverageType | '';
@@ -311,8 +297,8 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
   async function fetchVisas() {
     setIsLoading(true);
     try {
-      const res = await apiClient.get(`/v1/users/me/nationalities/${nationalityId}/visas`);
-      setVisas(res.data as VisaDto[]);
+      const visas = await getMyVisas(nationalityId);
+      setVisas(visas);
     } catch {
       // Silently fail — user can try again via page refresh
     } finally {
@@ -452,10 +438,7 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
     if (!validate(addForm, setAddErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.post(
-        `/v1/users/me/nationalities/${nationalityId}/visas`,
-        formToPayload(addForm, false),
-      );
+      await createVisa(nationalityId, formToPayload(addForm, false) as CreateVisaPayload);
       toast.success(t('nationalities.visas.addSuccess'));
       setIsAdding(false);
       setAddForm(makeEmptyForm());
@@ -474,9 +457,10 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
     if (!validateEdit(editForm, setEditErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.patch(
-        `/v1/users/me/nationalities/${nationalityId}/visas/${editingId}`,
-        formToPayload(editForm, true),
+      await updateVisa(
+        nationalityId,
+        editingId,
+        formToPayload(editForm, true) as UpdateVisaPayload,
       );
       toast.success(t('nationalities.visas.updateSuccess'));
       setEditingId(null);
@@ -493,7 +477,7 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
   async function handleDelete(id: string) {
     setIsSaving(true);
     try {
-      await apiClient.delete(`/v1/users/me/nationalities/${nationalityId}/visas/${id}`);
+      await deleteVisa(nationalityId, id);
       toast.success(t('nationalities.visas.deleteSuccess'));
       void fetchVisas();
     } catch {

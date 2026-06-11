@@ -5,16 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'next-themes';
 
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
+import type { PreferencesData } from '@/services/users.types';
+import { updateMyPreferences } from '@/services/users.service';
 import { changeLanguage } from '@/lib/i18n/client';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
-
-export interface PreferencesData {
-  language: AppLanguage;
-  currency: AppCurrency;
-  theme: AppTheme;
-}
 
 interface PreferencesSectionProps {
   preferences: PreferencesData;
@@ -70,7 +65,7 @@ export function PreferencesSection({ preferences, onRefresh }: PreferencesSectio
   ): Promise<boolean> {
     setSaving(field);
     try {
-      await apiClient.patch('/v1/users/me/preferences', patch);
+      await updateMyPreferences(patch);
       setCurrent((prev) => ({ ...prev, ...patch }));
       onRefresh();
       return true;

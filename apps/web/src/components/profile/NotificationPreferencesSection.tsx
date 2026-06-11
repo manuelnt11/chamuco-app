@@ -9,11 +9,8 @@ import {
 } from '@chamuco/shared-types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
-
-export type NotificationPreferencesData = {
-  optOuts: DisabledNotificationChannels;
-};
+import type { NotificationPreferencesData } from '@/services/users.types';
+import { updateMyNotificationPreferences } from '@/services/users.service';
 
 interface NotificationPreferencesSectionProps {
   preferences: NotificationPreferencesData;
@@ -51,9 +48,7 @@ export function NotificationPreferencesSection({
 
     setSaving(type);
     try {
-      await apiClient.patch('/v1/users/me/notification-preferences', {
-        optOuts: newDisabled,
-      });
+      await updateMyNotificationPreferences({ optOuts: newDisabled });
       setCurrent(newDisabled);
     } catch {
       toast.error(t('notificationPreferences.saveError'));

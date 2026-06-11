@@ -17,23 +17,9 @@ import { SaveButton } from '@/components/ui/save-button';
 import { Spinner } from '@/components/ui/spinner';
 import { FieldMessage } from '@/components/ui/field-message';
 import { toast } from '@/components/ui/toast';
-import { apiClient } from '@/services/api-client';
+import type { EtaDto } from '@/services/users.types';
+import { getMyEtas, createEta, updateEta, deleteEta } from '@/services/users.service';
 import { cn } from '@/lib/utils';
-
-export interface EtaDto {
-  id: string;
-  userNationalityId: string;
-  passportNumber: string;
-  destinationCountry: string;
-  authorizationNumber: string;
-  etaType: EtaType;
-  entries: VisaEntries;
-  expiryDate: string;
-  etaStatus: DocumentStatus;
-  notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface FormState {
   destinationCountry: string;
@@ -271,8 +257,8 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
   async function fetchEtas() {
     setIsLoading(true);
     try {
-      const res = await apiClient.get(`/v1/users/me/nationalities/${nationalityId}/etas`);
-      setEtas(res.data as EtaDto[]);
+      const etas = await getMyEtas(nationalityId);
+      setEtas(etas);
     } catch {
       // Silently fail — user can try again via page refresh
     } finally {
@@ -401,11 +387,11 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
     if (!validate(addForm, setAddErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.post(`/v1/users/me/nationalities/${nationalityId}/etas`, {
+      await createEta(nationalityId, {
         destinationCountry: addForm.destinationCountry,
         authorizationNumber: addForm.authorizationNumber.trim(),
-        etaType: addForm.etaType,
-        entries: addForm.entries,
+        etaType: addForm.etaType as EtaType,
+        entries: addForm.entries as VisaEntries,
         expiryDate: addForm.expiryDate,
         notes: addForm.notes.trim() || null,
       });
@@ -427,10 +413,10 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
     if (!validateEdit(editForm, setEditErrors)) return;
     setIsSaving(true);
     try {
-      await apiClient.patch(`/v1/users/me/nationalities/${nationalityId}/etas/${editingId}`, {
+      await updateEta(nationalityId, editingId, {
         authorizationNumber: editForm.authorizationNumber.trim(),
-        etaType: editForm.etaType || undefined,
-        entries: editForm.entries || undefined,
+        etaType: (editForm.etaType as EtaType) || undefined,
+        entries: (editForm.entries as VisaEntries) || undefined,
         expiryDate: editForm.expiryDate || undefined,
         notes: editForm.notes.trim() || null,
       });
@@ -449,7 +435,7 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
   async function handleDelete(id: string) {
     setIsSaving(true);
     try {
-      await apiClient.delete(`/v1/users/me/nationalities/${nationalityId}/etas/${id}`);
+      await deleteEta(nationalityId, id);
       toast.success(t('nationalities.etas.deleteSuccess'));
       void fetchEtas();
     } catch {
