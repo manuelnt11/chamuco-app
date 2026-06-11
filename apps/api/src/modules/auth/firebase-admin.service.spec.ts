@@ -1,19 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import * as admin from 'firebase-admin';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 
-jest.mock('firebase-admin', () => {
-  const mockAuth = { verifyIdToken: jest.fn() };
-  return {
-    apps: [] as admin.app.App[],
-    initializeApp: jest.fn(),
-    credential: {
-      cert: jest.fn().mockReturnValue('mock-credential'),
-    },
-    auth: jest.fn().mockReturnValue(mockAuth),
-  };
-});
+jest.mock('firebase-admin/app', () => ({
+  getApps: jest.fn().mockReturnValue([]),
+  initializeApp: jest.fn(),
+  cert: jest.fn().mockReturnValue('mock-credential'),
+}));
+
+jest.mock('firebase-admin/auth', () => ({
+  getAuth: jest.fn().mockReturnValue({ verifyIdToken: jest.fn() }),
+}));
+
+jest.mock('firebase-admin/messaging', () => ({
+  getMessaging: jest.fn(),
+}));
+
+const mockGetApps = jest.mocked(getApps);
+const mockInitializeApp = jest.mocked(initializeApp);
+const mockCert = jest.mocked(cert);
+const mockGetAuth = jest.mocked(getAuth);
 
 const mockServiceAccountJson = JSON.stringify({
   type: 'service_account',
@@ -45,9 +53,8 @@ describe('FirebaseAdminService', () => {
   };
 
   beforeEach(async () => {
-    // Reset apps array between tests
-    (admin.apps as admin.app.App[]).length = 0;
     jest.clearAllMocks();
+    mockGetApps.mockReturnValue([]);
 
     const module = await buildModule();
     service = module.get<FirebaseAdminService>(FirebaseAdminService);
@@ -63,29 +70,27 @@ describe('FirebaseAdminService', () => {
       service.onModuleInit();
 
       expect(configService.get).toHaveBeenCalledWith('FIREBASE_SERVICE_ACCOUNT_JSON');
-      expect(admin.credential.cert).toHaveBeenCalledWith(JSON.parse(mockServiceAccountJson));
-      expect(admin.initializeApp).toHaveBeenCalledWith({
+      expect(mockCert).toHaveBeenCalledWith(JSON.parse(mockServiceAccountJson));
+      expect(mockInitializeApp).toHaveBeenCalledWith({
         credential: 'mock-credential',
       });
     });
 
     it('should skip initialization when an app is already registered', () => {
-      // Simulate an already-initialized app
-      (admin.apps as unknown[]).push({ name: '[DEFAULT]' });
+      mockGetApps.mockReturnValue([{ name: '[DEFAULT]' } as ReturnType<typeof getApps>[number]]);
 
       service.onModuleInit();
 
-      expect(admin.initializeApp).not.toHaveBeenCalled();
+      expect(mockInitializeApp).not.toHaveBeenCalled();
     });
 
     it('should initialize exactly once even if onModuleInit is called multiple times', () => {
       service.onModuleInit();
-      // Simulate app being registered after first init
-      (admin.apps as unknown[]).push({ name: '[DEFAULT]' });
+      mockGetApps.mockReturnValue([{ name: '[DEFAULT]' } as ReturnType<typeof getApps>[number]]);
 
       service.onModuleInit();
 
-      expect(admin.initializeApp).toHaveBeenCalledTimes(1);
+      expect(mockInitializeApp).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -93,8 +98,8 @@ describe('FirebaseAdminService', () => {
     it('should return the firebase auth instance', () => {
       const authInstance = service.auth();
 
-      expect(admin.auth).toHaveBeenCalled();
-      expect(authInstance).toBe(admin.auth());
+      expect(mockGetAuth).toHaveBeenCalled();
+      expect(authInstance).toBe(mockGetAuth());
     });
   });
 });

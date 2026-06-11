@@ -1,6 +1,8 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as admin from 'firebase-admin';
+import { cert, getApps, initializeApp, type ServiceAccount } from 'firebase-admin/app';
+import { getAuth, type Auth } from 'firebase-admin/auth';
+import { getMessaging, type Messaging } from 'firebase-admin/messaging';
 
 @Injectable()
 export class FirebaseAdminService implements OnModuleInit {
@@ -9,27 +11,27 @@ export class FirebaseAdminService implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
 
   onModuleInit(): void {
-    if (admin.apps.length > 0) {
+    if (getApps().length > 0) {
       this.logger.log('Firebase Admin app already initialized — skipping');
       return;
     }
 
     const serviceAccountJson = this.configService.get<string>('FIREBASE_SERVICE_ACCOUNT_JSON')!;
 
-    const serviceAccount = JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+    const serviceAccount = JSON.parse(serviceAccountJson) as ServiceAccount;
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+    initializeApp({
+      credential: cert(serviceAccount),
     });
 
     this.logger.log('Firebase Admin SDK initialized');
   }
 
-  auth(): admin.auth.Auth {
-    return admin.auth();
+  auth(): Auth {
+    return getAuth();
   }
 
-  messaging(): admin.messaging.Messaging {
-    return admin.messaging();
+  messaging(): Messaging {
+    return getMessaging();
   }
 }

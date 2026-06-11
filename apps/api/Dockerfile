@@ -2,7 +2,7 @@
 # Stage 1: Dependencies
 # Install production dependencies only
 # ==========================================
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
@@ -25,7 +25,7 @@ RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 # Stage 2: Builder
 # Build the application
 # ==========================================
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
@@ -60,7 +60,7 @@ RUN pnpm --filter @chamuco/api build
 # Stage 3: Runner
 # Production runtime image
 # ==========================================
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 
 # Install curl for health checks and enable pnpm
 RUN apk add --no-cache curl && \
