@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react';
 import type { CityResult } from '@/services/places.types';
 import { searchCities } from '@/services/places.service';
 
-export type { CityResult };
-
 export function useCitySearch(country: string, query: string) {
   const [results, setResults] = useState<CityResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
