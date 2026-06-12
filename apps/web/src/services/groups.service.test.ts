@@ -28,7 +28,6 @@ import {
 import type {
   CreateGroupPayload,
   GroupMembershipResponse,
-  InviteGroupMembersResponse,
   UpdateGroupPayload,
 } from '@/services/groups.types';
 import type {
@@ -41,6 +40,7 @@ import type {
   PendingGroupMember,
 } from '@/types/group';
 import {
+  type BulkInvitationResponse,
   GroupMemberStatus,
   GroupMemberTier,
   GroupRole,
@@ -149,7 +149,7 @@ const updateGroupPayload: UpdateGroupPayload = {
   name: 'Updated Name',
 };
 
-const inviteResponseFixture: InviteGroupMembersResponse = {
+const inviteResponseFixture: BulkInvitationResponse = {
   results: [{ username: 'janedoe', status: 'INVITED' }],
 };
 

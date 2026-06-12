@@ -6,7 +6,3 @@ export interface FeedbackPayload {
   language: string;
   theme: string;
 }
-
-export interface FeedbackResponseDto {
-  issueUrl: string;
-}

@@ -1,16 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  INVITATION_RESULT_STATUSES,
+  type InvitationResult,
+  type InvitationResultStatus,
+  type BulkInvitationResponse,
+} from '@chamuco/shared-types';
 
-export const INVITATION_RESULT_STATUSES = [
-  'INVITED',
-  'ALREADY_MEMBER',
-  'ALREADY_INVITED',
-  'HAS_PENDING_REQUEST',
-  'NOT_FOUND',
-] as const;
-
-export type InvitationResultStatus = (typeof INVITATION_RESULT_STATUSES)[number];
-
-export class InvitationResultDto {
+export class InvitationResultDto implements InvitationResult {
   @ApiProperty({ example: 'john_doe' })
   username!: string;
 
@@ -28,7 +24,7 @@ export class InvitationResultDto {
   status!: InvitationResultStatus;
 }
 
-export class BulkInvitationResponseDto {
+export class BulkInvitationResponseDto implements BulkInvitationResponse {
   @ApiProperty({ type: [InvitationResultDto] })
   results!: InvitationResultDto[];
 }

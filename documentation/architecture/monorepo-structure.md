@@ -1,7 +1,7 @@
 # Chamuco App — Monorepo Structure
 
 **Status:** Active
-**Last Updated:** 2026-06-02
+**Last Updated:** 2026-06-11
 
 ---
 
@@ -200,9 +200,13 @@ Coverage thresholds are defined per package:
 
 `packages/shared-types` keeps API contracts consistent between backend and frontend. Organized into three subdirectories:
 
-- `src/enums/` — All shared enums, one file per domain (e.g., `notification-type.enum.ts`, `group-role.enum.ts`, `passport-status.enum.ts`). This is the primary content of the package.
-- `src/types/` — Shared type definitions that don't fit neatly as enums (e.g., `membership-status.ts`, `notification-preferences.type.ts`).
-- `src/data/` — Static reference data (e.g., `loyalty-programs.data.ts`, `asset.ts`).
+- `src/enums/` — TypeScript enums only, one file per domain (`notification-type.enum.ts`, `group-role.enum.ts`, `passport-status.enum.ts`). **No type aliases or interfaces here.**
+- `src/types/` — Interfaces and type aliases. Simple types have no imports; types that depend on enums import from `'../enums/x.enum'` using intra-package relative paths. Examples: `notification-item.ts` (depends on `NotificationType`), `notification-preferences.ts` (depends on `NotificationType` and `NotificationChannel`), `invitation-result.ts`, `date-of-birth.ts`.
+- `src/data/` — Static reference data (`loyalty-programs.data.ts`, `asset.ts`).
+
+The root `no-restricted-imports` ESLint rule (which blocks upward relative imports) is disabled within this package — every relative import here is by definition intra-package, so the cross-package guard does not apply.
+
+API DTOs in `apps/api` that correspond to a shared interface must implement it (e.g., `class NotificationResponseDto implements NotificationItem`). This gives TypeScript a compile-time check that the DTO stays structurally compatible with the shared contract.
 
 > All enum values and type names must be in English regardless of the application's display language.
 
@@ -287,41 +291,41 @@ The alias makes directory naming load-bearing — a consistent layout ensures ev
 
 **`apps/api/src/`**
 
-| Directory   | Contents                                                                                                                                            |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `modules/`  | One folder per domain feature (e.g., `modules/users/`, `modules/trips/`). Each contains its controller, service, repository, DTOs, and schema file. |
-| `common/`   | Cross-cutting: guards, interceptors, decorators, filters, pipes. Nothing domain-specific.                                                           |
-| `config/`   | Environment variable validation and typed config providers.                                                                                         |
-| `database/` | Drizzle connection factory, schema barrel file, migration utilities.                                                                                |
+| Directory   | Contents                                                                                                                                                                                                                                                                                                                                            |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modules/`  | One folder per top-level domain (`users/`, `groups/`, `trips/`, etc.). Complex domains have named sub-resource subdirectories, each with its own controller + service pair (e.g., `users/profile/`, `users/travel-docs/`, `groups/members/`, `groups/invitations/`, `trips/destinations/`). DTOs live in `dto/`; Drizzle schema files in `schema/`. |
+| `common/`   | Cross-cutting: guards, interceptors, decorators, filters, pipes. Nothing domain-specific.                                                                                                                                                                                                                                                           |
+| `config/`   | Environment variable validation and typed config providers.                                                                                                                                                                                                                                                                                         |
+| `database/` | Drizzle connection factory, schema barrel file, migration utilities.                                                                                                                                                                                                                                                                                |
 
 **`apps/web/src/`**
 
-| Directory     | Contents                                                                                                                                                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `app/`        | Next.js App Router — layouts, pages, `loading.tsx`, `error.tsx`, route groups.                                                                                                                                                       |
-| `components/` | Reusable, presentational UI components. No data fetching logic.                                                                                                                                                                      |
-| `config/`     | Frontend configuration constants (API base URL, feature flags, etc.).                                                                                                                                                                |
-| `hooks/`      | Custom React hooks at the app level. May call services or access stores.                                                                                                                                                             |
-| `lib/`        | Thin wrappers around external libraries. Subdirs: `firebase/` (client SDK), `hooks/` (lower-level reusable hooks), `i18n/` (i18next setup), `navigation/` (routing helpers).                                                         |
-| `services/`   | API client functions — typed wrappers around `fetch`/HTTP calls to the NestJS backend.                                                                                                                                               |
-| `store/`      | Zustand stores and React contexts (auth state, preference state, etc.).                                                                                                                                                              |
-| `types/`      | App-local TypeScript types that are not shared with other apps or packages.                                                                                                                                                          |
-| `locales/`    | i18n locale files split by namespace. Each language has its own subdirectory (`es/`, `en/`) with one JSON file per namespace (`auth.json`, `groups.json`, `profile.json`, etc.). See `apps/web/CLAUDE.md` for namespace conventions. |
+| Directory     | Contents                                                                                                                                                                                                                                                                                              |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/`        | Next.js App Router — layouts, pages, `loading.tsx`, `error.tsx`, route groups.                                                                                                                                                                                                                        |
+| `components/` | Reusable, presentational UI components. No data fetching logic.                                                                                                                                                                                                                                       |
+| `config/`     | Frontend configuration constants (API base URL, feature flags, etc.).                                                                                                                                                                                                                                 |
+| `hooks/`      | Custom React hooks at the app level. May call services or access stores.                                                                                                                                                                                                                              |
+| `lib/`        | Thin wrappers around external libraries. Subdirs: `firebase/` (client SDK), `hooks/` (lower-level reusable hooks), `i18n/` (i18next setup), `navigation/` (routing helpers).                                                                                                                          |
+| `services/`   | API client functions — typed wrappers around HTTP calls to the NestJS backend. Each domain has `{domain}.service.ts` + `{domain}.service.test.ts` + an optional `{domain}.types.ts` for request/payload types. API response types are imported from `@chamuco/shared-types`, never redefined locally. |
+| `store/`      | Zustand stores and React contexts (auth state, preference state, etc.).                                                                                                                                                                                                                               |
+| `types/`      | App-local TypeScript types that are not shared with other apps or packages.                                                                                                                                                                                                                           |
+| `locales/`    | i18n locale files split by namespace. Each language has its own subdirectory (`es/`, `en/`) with one JSON file per namespace (`auth.json`, `groups.json`, `profile.json`, etc.). See `apps/web/CLAUDE.md` for namespace conventions.                                                                  |
 
 ### ESLint enforcement
 
 The `no-restricted-imports` rule is configured at the root ESLint config to disallow patterns that escape upward through the directory tree:
 
 ```js
-// .eslintrc.js (excerpt)
-rules: {
-  'no-restricted-imports': ['error', {
-    patterns: ['../*', './**/..']
-  }]
-}
+// eslint.config.mjs (root)
+'no-restricted-imports': ['error', {
+  patterns: ['../*', './**/..']
+}]
 ```
 
 This catches any relative import that navigates upward (`../`) at lint time, before it reaches the pre-commit hook or CI.
+
+**Exception:** `packages/shared-types` disables this rule in its own `eslint.config.mjs`. Within that package every relative import is intra-package — there are no other packages to accidentally import from — so the cross-package guard serves no purpose there.
 
 ---
 

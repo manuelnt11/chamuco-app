@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NotificationType } from '@chamuco/shared-types';
-import type { NotificationItem } from '@/hooks/useNotifications';
+import type { NotificationItem } from '@chamuco/shared-types';
 import { NotificationPanel } from './NotificationPanel';
 
 // --- hoisted mocks ---

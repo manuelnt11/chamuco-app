@@ -1,8 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { NotificationType } from '@chamuco/shared-types';
+import {
+  NotificationType,
+  type NotificationItem,
+  type NotificationsPage,
+} from '@chamuco/shared-types';
 import type { RenderedNotification } from '@/modules/notifications/channel-strategies/notification-channel.strategy';
 
-export class NotificationResponseDto {
+export class NotificationResponseDto implements NotificationItem {
   @ApiProperty({ description: 'UUID of the notification.', example: 'a1b2c3d4-...' })
   id!: string;
 
@@ -56,7 +60,7 @@ export class NotificationResponseDto {
   createdAt!: string;
 }
 
-export class NotificationsPageDto {
+export class NotificationsPageDto implements NotificationsPage {
   @ApiProperty({
     type: [NotificationResponseDto],
     description: 'Notifications for the current page.',

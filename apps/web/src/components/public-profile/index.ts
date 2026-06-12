@@ -2,7 +2,7 @@ export { PublicProfileHeader } from './PublicProfileHeader';
 export type { PublicProfileHeaderProps } from './PublicProfileHeader';
 
 export { PublicProfileStats } from './PublicProfileStats';
-export type { PublicProfileStatsProps, KeyStats } from './PublicProfileStats';
+export type { PublicProfileStatsProps } from './PublicProfileStats';
 
 export { PublicProfileAchievements } from './PublicProfileAchievements';
 export type { PublicProfileAchievementsProps } from './PublicProfileAchievements';

@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api-client';
-import type { NotificationsPage } from '@/services/notifications.types';
+import type { NotificationsPage } from '@chamuco/shared-types';
 
 // ─── Notification methods ─────────────────────────────────────────────────────
 

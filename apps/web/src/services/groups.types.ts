@@ -22,19 +22,3 @@ export interface GroupMembershipResponse {
   status: GroupMemberStatus;
   role: GroupRole;
 }
-
-export type InvitationResultStatus =
-  | 'INVITED'
-  | 'ALREADY_MEMBER'
-  | 'ALREADY_INVITED'
-  | 'HAS_PENDING_REQUEST'
-  | 'NOT_FOUND';
-
-export interface InvitationResult {
-  username: string;
-  status: InvitationResultStatus;
-}
-
-export interface InviteGroupMembersResponse {
-  results: InvitationResult[];
-}

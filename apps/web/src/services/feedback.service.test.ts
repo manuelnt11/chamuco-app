@@ -1,5 +1,6 @@
 import { submitFeedback } from './feedback.service';
-import type { FeedbackPayload, FeedbackResponseDto } from '@/services/feedback.types';
+import type { FeedbackResponse } from '@chamuco/shared-types';
+import type { FeedbackPayload } from '@/services/feedback.types';
 
 const { mockGet, mockPost, mockPatch, mockDelete } = vi.hoisted(() => {
   const get = vi.fn();
@@ -36,7 +37,7 @@ const feedbackPayload: FeedbackPayload = {
   theme: 'LIGHT',
 };
 
-const feedbackResponseFixture: FeedbackResponseDto = {
+const feedbackResponseFixture: FeedbackResponse = {
   issueUrl: 'https://github.com/org/repo/issues/42',
 };
 

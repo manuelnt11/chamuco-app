@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsInt, Max, Min } from 'class-validator';
+import type { DateOfBirth } from '@chamuco/shared-types';
 import { IsRealCalendarDay } from './calendar-date.validator';
 
-export class DateOfBirthDto {
+export class DateOfBirthDto implements DateOfBirth {
   @ApiProperty({ example: 15, minimum: 1, maximum: 31 })
   @IsInt()
   @Min(1)

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import type { CityResult } from '@/services/places.types';
+import type { CityResult } from '@chamuco/shared-types';
 import { searchCities } from '@/services/places.service';
 
 export function useCitySearch(country: string, query: string) {

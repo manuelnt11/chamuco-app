@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
-import type { NotificationItem } from '@/hooks/useNotifications';
+import type { NotificationItem } from '@chamuco/shared-types';
 import { NotificationBell } from './NotificationBell';
 
 // --- hoisted mocks ---

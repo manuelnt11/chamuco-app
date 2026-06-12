@@ -1,5 +1,6 @@
 import { apiClient } from '@/services/api-client';
-import type { GetSignedUrlPayload, SignedUrlResponse } from '@/services/uploads.types';
+import type { SignedUrlResponse } from '@chamuco/shared-types';
+import type { GetSignedUrlPayload } from '@/services/uploads.types';
 
 // ─── Upload methods ───────────────────────────────────────────────────────────
 

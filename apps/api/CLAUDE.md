@@ -9,6 +9,64 @@ This file extends the root `CLAUDE.md` with rules specific to the `apps/api` Nes
 
 ---
 
+## Module Structure
+
+Feature code lives under `src/modules/`. Top-level modules own a domain; sub-resources live in named subdirectories with their own controller/service pair:
+
+```
+src/modules/
+├── auth/                          ← authentication (Firebase token verification)
+├── assets/                        ← asset resolution (signed download URLs)
+├── cloud-storage/                 ← @Global() GCS service, no need to import elsewhere
+├── feedback/                      ← GitHub issue creation
+├── health/                        ← readiness probe
+├── jobs/                          ← scheduled jobs (passport expiry, trip status)
+├── locations/                     ← city search
+├── notifications/
+│   ├── channel-strategies/        ← push vs. in-app strategy implementations
+│   └── dto/
+├── transient-messages/            ← real-time toast payloads (FCM data messages)
+│   └── channel-strategies/
+├── uploads/                       ← signed URL generation
+├── groups/
+│   ├── announcements/             ← group-announcements controller + service
+│   ├── discovery/                 ← public group search
+│   ├── invitations/               ← outbound invitations
+│   ├── join-requests/             ← inbound join requests
+│   ├── members/                   ← member management
+│   ├── dto/
+│   └── schema/
+├── trips/
+│   ├── announcements/             ← trip-announcements controller + service
+│   ├── destinations/              ← trip destinations
+│   ├── groups/                    ← trip ↔ group associations
+│   ├── dto/
+│   └── schema/
+└── users/
+    ├── emergency-contacts/
+    ├── health/                    ← blood type, dietary preferences, allergens, phobias
+    ├── loyalty-programs/
+    ├── preferences/               ← app language, theme, currency
+    ├── profile/                   ← personal details, date of birth, nationalities
+    ├── travel-docs/               ← passports, visas, ETAs
+    ├── dto/
+    └── schema/
+```
+
+**Sub-resource naming pattern:** `{parent}-{resource}.controller.ts` / `{parent}-{resource}.service.ts` (e.g. `group-members.controller.ts`, `users-travel-docs.service.ts`). Controller and service spec files sit alongside their implementation file.
+
+**DTOs always live in a `dto/` subdirectory** of the module they belong to. Response DTOs that have a corresponding interface in `@chamuco/shared-types` must implement it:
+
+```ts
+import type { NotificationItem } from '@chamuco/shared-types';
+
+export class NotificationResponseDto implements NotificationItem { ... }
+```
+
+This gives TypeScript a compile-time check that the DTO stays structurally compatible with the shared contract.
+
+---
+
 ## Standing Rules
 
 ### 1. OpenAPI documentation on every backend change
