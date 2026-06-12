@@ -23,6 +23,7 @@ export function GroupCard({ group }: GroupCardProps) {
           src={group.coverUrl}
           alt=""
           className="size-full object-cover"
+          loading="lazy"
         />
       </div>
 

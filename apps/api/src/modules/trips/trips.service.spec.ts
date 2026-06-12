@@ -11,16 +11,15 @@ import {
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
-
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({})),
-}));
-
 import { TripsService } from './trips.service';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 import type { AuthenticatedUser } from '@/types/express';
+
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn().mockImplementation(() => ({})),
+}));
 
 const mockUser: AuthenticatedUser = {
   id: 'user-uuid',

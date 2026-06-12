@@ -46,7 +46,7 @@ export function TripCard({ trip }: TripCardProps) {
         className="size-14 shrink-0 overflow-hidden rounded-lg bg-muted flex items-center justify-center"
       >
         {trip.coverUrl ? (
-          <img src={trip.coverUrl} alt="" className="size-full object-cover" />
+          <img src={trip.coverUrl} alt="" className="size-full object-cover" loading="lazy" />
         ) : null}
       </div>
 

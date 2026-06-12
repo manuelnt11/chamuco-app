@@ -3,6 +3,7 @@ import {
   AuthProvider,
   PlatformRole,
   ProfileVisibility,
+  TripRole,
   TripStatus,
   TripVisibility,
 } from '@chamuco/shared-types';
@@ -12,6 +13,7 @@ import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 import type { TripResponseDto } from './dto/trip-response.dto';
+import type { MyTripListItemResponseDto } from './dto/my-trip-list-item-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 jest.mock('@google-cloud/storage', () => ({
@@ -32,6 +34,33 @@ const mockUser: AuthenticatedUser = {
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   lastActiveAt: new Date('2026-01-01T00:00:00.000Z'),
+};
+
+const mockListItemResponse: MyTripListItemResponseDto = {
+  id: 'trip-uuid',
+  name: 'Cancún 2026',
+  description: null,
+  status: TripStatus.OPEN,
+  visibility: TripVisibility.PUBLIC,
+  startDate: '2026-12-01',
+  endDate: '2026-12-08',
+  participantCapacity: 10,
+  departureCountry: 'MX',
+  departureCity: 'CIUDAD DE MEXICO',
+  landingCountry: 'MX',
+  landingCity: 'CANCUN',
+  defaultTimezone: null,
+  defaultCurrency: null,
+  itineraryNotes: null,
+  agencyId: null,
+  createdBy: 'user-uuid',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  requiresConfirmation: false,
+  feedbackOpenUntil: null,
+  coverUrl: null,
+  confirmedParticipantCount: 3,
+  userRole: TripRole.ORGANIZER,
 };
 
 const mockResponse: TripResponseDto = {
@@ -60,6 +89,7 @@ const mockResponse: TripResponseDto = {
 
 describe('TripsController', () => {
   let controller: TripsController;
+  let mockGetMyTrips: jest.Mock;
   let mockCreateTrip: jest.Mock;
   let mockGetTrip: jest.Mock;
   let mockUpdateTrip: jest.Mock;
@@ -67,6 +97,7 @@ describe('TripsController', () => {
   let mockTransitionStatus: jest.Mock;
 
   beforeEach(async () => {
+    mockGetMyTrips = jest.fn().mockResolvedValue([mockListItemResponse]);
     mockCreateTrip = jest.fn().mockResolvedValue(mockResponse);
     mockGetTrip = jest.fn().mockResolvedValue(mockResponse);
     mockUpdateTrip = jest.fn().mockResolvedValue(mockResponse);
@@ -79,6 +110,7 @@ describe('TripsController', () => {
         {
           provide: TripsService,
           useValue: {
+            getMyTrips: mockGetMyTrips,
             createTrip: mockCreateTrip,
             getTrip: mockGetTrip,
             updateTrip: mockUpdateTrip,
@@ -90,6 +122,13 @@ describe('TripsController', () => {
     }).compile();
 
     controller = module.get<TripsController>(TripsController);
+  });
+
+  it('getMyTrips delegates to service', async () => {
+    const result = await controller.getMyTrips(mockUser);
+
+    expect(mockGetMyTrips).toHaveBeenCalledWith(mockUser);
+    expect(result).toEqual([mockListItemResponse]);
   });
 
   it('createTrip delegates to service', async () => {
