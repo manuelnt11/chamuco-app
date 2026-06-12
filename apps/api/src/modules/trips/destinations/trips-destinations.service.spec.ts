@@ -22,6 +22,10 @@ import type { UpdateDestinationDto } from './dto/update-destination.dto';
 import type { ReorderDestinationsDto } from './dto/reorder-destinations.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn().mockImplementation(() => ({})),
+}));
+
 const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
   username: 'john_doe',

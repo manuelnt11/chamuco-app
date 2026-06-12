@@ -10,6 +10,19 @@
   "budget": "Budget",
   "expenses": "Expenses",
   "notes": "Notes",
+  "tabs": {
+    "upcoming": "Upcoming",
+    "past": "Past"
+  },
+  "detail": {
+    "noTrips": "No trips here yet",
+    "createFirst": "Create your first trip and start planning your next adventure."
+  },
+  "role": {
+    "organizer": "Organizer",
+    "coOrganizer": "Co-Organizer",
+    "participant": "Participant"
+  },
   "status": {
     "draft": "Draft",
     "open": "Open",

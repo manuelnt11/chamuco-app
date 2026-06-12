@@ -4,6 +4,7 @@ import {
   createTrip,
   deleteTrip,
   deleteTripDestination,
+  getMyTrips,
   getTrip,
   getTripDestinations,
   getTripGroups,
@@ -16,10 +17,11 @@ import {
 import type {
   DestinationResponse,
   DestinationWriteResponse,
+  MyTripListItemResponse,
   TripGroupResponse,
   TripResponse,
 } from '@/services/trips.types';
-import { TripStatus, TripVisibility } from '@chamuco/shared-types';
+import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 
 const { mockGet, mockPost, mockPatch, mockDelete } = vi.hoisted(() => {
   const get = vi.fn();
@@ -88,6 +90,34 @@ const groupLinkFixture: TripGroupResponse = {
   groupId: 'group-uuid-1',
   addedAt: '2026-01-01T00:00:00.000Z',
 };
+
+// ─── List methods ────────────────────────────────────────────────────────────
+
+const myTripFixture: MyTripListItemResponse = {
+  ...tripFixture,
+  coverUrl: 'https://storage.googleapis.com/bucket/trip-covers/trip-uuid-1/cover.jpg',
+  confirmedParticipantCount: 4,
+  userRole: TripRole.ORGANIZER,
+};
+
+describe('getMyTrips', () => {
+  it('gets /v1/trips and returns the list', async () => {
+    mockGet.mockResolvedValueOnce({ data: [myTripFixture] });
+    const result = await getMyTrips();
+    expect(mockGet).toHaveBeenCalledWith('/v1/trips');
+    expect(result).toEqual([myTripFixture]);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(getMyTrips()).rejects.toEqual({ response: { status: 401 } });
+  });
+
+  it('propagates 404 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(getMyTrips()).rejects.toEqual({ response: { status: 404 } });
+  });
+});
 
 // ─── Trip methods ─────────────────────────────────────────────────────────────
 

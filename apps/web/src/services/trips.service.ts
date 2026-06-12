@@ -6,6 +6,7 @@ import type {
   CreateTripPayload,
   DestinationResponse,
   DestinationWriteResponse,
+  MyTripListItemResponse,
   ReorderDestinationsPayload,
   TransitionTripStatusPayload,
   TripGroupResponse,
@@ -13,6 +14,13 @@ import type {
   UpdateDestinationPayload,
   UpdateTripPayload,
 } from '@/services/trips.types';
+
+// ─── List methods ─────────────────────────────────────────────────────────────
+
+export async function getMyTrips(): Promise<MyTripListItemResponse[]> {
+  const { data } = await apiClient.get<MyTripListItemResponse[]>('/v1/trips');
+  return data;
+}
 
 // ─── Trip methods ─────────────────────────────────────────────────────────────
 

@@ -10,6 +10,9 @@ import { and, count, eq, inArray } from 'drizzle-orm';
 import { PlatformRole, TripParticipantStatus, TripRole, TripStatus } from '@chamuco/shared-types';
 import { tripAnnouncements } from '@/modules/trips/schema/trip-announcements.schema';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
+import { assets } from '@/modules/assets/schema/assets.schema';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import type { AuthenticatedUser } from '@/types/express';
 import { trips } from './schema/trips.schema';
 import { tripDestinations } from './schema/trip-destinations.schema';
@@ -17,6 +20,7 @@ import { tripParticipants } from './schema/trip-participants.schema';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TripResponseDto } from './dto/trip-response.dto';
+import type { MyTripListItemResponseDto } from './dto/my-trip-list-item-response.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 
 // TODO: migrate to system settings module when admin config is available
@@ -31,7 +35,73 @@ const VALID_TRANSITIONS: Partial<Record<TripStatus, TripStatus[]>> = {
 
 @Injectable()
 export class TripsService {
-  constructor(@Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient) {}
+  constructor(
+    @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
+    private readonly assetResolver: AssetResolverService,
+  ) {}
+
+  async getMyTrips(user: AuthenticatedUser): Promise<MyTripListItemResponseDto[]> {
+    const memberships = await this.db.query.tripParticipants.findMany({
+      where: and(
+        eq(tripParticipants.userId, user.id),
+        inArray(tripParticipants.status, [
+          TripParticipantStatus.ACCEPTED,
+          TripParticipantStatus.CONFIRMED,
+        ]),
+      ),
+    });
+
+    if (memberships.length === 0) return [];
+
+    const tripIds = memberships.map((m) => m.tripId);
+    const roleByTripId = new Map(memberships.map((m) => [m.tripId, m.role]));
+
+    const tripRows = await this.db.query.trips.findMany({
+      where: inArray(trips.id, tripIds),
+    });
+
+    if (tripRows.length === 0) return [];
+
+    const coverIds = tripRows.map((t) => t.cover).filter((id): id is string => id !== null);
+    const coverAssets =
+      coverIds.length > 0
+        ? await this.db.query.assets.findMany({ where: inArray(assets.id, coverIds) })
+        : [];
+    const assetMap = new Map(coverAssets.map((a) => [a.id, a]));
+
+    const countRows = await this.db
+      .select({ tripId: tripParticipants.tripId, total: count() })
+      .from(tripParticipants)
+      .where(
+        and(
+          inArray(tripParticipants.tripId, tripIds),
+          eq(tripParticipants.status, TripParticipantStatus.CONFIRMED),
+        ),
+      )
+      .groupBy(tripParticipants.tripId);
+    const confirmedCountByTripId = new Map(countRows.map((r) => [r.tripId, r.total]));
+
+    return Promise.all(
+      tripRows.map(async (trip) => {
+        let coverUrl: string | null = null;
+        if (trip.cover) {
+          const coverRow = assetMap.get(trip.cover);
+          if (coverRow) {
+            const resolved = await this.assetResolver.resolve(assetRowToAsset(coverRow));
+            coverUrl = resolved?.url ?? null;
+          }
+        }
+
+        const base = this.mapTrip(trip);
+        return {
+          ...base,
+          coverUrl,
+          confirmedParticipantCount: confirmedCountByTripId.get(trip.id) ?? 0,
+          userRole: roleByTripId.get(trip.id) ?? TripRole.PARTICIPANT,
+        };
+      }),
+    );
+  }
 
   async createTrip(user: AuthenticatedUser, dto: CreateTripDto): Promise<TripResponseDto> {
     let tripId!: string;

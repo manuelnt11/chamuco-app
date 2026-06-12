@@ -1,4 +1,4 @@
-import type { TripStatus, TripVisibility } from '@chamuco/shared-types';
+import type { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 
 // Mirrors the NestJS DTOs in apps/api/src/modules/trips/dto/.
 // When the backend adds or removes fields, update this file to match.
@@ -86,6 +86,12 @@ export interface TripResponse {
   updatedAt: string;
   requiresConfirmation: boolean;
   feedbackOpenUntil: string | null;
+}
+
+export interface MyTripListItemResponse extends TripResponse {
+  coverUrl: string | null;
+  confirmedParticipantCount: number;
+  userRole: TripRole;
 }
 
 export interface DestinationResponse {
