@@ -1,0 +1,30 @@
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  INVITATION_RESULT_STATUSES,
+  type InvitationResult,
+  type InvitationResultStatus,
+  type BulkInvitationResponse,
+} from '@chamuco/shared-types';
+
+export class TripInvitationResultDto implements InvitationResult {
+  @ApiProperty({ example: 'john_doe' })
+  username!: string;
+
+  @ApiProperty({
+    enum: INVITATION_RESULT_STATUSES,
+    enumName: 'InvitationResultStatus',
+    example: 'INVITED',
+    description:
+      'INVITED — sent successfully. ' +
+      'ALREADY_MEMBER — active or confirmed participant. ' +
+      'ALREADY_INVITED — pending invitation. ' +
+      'HAS_PENDING_REQUEST — has an active join request. ' +
+      'NOT_FOUND — username does not exist.',
+  })
+  status!: InvitationResultStatus;
+}
+
+export class BulkTripInvitationResponseDto implements BulkInvitationResponse {
+  @ApiProperty({ type: [TripInvitationResultDto] })
+  results!: TripInvitationResultDto[];
+}

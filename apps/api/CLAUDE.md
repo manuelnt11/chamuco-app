@@ -40,6 +40,9 @@ src/modules/
 │   ├── announcements/             ← trip-announcements controller + service
 │   ├── destinations/              ← trip destinations
 │   ├── groups/                    ← trip ↔ group associations
+│   ├── invitations/               ← outbound invitations
+│   ├── join-requests/             ← inbound join requests
+│   ├── participants/              ← participant management
 │   ├── dto/
 │   └── schema/
 └── users/

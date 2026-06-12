@@ -50,6 +50,9 @@ async function bootstrap(): Promise<void> {
       .addTag('trip-destinations', '', undefined, { parent: 'trips' })
       .addTag('trip-groups', '', undefined, { parent: 'trips' })
       .addTag('trip-announcements', '', undefined, { parent: 'trips' })
+      .addTag('trip-participants', '', undefined, { parent: 'trips' })
+      .addTag('trip-invitations', '', undefined, { parent: 'trips' })
+      .addTag('trip-join-requests', '', undefined, { parent: 'trips' })
       // Root-level tags — standalone
       .addTag('notifications')
       .addTag('uploads')
