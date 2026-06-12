@@ -5,3 +5,5 @@ export * from './city-result';
 export * from './signed-url-response';
 export * from './feedback-response';
 export * from './invitation-result';
+export * from './notification-item';
+export * from './notification-preferences';

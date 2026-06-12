@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { NotificationType } from '@chamuco/shared-types';
-import type { NotificationItem } from '@chamuco/shared-types';
+import {
+  NotificationType,
+  type NotificationItem,
+  type NotificationsPage,
+} from '@chamuco/shared-types';
 import type { RenderedNotification } from '@/modules/notifications/channel-strategies/notification-channel.strategy';
 
 export class NotificationResponseDto implements NotificationItem {
@@ -57,7 +60,7 @@ export class NotificationResponseDto implements NotificationItem {
   createdAt!: string;
 }
 
-export class NotificationsPageDto {
+export class NotificationsPageDto implements NotificationsPage {
   @ApiProperty({
     type: [NotificationResponseDto],
     description: 'Notifications for the current page.',

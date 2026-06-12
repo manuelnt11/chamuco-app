@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   INVITATION_RESULT_STATUSES,
   type InvitationResult,
+  type InvitationResultStatus,
   type BulkInvitationResponse,
 } from '@chamuco/shared-types';
 
@@ -20,7 +21,7 @@ export class InvitationResultDto implements InvitationResult {
       'HAS_PENDING_REQUEST — has an active join request. ' +
       'NOT_FOUND — username does not exist.',
   })
-  status!: InvitationResult['status'];
+  status!: InvitationResultStatus;
 }
 
 export class BulkInvitationResponseDto implements BulkInvitationResponse {
