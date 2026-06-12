@@ -1,5 +1,6 @@
 import { getSignedUrl } from './uploads.service';
-import type { GetSignedUrlPayload, SignedUrlResponse } from '@/services/uploads.types';
+import type { SignedUrlResponse } from '@chamuco/shared-types';
+import type { GetSignedUrlPayload } from '@/services/uploads.types';
 import { UploadType } from '@chamuco/shared-types';
 
 const { mockGet, mockPost, mockPatch, mockDelete } = vi.hoisted(() => {

@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
-import type { NotificationItem } from '@/services/notifications.types';
+import type { NotificationItem } from '@chamuco/shared-types';
 import {
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
 } from '@/services/notifications.service';
-
-export type { NotificationItem } from '@/services/notifications.types';
 
 const POLL_INTERVAL_MS = 30_000;
 

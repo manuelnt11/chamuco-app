@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { SignedUrlResponse } from '@chamuco/shared-types';
 
-export class SignedUrlResponseDto {
+export class SignedUrlResponseDto implements SignedUrlResponse {
   @ApiProperty({
     description:
       'Signed URL to use for a direct HTTP PUT upload to Cloud Storage. Expires at expiresAt.',

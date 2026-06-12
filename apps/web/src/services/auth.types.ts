@@ -1,9 +1,11 @@
+import type { DateOfBirth } from '@chamuco/shared-types';
+
 export interface RegisterPayload {
   username: string;
   displayName: string;
   firstName: string;
   lastName: string;
-  dateOfBirth: { day: number; month: number; year: number; yearVisible: boolean };
+  dateOfBirth: DateOfBirth;
   homeCountry: string;
   homeCity?: string;
   phoneCountryCode: string;

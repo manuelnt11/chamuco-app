@@ -3,7 +3,7 @@
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserPlusIcon } from '@phosphor-icons/react';
-import type { InvitationResult } from '@/services/groups.types';
+import type { InvitationResult } from '@chamuco/shared-types';
 import { inviteGroupMembers } from '@/services/groups.service';
 import { Button } from '@/components/ui/button';
 import {

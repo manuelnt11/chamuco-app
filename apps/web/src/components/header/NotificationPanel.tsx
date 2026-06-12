@@ -18,7 +18,7 @@ import {
 } from '@phosphor-icons/react';
 
 import { NotificationType } from '@chamuco/shared-types';
-import type { NotificationItem } from '@/hooks/useNotifications';
+import type { NotificationItem } from '@chamuco/shared-types';
 
 const TYPE_ICONS: Record<NotificationType, Icon> = {
   [NotificationType.TRIP_INVITATION]: AirplaneIcon,

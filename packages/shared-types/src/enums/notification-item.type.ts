@@ -1,4 +1,4 @@
-import type { NotificationType } from '@chamuco/shared-types';
+import type { NotificationType } from './notification-type.enum';
 
 export interface NotificationItem {
   id: string;
@@ -13,5 +13,6 @@ export interface NotificationItem {
 
 export interface NotificationsPage {
   data: NotificationItem[];
+  nextCursor: string | null;
   unreadCount: number;
 }

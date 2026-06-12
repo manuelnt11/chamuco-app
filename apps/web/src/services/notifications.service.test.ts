@@ -5,7 +5,7 @@ import {
   registerFcmToken,
   unregisterFcmToken,
 } from './notifications.service';
-import type { NotificationItem, NotificationsPage } from '@/services/notifications.types';
+import type { NotificationItem, NotificationsPage } from '@chamuco/shared-types';
 import { NotificationType } from '@chamuco/shared-types';
 
 const { mockGet, mockPost, mockPatch, mockDelete } = vi.hoisted(() => {
@@ -47,6 +47,7 @@ const notificationFixture: NotificationItem = {
 
 const notificationsPageFixture: NotificationsPage = {
   data: [notificationFixture],
+  nextCursor: null,
   unreadCount: 1,
 };
 

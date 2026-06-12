@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { NotificationType } from '@chamuco/shared-types';
-import { useNotifications, type NotificationItem } from './useNotifications';
+import type { NotificationItem } from '@chamuco/shared-types';
+import { useNotifications } from './useNotifications';
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { get: vi.fn(), patch: vi.fn() },

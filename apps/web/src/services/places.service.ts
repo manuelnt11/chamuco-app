@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api-client';
-import type { CityResult } from '@/services/places.types';
+import type { CityResult } from '@chamuco/shared-types';
 
 export async function searchCities(
   country: string,

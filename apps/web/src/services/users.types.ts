@@ -3,8 +3,10 @@ import type {
   AppCurrency,
   AppTheme,
   BloodType,
+  DateOfBirth,
   DietaryPreference,
   FoodAllergen,
+  KeyStats,
   PassportStatus,
   PhobiaType,
   PhysicalLimitationType,
@@ -19,7 +21,6 @@ import type {
   ProfileVisibility,
   ResolvedAsset,
 } from '@chamuco/shared-types';
-import type { KeyStats } from '@/components/public-profile';
 
 // ─── Basic info ───────────────────────────────────────────────────────────────
 
@@ -33,7 +34,7 @@ export interface BasicInfoProfile {
 export interface PersonalDetailsProfile {
   firstName: string;
   lastName: string;
-  dateOfBirth: { day: number; month: number; year: number; yearVisible: boolean };
+  dateOfBirth: DateOfBirth;
   phoneCountryCode: string;
   phoneLocalNumber: string;
   birthCountry: string | null;

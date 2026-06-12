@@ -2,10 +2,9 @@ import { apiClient } from '@/services/api-client';
 import type {
   CreateGroupPayload,
   GroupMembershipResponse,
-  InviteGroupMembersResponse,
   UpdateGroupPayload,
 } from '@/services/groups.types';
-import type { GroupRole } from '@chamuco/shared-types';
+import type { BulkInvitationResponse, GroupRole } from '@chamuco/shared-types';
 import type {
   Group,
   GroupAnnouncement,
@@ -94,8 +93,8 @@ export async function getMyGroupInvitations(): Promise<GroupInvitation[]> {
 export async function inviteGroupMembers(
   groupId: string,
   dto: { usernames: string[] },
-): Promise<InviteGroupMembersResponse> {
-  const { data } = await apiClient.post<InviteGroupMembersResponse>(
+): Promise<BulkInvitationResponse> {
+  const { data } = await apiClient.post<BulkInvitationResponse>(
     `/v1/groups/${groupId}/invitations`,
     dto,
   );

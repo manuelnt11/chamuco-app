@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ProfileVisibility } from '@chamuco/shared-types';
-import type { ResolvedAsset } from '@chamuco/shared-types';
+import type { KeyStats, ResolvedAsset } from '@chamuco/shared-types';
 import { ResolvedAssetDto } from './user-response.dto';
 
-export class KeyStatsDto {
+export class KeyStatsDto implements KeyStats {
   @ApiProperty({ example: 12 })
   tripsCompleted!: number;
 

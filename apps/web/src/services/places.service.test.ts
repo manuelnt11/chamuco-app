@@ -1,5 +1,5 @@
 import { searchCities } from './places.service';
-import type { CityResult } from '@/services/places.types';
+import type { CityResult } from '@chamuco/shared-types';
 
 const { mockGet, mockPost, mockPatch, mockDelete } = vi.hoisted(() => {
   const get = vi.fn();
