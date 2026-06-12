@@ -16,6 +16,7 @@ import { userPreferences } from '@/modules/users/schema/user-preferences.schema'
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { users } from '@/modules/users/schema/users.schema';
 import { computePassportStatus } from '@/common/utils/passport-status.util';
+import { isUniqueViolation } from '@/database/db-errors';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
 
@@ -23,23 +24,6 @@ const PROVIDER_MAP: Record<string, AuthProvider> = {
   'google.com': AuthProvider.GOOGLE,
   'facebook.com': AuthProvider.FACEBOOK,
 };
-
-// PostgreSQL unique_violation error code
-const PG_UNIQUE_VIOLATION = '23505';
-
-function isUniqueViolation(err: unknown): boolean {
-  if (typeof err !== 'object' || err === null) return false;
-  const e = err as Record<string, unknown>;
-  // Direct code (matches unit-test mocks and some DB driver shapes)
-  if (e.code === PG_UNIQUE_VIOLATION) return true;
-  // DrizzleQueryError wraps the underlying PostgresError in `cause`
-  const cause = e.cause;
-  return (
-    typeof cause === 'object' &&
-    cause !== null &&
-    (cause as Record<string, unknown>).code === PG_UNIQUE_VIOLATION
-  );
-}
 
 @Injectable()
 export class AuthService {

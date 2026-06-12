@@ -11,6 +11,10 @@ describe('NotificationType', () => {
     expect(NotificationType.GROUP_JOIN_ACCEPTED).toBe('GROUP_JOIN_ACCEPTED');
     expect(NotificationType.GROUP_ANNOUNCEMENT).toBe('GROUP_ANNOUNCEMENT');
     expect(NotificationType.TRIP_INVITATION).toBe('TRIP_INVITATION');
+    expect(NotificationType.TRIP_INVITATION_ACCEPTED).toBe('TRIP_INVITATION_ACCEPTED');
+    expect(NotificationType.TRIP_JOIN_ACCEPTED).toBe('TRIP_JOIN_ACCEPTED');
+    expect(NotificationType.TRIP_PARTICIPANT_REMOVED).toBe('TRIP_PARTICIPANT_REMOVED');
+    expect(NotificationType.TRIP_ROLE_CHANGED).toBe('TRIP_ROLE_CHANGED');
     expect(NotificationType.TRIP_ANNOUNCEMENT).toBe('TRIP_ANNOUNCEMENT');
     expect(NotificationType.TRIP_KEY_DATE_REMINDER).toBe('TRIP_KEY_DATE_REMINDER');
     expect(NotificationType.TRIP_COMPLETED).toBe('TRIP_COMPLETED');
@@ -22,9 +26,9 @@ describe('NotificationType', () => {
     expect(NotificationType.GROUP_MEMBER_DEMOTED).toBe('GROUP_MEMBER_DEMOTED');
   });
 
-  it('has exactly 14 members', () => {
+  it('has exactly 18 members', () => {
     const values = Object.values(NotificationType);
-    expect(values).toHaveLength(14);
+    expect(values).toHaveLength(18);
   });
 
   it('is exported from the enums barrel', () => {

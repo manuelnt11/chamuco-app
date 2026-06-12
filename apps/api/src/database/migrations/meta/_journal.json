@@ -239,6 +239,13 @@
       "when": 1780862810735,
       "tag": "0033_jittery_jetstream",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1781275570521,
+      "tag": "0034_loose_multiple_man",
+      "breakpoints": true
     }
   ]
 }
