@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiConflictResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -85,6 +86,7 @@ export class TripParticipantsController {
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiParam({ name: 'userId', type: String, description: 'User UUID of the target participant' })
   @ApiResponse({ status: 204, description: 'Role updated.' })
+  @ApiBody({ type: UpdateParticipantRoleDto })
   @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   @ApiForbiddenResponse({ description: 'Caller is not the trip organizer.' })
   @ApiConflictResponse({ description: 'Cannot demote the last organizer.' })
