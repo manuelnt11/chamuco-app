@@ -11,6 +11,10 @@ import type {
 } from './dto/destination-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn().mockImplementation(() => ({})),
+}));
+
 const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
   username: 'john_doe',

@@ -5,6 +5,10 @@ import { TripsGroupsService } from './trips-groups.service';
 import type { TripGroupResponseDto } from './dto/trip-group-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn().mockImplementation(() => ({})),
+}));
+
 const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
   username: 'john_doe',

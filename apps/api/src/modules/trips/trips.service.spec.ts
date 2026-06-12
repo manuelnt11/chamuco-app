@@ -10,11 +10,16 @@ import {
   TripVisibility,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { TripsService } from './trips.service';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 import type { AuthenticatedUser } from '@/types/express';
+
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn().mockImplementation(() => ({})),
+}));
 
 const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
@@ -144,6 +149,10 @@ describe('TripsService', () => {
             delete: mockDelete,
             transaction: mockTransaction,
           },
+        },
+        {
+          provide: AssetResolverService,
+          useValue: { resolve: jest.fn().mockResolvedValue(null) },
         },
       ],
     }).compile();
@@ -398,6 +407,94 @@ describe('TripsService', () => {
       expect(new Date(result.feedbackOpenUntil!).getTime()).toBeGreaterThan(
         new Date('2026-12-08').getTime(),
       );
+    });
+  });
+
+  describe('getMyTrips', () => {
+    let getMyTripsService: TripsService;
+    let mockTripParticipantsFindMany: jest.Mock;
+    let mockTripsFindMany: jest.Mock;
+    let mockAssetsFindMany: jest.Mock;
+    let mockSelectGroupBy: jest.Mock;
+    let mockListSelectWhere: jest.Mock;
+    let mockListSelectFrom: jest.Mock;
+    let mockListSelect: jest.Mock;
+    let mockAssetResolve: jest.Mock;
+
+    beforeEach(async () => {
+      mockTripParticipantsFindMany = jest.fn().mockResolvedValue([
+        {
+          tripId: 'trip-uuid',
+          userId: 'user-uuid',
+          role: TripRole.ORGANIZER,
+          status: TripParticipantStatus.CONFIRMED,
+        },
+      ]);
+      mockTripsFindMany = jest.fn().mockResolvedValue([mockTripRow]);
+      mockAssetsFindMany = jest.fn().mockResolvedValue([]);
+      mockAssetResolve = jest.fn().mockResolvedValue({ url: 'https://example.com/cover.jpg' });
+
+      mockSelectGroupBy = jest.fn().mockResolvedValue([{ tripId: 'trip-uuid', total: 4 }]);
+      mockListSelectWhere = jest.fn().mockReturnValue({ groupBy: mockSelectGroupBy });
+      mockListSelectFrom = jest.fn().mockReturnValue({ where: mockListSelectWhere });
+      mockListSelect = jest.fn().mockReturnValue({ from: mockListSelectFrom });
+
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          TripsService,
+          {
+            provide: DRIZZLE_CLIENT,
+            useValue: {
+              query: {
+                trips: { findMany: mockTripsFindMany },
+                tripParticipants: { findMany: mockTripParticipantsFindMany },
+                assets: { findMany: mockAssetsFindMany },
+              },
+              select: mockListSelect,
+            },
+          },
+          {
+            provide: AssetResolverService,
+            useValue: { resolve: mockAssetResolve },
+          },
+        ],
+      }).compile();
+
+      getMyTripsService = module.get<TripsService>(TripsService);
+    });
+
+    it('returns empty array when user has no memberships', async () => {
+      mockTripParticipantsFindMany.mockResolvedValueOnce([]);
+      const result = await getMyTripsService.getMyTrips(mockUser);
+      expect(result).toEqual([]);
+    });
+
+    it('returns enriched trips with coverUrl, confirmedParticipantCount, and userRole', async () => {
+      const mockCoverAsset = {
+        id: 'asset-uuid',
+        type: 'image' as const,
+        source: 'gcs' as const,
+        target: 'trip-covers/trip-uuid/cover.jpg',
+        fileSize: null,
+        isPublic: true,
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      };
+      mockTripsFindMany.mockResolvedValueOnce([{ ...mockTripRow, cover: 'asset-uuid' }]);
+      mockAssetsFindMany.mockResolvedValueOnce([mockCoverAsset]);
+
+      const result = await getMyTripsService.getMyTrips(mockUser);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]!.coverUrl).toBe('https://example.com/cover.jpg');
+      expect(result[0]!.confirmedParticipantCount).toBe(4);
+      expect(result[0]!.userRole).toBe(TripRole.ORGANIZER);
+    });
+
+    it('returns null coverUrl when trip has no cover asset', async () => {
+      const result = await getMyTripsService.getMyTrips(mockUser);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]!.coverUrl).toBeNull();
     });
   });
 });

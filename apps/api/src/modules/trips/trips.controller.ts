@@ -27,6 +27,7 @@ import { TripsService } from './trips.service';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { TripResponseDto } from './dto/trip-response.dto';
+import { MyTripListItemResponseDto } from './dto/my-trip-list-item-response.dto';
 import { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 
 @ApiTags('trips')
@@ -34,6 +35,18 @@ import { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 @Controller('v1/trips')
 export class TripsController {
   constructor(private readonly tripsService: TripsService) {}
+
+  @Get()
+  @ApiOperation({
+    summary: "List the authenticated user's trips",
+    description:
+      'Returns all trips where the authenticated user is an ACCEPTED or CONFIRMED participant. ' +
+      "Includes resolved cover URL, confirmed participant count, and the caller's role.",
+  })
+  @ApiResponse({ status: 200, type: [MyTripListItemResponseDto] })
+  async getMyTrips(@CurrentUser() user: AuthenticatedUser): Promise<MyTripListItemResponseDto[]> {
+    return this.tripsService.getMyTrips(user);
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
