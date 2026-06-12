@@ -8,6 +8,7 @@ import {
   TripRole,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
+import { isUniqueViolation } from '@/database/db-errors';
 import { users } from '@/modules/users/schema/users.schema';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
@@ -105,14 +106,22 @@ export class TripInvitationsService {
             and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, targetUser.id)),
           );
       } else {
-        await this.db.insert(tripParticipants).values({
-          tripId,
-          userId: targetUser.id,
-          status: TripParticipantStatus.INVITED,
-          role: TripRole.PARTICIPANT,
-          isTraveler: true,
-          initiatedBy: organizerUserId,
-        });
+        try {
+          await this.db.insert(tripParticipants).values({
+            tripId,
+            userId: targetUser.id,
+            status: TripParticipantStatus.INVITED,
+            role: TripRole.PARTICIPANT,
+            isTraveler: true,
+            initiatedBy: organizerUserId,
+          });
+        } catch (err: unknown) {
+          if (isUniqueViolation(err)) {
+            results.push({ username, status: 'ALREADY_INVITED' });
+            continue;
+          }
+          throw err;
+        }
       }
 
       invitedUserIds.push(targetUser.id);

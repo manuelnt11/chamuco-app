@@ -9,6 +9,7 @@ import {
   TripVisibility,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
+import { isUniqueViolation } from '@/database/db-errors';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
@@ -64,14 +65,20 @@ export class TripJoinRequestsService {
           and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, requestingUserId)),
         );
     } else {
-      await this.db.insert(tripParticipants).values({
-        tripId,
-        userId: requestingUserId,
-        status: TripParticipantStatus.PENDING_REQUEST,
-        role: TripRole.PARTICIPANT,
-        isTraveler: true,
-        initiatedBy: requestingUserId,
-      });
+      try {
+        await this.db.insert(tripParticipants).values({
+          tripId,
+          userId: requestingUserId,
+          status: TripParticipantStatus.PENDING_REQUEST,
+          role: TripRole.PARTICIPANT,
+          isTraveler: true,
+          initiatedBy: requestingUserId,
+        });
+      } catch (err: unknown) {
+        if (isUniqueViolation(err))
+          throw new ConflictException('A pending join request already exists');
+        throw err;
+      }
     }
   }
 

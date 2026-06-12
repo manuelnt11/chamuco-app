@@ -323,6 +323,31 @@ describe('TripParticipantsService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
+    it('throws ConflictException when requester targets themselves', async () => {
+      mockTripParticipantsFindFirst
+        .mockResolvedValueOnce(organizerParticipation)
+        .mockResolvedValueOnce(organizerParticipation);
+
+      await expect(
+        service.updateParticipantRole(TRIP_ID, ORGANIZER_ID, promoteDto, ORGANIZER_ID),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('throws ConflictException when target is already the trip organizer', async () => {
+      const targetOrganizerParticipation = makeParticipation(
+        TARGET_ID,
+        TripParticipantStatus.CONFIRMED,
+        TripRole.ORGANIZER,
+      );
+      mockTripParticipantsFindFirst
+        .mockResolvedValueOnce(organizerParticipation)
+        .mockResolvedValueOnce(targetOrganizerParticipation);
+
+      await expect(
+        service.updateParticipantRole(TRIP_ID, TARGET_ID, ownerTransferDto, ORGANIZER_ID),
+      ).rejects.toThrow(ConflictException);
+    });
+
     it('sends TRIP_ROLE_CHANGED notification after demotion', async () => {
       const coOrgTarget = makeParticipation(
         USER_ID,

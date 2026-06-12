@@ -191,6 +191,22 @@ describe('TripJoinRequestsService', () => {
 
       expect(mockUpdate).toHaveBeenCalled();
     });
+
+    it('throws ConflictException on concurrent duplicate insert (unique violation)', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+      mockInsertValues.mockRejectedValueOnce({ code: '23505' });
+
+      await expect(service.submitJoinRequest(TRIP_ID, USER_ID)).rejects.toThrow(ConflictException);
+    });
+
+    it('rethrows non-unique DB errors on insert', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+      mockInsertValues.mockRejectedValueOnce({ code: '42P01' });
+
+      await expect(service.submitJoinRequest(TRIP_ID, USER_ID)).rejects.toMatchObject({
+        code: '42P01',
+      });
+    });
   });
 
   // ─── acceptJoinRequest ───────────────────────────────────────────────────────

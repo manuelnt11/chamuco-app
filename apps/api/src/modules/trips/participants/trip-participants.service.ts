@@ -159,7 +159,14 @@ export class TripParticipantsService {
     });
     if (!targetParticipation) throw new NotFoundException('Active participant not found');
 
+    if (targetUserId === requestingUserId) {
+      throw new ConflictException('Cannot update your own role');
+    }
+
     if (dto.role === TripRole.ORGANIZER) {
+      if (targetParticipation.role === TripRole.ORGANIZER) {
+        throw new ConflictException('Target is already the trip organizer');
+      }
       // Transfer ownership: current ORGANIZER becomes CO_ORGANIZER
       await this.db.transaction(async (trx) => {
         await trx

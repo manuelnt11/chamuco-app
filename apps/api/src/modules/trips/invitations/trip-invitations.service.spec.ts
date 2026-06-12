@@ -244,6 +244,26 @@ describe('TripInvitationsService', () => {
         expect.any(Error),
       );
     });
+
+    it('returns ALREADY_INVITED on concurrent duplicate insert (unique violation)', async () => {
+      mockUsersFindMany.mockResolvedValueOnce([mockTargetUser]);
+      mockTripParticipantsFindMany.mockResolvedValueOnce([]);
+      mockInsertValues.mockRejectedValueOnce({ code: '23505' });
+
+      const result = await service.sendInvitations(TRIP_ID, dto, ORGANIZER_ID);
+
+      expect(result).toEqual({ results: [{ username: 'target_user', status: 'ALREADY_INVITED' }] });
+    });
+
+    it('rethrows non-unique DB errors on insert', async () => {
+      mockUsersFindMany.mockResolvedValueOnce([mockTargetUser]);
+      mockTripParticipantsFindMany.mockResolvedValueOnce([]);
+      mockInsertValues.mockRejectedValueOnce({ code: '42P01' });
+
+      await expect(service.sendInvitations(TRIP_ID, dto, ORGANIZER_ID)).rejects.toMatchObject({
+        code: '42P01',
+      });
+    });
   });
 
   // ─── acceptInvitation ────────────────────────────────────────────────────────
