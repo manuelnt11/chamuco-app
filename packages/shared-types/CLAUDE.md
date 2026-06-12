@@ -12,14 +12,23 @@ Changes here affect both packages. See `apps/api/src/database/CLAUDE.md` for the
 packages/shared-types/src/
 ├── enums/
 │   ├── index.ts              ← barrel for all enums
-│   └── *.enum.ts             ← one file per enum
+│   └── *.enum.ts             ← one file per enum — strictly enums only
 ├── types/
 │   ├── index.ts              ← barrel for all types
-│   └── *.ts                  ← one file per type/interface
+│   └── *.ts                  ← interfaces and type aliases
+│                                 simple types: no imports needed
+│                                 enum-dependent types: import type { X } from '../enums/x.enum'
 ├── data/
-│   └── *.ts                  ← static reference data (e.g., loyalty-programs.data.ts)
+│   ├── index.ts              ← barrel for static data
+│   └── *.data.ts             ← static reference data (e.g., loyalty-programs.data.ts)
 └── index.ts                  ← root barrel — exports everything
 ```
+
+**`enums/` is strictly for TypeScript enums.** No `.type.ts` files. Types that happen to depend on enums belong in `types/` and import from `'../enums/x.enum'` — relative upward imports are allowed within this package (see ESLint note below).
+
+**`no-restricted-imports` is disabled for `src/**/\*.ts`** in `eslint.config.mjs`. Within this package every relative import is intra-package by definition; the root rule that blocks cross-package upward paths does not apply here.
+
+**Naming convention:** all files use `.ts` (never `.type.ts` or `.enum.ts` in `types/`).
 
 ---
 
@@ -66,9 +75,20 @@ When adding a new `UploadType` value:
 
 All public exports flow through `src/index.ts`. Any new file must be re-exported from:
 
-1. Its sub-barrel (`src/enums/index.ts` or `src/types/index.ts`)
+1. Its sub-barrel (`src/enums/index.ts`, `src/types/index.ts`, or `src/data/index.ts`)
 2. The root `src/index.ts`
 
-### 4. No `any`, no runtime logic
+### 4. Placing a new type: enums/ vs types/
+
+| What you're adding                                                 | Where it goes                                                     |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| A TypeScript enum                                                  | `enums/` as `name.enum.ts`                                        |
+| An interface or type alias with no imports                         | `types/` as `name.ts`                                             |
+| An interface or type alias that references an enum                 | `types/` as `name.ts`, `import type { X } from '../enums/x.enum'` |
+| A `const` array used as an enum substitute (e.g. `as const` union) | `types/` as `name.ts` — it's static data, not an enum             |
+
+Never put `.type.ts` files in `enums/`.
+
+### 5. No `any`, no runtime logic
 
 This package is types-only (enums + interfaces + static data). Never add business logic, API calls, or side effects. All values must be statically determinable at compile time.

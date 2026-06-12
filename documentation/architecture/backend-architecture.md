@@ -1,7 +1,7 @@
 # Chamuco App — Backend Architecture
 
 **Status:** Active
-**Last Updated:** 2026-06-02
+**Last Updated:** 2026-06-11
 
 ---
 
@@ -19,33 +19,33 @@ Each feature domain is encapsulated in its own NestJS module. A module owns ever
 
 #### Implemented
 
-| Module                     | Domain Responsibility                                                                                                                                                                                 |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AuthModule`               | `@Global()` — Firebase ID token verification via `FirebaseAuthGuard` (applied globally via `APP_GUARD`), `@Public()` decorator to bypass, `RolesGuard` for role-based access, `FirebaseAdminService`. |
-| `UsersModule`              | User accounts, profiles, nationalities, passports, visas, ETAs, emergency contacts, health data, preferences, public profiles.                                                                        |
-| `AssetsModule`             | `@Global()` — normalized asset records, `AssetResolverService` (resolves any `Asset` to `ResolvedAsset` with computed `url`). Consumed by `UsersModule`, `GroupsModule`.                              |
-| `CloudStorageModule`       | `@Global()` — signed upload/download URL generation, object deletion, `makePublic`. All GCS operations go through `CloudStorageService`.                                                              |
-| `UploadsModule`            | Pre-signed upload URL orchestration for client-side direct-to-GCS uploads.                                                                                                                            |
-| `GroupsModule`             | Group CRUD, visibility management (PUBLIC/PRIVATE), cover image/emoji, soft-delete.                                                                                                                   |
-| `GroupMembersModule`       | Group membership: invitations, join requests, role management (ADMIN/MEMBER), bulk invite by user autocomplete.                                                                                       |
-| `GroupAnnouncementsModule` | Group broadcast announcements: rich text create/edit/delete, read-only feed for members.                                                                                                              |
-| `NotificationsModule`      | In-app notification feed (create, list, mark-read), FCM token registration/deregistration, per-channel opt-out preferences, `notify()` dispatcher with pluggable channel strategies.                  |
-| `TransientMessagesModule`  | Real-time ephemeral UI signals sent over FCM data messages (not persisted). Used for live UI updates that do not belong in the persistent notification feed.                                          |
-| `FeedbackModule`           | User-submitted feedback flows.                                                                                                                                                                        |
-| `LocationsModule`          | Location autocomplete and country/city data endpoints.                                                                                                                                                |
-| `JobsModule`               | Scheduled job handlers triggered by Cloud Scheduler HTTP calls. Currently implements `PassportStatusJob`. See [Scheduled Jobs](#scheduled-jobs) below.                                                |
-| `HealthModule`             | `GET /health` liveness endpoint for Cloud Run health checks.                                                                                                                                          |
+| Module                     | Domain Responsibility                                                                                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthModule`               | `@Global()` — Firebase ID token verification via `FirebaseAuthGuard` (applied globally via `APP_GUARD`), `@Public()` decorator to bypass, `RolesGuard` for role-based access, `FirebaseAdminService`.   |
+| `UsersModule`              | User accounts, profiles, nationalities, passports, visas, ETAs, emergency contacts, health data, preferences, public profiles.                                                                          |
+| `AssetsModule`             | `@Global()` — normalized asset records, `AssetResolverService` (resolves any `Asset` to `ResolvedAsset` with computed `url`). Consumed by `UsersModule`, `GroupsModule`.                                |
+| `CloudStorageModule`       | `@Global()` — signed upload/download URL generation, object deletion, `makePublic`. All GCS operations go through `CloudStorageService`.                                                                |
+| `UploadsModule`            | Pre-signed upload URL orchestration for client-side direct-to-GCS uploads.                                                                                                                              |
+| `GroupsModule`             | Group CRUD, visibility management (PUBLIC/PRIVATE), cover image/emoji, soft-delete.                                                                                                                     |
+| `GroupMembersModule`       | Group membership management. Sub-modules: `members/` (role management, listing), `invitations/` (outbound invitations, bulk invite by username), `join-requests/` (inbound request approval/rejection). |
+| `GroupAnnouncementsModule` | Group broadcast announcements: rich text create/edit/delete, read-only feed for members.                                                                                                                |
+| `NotificationsModule`      | In-app notification feed (create, list, mark-read), FCM token registration/deregistration, per-channel opt-out preferences, `notify()` dispatcher with pluggable channel strategies.                    |
+| `TransientMessagesModule`  | Real-time ephemeral UI signals sent over FCM data messages (not persisted). Used for live UI updates that do not belong in the persistent notification feed.                                            |
+| `FeedbackModule`           | User-submitted feedback flows.                                                                                                                                                                          |
+| `LocationsModule`          | Location autocomplete and country/city data endpoints.                                                                                                                                                  |
+| `TripsModule`              | Trip CRUD, lifecycle state machine, visibility, cover. Sub-modules: `announcements/`, `destinations/`, `groups/` (trip ↔ group associations).                                                           |
+| `JobsModule`               | Scheduled job handlers triggered by Cloud Scheduler HTTP calls. Currently implements `PassportStatusJob` and `TripStatusJob`. See [Scheduled Jobs](#scheduled-jobs) below.                              |
+| `HealthModule`             | `GET /health` liveness endpoint for Cloud Run health checks.                                                                                                                                            |
 
 #### Planned (post-MVP — tracked in GitHub Issues)
 
-| Module               | Domain Responsibility                                                   | Issue      |
-| -------------------- | ----------------------------------------------------------------------- | ---------- |
-| `TripsModule`        | Trip CRUD, lifecycle state machine, visibility, cover                   | #343, #347 |
-| `ParticipantsModule` | Trip participant invitations, join requests, role invitations, waitlist | Epic #7    |
-| `ItineraryModule`    | Ordered itinerary items (transport, stays, activities)                  | Post-MVP   |
-| `ExpensesModule`     | Shared expense ledger, splits, settlements                              | Post-MVP   |
-| `ReservationsModule` | Booking records for stays and transport                                 | Post-MVP   |
-| `EmailModule`        | Transactional email via GoDaddy SMTP, template system                   | Epic #125  |
+| Module               | Domain Responsibility                                                   | Issue     |
+| -------------------- | ----------------------------------------------------------------------- | --------- |
+| `ParticipantsModule` | Trip participant invitations, join requests, role invitations, waitlist | Epic #7   |
+| `ItineraryModule`    | Ordered itinerary items (transport, stays, activities)                  | Post-MVP  |
+| `ExpensesModule`     | Shared expense ledger, splits, settlements                              | Post-MVP  |
+| `ReservationsModule` | Booking records for stays and transport                                 | Post-MVP  |
+| `EmailModule`        | Transactional email via GoDaddy SMTP, template system                   | Epic #125 |
 
 > Module boundaries are intentionally strict. If a module needs data from another module's domain, it accesses it through an exported service — never by importing the other module's repository directly.
 
@@ -53,22 +53,43 @@ Each feature domain is encapsulated in its own NestJS module. A module owns ever
 
 ## Typical Module Structure
 
+Top-level modules own a domain. Complex domains have sub-resource subdirectories, each with their own controller + service pair.
+
 ```
 src/modules/trips/
 ├── trips.module.ts
 ├── trips.controller.ts
+├── trips.controller.spec.ts
 ├── trips.service.ts
-├── trips.repository.ts         # Data access layer (Drizzle queries)
+├── trips.service.spec.ts
 ├── schema/
-│   └── trips.schema.ts         # Drizzle table/column definitions for this domain
+│   ├── trips.schema.ts             # Drizzle table/column definitions
+│   ├── trip-participants.schema.ts
+│   └── trip-destinations.schema.ts
 ├── dto/
 │   ├── create-trip.dto.ts
 │   ├── update-trip.dto.ts
 │   └── trip-response.dto.ts
-├── enums/
-│   └── trip-status.enum.ts
-└── trips.spec.ts               # Unit tests
+├── announcements/                  # sub-resource: trip announcements
+│   ├── trip-announcements.controller.ts
+│   ├── trip-announcements.controller.spec.ts
+│   ├── trip-announcements.service.ts
+│   ├── trip-announcements.service.spec.ts
+│   └── dto/
+├── destinations/                   # sub-resource: trip destinations
+│   ├── trips-destinations.controller.ts
+│   └── ...
+└── groups/                         # sub-resource: trip ↔ group associations
+    ├── trips-groups.controller.ts
+    └── ...
 ```
+
+Notes:
+
+- **No repository layer** — services query the database directly via the Drizzle client injected from `DatabaseModule`.
+- **No `enums/` within modules** — all shared enums live in `packages/shared-types/src/enums/`.
+- **Sub-resource naming:** `{parent}-{resource}.controller.ts` / `{parent}-{resource}.service.ts` (e.g. `group-members.controller.ts`, `users-travel-docs.service.ts`).
+- **Response DTOs** that correspond to a shared interface must implement it (`class TripResponseDto implements TripSummary`).
 
 ---
 

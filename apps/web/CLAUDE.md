@@ -266,3 +266,48 @@ Action buttons with a clear icon equivalent should use icon-only with a `title` 
 ```
 
 **When text labels ARE appropriate:** primary CTAs (create, save, submit), empty states, onboarding flows, or any action where the icon alone could be ambiguous.
+
+### 8. Services layer — structure and type import conventions
+
+API calls live in `src/services/`. Each domain follows this layout:
+
+```
+src/services/
+├── {domain}.service.ts        ← API call functions (no React, no hooks)
+├── {domain}.service.test.ts   ← unit tests with mocked apiClient
+└── {domain}.types.ts          ← request/payload types local to this service
+                                   omit if the service has no payload types
+```
+
+**Type ownership rules:**
+
+| Type category                         | Where it lives          | Example                                      |
+| ------------------------------------- | ----------------------- | -------------------------------------------- |
+| API response shapes (shared with API) | `@chamuco/shared-types` | `NotificationItem`, `BulkInvitationResponse` |
+| Request payloads / local DTOs         | `{domain}.types.ts`     | `RegisterPayload`, `FeedbackPayload`         |
+
+**Never redefine in `{domain}.types.ts` a type that already exists in `@chamuco/shared-types`.** Import it directly.
+
+**Never re-export `@chamuco/shared-types` types from a `.types.ts` file.** Consumers import from the package directly.
+
+```ts
+// ✅ Correct — response type from shared-types, payload type local
+import type { FeedbackResponse } from '@chamuco/shared-types';
+import type { FeedbackPayload } from '@/services/feedback.types';
+
+export async function submitFeedback(payload: FeedbackPayload): Promise<FeedbackResponse> { ... }
+
+// ❌ Wrong — redefines a type that exists in shared-types
+// feedback.types.ts
+export interface FeedbackResponse { issueUrl: string; }  // duplicate, will diverge
+
+// ❌ Wrong — re-exports shared-types through a local file
+// feedback.types.ts
+export type { FeedbackResponse } from '@chamuco/shared-types';  // pointless indirection
+```
+
+**Special files:**
+
+- `api-client.ts` — configured Axios instance; all service files import from here
+- `gcs-upload.ts` — low-level XHR PUT for direct GCS uploads; used by `useFileUpload`
+- `places.service.ts` — city search, no `.types.ts` (response type `CityResult` is in shared-types)
