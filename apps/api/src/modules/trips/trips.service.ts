@@ -97,7 +97,7 @@ export class TripsService {
           ...base,
           coverUrl,
           confirmedParticipantCount: confirmedCountByTripId.get(trip.id) ?? 0,
-          userRole: roleByTripId.get(trip.id) ?? TripRole.PARTICIPANT,
+          userRole: roleByTripId.get(trip.id)!,
         };
       }),
     );
