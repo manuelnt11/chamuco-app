@@ -113,7 +113,9 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       {/* Trip header */}
       <div className="flex items-start gap-6 mb-6">
         <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted flex items-center justify-center">
-          {trip.coverUrl && <img src={trip.coverUrl} alt="" className="size-full object-cover" />}
+          {trip.coverUrl && (
+            <img src={trip.coverUrl} alt="" className="size-full object-cover" loading="lazy" />
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -190,23 +192,25 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         </p>
       </section>
 
-      {/* Quick stats */}
-      <section>
-        <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-          {trip.defaultCurrency && (
-            <div>
-              <dt className="text-muted-foreground">{t('detail.currency')}</dt>
-              <dd className="font-medium">{trip.defaultCurrency}</dd>
-            </div>
-          )}
-          {trip.defaultTimezone && (
-            <div>
-              <dt className="text-muted-foreground">{t('detail.timezone')}</dt>
-              <dd className="font-medium">{trip.defaultTimezone}</dd>
-            </div>
-          )}
-        </dl>
-      </section>
+      {/* Quick stats — only rendered when at least one field has a value */}
+      {(trip.defaultCurrency ?? trip.defaultTimezone) && (
+        <section>
+          <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            {trip.defaultCurrency && (
+              <div>
+                <dt className="text-muted-foreground">{t('detail.currency')}</dt>
+                <dd className="font-medium">{trip.defaultCurrency}</dd>
+              </div>
+            )}
+            {trip.defaultTimezone && (
+              <div>
+                <dt className="text-muted-foreground">{t('detail.timezone')}</dt>
+                <dd className="font-medium">{trip.defaultTimezone}</dd>
+              </div>
+            )}
+          </dl>
+        </section>
+      )}
     </div>
   );
 }

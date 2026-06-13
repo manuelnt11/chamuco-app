@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
+import type { TripResponse, DestinationResponse } from '@/services/trips.types';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
@@ -69,7 +70,7 @@ vi.mock('react-i18next', () => ({
 
 import TripDetailPage from './page';
 
-const mockTrip = {
+const mockTrip: TripResponse = {
   id: 'trip-id',
   name: 'Cancún 2026',
   description: 'Beach trip for the crew.',
@@ -94,7 +95,7 @@ const mockTrip = {
   coverUrl: null,
 };
 
-const mockDestination = {
+const mockDestination: DestinationResponse = {
   id: 'dest-1',
   tripId: 'trip-id',
   position: 1,
@@ -149,6 +150,54 @@ describe('TripDetailPage', () => {
       expect(screen.getByTestId('status-badge')).toBeInTheDocument();
       expect(screen.getByText('2026-07-01')).toBeInTheDocument();
       expect(screen.getByText('2026-07-10')).toBeInTheDocument();
+    });
+  });
+
+  it('renders trip description in about section', async () => {
+    setupMocks();
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Beach trip for the crew.')).toBeInTheDocument();
+    });
+  });
+
+  it('renders cover image when coverUrl is set', async () => {
+    mocks.mockUseAuth.mockReturnValue({ isLoading: false });
+    mocks.mockApiGet.mockImplementation((url: string) => {
+      if (url.includes('/participants/me'))
+        return Promise.resolve({
+          data: {
+            role: TripRole.ORGANIZER,
+            userId: 'user-1',
+            username: 'user1',
+            displayName: 'User 1',
+            avatarUrl: null,
+            isTraveler: true,
+            confirmedAt: null,
+          },
+        });
+      if (url.includes('/destinations')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: { ...mockTrip, coverUrl: 'https://example.com/cover.jpg' } });
+    });
+    const { container } = render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      const img = container.querySelector('img');
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute('src', 'https://example.com/cover.jpg');
+      expect(img).toHaveAttribute('loading', 'lazy');
+    });
+  });
+
+  it('renders destination label when set', async () => {
+    setupMocks({
+      destinations: [{ ...mockDestination, label: 'Beachfront Hotel' }],
+    });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Beachfront Hotel/)).toBeInTheDocument();
     });
   });
 
