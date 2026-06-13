@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsDateString,
   IsEnum,
@@ -11,9 +11,11 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 
 import { TripVisibility } from '@chamuco/shared-types';
+import { TripCoverDto } from './trip-cover.dto';
 import {
   sanitizeName,
   sanitizeProperNoun,
@@ -133,4 +135,15 @@ export class UpdateTripDto {
   @IsOptional()
   @IsString()
   itineraryNotes?: string;
+
+  @ApiProperty({
+    required: false,
+    description:
+      'Cover for the trip. Use source=emoji for an emoji cover or source=gcs after uploading via POST /v1/uploads/signed-url.',
+    type: TripCoverDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => TripCoverDto)
+  cover?: TripCoverDto;
 }

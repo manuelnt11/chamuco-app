@@ -51,6 +51,15 @@ describe('GroupCoverDto', () => {
 });
 
 describe('CreateGroupDto', () => {
+  it('rejects when cover is absent (undefined)', async () => {
+    const dto = plainToInstance(CreateGroupDto, {
+      name: 'Mountain Crew',
+      visibility: GroupVisibility.PUBLIC,
+    });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'cover')).toBe(true);
+  });
+
   it('trims and collapses whitespace in name via Transform', () => {
     const dto = plainToInstance(CreateGroupDto, {
       name: '  mountain crew  ',

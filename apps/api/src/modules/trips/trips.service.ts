@@ -7,12 +7,20 @@ import {
 } from '@nestjs/common';
 import { and, count, eq, inArray } from 'drizzle-orm';
 
-import { PlatformRole, TripParticipantStatus, TripRole, TripStatus } from '@chamuco/shared-types';
+import {
+  PlatformRole,
+  TripParticipantStatus,
+  TripRole,
+  TripStatus,
+  TripVisibility,
+} from '@chamuco/shared-types';
 import { tripAnnouncements } from '@/modules/trips/schema/trip-announcements.schema';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { assetRowToAsset } from '@/modules/assets/asset.utils';
+import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
+import { PUBLIC_OBJECT_PREFIXES } from '@/modules/cloud-storage/cloud-storage.constants';
 import type { AuthenticatedUser } from '@/types/express';
 import { trips } from './schema/trips.schema';
 import { tripDestinations } from './schema/trip-destinations.schema';
@@ -38,6 +46,7 @@ export class TripsService {
   constructor(
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly assetResolver: AssetResolverService,
+    private readonly cloudStorage: CloudStorageService,
   ) {}
 
   async getMyTrips(user: AuthenticatedUser): Promise<MyTripListItemResponseDto[]> {
@@ -108,6 +117,19 @@ export class TripsService {
     const now = new Date();
 
     await this.db.transaction(async (trx) => {
+      const [coverAsset] = await trx
+        .insert(assets)
+        .values({
+          type: 'image',
+          source: dto.cover.source,
+          target: dto.cover.target,
+          fileSize: dto.cover.fileSize ?? null,
+          isPublic: true,
+        })
+        .returning();
+
+      if (!coverAsset) throw new Error('Failed to create cover asset');
+
       const [trip] = await trx
         .insert(trips)
         .values({
@@ -124,6 +146,7 @@ export class TripsService {
           defaultTimezone: dto.defaultTimezone ?? null,
           defaultCurrency: dto.defaultCurrency ?? null,
           itineraryNotes: dto.itineraryNotes ?? null,
+          cover: coverAsset.id,
           createdBy: user.id,
         })
         .returning();
@@ -144,13 +167,20 @@ export class TripsService {
       tripId = trip.id;
     });
 
+    if (dto.cover.source === 'gcs') {
+      const prefix = dto.cover.target.split('/')[0];
+      if (prefix && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
+        await this.cloudStorage.makePublic(dto.cover.target).catch((e: unknown) => {
+          console.error('[TripsService] makePublic failed (cover may be inaccessible):', e);
+        });
+      }
+    }
+
     return this.fetchAndMapTrip(tripId);
   }
 
   async getTrip(tripId: string): Promise<TripResponseDto> {
-    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
-    if (!trip) throw new NotFoundException('Trip not found');
-    return this.mapTrip(trip);
+    return this.fetchAndMapTrip(tripId);
   }
 
   async updateTrip(
@@ -194,6 +224,13 @@ export class TripsService {
       }
     }
 
+    if (dto.visibility === TripVisibility.PUBLIC && trip.visibility === TripVisibility.PRIVATE) {
+      throw new BadRequestException({
+        error: 'TRIP_CANNOT_BE_MADE_PUBLIC',
+        message: 'A private trip cannot be made public.',
+      });
+    }
+
     const patch: Partial<typeof trips.$inferInsert> = {};
     if (dto.name !== undefined) patch.name = dto.name;
     if (dto.description !== undefined) patch.description = dto.description;
@@ -209,7 +246,52 @@ export class TripsService {
     if (dto.defaultCurrency !== undefined) patch.defaultCurrency = dto.defaultCurrency;
     if (dto.itineraryNotes !== undefined) patch.itineraryNotes = dto.itineraryNotes;
 
-    if (Object.keys(patch).length > 0) {
+    if (dto.cover) {
+      const cover = dto.cover;
+      let oldAsset: typeof assets.$inferSelect | undefined;
+
+      await this.db.transaction(async (trx) => {
+        oldAsset = trip.cover
+          ? await trx.query.assets.findFirst({ where: eq(assets.id, trip.cover) })
+          : undefined;
+
+        const [newAsset] = await trx
+          .insert(assets)
+          .values({
+            type: 'image',
+            source: cover.source,
+            target: cover.target,
+            fileSize: cover.fileSize ?? null,
+            isPublic: true,
+          })
+          .returning();
+
+        if (!newAsset) throw new Error('Failed to create cover asset');
+
+        await trx
+          .update(trips)
+          .set({ ...patch, cover: newAsset.id })
+          .where(eq(trips.id, id));
+      });
+
+      if (cover.source === 'gcs') {
+        const prefix = cover.target.split('/')[0];
+        if (prefix && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
+          await this.cloudStorage.makePublic(cover.target).catch((e: unknown) => {
+            console.error('[TripsService] makePublic failed (cover may be inaccessible):', e);
+          });
+        }
+      }
+
+      if (oldAsset) {
+        if (oldAsset.source === 'gcs') {
+          await this.cloudStorage.deleteObject(oldAsset.target).catch((e: unknown) => {
+            console.error('[TripsService] GCS delete failed (orphan caught by audit):', e);
+          });
+        }
+        await this.db.delete(assets).where(eq(assets.id, oldAsset.id));
+      }
+    } else if (Object.keys(patch).length > 0) {
       await this.db.update(trips).set(patch).where(eq(trips.id, id));
     }
 
@@ -293,12 +375,25 @@ export class TripsService {
   }
 
   private async fetchAndMapTrip(id: string): Promise<TripResponseDto> {
-    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, id) });
+    const trip = await this.db.query.trips.findFirst({
+      where: eq(trips.id, id),
+      with: { coverAsset: true },
+    });
     if (!trip) throw new NotFoundException('Trip not found');
-    return this.mapTrip(trip);
+
+    let coverUrl: string | null = null;
+    if (trip.coverAsset) {
+      const resolved = await this.assetResolver.resolve(assetRowToAsset(trip.coverAsset));
+      coverUrl = resolved?.url ?? null;
+    }
+
+    return this.mapTrip(trip, coverUrl);
   }
 
-  private mapTrip(trip: typeof trips.$inferSelect): TripResponseDto {
+  private mapTrip(
+    trip: typeof trips.$inferSelect,
+    coverUrl: string | null = null,
+  ): TripResponseDto {
     const requiresConfirmation =
       trip.status === TripStatus.CONFIRMED || trip.status === TripStatus.IN_PROGRESS;
 
@@ -331,6 +426,7 @@ export class TripsService {
       updatedAt: trip.updatedAt.toISOString(),
       requiresConfirmation,
       feedbackOpenUntil,
+      coverUrl,
     };
   }
 }

@@ -21,6 +21,7 @@ import {
   UploadType,
 } from '@/modules/cloud-storage/cloud-storage.constants';
 import { GroupsService } from '@/modules/groups/groups.service';
+import { TripsService } from '@/modules/trips/trips.service';
 import { GenerateSignedUrlDto } from './dto/generate-signed-url.dto';
 import { SignedUrlResponseDto } from './dto/signed-url-response.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -33,6 +34,7 @@ export class UploadsController {
   constructor(
     private readonly cloudStorageService: CloudStorageService,
     private readonly groupsService: GroupsService,
+    private readonly tripsService: TripsService,
   ) {}
 
   @Post('signed-url')
@@ -97,6 +99,14 @@ export class UploadsController {
         if (!group || group.createdBy !== user.id) {
           // TODO(#next-issue): expand to check group_members OWNER/ADMIN roles
           throw new ForbiddenException('Only the group owner can upload a group cover.');
+        }
+        break;
+      }
+      case UploadType.TRIP_COVER: {
+        const trip = await this.tripsService.getTrip(contextId);
+        if (trip.createdBy !== user.id) {
+          // TODO: expand to check trip organizer role
+          throw new ForbiddenException('Only the trip creator can upload a trip cover.');
         }
         break;
       }

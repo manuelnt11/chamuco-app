@@ -57,6 +57,9 @@ const mockGroupRow = {
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
+// fetchAndMapGroup uses with: { coverAsset: true } — relational query returns embedded asset
+const mockGroupRowWithCover = { ...mockGroupRow, coverAsset: mockCoverAssetRow };
+
 const mockOwnerMembership = {
   groupId: 'group-uuid',
   userId: 'user-uuid',
@@ -183,8 +186,8 @@ describe('GroupsService', () => {
       mockInsertReturning
         .mockResolvedValueOnce([mockCoverAssetRow])
         .mockResolvedValueOnce([mockGroupRow]);
-      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+      // fetchAndMapGroup uses with: { coverAsset: true } — returns embedded asset in one query
+      mockGroupsFindFirst.mockResolvedValue(mockGroupRowWithCover);
     });
 
     it('creates group, inserts creator membership, and returns response DTO', async () => {
@@ -219,6 +222,22 @@ describe('GroupsService', () => {
       await service.createGroup(mockUser, gcsDto);
 
       expect(mockCloudStorageMakePublic).toHaveBeenCalledWith('group-covers/group-uuid/cover.jpg');
+    });
+
+    it('does not throw when makePublic fails for gcs cover', async () => {
+      const gcsDto: CreateGroupDto = {
+        ...createDto,
+        cover: { source: 'gcs', target: 'group-covers/group-uuid/cover.jpg', fileSize: 512000 },
+      };
+      mockInsertReturning
+        .mockReset()
+        .mockResolvedValueOnce([
+          { ...mockCoverAssetRow, source: 'gcs', target: 'group-covers/group-uuid/cover.jpg' },
+        ])
+        .mockResolvedValueOnce([mockGroupRow]);
+      mockCloudStorageMakePublic.mockRejectedValue(new Error('GCS unavailable'));
+
+      await expect(service.createGroup(mockUser, gcsDto)).resolves.toBeDefined();
     });
 
     it('does not call makePublic for gcs cover with non-public prefix', async () => {
@@ -278,8 +297,8 @@ describe('GroupsService', () => {
 
   describe('getGroup', () => {
     it('returns the group response DTO for a public group', async () => {
-      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+      // getGroup calls groups.findFirst (visibility check), then fetchAndMapGroup calls it again
+      mockGroupsFindFirst.mockResolvedValue(mockGroupRowWithCover);
 
       const result = await service.getGroup('user-uuid', 'group-uuid');
 
@@ -296,15 +315,16 @@ describe('GroupsService', () => {
     });
 
     it('throws NotFoundException when cover asset is not found', async () => {
-      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(undefined);
+      // First call (visibility check) returns group; second (fetchAndMapGroup) returns no coverAsset
+      mockGroupsFindFirst
+        .mockResolvedValueOnce(mockGroupRow)
+        .mockResolvedValueOnce({ ...mockGroupRow, coverAsset: null });
 
       await expect(service.getGroup('user-uuid', 'group-uuid')).rejects.toThrow(NotFoundException);
     });
 
     it('throws NotFoundException when cover resolution fails', async () => {
-      mockGroupsFindFirst.mockResolvedValue(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+      mockGroupsFindFirst.mockResolvedValue(mockGroupRowWithCover);
       mockAssetResolverResolve.mockResolvedValue(null);
 
       await expect(service.getGroup('user-uuid', 'group-uuid')).rejects.toThrow(NotFoundException);
@@ -321,12 +341,11 @@ describe('GroupsService', () => {
     });
 
     it('returns the group for a private group when user is an active member', async () => {
-      mockGroupsFindFirst.mockResolvedValue({
-        ...mockGroupRow,
-        visibility: GroupVisibility.PRIVATE,
-      });
+      // First call (visibility check), second call (fetchAndMapGroup with coverAsset)
+      mockGroupsFindFirst
+        .mockResolvedValueOnce({ ...mockGroupRow, visibility: GroupVisibility.PRIVATE })
+        .mockResolvedValueOnce(mockGroupRowWithCover);
       mockGroupMembersFindFirst.mockResolvedValue(mockOwnerMembership);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
 
       const result = await service.getGroup('user-uuid', 'group-uuid');
 
@@ -338,8 +357,9 @@ describe('GroupsService', () => {
     const updateDto: UpdateGroupDto = { name: 'Updated Crew' };
 
     it('updates group metadata and returns response DTO', async () => {
-      mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+      mockGroupsFindFirst
+        .mockResolvedValueOnce(mockGroupRow)
+        .mockResolvedValueOnce(mockGroupRowWithCover);
 
       const result = await service.updateGroup(mockUser, 'group-uuid', updateDto);
 
@@ -369,12 +389,13 @@ describe('GroupsService', () => {
       };
       const newAssetRow = { ...mockCoverAssetRow, id: 'new-asset-uuid', target: '🌴' };
 
-      mockGroupsFindFirst
-        .mockResolvedValueOnce(mockGroupRow)
-        .mockResolvedValueOnce({ ...mockGroupRow, cover: 'new-asset-uuid' });
-      mockAssetsFindFirst
-        .mockResolvedValueOnce(mockCoverAssetRow)
-        .mockResolvedValueOnce(newAssetRow);
+      mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce({
+        ...mockGroupRow,
+        cover: 'new-asset-uuid',
+        coverAsset: newAssetRow,
+      });
+      // Only one mockAssetsFindFirst call: old asset lookup inside transaction
+      mockAssetsFindFirst.mockResolvedValueOnce(mockCoverAssetRow);
       mockInsertReturning.mockResolvedValue([newAssetRow]);
 
       await service.updateGroup(mockUser, 'group-uuid', coverUpdateDto);
@@ -397,8 +418,12 @@ describe('GroupsService', () => {
 
       mockGroupsFindFirst
         .mockResolvedValueOnce({ ...mockGroupRow, cover: 'old-gcs-asset' })
-        .mockResolvedValueOnce({ ...mockGroupRow, cover: 'new-asset-uuid' });
-      mockAssetsFindFirst.mockResolvedValueOnce(gcsCoverRow).mockResolvedValueOnce(newAssetRow);
+        .mockResolvedValueOnce({
+          ...mockGroupRow,
+          cover: 'new-asset-uuid',
+          coverAsset: newAssetRow,
+        });
+      mockAssetsFindFirst.mockResolvedValueOnce(gcsCoverRow);
       mockInsertReturning.mockResolvedValue([newAssetRow]);
 
       await service.updateGroup(mockUser, 'group-uuid', coverUpdateDto);
@@ -420,8 +445,12 @@ describe('GroupsService', () => {
 
       mockGroupsFindFirst
         .mockResolvedValueOnce({ ...mockGroupRow, cover: 'old-gcs-asset' })
-        .mockResolvedValueOnce({ ...mockGroupRow, cover: 'new-asset-uuid' });
-      mockAssetsFindFirst.mockResolvedValueOnce(gcsCoverRow).mockResolvedValueOnce(newAssetRow);
+        .mockResolvedValueOnce({
+          ...mockGroupRow,
+          cover: 'new-asset-uuid',
+          coverAsset: newAssetRow,
+        });
+      mockAssetsFindFirst.mockResolvedValueOnce(gcsCoverRow);
       mockInsertReturning.mockResolvedValue([newAssetRow]);
       mockCloudStorageDelete.mockRejectedValue(new Error('GCS unavailable'));
 
@@ -432,8 +461,9 @@ describe('GroupsService', () => {
 
     it('updates description and visibility fields', async () => {
       const dto: UpdateGroupDto = { description: 'New desc', visibility: GroupVisibility.PRIVATE };
-      mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+      mockGroupsFindFirst
+        .mockResolvedValueOnce(mockGroupRow)
+        .mockResolvedValueOnce(mockGroupRowWithCover);
 
       const result = await service.updateGroup(mockUser, 'group-uuid', dto);
 
@@ -442,8 +472,9 @@ describe('GroupsService', () => {
 
     it('does nothing when dto has no fields', async () => {
       const dto: UpdateGroupDto = {};
-      mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce(mockGroupRow);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
+      mockGroupsFindFirst
+        .mockResolvedValueOnce(mockGroupRow)
+        .mockResolvedValueOnce(mockGroupRowWithCover);
 
       const result = await service.updateGroup(mockUser, 'group-uuid', dto);
 
@@ -473,12 +504,12 @@ describe('GroupsService', () => {
         target: 'private/cover.jpg',
       };
 
-      mockGroupsFindFirst
-        .mockResolvedValueOnce(mockGroupRow)
-        .mockResolvedValueOnce({ ...mockGroupRow, cover: 'new-asset-uuid' });
-      mockAssetsFindFirst
-        .mockResolvedValueOnce(mockCoverAssetRow)
-        .mockResolvedValueOnce(newAssetRow);
+      mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce({
+        ...mockGroupRow,
+        cover: 'new-asset-uuid',
+        coverAsset: newAssetRow,
+      });
+      mockAssetsFindFirst.mockResolvedValueOnce(mockCoverAssetRow);
       mockInsertReturning.mockResolvedValue([newAssetRow]);
 
       await service.updateGroup(mockUser, 'group-uuid', gcsUpdateDto);
@@ -490,10 +521,12 @@ describe('GroupsService', () => {
       const coverUpdateDto: UpdateGroupDto = { cover: { source: 'emoji', target: '🌴' } };
       const newAssetRow = { ...mockCoverAssetRow, id: 'new-asset-uuid', target: '🌴' };
 
-      mockGroupsFindFirst
-        .mockResolvedValueOnce(mockGroupRow)
-        .mockResolvedValueOnce({ ...mockGroupRow, cover: 'new-asset-uuid' });
-      mockAssetsFindFirst.mockResolvedValueOnce(undefined).mockResolvedValueOnce(newAssetRow);
+      mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce({
+        ...mockGroupRow,
+        cover: 'new-asset-uuid',
+        coverAsset: newAssetRow,
+      });
+      mockAssetsFindFirst.mockResolvedValueOnce(undefined);
       mockInsertReturning.mockResolvedValue([newAssetRow]);
 
       await service.updateGroup(mockUser, 'group-uuid', coverUpdateDto);
@@ -513,17 +546,42 @@ describe('GroupsService', () => {
         target: 'group-covers/group-uuid/cover.jpg',
       };
 
-      mockGroupsFindFirst
-        .mockResolvedValueOnce(mockGroupRow)
-        .mockResolvedValueOnce({ ...mockGroupRow, cover: 'new-asset-uuid' });
-      mockAssetsFindFirst
-        .mockResolvedValueOnce(mockCoverAssetRow)
-        .mockResolvedValueOnce(newAssetRow);
+      mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce({
+        ...mockGroupRow,
+        cover: 'new-asset-uuid',
+        coverAsset: newAssetRow,
+      });
+      mockAssetsFindFirst.mockResolvedValueOnce(mockCoverAssetRow);
       mockInsertReturning.mockResolvedValue([newAssetRow]);
 
       await service.updateGroup(mockUser, 'group-uuid', gcsUpdateDto);
 
       expect(mockCloudStorageMakePublic).toHaveBeenCalledWith('group-covers/group-uuid/cover.jpg');
+    });
+
+    it('does not throw when makePublic fails during updateGroup', async () => {
+      const gcsUpdateDto: UpdateGroupDto = {
+        cover: { source: 'gcs', target: 'group-covers/group-uuid/cover.jpg', fileSize: 512000 },
+      };
+      const newAssetRow = {
+        ...mockCoverAssetRow,
+        id: 'new-asset-uuid',
+        source: 'gcs' as const,
+        target: 'group-covers/group-uuid/cover.jpg',
+      };
+
+      mockGroupsFindFirst.mockResolvedValueOnce(mockGroupRow).mockResolvedValueOnce({
+        ...mockGroupRow,
+        cover: 'new-asset-uuid',
+        coverAsset: newAssetRow,
+      });
+      mockAssetsFindFirst.mockResolvedValueOnce(mockCoverAssetRow);
+      mockInsertReturning.mockResolvedValue([newAssetRow]);
+      mockCloudStorageMakePublic.mockRejectedValue(new Error('GCS unavailable'));
+
+      await expect(
+        service.updateGroup(mockUser, 'group-uuid', gcsUpdateDto),
+      ).resolves.toBeDefined();
     });
 
     it('throws BadRequestException with GROUP_CANNOT_BE_MADE_PUBLIC when PRIVATE group has non-owner members', async () => {
@@ -548,9 +606,10 @@ describe('GroupsService', () => {
 
     it('allows PRIVATE → PUBLIC when group has no non-owner members', async () => {
       const privateGroup = { ...mockGroupRow, visibility: GroupVisibility.PRIVATE };
-      mockGroupsFindFirst.mockResolvedValueOnce(privateGroup).mockResolvedValueOnce(mockGroupRow);
+      mockGroupsFindFirst
+        .mockResolvedValueOnce(privateGroup)
+        .mockResolvedValueOnce(mockGroupRowWithCover);
       mockGroupsSelectWhere.mockResolvedValueOnce([{ total: 0 }]);
-      mockAssetsFindFirst.mockResolvedValue(mockCoverAssetRow);
 
       const dto: UpdateGroupDto = { visibility: GroupVisibility.PUBLIC };
       const result = await service.updateGroup(mockUser, 'group-uuid', dto);

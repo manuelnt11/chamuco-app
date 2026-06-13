@@ -30,5 +30,60 @@
     "inProgress": "En Progreso",
     "completed": "Completado",
     "cancelled": "Cancelado"
+  },
+  "form": {
+    "createTitle": "Nuevo Viaje",
+    "submit": "Crear Viaje",
+    "saving": "Guardando...",
+    "saveChanges": "Guardar cambios",
+    "name": "Nombre del viaje",
+    "namePlaceholder": "ej. Cancún 2026",
+    "description": "Descripción",
+    "descriptionPlaceholder": "¿De qué trata este viaje?",
+    "startDate": "Fecha de inicio",
+    "endDate": "Fecha de fin",
+    "endDateError": "La fecha de fin debe ser igual o posterior a la de inicio.",
+    "participantCapacity": "Capacidad de participantes",
+    "isTravelingParticipant": "Voy a viajar con el grupo",
+    "departureLocation": "Salida",
+    "landingLocation": "Lugar de regreso",
+    "country": "País",
+    "city": "Ciudad",
+    "cityDisabled": "Selecciona un país primero",
+    "differentReturn": "El lugar de regreso es diferente",
+    "optionalSection": "Más detalles",
+    "defaultTimezone": "Zona horaria",
+    "defaultTimezonePlaceholder": "Seleccionar zona horaria",
+    "defaultCurrency": "Moneda predeterminada",
+    "defaultCurrencyPlaceholder": "ej. MXN",
+    "itineraryNotes": "Notas del itinerario",
+    "itineraryNotesPlaceholder": "Notas para el grupo...",
+    "cover": {
+      "label": "Portada",
+      "tabImage": "Foto",
+      "tabEmoji": "Emoji",
+      "cropTitle": "Recortar foto de portada",
+      "usePhoto": "Usar esta foto",
+      "editButton": "Cambiar foto"
+    }
+  },
+  "visibility": {
+    "label": "Visibilidad",
+    "public": "Público",
+    "public_desc": "Cualquiera puede encontrar y solicitar unirse a este viaje.",
+    "private": "Privado",
+    "private_desc": "Solo las personas que invites pueden ver y unirse a este viaje.",
+    "private_irreversible_hint": "Una vez establecido como privado, este viaje no puede hacerse público.",
+    "public_disabled_tooltip": "Los viajes privados no pueden hacerse públicos."
+  },
+  "errors": {
+    "createFailed": "Error al crear el viaje. Por favor intenta de nuevo.",
+    "saveFailed": "Error al guardar el viaje. Por favor intenta de nuevo.",
+    "forbidden": "No tienes permiso para realizar esta acción.",
+    "cannotMakePublic": "Un viaje privado no puede hacerse público.",
+    "coverUploadFailed": "Viaje creado. Error al subir la portada — puedes actualizarla más tarde."
+  },
+  "card": {
+    "capacityOf": "de"
   }
 }

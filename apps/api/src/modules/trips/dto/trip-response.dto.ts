@@ -74,4 +74,11 @@ export class TripResponseDto {
     nullable: true,
   })
   feedbackOpenUntil!: string | null;
+
+  @ApiProperty({
+    description: 'Resolved cover image URL. Null when no cover has been set.',
+    example: 'https://storage.googleapis.com/bucket/trip-covers/trip-uuid/cover.jpg',
+    nullable: true,
+  })
+  coverUrl!: string | null;
 }

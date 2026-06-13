@@ -85,6 +85,7 @@ const mockResponse: TripResponseDto = {
   updatedAt: '2026-01-01T00:00:00.000Z',
   requiresConfirmation: false,
   feedbackOpenUntil: null,
+  coverUrl: null,
 };
 
 describe('TripsController', () => {
@@ -143,6 +144,7 @@ describe('TripsController', () => {
       landingCountry: 'MX',
       landingCity: 'CANCUN',
       isTravelingParticipant: true,
+      cover: { source: 'emoji', target: '🏖️' },
     };
 
     const result = await controller.createTrip(mockUser, dto);

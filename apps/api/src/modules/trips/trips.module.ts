@@ -35,5 +35,6 @@ import { TripJoinRequestsService } from './join-requests/trip-join-requests.serv
     TripInvitationsService,
     TripJoinRequestsService,
   ],
+  exports: [TripsService],
 })
 export class TripsModule {}

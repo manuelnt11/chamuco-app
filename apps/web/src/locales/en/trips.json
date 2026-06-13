@@ -30,5 +30,60 @@
     "inProgress": "In Progress",
     "completed": "Completed",
     "cancelled": "Cancelled"
+  },
+  "form": {
+    "createTitle": "New Trip",
+    "submit": "Create Trip",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "name": "Trip name",
+    "namePlaceholder": "e.g. Cancún 2026",
+    "description": "Description",
+    "descriptionPlaceholder": "What's this trip about?",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "endDateError": "End date must be on or after the start date.",
+    "participantCapacity": "Participant capacity",
+    "isTravelingParticipant": "I'm traveling with the group",
+    "departureLocation": "Departure",
+    "landingLocation": "Return location",
+    "country": "Country",
+    "city": "City",
+    "cityDisabled": "Select a country first",
+    "differentReturn": "Return location is different",
+    "optionalSection": "More details",
+    "defaultTimezone": "Timezone",
+    "defaultTimezonePlaceholder": "Select timezone",
+    "defaultCurrency": "Default currency",
+    "defaultCurrencyPlaceholder": "e.g. MXN",
+    "itineraryNotes": "Itinerary notes",
+    "itineraryNotesPlaceholder": "Notes for the group...",
+    "cover": {
+      "label": "Cover",
+      "tabImage": "Photo",
+      "tabEmoji": "Emoji",
+      "cropTitle": "Crop cover photo",
+      "usePhoto": "Use this photo",
+      "editButton": "Change photo"
+    }
+  },
+  "visibility": {
+    "label": "Visibility",
+    "public": "Public",
+    "public_desc": "Anyone can find and request to join this trip.",
+    "private": "Private",
+    "private_desc": "Only people you invite can join this trip.",
+    "private_irreversible_hint": "Once set to private, this trip cannot be made public again.",
+    "public_disabled_tooltip": "Private trips cannot be made public."
+  },
+  "errors": {
+    "createFailed": "Failed to create trip. Please try again.",
+    "saveFailed": "Failed to save trip. Please try again.",
+    "forbidden": "You don't have permission to perform this action.",
+    "cannotMakePublic": "A private trip cannot be made public.",
+    "coverUploadFailed": "Trip created. Cover upload failed — you can update it later."
+  },
+  "card": {
+    "capacityOf": "of"
   }
 }

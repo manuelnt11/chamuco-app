@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { AirplaneTakeoffIcon, AirplaneLandingIcon, UsersIcon } from '@phosphor-icons/react';
 import { TripRole, TripStatus } from '@chamuco/shared-types';
 import type { MyTripListItemResponse } from '@/services/trips.types';
 
@@ -52,12 +53,21 @@ export function TripCard({ trip }: TripCardProps) {
 
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{trip.name}</p>
-        <p className="mt-0.5 truncate text-sm text-muted-foreground">
-          {trip.startDate} – {trip.endDate}
-        </p>
+        <div className="mt-0.5 flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <AirplaneTakeoffIcon className="size-3.5 shrink-0" aria-hidden="true" />
+            {trip.startDate}
+          </span>
+          <span>–</span>
+          <span className="flex items-center gap-1">
+            <AirplaneLandingIcon className="size-3.5 shrink-0" aria-hidden="true" />
+            {trip.endDate}
+          </span>
+        </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">{trip.departureCity}</p>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          {trip.confirmedParticipantCount}/{trip.participantCapacity}
+        <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+          <UsersIcon className="size-3.5 shrink-0" aria-hidden="true" />
+          {trip.confirmedParticipantCount} {t('card.capacityOf')} {trip.participantCapacity}
         </p>
       </div>
 

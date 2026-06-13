@@ -5,9 +5,9 @@ import { IsValidCoverTarget } from '@/common/validators/cover-target.validator';
 
 const FIVE_MB = 5 * 1024 * 1024;
 
-export class GroupCoverDto {
+export class TripCoverDto {
   @ApiProperty({
-    description: 'Storage backend for the group cover',
+    description: 'Storage backend for the trip cover',
     enum: ['gcs', 'emoji'],
     example: 'emoji',
   })
@@ -17,8 +17,8 @@ export class GroupCoverDto {
   @ApiProperty({
     description:
       'For gcs: objectKey from POST /v1/uploads/signed-url. ' +
-      'For emoji: the emoji character (e.g. "🏔️"), max 8 chars.',
-    example: '🏔️',
+      'For emoji: the emoji character (e.g. "🏝️"), max 8 chars.',
+    example: '🏝️',
   })
   @IsValidCoverTarget()
   target!: string;
@@ -30,7 +30,7 @@ export class GroupCoverDto {
     minimum: 1,
     maximum: FIVE_MB,
   })
-  @ValidateIf((o: GroupCoverDto) => o.source === 'gcs')
+  @ValidateIf((o: TripCoverDto) => o.source === 'gcs')
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
