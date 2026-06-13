@@ -5,6 +5,12 @@ import type { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types
 
 // ─── Request payloads ────────────────────────────────────────────────────────
 
+interface CoverPayload {
+  source: 'emoji' | 'gcs';
+  target: string;
+  fileSize?: number;
+}
+
 export interface CreateTripPayload {
   name: string;
   description?: string;
@@ -20,6 +26,7 @@ export interface CreateTripPayload {
   defaultCurrency?: string;
   itineraryNotes?: string;
   isTravelingParticipant: boolean;
+  cover: CoverPayload;
 }
 
 export interface UpdateTripPayload {
@@ -36,6 +43,7 @@ export interface UpdateTripPayload {
   defaultTimezone?: string;
   defaultCurrency?: string;
   itineraryNotes?: string;
+  cover?: CoverPayload;
 }
 
 export interface TransitionTripStatusPayload {
@@ -86,10 +94,10 @@ export interface TripResponse {
   updatedAt: string;
   requiresConfirmation: boolean;
   feedbackOpenUntil: string | null;
+  coverUrl: string | null;
 }
 
 export interface MyTripListItemResponse extends TripResponse {
-  coverUrl: string | null;
   confirmedParticipantCount: number;
   userRole: TripRole;
 }

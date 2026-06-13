@@ -6,6 +6,7 @@ import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-t
 import { UploadsController } from './uploads.controller';
 import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
 import { GroupsService } from '@/modules/groups/groups.service';
+import { TripsService } from '@/modules/trips/trips.service';
 import { UploadType } from '@/modules/cloud-storage/cloud-storage.constants';
 import type { GenerateSignedUrlDto } from './dto/generate-signed-url.dto';
 import type { AuthenticatedUser } from '@/types/express';
@@ -37,6 +38,7 @@ const mockSignedUrlResult = {
 let mockIsAllowedContentType: jest.Mock;
 let mockGenerateSignedUploadUrl: jest.Mock;
 let mockGroupsFindById: jest.Mock;
+let mockTripsGetTrip: jest.Mock;
 
 describe('UploadsController', () => {
   let controller: UploadsController;
@@ -45,6 +47,7 @@ describe('UploadsController', () => {
     mockIsAllowedContentType = jest.fn().mockReturnValue(true);
     mockGenerateSignedUploadUrl = jest.fn().mockResolvedValue(mockSignedUrlResult);
     mockGroupsFindById = jest.fn().mockResolvedValue(null);
+    mockTripsGetTrip = jest.fn().mockResolvedValue(null);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UploadsController],
@@ -59,6 +62,10 @@ describe('UploadsController', () => {
         {
           provide: GroupsService,
           useValue: { findById: mockGroupsFindById },
+        },
+        {
+          provide: TripsService,
+          useValue: { getTrip: mockTripsGetTrip },
         },
       ],
     }).compile();
@@ -140,6 +147,56 @@ describe('UploadsController', () => {
         expect(mockGenerateSignedUploadUrl).toHaveBeenCalledWith(
           UploadType.GROUP_COVER,
           'group-uuid',
+          'image/jpeg',
+        );
+      });
+
+      it('throws when trip does not exist for TRIP_COVER', async () => {
+        const { NotFoundException } = await import('@nestjs/common');
+        mockTripsGetTrip.mockRejectedValue(new NotFoundException('Trip not found'));
+        const dto: GenerateSignedUrlDto = {
+          uploadType: UploadType.TRIP_COVER,
+          contextId: 'trip-uuid',
+          contentType: 'image/jpeg',
+          fileSize: 500 * 1024,
+        };
+
+        await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
+          NotFoundException,
+        );
+        expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+      });
+
+      it('throws ForbiddenException for TRIP_COVER when user is not the trip creator', async () => {
+        mockTripsGetTrip.mockResolvedValue({ id: 'trip-uuid', createdBy: 'other-user-uuid' });
+        const dto: GenerateSignedUrlDto = {
+          uploadType: UploadType.TRIP_COVER,
+          contextId: 'trip-uuid',
+          contentType: 'image/jpeg',
+          fileSize: 500 * 1024,
+        };
+
+        await expect(controller.generateSignedUrl(mockAuthUser, dto)).rejects.toThrow(
+          ForbiddenException,
+        );
+        expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+      });
+
+      it('returns a signed URL for TRIP_COVER when user is the trip creator', async () => {
+        mockTripsGetTrip.mockResolvedValue({ id: 'trip-uuid', createdBy: 'user-uuid' });
+        const dto: GenerateSignedUrlDto = {
+          uploadType: UploadType.TRIP_COVER,
+          contextId: 'trip-uuid',
+          contentType: 'image/jpeg',
+          fileSize: 500 * 1024,
+        };
+
+        const result = await controller.generateSignedUrl(mockAuthUser, dto);
+
+        expect(result).toEqual(mockSignedUrlResult);
+        expect(mockGenerateSignedUploadUrl).toHaveBeenCalledWith(
+          UploadType.TRIP_COVER,
+          'trip-uuid',
           'image/jpeg',
         );
       });

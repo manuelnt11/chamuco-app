@@ -71,6 +71,7 @@ const tripFixture: TripResponse = {
   updatedAt: '2026-01-01T00:00:00.000Z',
   requiresConfirmation: false,
   feedbackOpenUntil: null,
+  coverUrl: null,
 };
 
 const destFixture: DestinationResponse = {
@@ -132,6 +133,7 @@ const minCreateTripPayload = {
   landingCountry: 'MX',
   landingCity: 'Cancun',
   isTravelingParticipant: true,
+  cover: { source: 'emoji' as const, target: '🏖️' },
 };
 
 describe('createTrip', () => {

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
@@ -14,11 +14,14 @@ import {
   Min,
   MinLength,
   registerDecorator,
+  ValidateNested,
   ValidationArguments,
   ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
+
+import { TripCoverDto } from './trip-cover.dto';
 
 import { TripVisibility } from '@chamuco/shared-types';
 import {
@@ -180,4 +183,13 @@ export class CreateTripDto {
   })
   @IsBoolean()
   isTravelingParticipant!: boolean;
+
+  @ApiProperty({
+    description:
+      'Cover for the trip. Use source=emoji for an emoji cover or source=gcs after uploading via POST /v1/uploads/signed-url.',
+    type: TripCoverDto,
+  })
+  @ValidateNested()
+  @Type(() => TripCoverDto)
+  cover!: TripCoverDto;
 }

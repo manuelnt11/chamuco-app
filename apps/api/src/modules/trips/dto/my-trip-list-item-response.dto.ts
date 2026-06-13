@@ -5,13 +5,6 @@ import { TripResponseDto } from './trip-response.dto';
 
 export class MyTripListItemResponseDto extends TripResponseDto {
   @ApiProperty({
-    description: 'Resolved cover image URL. Null when no cover has been set.',
-    example: 'https://storage.googleapis.com/bucket/trip-covers/trip-uuid/cover.jpg',
-    nullable: true,
-  })
-  coverUrl!: string | null;
-
-  @ApiProperty({
     description: 'Number of participants with CONFIRMED status.',
     example: 4,
     minimum: 0,

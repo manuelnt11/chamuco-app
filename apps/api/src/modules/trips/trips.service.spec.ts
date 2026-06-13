@@ -11,6 +11,7 @@ import {
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
 import { TripsService } from './trips.service';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
@@ -85,12 +86,14 @@ const createDto: CreateTripDto = {
   landingCountry: 'MX',
   landingCity: 'CANCUN',
   isTravelingParticipant: true,
+  cover: { source: 'emoji', target: '🏖️' },
 };
 
 describe('TripsService', () => {
   let service: TripsService;
   let mockTripsFindFirst: jest.Mock;
   let mockTripParticipantsFindFirst: jest.Mock;
+  let mockAssetsFindFirst: jest.Mock;
   let mockSelectWhere: jest.Mock;
   let mockSelectFrom: jest.Mock;
   let mockSelect: jest.Mock;
@@ -103,10 +106,12 @@ describe('TripsService', () => {
   let mockInsertValues: jest.Mock;
   let mockInsert: jest.Mock;
   let mockTransaction: jest.Mock;
+  let mockCloudStorage: { makePublic: jest.Mock; deleteObject: jest.Mock };
 
   beforeEach(async () => {
     mockTripsFindFirst = jest.fn().mockResolvedValue(mockTripRow);
     mockTripParticipantsFindFirst = jest.fn().mockResolvedValue(mockOrganizerParticipant);
+    mockAssetsFindFirst = jest.fn().mockResolvedValue(undefined);
 
     mockSelectWhere = jest.fn().mockResolvedValue([{ total: 0 }]);
     mockSelectFrom = jest.fn().mockReturnValue({ where: mockSelectWhere });
@@ -130,8 +135,14 @@ describe('TripsService', () => {
           insert: mockInsert,
           update: mockUpdate,
           delete: mockDelete,
+          query: { assets: { findFirst: mockAssetsFindFirst } },
         }),
       );
+
+    mockCloudStorage = {
+      makePublic: jest.fn().mockResolvedValue(undefined),
+      deleteObject: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -142,6 +153,7 @@ describe('TripsService', () => {
             query: {
               trips: { findFirst: mockTripsFindFirst },
               tripParticipants: { findFirst: mockTripParticipantsFindFirst },
+              assets: { findFirst: mockAssetsFindFirst },
             },
             select: mockSelect,
             update: mockUpdate,
@@ -153,6 +165,10 @@ describe('TripsService', () => {
         {
           provide: AssetResolverService,
           useValue: { resolve: jest.fn().mockResolvedValue(null) },
+        },
+        {
+          provide: CloudStorageService,
+          useValue: mockCloudStorage,
         },
       ],
     }).compile();
@@ -172,15 +188,23 @@ describe('TripsService', () => {
       expect(result.feedbackOpenUntil).toBeNull();
     });
 
-    it('inserts trip and participant inside transaction', async () => {
+    it('inserts cover asset, trip, and participant inside transaction', async () => {
       await service.createTrip(mockUser, createDto);
 
-      // insert called twice inside transaction: trip + participant
-      expect(mockInsert).toHaveBeenCalledTimes(2);
+      // insert called 3 times inside transaction: cover asset + trip + participant
+      expect(mockInsert).toHaveBeenCalledTimes(3);
+    });
+
+    it('throws when cover asset insert returns empty array', async () => {
+      mockInsertReturning.mockResolvedValueOnce([]);
+      await expect(service.createTrip(mockUser, createDto)).rejects.toThrow(
+        'Failed to create cover asset',
+      );
     });
 
     it('throws when trip insert returns empty array', async () => {
-      mockInsertReturning.mockResolvedValueOnce([]);
+      // First call (asset insert) succeeds; second call (trip insert) fails
+      mockInsertReturning.mockResolvedValueOnce([{ id: 'asset-uuid' }]).mockResolvedValueOnce([]);
       await expect(service.createTrip(mockUser, createDto)).rejects.toThrow(
         'Failed to create trip',
       );
@@ -267,6 +291,25 @@ describe('TripsService', () => {
       expect(result.id).toBe('trip-uuid');
     });
 
+    it('throws BadRequestException when making a PRIVATE trip PUBLIC', async () => {
+      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, visibility: TripVisibility.PRIVATE });
+      const dto: UpdateTripDto = { visibility: TripVisibility.PUBLIC };
+
+      const err = await service.updateTrip(mockUser, 'trip-uuid', dto).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect((err as BadRequestException).getResponse()).toMatchObject({
+        error: 'TRIP_CANNOT_BE_MADE_PUBLIC',
+      });
+    });
+
+    it('allows keeping a PRIVATE trip PRIVATE', async () => {
+      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, visibility: TripVisibility.PRIVATE });
+      const dto: UpdateTripDto = { visibility: TripVisibility.PRIVATE };
+
+      const result = await service.updateTrip(mockUser, 'trip-uuid', dto);
+      expect(result.id).toBe('trip-uuid');
+    });
+
     it('throws ForbiddenException for non-organizer', async () => {
       mockTripParticipantsFindFirst.mockResolvedValue(undefined);
 
@@ -296,6 +339,41 @@ describe('TripsService', () => {
       await expect(service.updateTrip(mockUser, 'trip-uuid', {})).rejects.toThrow(
         ForbiddenException,
       );
+    });
+
+    it('updates GCS cover, calls makePublic, and deletes old GCS asset', async () => {
+      const mockOldAsset = {
+        id: 'old-asset-uuid',
+        type: 'image' as const,
+        source: 'gcs' as const,
+        target: 'trip-covers/trip-uuid/old.jpg',
+        fileSize: null,
+        isPublic: true,
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      };
+      mockTripsFindFirst.mockResolvedValue({ ...mockTripRow, cover: 'old-asset-uuid' });
+      mockAssetsFindFirst.mockResolvedValueOnce(mockOldAsset); // trx.query.assets.findFirst (old asset)
+
+      const dto: UpdateTripDto = {
+        cover: { source: 'gcs', target: 'trip-covers/trip-uuid/new.jpg', fileSize: 1024 },
+      };
+
+      const result = await service.updateTrip(mockUser, 'trip-uuid', dto);
+
+      expect(result.id).toBe('trip-uuid');
+      expect(mockCloudStorage.makePublic).toHaveBeenCalledWith('trip-covers/trip-uuid/new.jpg');
+      expect(mockCloudStorage.deleteObject).toHaveBeenCalledWith('trip-covers/trip-uuid/old.jpg');
+      expect(mockDelete).toHaveBeenCalled();
+    });
+
+    it('updates emoji cover without calling makePublic or deleteObject', async () => {
+      const dto: UpdateTripDto = { cover: { source: 'emoji', target: '🏖️' } };
+
+      const result = await service.updateTrip(mockUser, 'trip-uuid', dto);
+
+      expect(result.id).toBe('trip-uuid');
+      expect(mockCloudStorage.makePublic).not.toHaveBeenCalled();
+      expect(mockCloudStorage.deleteObject).not.toHaveBeenCalled();
     });
   });
 
@@ -456,6 +534,10 @@ describe('TripsService', () => {
           {
             provide: AssetResolverService,
             useValue: { resolve: mockAssetResolve },
+          },
+          {
+            provide: CloudStorageService,
+            useValue: { makePublic: jest.fn(), deleteObject: jest.fn() },
           },
         ],
       }).compile();

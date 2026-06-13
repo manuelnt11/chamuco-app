@@ -11,6 +11,7 @@ export type { UploadType };
 const ACCEPTED_TYPES: Record<UploadType, string> = {
   [UploadType.USER_AVATAR]: 'image/jpeg,image/png,image/webp',
   [UploadType.GROUP_COVER]: 'image/jpeg,image/png,image/webp',
+  [UploadType.TRIP_COVER]: 'image/jpeg,image/png,image/webp',
   [UploadType.GROUP_RESOURCE_DOCUMENT]: 'application/pdf,image/jpeg,image/png,.doc,.docx',
   [UploadType.TRIP_RESOURCE]: 'application/pdf,image/jpeg,image/png,.doc,.docx',
 };
