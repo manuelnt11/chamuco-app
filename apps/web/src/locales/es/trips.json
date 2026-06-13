@@ -16,7 +16,14 @@
   },
   "detail": {
     "noTrips": "Aún no hay viajes aquí",
-    "createFirst": "Crea tu primer viaje y empieza a planificar tu próxima aventura."
+    "createFirst": "Crea tu primer viaje y empieza a planificar tu próxima aventura.",
+    "destinations": "Destinos",
+    "noDestinations": "Aún no hay destinos agregados.",
+    "about": "Acerca de",
+    "noDescription": "Sin descripción.",
+    "capacity": "Capacidad",
+    "currency": "Moneda",
+    "timezone": "Zona horaria"
   },
   "role": {
     "organizer": "Organizador",
@@ -77,11 +84,17 @@
     "public_disabled_tooltip": "Los viajes privados no pueden hacerse públicos."
   },
   "errors": {
+    "notFound": "Viaje no encontrado.",
     "createFailed": "Error al crear el viaje. Por favor intenta de nuevo.",
     "saveFailed": "Error al guardar el viaje. Por favor intenta de nuevo.",
     "forbidden": "No tienes permiso para realizar esta acción.",
     "cannotMakePublic": "Un viaje privado no puede hacerse público.",
     "coverUploadFailed": "Viaje creado. Error al subir la portada — puedes actualizarla más tarde."
+  },
+  "announcements": "Anuncios",
+  "announcementsPublish": "Publicar anuncio",
+  "actions": {
+    "editSettings": "Editar configuración"
   },
   "card": {
     "capacityOf": "de"

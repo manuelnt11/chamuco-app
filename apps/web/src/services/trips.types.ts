@@ -121,3 +121,13 @@ export interface TripGroupResponse {
   groupId: string;
   addedAt: string;
 }
+
+export interface TripParticipantResponse {
+  userId: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  role: TripRole;
+  isTraveler: boolean;
+  confirmedAt: string | null;
+}
