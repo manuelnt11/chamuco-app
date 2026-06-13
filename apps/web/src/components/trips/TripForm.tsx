@@ -504,7 +504,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
           ) : (
             <>
               <div className="flex gap-2 border-b">
-                {(['photo', 'emoji'] as CoverTab[]).map((tab) => (
+                {(['emoji', 'photo'] as CoverTab[]).map((tab) => (
                   <button
                     key={tab}
                     type="button"

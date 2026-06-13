@@ -3,6 +3,7 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
+  IsDefined,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -188,6 +189,7 @@ export class CreateTripDto {
       'Cover for the trip. Use source=emoji for an emoji cover or source=gcs after uploading via POST /v1/uploads/signed-url.',
     type: TripCoverDto,
   })
+  @IsDefined()
   @ValidateNested()
   @Type(() => TripCoverDto)
   cover!: TripCoverDto;

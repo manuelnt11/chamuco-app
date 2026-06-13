@@ -84,7 +84,9 @@ export class GroupsService {
     if (dto.cover.source === 'gcs') {
       const prefix = dto.cover.target.split('/')[0];
       if (prefix && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
-        await this.cloudStorage.makePublic(dto.cover.target);
+        await this.cloudStorage.makePublic(dto.cover.target).catch((e: unknown) => {
+          console.error('[GroupsService] makePublic failed (cover may be inaccessible):', e);
+        });
       }
     }
 
@@ -163,6 +165,7 @@ export class GroupsService {
     if (dto.visibility !== undefined) patch.visibility = dto.visibility;
 
     if (dto.cover) {
+      const cover = dto.cover;
       let oldAsset: typeof assets.$inferSelect | undefined;
 
       await this.db.transaction(async (trx) => {
@@ -174,9 +177,9 @@ export class GroupsService {
           .insert(assets)
           .values({
             type: 'image',
-            source: dto.cover!.source,
-            target: dto.cover!.target,
-            fileSize: dto.cover!.fileSize ?? null,
+            source: cover.source,
+            target: cover.target,
+            fileSize: cover.fileSize ?? null,
             isPublic: true,
           })
           .returning();
@@ -189,10 +192,12 @@ export class GroupsService {
           .where(eq(groups.id, id));
       });
 
-      if (dto.cover.source === 'gcs') {
-        const prefix = dto.cover.target.split('/')[0];
+      if (cover.source === 'gcs') {
+        const prefix = cover.target.split('/')[0];
         if (prefix && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
-          await this.cloudStorage.makePublic(dto.cover.target);
+          await this.cloudStorage.makePublic(cover.target).catch((e: unknown) => {
+            console.error('[GroupsService] makePublic failed (cover may be inaccessible):', e);
+          });
         }
       }
 
@@ -250,14 +255,12 @@ export class GroupsService {
   private async fetchAndMapGroup(id: string): Promise<GroupResponseDto> {
     const group = await this.db.query.groups.findFirst({
       where: and(eq(groups.id, id), isNull(groups.deletedAt)),
+      with: { coverAsset: true },
     });
     if (!group) throw new NotFoundException('Group not found');
-    if (!group.cover) throw new NotFoundException('Group cover asset not found');
+    if (!group.coverAsset) throw new NotFoundException('Group cover asset not found');
 
-    const coverRow = await this.db.query.assets.findFirst({ where: eq(assets.id, group.cover) });
-    if (!coverRow) throw new NotFoundException('Group cover asset not found');
-
-    const resolvedCover = await this.assetResolver.resolve(assetRowToAsset(coverRow));
+    const resolvedCover = await this.assetResolver.resolve(assetRowToAsset(group.coverAsset));
     if (!resolvedCover) throw new NotFoundException('Failed to resolve group cover');
 
     return {

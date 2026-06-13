@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
+  IsDefined,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -53,6 +54,7 @@ export class CreateGroupDto {
       'Cover for the group. Use source=emoji for an emoji cover or source=gcs after uploading via POST /v1/uploads/signed-url.',
     type: GroupCoverDto,
   })
+  @IsDefined()
   @ValidateNested()
   @Type(() => GroupCoverDto)
   cover!: GroupCoverDto;

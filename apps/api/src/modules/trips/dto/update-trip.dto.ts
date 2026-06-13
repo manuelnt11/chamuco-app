@@ -14,9 +14,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { TripCoverDto } from './trip-cover.dto';
-
 import { TripVisibility } from '@chamuco/shared-types';
+import { TripCoverDto } from './trip-cover.dto';
 import {
   sanitizeName,
   sanitizeProperNoun,

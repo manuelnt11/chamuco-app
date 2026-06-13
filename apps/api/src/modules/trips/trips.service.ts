@@ -170,7 +170,9 @@ export class TripsService {
     if (dto.cover.source === 'gcs') {
       const prefix = dto.cover.target.split('/')[0];
       if (prefix && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
-        await this.cloudStorage.makePublic(dto.cover.target);
+        await this.cloudStorage.makePublic(dto.cover.target).catch((e: unknown) => {
+          console.error('[TripsService] makePublic failed (cover may be inaccessible):', e);
+        });
       }
     }
 
@@ -275,7 +277,9 @@ export class TripsService {
       if (cover.source === 'gcs') {
         const prefix = cover.target.split('/')[0];
         if (prefix && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
-          await this.cloudStorage.makePublic(cover.target);
+          await this.cloudStorage.makePublic(cover.target).catch((e: unknown) => {
+            console.error('[TripsService] makePublic failed (cover may be inaccessible):', e);
+          });
         }
       }
 
