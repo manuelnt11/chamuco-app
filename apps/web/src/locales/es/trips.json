@@ -80,7 +80,8 @@
     "createFailed": "Error al crear el viaje. Por favor intenta de nuevo.",
     "saveFailed": "Error al guardar el viaje. Por favor intenta de nuevo.",
     "forbidden": "No tienes permiso para realizar esta acción.",
-    "cannotMakePublic": "Un viaje privado no puede hacerse público."
+    "cannotMakePublic": "Un viaje privado no puede hacerse público.",
+    "coverUploadFailed": "Viaje creado. Error al subir la portada — puedes actualizarla más tarde."
   },
   "card": {
     "capacityOf": "de"

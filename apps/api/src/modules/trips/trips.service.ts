@@ -245,6 +245,7 @@ export class TripsService {
     if (dto.itineraryNotes !== undefined) patch.itineraryNotes = dto.itineraryNotes;
 
     if (dto.cover) {
+      const cover = dto.cover;
       let oldAsset: typeof assets.$inferSelect | undefined;
 
       await this.db.transaction(async (trx) => {
@@ -256,9 +257,9 @@ export class TripsService {
           .insert(assets)
           .values({
             type: 'image',
-            source: dto.cover!.source,
-            target: dto.cover!.target,
-            fileSize: dto.cover!.fileSize ?? null,
+            source: cover.source,
+            target: cover.target,
+            fileSize: cover.fileSize ?? null,
             isPublic: true,
           })
           .returning();
@@ -271,10 +272,10 @@ export class TripsService {
           .where(eq(trips.id, id));
       });
 
-      if (dto.cover.source === 'gcs') {
-        const prefix = dto.cover.target.split('/')[0];
+      if (cover.source === 'gcs') {
+        const prefix = cover.target.split('/')[0];
         if (prefix && PUBLIC_OBJECT_PREFIXES.has(prefix)) {
-          await this.cloudStorage.makePublic(dto.cover.target);
+          await this.cloudStorage.makePublic(cover.target);
         }
       }
 
@@ -370,16 +371,16 @@ export class TripsService {
   }
 
   private async fetchAndMapTrip(id: string): Promise<TripResponseDto> {
-    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, id) });
+    const trip = await this.db.query.trips.findFirst({
+      where: eq(trips.id, id),
+      with: { coverAsset: true },
+    });
     if (!trip) throw new NotFoundException('Trip not found');
 
     let coverUrl: string | null = null;
-    if (trip.cover) {
-      const coverRow = await this.db.query.assets.findFirst({ where: eq(assets.id, trip.cover) });
-      if (coverRow) {
-        const resolved = await this.assetResolver.resolve(assetRowToAsset(coverRow));
-        coverUrl = resolved?.url ?? null;
-      }
+    if (trip.coverAsset) {
+      const resolved = await this.assetResolver.resolve(assetRowToAsset(trip.coverAsset));
+      coverUrl = resolved?.url ?? null;
     }
 
     return this.mapTrip(trip, coverUrl);

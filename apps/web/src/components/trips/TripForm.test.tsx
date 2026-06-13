@@ -379,6 +379,24 @@ describe('TripForm', () => {
 
       expect(mocks.mockOnSuccess).toHaveBeenCalledWith(mockTrip);
     });
+
+    it('navigates to trip with warning toast when GCS cover upload fails', async () => {
+      mocks.mockUploadToGcs.mockRejectedValue(new Error('Network error'));
+      const { user } = setupCreate();
+      await fillRequiredFields(user);
+
+      await user.click(screen.getByRole('button', { name: 'form.cover.tabImage' }));
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      await user.upload(fileInput, new File(['img'], 'cover.jpg', { type: 'image/jpeg' }));
+      await user.click(screen.getByTestId('crop-confirm'));
+
+      await user.click(screen.getByRole('button', { name: 'form.submit' }));
+
+      await waitFor(() => {
+        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.coverUploadFailed');
+        expect(mocks.mockOnSuccess).toHaveBeenCalledWith(mockTrip);
+      });
+    });
   });
 
   describe('create form submission', () => {
@@ -462,7 +480,6 @@ describe('TripForm', () => {
 
   describe('visibility restrictions (edit mode)', () => {
     it('disables PUBLIC option unconditionally when trip is PRIVATE', () => {
-      const user = userEvent.setup();
       render(
         <TripForm
           mode="edit"
@@ -485,7 +502,6 @@ describe('TripForm', () => {
           onSuccess={mocks.mockOnSuccess}
         />,
       );
-      void user;
       expect(screen.getByDisplayValue(TripVisibility.PUBLIC)).toBeDisabled();
     });
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, type ChangeEvent } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getTwemojiUrl } from '@chamuco/shared-utils';
 import { TripVisibility, UploadType } from '@chamuco/shared-types';
@@ -119,7 +119,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
     setCropFile(file);
   }
 
-  async function handleSubmit(e: { preventDefault: () => void }) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submitDisabled) return;
 
@@ -148,17 +148,23 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
         });
 
         if (coverTab === 'photo' && croppedBlob) {
-          const file = new File([croppedBlob], 'cover.jpg', { type: 'image/jpeg' });
-          const signed = await getSignedUrl({
-            uploadType: UploadType.TRIP_COVER,
-            contextId: trip.id,
-            contentType: 'image/jpeg',
-            fileSize: croppedBlob.size,
-          });
-          await uploadToGcs(signed.uploadUrl, file, () => {});
-          trip = await updateTrip(trip.id, {
-            cover: { source: 'gcs', target: signed.objectKey, fileSize: croppedBlob.size },
-          });
+          try {
+            const file = new File([croppedBlob], 'cover.jpg', { type: 'image/jpeg' });
+            const signed = await getSignedUrl({
+              uploadType: UploadType.TRIP_COVER,
+              contextId: trip.id,
+              contentType: 'image/jpeg',
+              fileSize: croppedBlob.size,
+            });
+            await uploadToGcs(signed.uploadUrl, file, () => {});
+            trip = await updateTrip(trip.id, {
+              cover: { source: 'gcs', target: signed.objectKey, fileSize: croppedBlob.size },
+            });
+          } catch {
+            toast.error(t('errors.coverUploadFailed'));
+            onSuccess(trip);
+            return;
+          }
         }
 
         onSuccess(trip);
