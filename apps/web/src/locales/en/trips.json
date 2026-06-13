@@ -16,7 +16,16 @@
   },
   "detail": {
     "noTrips": "No trips here yet",
-    "createFirst": "Create your first trip and start planning your next adventure."
+    "createFirst": "Create your first trip and start planning your next adventure.",
+    "destinations": "Destinations",
+    "noDestinations": "No destinations added yet.",
+    "about": "About",
+    "noDescription": "No description provided.",
+    "departure": "Departure",
+    "return": "Return",
+    "capacity": "Capacity",
+    "currency": "Currency",
+    "timezone": "Timezone"
   },
   "role": {
     "organizer": "Organizer",
@@ -77,11 +86,17 @@
     "public_disabled_tooltip": "Private trips cannot be made public."
   },
   "errors": {
+    "notFound": "Trip not found.",
     "createFailed": "Failed to create trip. Please try again.",
     "saveFailed": "Failed to save trip. Please try again.",
     "forbidden": "You don't have permission to perform this action.",
     "cannotMakePublic": "A private trip cannot be made public.",
     "coverUploadFailed": "Trip created. Cover upload failed — you can update it later."
+  },
+  "announcements": "Announcements",
+  "announcementsPublish": "Publish announcement",
+  "actions": {
+    "editSettings": "Edit settings"
   },
   "card": {
     "capacityOf": "of"

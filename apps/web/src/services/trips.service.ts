@@ -10,6 +10,7 @@ import type {
   ReorderDestinationsPayload,
   TransitionTripStatusPayload,
   TripGroupResponse,
+  TripParticipantResponse,
   TripResponse,
   UpdateDestinationPayload,
   UpdateTripPayload,
@@ -48,6 +49,11 @@ export async function transitionTripStatus(
   dto: TransitionTripStatusPayload,
 ): Promise<TripResponse> {
   const { data } = await apiClient.patch<TripResponse>(`/v1/trips/${id}/status`, dto);
+  return data;
+}
+
+export async function getTripParticipation(id: string): Promise<TripParticipantResponse> {
+  const { data } = await apiClient.get<TripParticipantResponse>(`/v1/trips/${id}/participants/me`);
   return data;
 }
 
