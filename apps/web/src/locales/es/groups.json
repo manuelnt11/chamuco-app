@@ -63,6 +63,10 @@
     },
     "invitation": {
       "received": "Has sido invitado a unirte a este grupo",
+      "accept": "Aceptar invitación",
+      "decline": "Rechazar",
+      "accepting": "Aceptando...",
+      "declining": "Rechazando...",
       "acceptError": "Error al aceptar la invitación",
       "declineError": "Error al rechazar la invitación"
     },

@@ -18,7 +18,9 @@
     "loading": "Loading...",
     "viewMore": "View More",
     "viewLess": "View Less",
-    "backToSignIn": "Back to sign in"
+    "backToSignIn": "Back to sign in",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "navigation": {
     "home": "Home",

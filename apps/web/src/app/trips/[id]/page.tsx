@@ -19,6 +19,7 @@ import {
 import { getTrip, getTripDestinations, getTripParticipation } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
 import { STATUS_CLASSES, STATUS_I18N_KEYS } from '@/components/trips/trip-status';
+import { DestinationList } from '@/components/trips/DestinationList';
 import type { TripResponse, DestinationResponse } from '@/services/trips.types';
 
 interface TripDetailPageProps {
@@ -165,23 +166,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           <h2 className="text-sm font-semibold">{t('detail.destinations')}</h2>
         </div>
 
-        {destinations.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('detail.noDestinations')}</p>
-        ) : (
-          <ol className="space-y-2">
-            {destinations.map((dest) => (
-              <li key={dest.id} className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground tabular-nums w-5 shrink-0 text-right">
-                  {dest.position}.
-                </span>
-                <span>
-                  {dest.city}, {dest.countryCode}
-                  {dest.label && <span className="ml-1 text-muted-foreground">— {dest.label}</span>}
-                </span>
-              </li>
-            ))}
-          </ol>
-        )}
+        <DestinationList tripId={id} initialDestinations={destinations} isOrganizer={isOrganizer} />
       </section>
 
       {/* About section */}

@@ -98,5 +98,17 @@
   },
   "card": {
     "capacityOf": "de"
+  },
+  "destinations": {
+    "addButton": "Agregar destino",
+    "addTitle": "Agregar destino",
+    "editTitle": "Editar destino",
+    "city": "Ciudad",
+    "countryCode": "País",
+    "label": "Etiqueta",
+    "labelPlaceholder": "ej. Parada en la playa",
+    "saveError": "Error al guardar el destino.",
+    "deleteError": "Error al eliminar el destino.",
+    "reorderError": "Error al reordenar los destinos."
   }
 }

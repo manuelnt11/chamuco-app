@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { and, asc, count, eq, max } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, max, sql } from 'drizzle-orm';
 
 import { TripStatus } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -149,13 +149,33 @@ export class TripsDestinationsService {
       );
     }
 
+    // PostgreSQL checks non-deferred UNIQUE constraints per-row even within a
+    // single UPDATE statement, so a direct CASE-based reorder still causes
+    // transient duplicate-key violations when positions are swapped.
+    // Two-step approach inside a transaction:
+    //   1. Shift all positions to a safe temp range (current + large offset).
+    //   2. Set final positions 1..N — no conflict because step 1 cleared the way.
+    const offset = dto.destinationIds.length + 1;
+    const caseExpr = sql<number>`(CASE ${sql.join(
+      dto.destinationIds.map((id, i) => sql`WHEN ${tripDestinations.id} = ${id} THEN ${i + 1}`),
+      sql` `,
+    )} END)::int`;
+
     await this.db.transaction(async (trx) => {
-      for (let i = 0; i < dto.destinationIds.length; i++) {
-        await trx
-          .update(tripDestinations)
-          .set({ position: i + 1 })
-          .where(eq(tripDestinations.id, dto.destinationIds[i]!));
-      }
+      await trx
+        .update(tripDestinations)
+        .set({ position: sql`${tripDestinations.position} + ${offset}` })
+        .where(eq(tripDestinations.tripId, tripId));
+
+      await trx
+        .update(tripDestinations)
+        .set({ position: caseExpr })
+        .where(
+          and(
+            eq(tripDestinations.tripId, tripId),
+            inArray(tripDestinations.id, dto.destinationIds),
+          ),
+        );
     });
 
     return this.listDestinations(tripId);
