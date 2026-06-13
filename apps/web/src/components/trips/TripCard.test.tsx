@@ -61,7 +61,8 @@ describe('TripCard', () => {
 
     it('renders date range', () => {
       render(<TripCard trip={baseTrip} />);
-      expect(screen.getByText('2026-12-01 – 2026-12-08')).toBeInTheDocument();
+      expect(screen.getByText('2026-12-01')).toBeInTheDocument();
+      expect(screen.getByText('2026-12-08')).toBeInTheDocument();
     });
 
     it('renders departure city', () => {
@@ -71,7 +72,7 @@ describe('TripCard', () => {
 
     it('renders participant count and capacity', () => {
       render(<TripCard trip={baseTrip} />);
-      expect(screen.getByText('4/12')).toBeInTheDocument();
+      expect(screen.getByText('4 card.capacityOf 12')).toBeInTheDocument();
     });
 
     it('renders cover image when coverUrl is set', () => {

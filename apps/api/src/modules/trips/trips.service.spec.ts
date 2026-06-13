@@ -209,6 +209,23 @@ describe('TripsService', () => {
         'Failed to create trip',
       );
     });
+
+    it('calls makePublic when creating a trip with gcs cover in a public prefix', async () => {
+      const gcsDto: CreateTripDto = {
+        ...createDto,
+        cover: { source: 'gcs', target: 'trip-covers/trip-uuid/cover.jpg', fileSize: 1024 },
+      };
+
+      await service.createTrip(mockUser, gcsDto);
+
+      expect(mockCloudStorage.makePublic).toHaveBeenCalledWith('trip-covers/trip-uuid/cover.jpg');
+    });
+
+    it('does not call makePublic when creating a trip with emoji cover', async () => {
+      await service.createTrip(mockUser, createDto);
+
+      expect(mockCloudStorage.makePublic).not.toHaveBeenCalled();
+    });
   });
 
   describe('getTrip', () => {

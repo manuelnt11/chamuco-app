@@ -1,14 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  Max,
-  MaxLength,
-  Min,
-  ValidateIf,
-} from 'class-validator';
+import { IsIn, IsNotEmpty, IsNumber, Max, Min, ValidateIf } from 'class-validator';
+
+import { IsValidCoverTarget } from '@/common/validators/cover-target.validator';
 
 const FIVE_MB = 5 * 1024 * 1024;
 
@@ -27,10 +20,7 @@ export class GroupCoverDto {
       'For emoji: the emoji character (e.g. "🏔️"), max 8 chars.',
     example: '🏔️',
   })
-  @IsString()
-  @IsNotEmpty()
-  @ValidateIf((o: GroupCoverDto) => o.source === 'emoji')
-  @MaxLength(8)
+  @IsValidCoverTarget()
   target!: string;
 
   @ApiProperty({

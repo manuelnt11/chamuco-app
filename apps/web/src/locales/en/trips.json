@@ -81,5 +81,8 @@
     "saveFailed": "Failed to save trip. Please try again.",
     "forbidden": "You don't have permission to perform this action.",
     "cannotMakePublic": "A private trip cannot be made public."
+  },
+  "card": {
+    "capacityOf": "of"
   }
 }

@@ -1,6 +1,6 @@
 jest.mock('@google-cloud/storage', () => ({ Storage: jest.fn() }));
 
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import { UploadsController } from './uploads.controller';
@@ -152,7 +152,6 @@ describe('UploadsController', () => {
       });
 
       it('throws when trip does not exist for TRIP_COVER', async () => {
-        const { NotFoundException } = await import('@nestjs/common');
         mockTripsGetTrip.mockRejectedValue(new NotFoundException('Trip not found'));
         const dto: GenerateSignedUrlDto = {
           uploadType: UploadType.TRIP_COVER,
