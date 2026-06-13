@@ -52,6 +52,36 @@ vi.mock('@phosphor-icons/react', () => ({
   NavigationArrowIcon: () => null,
 }));
 
+vi.mock('@/components/trips/DestinationList', () => ({
+  DestinationList: ({
+    initialDestinations,
+  }: {
+    initialDestinations: Array<{
+      id: string;
+      city: string;
+      countryCode: string;
+      position: number;
+      label: string | null;
+    }>;
+    tripId: string;
+    isOrganizer: boolean;
+  }) => {
+    if (initialDestinations.length === 0) {
+      return <p>detail.noDestinations</p>;
+    }
+    return (
+      <ol>
+        {initialDestinations.map((d) => (
+          <li key={d.id}>
+            {d.city}, {d.countryCode}
+            {d.label && <span> — {d.label}</span>}
+          </li>
+        ))}
+      </ol>
+    );
+  },
+}));
+
 vi.mock('react-i18next', () => ({
   useTranslation: (_ns?: string) => ({
     t: (key: string, opts?: Record<string, string>) => {

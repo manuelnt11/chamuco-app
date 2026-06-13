@@ -98,5 +98,17 @@
   },
   "card": {
     "capacityOf": "of"
+  },
+  "destinations": {
+    "addButton": "Add destination",
+    "addTitle": "Add destination",
+    "editTitle": "Edit destination",
+    "city": "City",
+    "countryCode": "Country",
+    "label": "Label",
+    "labelPlaceholder": "e.g. Beach stop",
+    "saveError": "Failed to save destination.",
+    "deleteError": "Failed to delete destination.",
+    "reorderError": "Failed to reorder destinations."
   }
 }

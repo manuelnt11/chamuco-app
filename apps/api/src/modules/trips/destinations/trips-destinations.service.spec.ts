@@ -439,11 +439,9 @@ describe('TripsDestinationsService', () => {
   describe('reorderDestinations', () => {
     const dest2 = { ...mockDestRow, id: 'dest-uuid-2', position: 2 };
 
-    it('reorders all destinations atomically in a transaction', async () => {
+    it('reorders destinations via two-step transaction (shift then set)', async () => {
       const dto: ReorderDestinationsDto = { destinationIds: ['dest-uuid', 'dest-uuid-2'] };
 
-      // First select: existing IDs check
-      // Second select (via listDestinations): orderBy chain
       const mockOrderBy = jest.fn().mockResolvedValue([mockDestRow, dest2]);
       mockSelectWhere
         .mockReturnValueOnce(Promise.resolve([{ id: 'dest-uuid' }, { id: 'dest-uuid-2' }]))
@@ -452,11 +450,12 @@ describe('TripsDestinationsService', () => {
       const result = await service.reorderDestinations(mockUser, 'trip-uuid', dto);
 
       expect(mockTransaction).toHaveBeenCalledTimes(1);
+      // Two updates: step 1 = shift all, step 2 = set final positions
       expect(mockUpdate).toHaveBeenCalledTimes(2);
       expect(result).toHaveLength(2);
     });
 
-    it('updates positions starting at 1', async () => {
+    it('step 2 passes a SQL CASE expression for the final positions', async () => {
       const dto: ReorderDestinationsDto = { destinationIds: ['dest-uuid-2', 'dest-uuid'] };
 
       const mockOrderBy = jest.fn().mockResolvedValue([dest2, mockDestRow]);
@@ -466,12 +465,10 @@ describe('TripsDestinationsService', () => {
 
       await service.reorderDestinations(mockUser, 'trip-uuid', dto);
 
-      // First update call should set position=1 for the first id (dest-uuid-2)
-      const firstSetCall = mockUpdateSet.mock.calls[0]?.[0] as { position: number };
-      expect(firstSetCall?.position).toBe(1);
-      // Second update call should set position=2 for the second id (dest-uuid)
-      const secondSetCall = mockUpdateSet.mock.calls[1]?.[0] as { position: number };
-      expect(secondSetCall?.position).toBe(2);
+      // Second update call (step 2) receives a SQL CASE expression, not a plain number
+      const step2SetArg = mockUpdateSet.mock.calls[1]?.[0] as { position: unknown };
+      expect(step2SetArg?.position).toBeDefined();
+      expect(typeof step2SetArg?.position).not.toBe('number');
     });
 
     it('throws BadRequestException when destinationIds does not match trip destinations', async () => {

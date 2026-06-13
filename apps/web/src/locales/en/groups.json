@@ -63,10 +63,6 @@
     },
     "invitation": {
       "received": "You have been invited to join this group",
-      "accept": "Accept invitation",
-      "decline": "Decline",
-      "accepting": "Accepting...",
-      "declining": "Declining...",
       "acceptError": "Failed to accept invitation",
       "declineError": "Failed to decline invitation"
     },
