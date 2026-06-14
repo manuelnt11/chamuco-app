@@ -247,6 +247,54 @@ describe('TripStatusTransition', () => {
       });
     });
 
+    it('closes dialog after successful transition', async () => {
+      const user = userEvent.setup();
+      const updatedTrip = { ...baseTripResponse, status: TripStatus.CONFIRMED };
+      mocks.transitionTripStatus.mockResolvedValueOnce(updatedTrip);
+
+      render(
+        <TripStatusTransition
+          tripId="trip-1"
+          currentStatus={TripStatus.OPEN}
+          onTransitioned={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByTestId('transition-btn-CONFIRMED'));
+      expect(screen.getByText('transitions.dialogTitle')).toBeInTheDocument();
+
+      await user.click(screen.getByTestId('transition-confirm-btn'));
+
+      await waitFor(() => {
+        expect(screen.queryByText('transitions.dialogTitle')).not.toBeInTheDocument();
+      });
+    });
+
+    it('disables confirm button while transition is in flight', async () => {
+      const user = userEvent.setup();
+      let resolveTransition!: (value: typeof baseTripResponse) => void;
+      mocks.transitionTripStatus.mockReturnValueOnce(
+        new Promise<typeof baseTripResponse>((resolve) => {
+          resolveTransition = resolve;
+        }),
+      );
+
+      render(
+        <TripStatusTransition
+          tripId="trip-1"
+          currentStatus={TripStatus.OPEN}
+          onTransitioned={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByTestId('transition-btn-CONFIRMED'));
+      await user.click(screen.getByTestId('transition-confirm-btn'));
+
+      expect(screen.getByTestId('transition-confirm-btn')).toBeDisabled();
+
+      resolveTransition({ ...baseTripResponse, status: TripStatus.CONFIRMED });
+    });
+
     it('shows error toast and does not call onTransitioned on failure', async () => {
       const user = userEvent.setup();
       mocks.transitionTripStatus.mockRejectedValueOnce(new Error('API error'));
