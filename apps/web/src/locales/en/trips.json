@@ -96,6 +96,30 @@
   "actions": {
     "editSettings": "Edit settings"
   },
+  "cover": {
+    "label": "Cover",
+    "editButton": "Edit cover",
+    "tabImage": "Photo",
+    "tabEmoji": "Emoji",
+    "photoSuccess": "Cover updated",
+    "photoError": "Failed to update cover photo",
+    "emojiSuccess": "Cover updated",
+    "emojiError": "Failed to update cover emoji",
+    "currentCover": "Current cover",
+    "cropTitle": "Crop photo",
+    "usePhoto": "Use photo"
+  },
+  "settings": {
+    "title": "Trip Settings",
+    "editSuccess": "Trip updated.",
+    "dangerZone": "Danger Zone",
+    "cancelTrip": "Cancel Trip",
+    "cancelTripDescription": "This action is irreversible. All participants will be notified.",
+    "cancelDialogTitle": "Cancel this trip?",
+    "cancelDialogDescription": "Are you sure you want to cancel this trip? All confirmed participants will be notified.",
+    "cancelSuccess": "Trip cancelled.",
+    "cancelFailed": "Failed to cancel trip. Please try again."
+  },
   "card": {
     "capacityOf": "of"
   },
