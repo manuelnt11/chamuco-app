@@ -99,6 +99,19 @@
   "card": {
     "capacityOf": "de"
   },
+  "transitions": {
+    "OPEN": "Abrir inscripciones",
+    "CONFIRMED": "Confirmar viaje",
+    "IN_PROGRESS": "Iniciar viaje",
+    "COMPLETED": "Marcar como completado",
+    "CANCELLED": "Cancelar viaje",
+    "dialogTitle": "Confirmar acción",
+    "dialogDescription": "¿Cambiar el estado del viaje a {{status}}?",
+    "cancelWarning": "Esta acción no se puede deshacer.",
+    "confirmButton": "Confirmar",
+    "cancelButton": "Volver",
+    "error": "Error al actualizar el estado del viaje. Por favor intenta de nuevo."
+  },
   "destinations": {
     "addButton": "Agregar destino",
     "addTitle": "Agregar destino",
