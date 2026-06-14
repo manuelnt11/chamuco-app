@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { AirplaneTakeoffIcon, AirplaneLandingIcon, UsersIcon } from '@phosphor-icons/react';
 import { TripRole } from '@chamuco/shared-types';
 import type { MyTripListItemResponse } from '@/services/trips.types';
-import { STATUS_CLASSES, STATUS_I18N_KEYS } from '@/components/trips/trip-status';
+import { TripStatusBadge } from '@/components/trips/TripStatusBadge';
 
 interface TripCardProps {
   trip: MyTripListItemResponse;
@@ -55,12 +55,7 @@ export function TripCard({ trip }: TripCardProps) {
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-1.5">
-        <span
-          data-testid="status-badge"
-          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CLASSES[trip.status]}`}
-        >
-          {t(STATUS_I18N_KEYS[trip.status])}
-        </span>
+        <TripStatusBadge status={trip.status} />
         <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
           {t(ROLE_I18N_KEYS[trip.userRole])}
         </span>

@@ -52,6 +52,16 @@ vi.mock('@phosphor-icons/react', () => ({
   NavigationArrowIcon: () => null,
 }));
 
+vi.mock('@/components/trips/TripStatusBadge', () => ({
+  TripStatusBadge: ({ status }: { status: string }) => (
+    <span data-testid="status-badge">{status}</span>
+  ),
+}));
+
+vi.mock('@/components/trips/TripStatusTransition', () => ({
+  TripStatusTransition: () => null,
+}));
+
 vi.mock('@/components/trips/DestinationList', () => ({
   DestinationList: ({
     initialDestinations,

@@ -18,7 +18,8 @@ import {
 
 import { getTrip, getTripDestinations, getTripParticipation } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
-import { STATUS_CLASSES, STATUS_I18N_KEYS } from '@/components/trips/trip-status';
+import { TripStatusBadge } from '@/components/trips/TripStatusBadge';
+import { TripStatusTransition } from '@/components/trips/TripStatusTransition';
 import { DestinationList } from '@/components/trips/DestinationList';
 import type { TripResponse, DestinationResponse } from '@/services/trips.types';
 
@@ -122,12 +123,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold truncate">{trip.name}</h1>
-            <span
-              data-testid="status-badge"
-              className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CLASSES[trip.status]}`}
-            >
-              {t(STATUS_I18N_KEYS[trip.status])}
-            </span>
+            <TripStatusBadge status={trip.status} />
             <span className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
               {trip.visibility === TripVisibility.PUBLIC
                 ? t('visibility.public')
@@ -158,6 +154,13 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Organizer status transitions */}
+      {isOrganizer && (
+        <section className="mb-6">
+          <TripStatusTransition tripId={id} currentStatus={trip.status} onTransitioned={setTrip} />
+        </section>
+      )}
 
       {/* Destinations section */}
       <section className="mb-6">

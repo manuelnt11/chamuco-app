@@ -99,6 +99,19 @@
   "card": {
     "capacityOf": "of"
   },
+  "transitions": {
+    "OPEN": "Open for Registration",
+    "CONFIRMED": "Confirm Trip",
+    "IN_PROGRESS": "Start Trip",
+    "COMPLETED": "Mark as Completed",
+    "CANCELLED": "Cancel Trip",
+    "dialogTitle": "Confirm action",
+    "dialogDescription": "Change the trip status to {{status}}?",
+    "cancelWarning": "This action cannot be undone.",
+    "confirmButton": "Confirm",
+    "cancelButton": "Go back",
+    "error": "Failed to update trip status. Please try again."
+  },
   "destinations": {
     "addButton": "Add destination",
     "addTitle": "Add destination",
