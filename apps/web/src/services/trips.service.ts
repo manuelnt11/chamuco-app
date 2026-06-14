@@ -1,18 +1,25 @@
+import type { BulkInvitationResponse } from '@chamuco/shared-types';
+
 import { apiClient } from '@/services/api-client';
 
 import type {
   AddTripGroupPayload,
   CreateDestinationPayload,
+  CreateTripInvitationPayload,
   CreateTripPayload,
   DestinationResponse,
   DestinationWriteResponse,
+  MyTripInvitationResponse,
   MyTripListItemResponse,
+  MyTripParticipationResponse,
+  PendingTripParticipantResponse,
   ReorderDestinationsPayload,
   TransitionTripStatusPayload,
   TripGroupResponse,
   TripParticipantResponse,
   TripResponse,
   UpdateDestinationPayload,
+  UpdateParticipantRolePayload,
   UpdateTripPayload,
 } from '@/services/trips.types';
 
@@ -52,8 +59,10 @@ export async function transitionTripStatus(
   return data;
 }
 
-export async function getTripParticipation(id: string): Promise<TripParticipantResponse> {
-  const { data } = await apiClient.get<TripParticipantResponse>(`/v1/trips/${id}/participants/me`);
+export async function getTripParticipation(id: string): Promise<MyTripParticipationResponse> {
+  const { data } = await apiClient.get<MyTripParticipationResponse>(
+    `/v1/trips/${id}/participants/me`,
+  );
   return data;
 }
 
@@ -100,6 +109,84 @@ export async function updateTripDestination(
 
 export async function deleteTripDestination(id: string, destId: string): Promise<void> {
   await apiClient.delete(`/v1/trips/${id}/destinations/${destId}`);
+}
+
+// ─── Participant methods ──────────────────────────────────────────────────────
+
+export async function getTripParticipants(id: string): Promise<TripParticipantResponse[]> {
+  const { data } = await apiClient.get<TripParticipantResponse[]>(`/v1/trips/${id}/participants`);
+  return data;
+}
+
+export async function getPendingTripParticipants(
+  id: string,
+): Promise<PendingTripParticipantResponse[]> {
+  const { data } = await apiClient.get<PendingTripParticipantResponse[]>(
+    `/v1/trips/${id}/participants/pending`,
+  );
+  return data;
+}
+
+export async function updateTripParticipantRole(
+  id: string,
+  userId: string,
+  payload: UpdateParticipantRolePayload,
+): Promise<void> {
+  await apiClient.patch(`/v1/trips/${id}/participants/${userId}/role`, payload);
+}
+
+export async function removeTripParticipant(id: string, userId: string): Promise<void> {
+  await apiClient.delete(`/v1/trips/${id}/participants/${userId}`);
+}
+
+// ─── Global invitation methods ────────────────────────────────────────────────
+
+export async function getMyTripInvitations(): Promise<MyTripInvitationResponse[]> {
+  const { data } = await apiClient.get<MyTripInvitationResponse[]>('/v1/trips/invitations');
+  return data;
+}
+
+// ─── Trip invitation methods ──────────────────────────────────────────────────
+
+export async function inviteTripParticipants(
+  id: string,
+  payload: CreateTripInvitationPayload,
+): Promise<BulkInvitationResponse> {
+  const { data } = await apiClient.post<BulkInvitationResponse>(
+    `/v1/trips/${id}/invitations`,
+    payload,
+  );
+  return data;
+}
+
+export async function acceptTripInvitation(id: string): Promise<void> {
+  await apiClient.patch(`/v1/trips/${id}/invitations/accept`);
+}
+
+export async function declineTripInvitation(id: string): Promise<void> {
+  await apiClient.patch(`/v1/trips/${id}/invitations/decline`);
+}
+
+export async function revokeTripInvitation(id: string, userId: string): Promise<void> {
+  await apiClient.delete(`/v1/trips/${id}/invitations/${userId}`);
+}
+
+// ─── Trip join request methods ────────────────────────────────────────────────
+
+export async function submitJoinRequest(id: string): Promise<void> {
+  await apiClient.post(`/v1/trips/${id}/join-request`);
+}
+
+export async function withdrawJoinRequest(id: string): Promise<void> {
+  await apiClient.delete(`/v1/trips/${id}/join-request`);
+}
+
+export async function acceptJoinRequest(id: string, userId: string): Promise<void> {
+  await apiClient.patch(`/v1/trips/${id}/join-requests/${userId}/accept`);
+}
+
+export async function rejectJoinRequest(id: string, userId: string): Promise<void> {
+  await apiClient.patch(`/v1/trips/${id}/join-requests/${userId}/reject`);
 }
 
 // ─── Group methods ────────────────────────────────────────────────────────────

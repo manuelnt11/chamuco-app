@@ -133,16 +133,41 @@ describe('NotificationPanel', () => {
 
     it('navigates to url on row click when url is present', async () => {
       const user = userEvent.setup();
-      const notif = makeNotification({ url: '/groups/g1' });
+      const notif = makeNotification({
+        type: NotificationType.GROUP_INVITATION,
+        url: '/groups/g1',
+      });
       renderPanel([notif]);
 
       await user.click(screen.getByText(notif.title));
       expect(mocks.mockRouterPush).toHaveBeenCalledWith('/groups/g1');
     });
 
-    it('does not navigate when url is null', async () => {
+    it('navigates to /trips for TRIP_INVITATION regardless of notif.url', async () => {
       const user = userEvent.setup();
-      const notif = makeNotification({ url: null });
+      const notif = makeNotification({
+        type: NotificationType.TRIP_INVITATION,
+        url: '/trips/trip-1',
+      });
+      renderPanel([notif]);
+
+      await user.click(screen.getByText(notif.title));
+      expect(mocks.mockRouterPush).toHaveBeenCalledWith('/trips');
+      expect(mocks.mockRouterPush).not.toHaveBeenCalledWith('/trips/trip-1');
+    });
+
+    it('navigates to /trips for TRIP_INVITATION even when url is null', async () => {
+      const user = userEvent.setup();
+      const notif = makeNotification({ type: NotificationType.TRIP_INVITATION, url: null });
+      renderPanel([notif]);
+
+      await user.click(screen.getByText(notif.title));
+      expect(mocks.mockRouterPush).toHaveBeenCalledWith('/trips');
+    });
+
+    it('does not navigate when url is null for non-TRIP_INVITATION', async () => {
+      const user = userEvent.setup();
+      const notif = makeNotification({ type: NotificationType.GROUP_INVITATION, url: null });
       renderPanel([notif]);
 
       await user.click(screen.getByText(notif.title));

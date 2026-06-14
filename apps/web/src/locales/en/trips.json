@@ -5,7 +5,85 @@
   "upcomingTrips": "Upcoming Trips",
   "pastTrips": "Past Trips",
   "tripDetails": "Trip Details",
-  "participants": "Participants",
+  "participants": {
+    "title": "Participants",
+    "capacity": "{{confirmed}} / {{total}} participants",
+    "invite": {
+      "button": "Invite",
+      "title": "Invite participants",
+      "usernamePlaceholder": "Search by name or @username",
+      "submit": "Send invitations",
+      "sending": "Sending...",
+      "cancel": "Cancel",
+      "success": "Invitation sent",
+      "error": "Failed to send invitation",
+      "noResults": "No users found",
+      "removeUser": "Remove {{username}}",
+      "alreadyExcluded": "This user is already a participant or has a pending invitation",
+      "maxUsers": "You can invite up to 20 users at once",
+      "done": "Done",
+      "results": { "title": "Invitation results" },
+      "result": {
+        "INVITED": "Invited successfully",
+        "ALREADY_MEMBER": "Already a participant",
+        "ALREADY_INVITED": "Already invited",
+        "HAS_PENDING_REQUEST": "Has a pending join request",
+        "NOT_FOUND": "User not found"
+      }
+    },
+    "joinRequest": {
+      "button": "Request to join",
+      "requesting": "Requesting...",
+      "success": "Join request sent",
+      "error": "Failed to send request",
+      "withdraw": "Withdraw request",
+      "withdrawing": "Withdrawing...",
+      "withdrawSuccess": "Request withdrawn",
+      "withdrawError": "Failed to withdraw request"
+    },
+    "leave": {
+      "button": "Leave trip",
+      "confirm": "Are you sure you want to leave this trip?",
+      "cancel": "Cancel",
+      "confirmButton": "Leave trip",
+      "leaving": "Leaving...",
+      "success": "You have left the trip",
+      "error": "Failed to leave trip",
+      "lastOrganizer": "You are the last organizer. Transfer the role before leaving."
+    },
+    "invitation": {
+      "received": "You have been invited to join this trip",
+      "acceptError": "Failed to accept invitation",
+      "declineError": "Failed to decline invitation"
+    },
+    "pending": {
+      "title": "Pending ({{count}})",
+      "noItems": "No pending requests or invitations",
+      "accept": "Accept",
+      "reject": "Reject",
+      "revoke": "Revoke",
+      "statusRequest": "Wants to join",
+      "statusInvited": "Invited"
+    },
+    "actions": {
+      "remove": "Remove participant",
+      "promote": "Promote to co-organizer",
+      "demote": "Demote to participant",
+      "removeError": "Failed to remove participant",
+      "promoteError": "Failed to promote participant",
+      "demoteError": "Failed to demote participant"
+    },
+    "role": {
+      "ORGANIZER": "Organizer",
+      "CO_ORGANIZER": "Co-organizer",
+      "PARTICIPANT": "Participant"
+    },
+    "traveler": "Traveling",
+    "notTraveler": "Not traveling",
+    "empty": "No participants yet",
+    "loading": "Loading participants...",
+    "loadError": "Failed to load participants"
+  },
   "itinerary": "Itinerary",
   "budget": "Budget",
   "expenses": "Expenses",
@@ -90,6 +168,9 @@
     "forbidden": "You don't have permission to perform this action.",
     "cannotMakePublic": "A private trip cannot be made public.",
     "coverUploadFailed": "Trip created. Cover upload failed — you can update it later."
+  },
+  "invitations": {
+    "titleWithCount": "Trip Invitations ({{count}})"
   },
   "announcements": "Announcements",
   "announcementsPublish": "Publish announcement",

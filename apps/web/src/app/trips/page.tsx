@@ -9,6 +9,7 @@ import { TripStatus } from '@chamuco/shared-types';
 import { getMyTrips } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
 import { TripCard } from '@/components/trips/TripCard';
+import { TripInvitationsSection } from '@/components/trips/TripInvitationsSection';
 import type { MyTripListItemResponse } from '@/services/trips.types';
 
 type Tab = 'upcoming' | 'past';
@@ -27,12 +28,17 @@ export default function TripsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('upcoming');
 
-  useEffect(() => {
-    if (isAuthLoading) return;
+  function fetchTrips() {
+    setIsLoading(true);
     getMyTrips()
       .then((data) => setTrips(data))
       .catch(() => setTrips([]))
       .finally(() => setIsLoading(false));
+  }
+
+  useEffect(() => {
+    if (isAuthLoading) return;
+    fetchTrips();
   }, [isAuthLoading]);
 
   const tabs: { key: Tab; label: string }[] = [
@@ -69,6 +75,8 @@ export default function TripsPage() {
           </Link>
         </div>
       </div>
+
+      <TripInvitationsSection onSuccess={fetchTrips} />
 
       <div
         role="tablist"

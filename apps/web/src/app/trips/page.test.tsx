@@ -38,6 +38,10 @@ vi.mock('@/components/trips/TripCard', () => ({
   ),
 }));
 
+vi.mock('@/components/trips/TripInvitationsSection', () => ({
+  TripInvitationsSection: () => null,
+}));
+
 import { getMyTrips } from '@/services/trips.service';
 import TripsPage from './page';
 
