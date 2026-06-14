@@ -1,10 +1,13 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 import { TripParticipantStatus } from '@chamuco/shared-types';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/toast';
+import { getInitials } from '@/lib/name-utils';
 import {
   acceptJoinRequest,
   rejectJoinRequest,
@@ -26,18 +29,34 @@ export function PendingParticipantsPanel({
   const { t } = useTranslation('trips');
 
   const handleAccept = async (userId: string) => {
-    await acceptJoinRequest(tripId, userId);
-    onUpdate();
+    try {
+      await acceptJoinRequest(tripId, userId);
+      onUpdate();
+    } catch (err) {
+      const message =
+        axios.isAxiosError(err) && err.response?.status === 409
+          ? t('participants.pending.capacityFull')
+          : t('participants.pending.acceptError');
+      toast.error(message);
+    }
   };
 
   const handleReject = async (userId: string) => {
-    await rejectJoinRequest(tripId, userId);
-    onUpdate();
+    try {
+      await rejectJoinRequest(tripId, userId);
+      onUpdate();
+    } catch {
+      toast.error(t('participants.pending.rejectError'));
+    }
   };
 
   const handleRevoke = async (userId: string) => {
-    await revokeTripInvitation(tripId, userId);
-    onUpdate();
+    try {
+      await revokeTripInvitation(tripId, userId);
+      onUpdate();
+    } catch {
+      toast.error(t('participants.pending.revokeError'));
+    }
   };
 
   if (items.length === 0) {
@@ -58,61 +77,52 @@ export function PendingParticipantsPanel({
       </p>
 
       <ul className="divide-y divide-border">
-        {items.map((item) => {
-          const initials = item.displayName
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .slice(0, 2)
-            .toUpperCase();
+        {items.map((item) => (
+          <li key={item.userId} className="flex items-center gap-3 py-3">
+            <Avatar
+              src={item.avatarUrl ?? undefined}
+              alt={item.displayName}
+              fallback={getInitials(item.displayName)}
+              size="sm"
+            />
 
-          return (
-            <li key={item.userId} className="flex items-center gap-3 py-3">
-              <Avatar
-                src={item.avatarUrl ?? undefined}
-                alt={item.displayName}
-                fallback={initials}
-                size="sm"
-              />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{item.displayName}</p>
+              <p className="truncate text-xs text-muted-foreground">@{item.username}</p>
+            </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{item.displayName}</p>
-                <p className="truncate text-xs text-muted-foreground">@{item.username}</p>
-              </div>
+            <Badge variant="outline" className="shrink-0">
+              {item.status === TripParticipantStatus.PENDING_REQUEST
+                ? t('participants.pending.statusRequest')
+                : t('participants.pending.statusInvited')}
+            </Badge>
 
-              <Badge variant="outline" className="shrink-0">
-                {item.status === TripParticipantStatus.PENDING_REQUEST
-                  ? t('participants.pending.statusRequest')
-                  : t('participants.pending.statusInvited')}
-              </Badge>
-
-              <div className="flex shrink-0 gap-1.5">
-                {item.status === TripParticipantStatus.PENDING_REQUEST ? (
-                  <>
-                    <Button size="xs" onClick={() => void handleAccept(item.userId)}>
-                      {t('participants.pending.accept')}
-                    </Button>
-                    <Button
-                      size="xs"
-                      variant="destructive"
-                      onClick={() => void handleReject(item.userId)}
-                    >
-                      {t('participants.pending.reject')}
-                    </Button>
-                  </>
-                ) : (
+            <div className="flex shrink-0 gap-1.5">
+              {item.status === TripParticipantStatus.PENDING_REQUEST ? (
+                <>
+                  <Button size="xs" onClick={() => void handleAccept(item.userId)}>
+                    {t('participants.pending.accept')}
+                  </Button>
                   <Button
                     size="xs"
                     variant="destructive"
-                    onClick={() => void handleRevoke(item.userId)}
+                    onClick={() => void handleReject(item.userId)}
                   >
-                    {t('participants.pending.revoke')}
+                    {t('participants.pending.reject')}
                   </Button>
-                )}
-              </div>
-            </li>
-          );
-        })}
+                </>
+              ) : (
+                <Button
+                  size="xs"
+                  variant="destructive"
+                  onClick={() => void handleRevoke(item.userId)}
+                >
+                  {t('participants.pending.revoke')}
+                </Button>
+              )}
+            </div>
+          </li>
+        ))}
       </ul>
     </div>
   );

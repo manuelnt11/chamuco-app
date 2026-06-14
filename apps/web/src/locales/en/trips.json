@@ -36,6 +36,7 @@
       "requesting": "Requesting...",
       "success": "Join request sent",
       "error": "Failed to send request",
+      "capacityFull": "Trip is at full capacity",
       "withdraw": "Withdraw request",
       "withdrawing": "Withdrawing...",
       "withdrawSuccess": "Request withdrawn",
@@ -63,7 +64,11 @@
       "reject": "Reject",
       "revoke": "Revoke",
       "statusRequest": "Wants to join",
-      "statusInvited": "Invited"
+      "statusInvited": "Invited",
+      "capacityFull": "Trip is at full capacity",
+      "acceptError": "Failed to accept request",
+      "rejectError": "Failed to reject request",
+      "revokeError": "Failed to revoke invitation"
     },
     "actions": {
       "remove": "Remove participant",

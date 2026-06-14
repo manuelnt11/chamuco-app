@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { GroupMemberStatus } from '@chamuco/shared-types';
+import { getInitials } from '@/lib/name-utils';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -53,19 +54,12 @@ export function PendingRequestsPanel({ groupId, items, onUpdate }: PendingReques
 
       <ul className="divide-y divide-border">
         {items.map((item) => {
-          const initials = item.displayName
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .slice(0, 2)
-            .toUpperCase();
-
           return (
             <li key={item.userId} className="flex items-center gap-3 py-3">
               <Avatar
                 src={item.avatarUrl ?? undefined}
                 alt={item.displayName}
-                fallback={initials}
+                fallback={getInitials(item.displayName)}
                 size="sm"
               />
 

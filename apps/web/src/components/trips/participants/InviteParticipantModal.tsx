@@ -66,7 +66,7 @@ export function InviteParticipantModal({
     setSelectionError(null);
   }
 
-  const handleSubmit = async (e: SubmitEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (selectedUsers.length === 0) return;
 

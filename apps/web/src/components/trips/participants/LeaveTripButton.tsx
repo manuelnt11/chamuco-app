@@ -47,41 +47,39 @@ export function LeaveTripButton({ tripId, userId }: LeaveTripButtonProps) {
   };
 
   return (
-    <div>
-      <Dialog
-        open={open}
-        onOpenChange={(newOpen) => {
-          if (!isLeaving) setOpen(newOpen);
-        }}
-      >
-        <DialogTrigger
-          render={
-            <Button variant="destructive" size="sm">
-              {t('participants.leave.button')}
-            </Button>
-          }
-        />
-        <DialogPopup>
-          <DialogClose />
-          <DialogHeader>
-            <DialogTitle>{t('participants.leave.button')}</DialogTitle>
-            <DialogDescription>{t('participants.leave.confirm')}</DialogDescription>
-          </DialogHeader>
-          {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
-          <DialogFooter className="mt-4">
-            <DialogClose
-              render={
-                <Button variant="outline" size="sm" disabled={isLeaving}>
-                  {t('participants.leave.cancel')}
-                </Button>
-              }
-            />
-            <Button variant="destructive" size="sm" onClick={handleConfirm} disabled={isLeaving}>
-              {isLeaving ? t('participants.leave.leaving') : t('participants.leave.confirmButton')}
-            </Button>
-          </DialogFooter>
-        </DialogPopup>
-      </Dialog>
-    </div>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        if (!isLeaving) setOpen(newOpen);
+      }}
+    >
+      <DialogTrigger
+        render={
+          <Button variant="destructive" size="sm">
+            {t('participants.leave.button')}
+          </Button>
+        }
+      />
+      <DialogPopup>
+        <DialogClose />
+        <DialogHeader>
+          <DialogTitle>{t('participants.leave.button')}</DialogTitle>
+          <DialogDescription>{t('participants.leave.confirm')}</DialogDescription>
+        </DialogHeader>
+        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+        <DialogFooter className="mt-4">
+          <DialogClose
+            render={
+              <Button variant="outline" size="sm" disabled={isLeaving}>
+                {t('participants.leave.cancel')}
+              </Button>
+            }
+          />
+          <Button variant="destructive" size="sm" onClick={handleConfirm} disabled={isLeaving}>
+            {isLeaving ? t('participants.leave.leaving') : t('participants.leave.confirmButton')}
+          </Button>
+        </DialogFooter>
+      </DialogPopup>
+    </Dialog>
   );
 }

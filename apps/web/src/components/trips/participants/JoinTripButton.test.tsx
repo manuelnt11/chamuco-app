@@ -18,6 +18,20 @@ vi.mock('@/services/api-client', () => ({
   },
 }));
 
+function makeAxios409() {
+  return Object.assign(new Error('409'), {
+    isAxiosError: true,
+    response: { status: 409 },
+  });
+}
+
+function makeAxios500() {
+  return Object.assign(new Error('500'), {
+    isAxiosError: true,
+    response: { status: 500 },
+  });
+}
+
 import { JoinTripButton } from './JoinTripButton';
 
 describe('JoinTripButton', () => {
@@ -74,6 +88,31 @@ describe('JoinTripButton', () => {
       ).toBeDisabled();
       resolve();
     });
+
+    it('shows capacityFull error on 409', async () => {
+      mocks.mockPost.mockRejectedValueOnce(makeAxios409());
+      const user = userEvent.setup();
+      render(
+        <JoinTripButton tripId="t1" hasPendingRequest={false} onSuccess={mocks.mockOnSuccess} />,
+      );
+      await user.click(screen.getByRole('button', { name: 'participants.joinRequest.button' }));
+      await waitFor(() => {
+        expect(screen.getByText('participants.joinRequest.capacityFull')).toBeInTheDocument();
+      });
+      expect(mocks.mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('shows generic error on non-409 failure', async () => {
+      mocks.mockPost.mockRejectedValueOnce(makeAxios500());
+      const user = userEvent.setup();
+      render(
+        <JoinTripButton tripId="t1" hasPendingRequest={false} onSuccess={mocks.mockOnSuccess} />,
+      );
+      await user.click(screen.getByRole('button', { name: 'participants.joinRequest.button' }));
+      await waitFor(() => {
+        expect(screen.getByText('participants.joinRequest.error')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('withdraw mode (hasPendingRequest = true)', () => {
@@ -122,6 +161,19 @@ describe('JoinTripButton', () => {
         screen.getByRole('button', { name: 'participants.joinRequest.withdrawing' }),
       ).toBeDisabled();
       resolve();
+    });
+
+    it('shows withdrawError on withdraw failure', async () => {
+      mocks.mockDelete.mockRejectedValueOnce(new Error('fail'));
+      const user = userEvent.setup();
+      render(
+        <JoinTripButton tripId="t1" hasPendingRequest={true} onSuccess={mocks.mockOnSuccess} />,
+      );
+      await user.click(screen.getByRole('button', { name: 'participants.joinRequest.withdraw' }));
+      await waitFor(() => {
+        expect(screen.getByText('participants.joinRequest.withdrawError')).toBeInTheDocument();
+      });
+      expect(mocks.mockOnSuccess).not.toHaveBeenCalled();
     });
   });
 });

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GroupMemberTier, GroupRole } from '@chamuco/shared-types';
 import { ShieldStarIcon, UserMinusIcon } from '@phosphor-icons/react';
+import { getInitials } from '@/lib/name-utils';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,13 +47,6 @@ export function MemberListItem({
   const [isRemoving, setIsRemoving] = useState(false);
   const [isPromoting, setIsPromoting] = useState(false);
   const [isDemoting, setIsDemoting] = useState(false);
-
-  const initials = member.displayName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
 
   const isAdmin = currentUserRole !== null && ADMIN_ROLES.includes(currentUserRole);
   const isSelf = member.userId === currentUserId;
@@ -106,7 +100,7 @@ export function MemberListItem({
       <Avatar
         src={member.avatarUrl ?? undefined}
         alt={member.displayName}
-        fallback={initials}
+        fallback={getInitials(member.displayName)}
         size="md"
         className="mt-0.5 sm:mt-0"
       />

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TripRole } from '@chamuco/shared-types';
 import { AirplaneIcon, ShieldStarIcon, UserMinusIcon } from '@phosphor-icons/react';
+import { getInitials } from '@/lib/name-utils';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,13 +40,6 @@ export function ParticipantListItem({
   const [isRemoving, setIsRemoving] = useState(false);
   const [isPromoting, setIsPromoting] = useState(false);
   const [isDemoting, setIsDemoting] = useState(false);
-
-  const initials = participant.displayName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
 
   const isOrganizer = callerRole !== null && ORGANIZER_ROLES.includes(callerRole);
   const isSelf = participant.userId === currentUserId;
@@ -96,7 +90,7 @@ export function ParticipantListItem({
       <Avatar
         src={participant.avatarUrl ?? undefined}
         alt={participant.displayName}
-        fallback={initials}
+        fallback={getInitials(participant.displayName)}
         size="md"
         className="mt-0.5 sm:mt-0"
       />

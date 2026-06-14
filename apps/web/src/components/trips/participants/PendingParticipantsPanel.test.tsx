@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
   mockDelete: vi.fn(),
   mockOnUpdate: vi.fn(),
+  mockToastError: vi.fn(),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -19,6 +20,17 @@ vi.mock('react-i18next', () => ({
 vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch, delete: mocks.mockDelete },
 }));
+
+vi.mock('@/components/ui/toast', () => ({
+  toast: { error: mocks.mockToastError },
+}));
+
+function makeAxios409() {
+  return Object.assign(new Error('409'), {
+    isAxiosError: true,
+    response: { status: 409 },
+  });
+}
 
 import { PendingParticipantsPanel } from './PendingParticipantsPanel';
 
@@ -181,6 +193,73 @@ describe('PendingParticipantsPanel', () => {
       );
       expect(screen.getByText('Request User')).toBeInTheDocument();
       expect(screen.getByText('Invited User')).toBeInTheDocument();
+    });
+  });
+
+  describe('error handling', () => {
+    it('shows capacityFull toast when accept fails with 409', async () => {
+      mocks.mockPatch.mockRejectedValueOnce(makeAxios409());
+      const user = userEvent.setup();
+      render(
+        <PendingParticipantsPanel
+          tripId={TRIP_ID}
+          items={[joinRequest]}
+          onUpdate={mocks.mockOnUpdate}
+        />,
+      );
+      await user.click(screen.getByRole('button', { name: 'participants.pending.accept' }));
+      await waitFor(() => {
+        expect(mocks.mockToastError).toHaveBeenCalledWith('participants.pending.capacityFull');
+      });
+      expect(mocks.mockOnUpdate).not.toHaveBeenCalled();
+    });
+
+    it('shows acceptError toast when accept fails with non-409', async () => {
+      mocks.mockPatch.mockRejectedValueOnce(new Error('fail'));
+      const user = userEvent.setup();
+      render(
+        <PendingParticipantsPanel
+          tripId={TRIP_ID}
+          items={[joinRequest]}
+          onUpdate={mocks.mockOnUpdate}
+        />,
+      );
+      await user.click(screen.getByRole('button', { name: 'participants.pending.accept' }));
+      await waitFor(() => {
+        expect(mocks.mockToastError).toHaveBeenCalledWith('participants.pending.acceptError');
+      });
+    });
+
+    it('shows rejectError toast when reject fails', async () => {
+      mocks.mockPatch.mockRejectedValueOnce(new Error('fail'));
+      const user = userEvent.setup();
+      render(
+        <PendingParticipantsPanel
+          tripId={TRIP_ID}
+          items={[joinRequest]}
+          onUpdate={mocks.mockOnUpdate}
+        />,
+      );
+      await user.click(screen.getByRole('button', { name: 'participants.pending.reject' }));
+      await waitFor(() => {
+        expect(mocks.mockToastError).toHaveBeenCalledWith('participants.pending.rejectError');
+      });
+    });
+
+    it('shows revokeError toast when revoke fails', async () => {
+      mocks.mockDelete.mockRejectedValueOnce(new Error('fail'));
+      const user = userEvent.setup();
+      render(
+        <PendingParticipantsPanel
+          tripId={TRIP_ID}
+          items={[invited]}
+          onUpdate={mocks.mockOnUpdate}
+        />,
+      );
+      await user.click(screen.getByRole('button', { name: 'participants.pending.revoke' }));
+      await waitFor(() => {
+        expect(mocks.mockToastError).toHaveBeenCalledWith('participants.pending.revokeError');
+      });
     });
   });
 });
