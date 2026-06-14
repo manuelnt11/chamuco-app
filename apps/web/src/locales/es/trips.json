@@ -96,6 +96,30 @@
   "actions": {
     "editSettings": "Editar configuración"
   },
+  "cover": {
+    "label": "Portada",
+    "editButton": "Editar portada",
+    "tabImage": "Foto",
+    "tabEmoji": "Emoji",
+    "photoSuccess": "Portada actualizada",
+    "photoError": "Error al actualizar la foto de portada",
+    "emojiSuccess": "Portada actualizada",
+    "emojiError": "Error al actualizar el emoji de portada",
+    "currentCover": "Portada actual",
+    "cropTitle": "Recortar foto",
+    "usePhoto": "Usar foto"
+  },
+  "settings": {
+    "title": "Configuración del viaje",
+    "editSuccess": "Viaje actualizado.",
+    "dangerZone": "Zona de peligro",
+    "cancelTrip": "Cancelar viaje",
+    "cancelTripDescription": "Esta acción es irreversible. Todos los participantes serán notificados.",
+    "cancelDialogTitle": "¿Cancelar este viaje?",
+    "cancelDialogDescription": "¿Estás seguro de que deseas cancelar este viaje? Todos los participantes confirmados serán notificados.",
+    "cancelSuccess": "Viaje cancelado.",
+    "cancelFailed": "Error al cancelar el viaje. Por favor intenta de nuevo."
+  },
   "card": {
     "capacityOf": "de"
   },
