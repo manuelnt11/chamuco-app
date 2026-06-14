@@ -126,59 +126,63 @@ export default function TripSettingsPage({ params }: TripSettingsPageProps) {
       />
 
       {canCancel && (
-        <div className="mt-10 rounded-xl border border-destructive/50 p-6">
-          <h2 className="text-base font-semibold text-destructive mb-3">
-            {t('settings.dangerZone')}
-          </h2>
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground">{t('settings.cancelTripDescription')}</p>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={() => setShowCancelDialog(true)}
-              data-testid="cancel-trip-btn"
-            >
-              {t('settings.cancelTrip')}
-            </Button>
+        <>
+          <div className="mt-10 rounded-xl border border-destructive/50 p-6">
+            <h2 className="text-base font-semibold text-destructive mb-3">
+              {t('settings.dangerZone')}
+            </h2>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground">{t('settings.cancelTripDescription')}</p>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowCancelDialog(true)}
+                data-testid="cancel-trip-btn"
+              >
+                {t('settings.cancelTrip')}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
 
-      <Dialog
-        open={showCancelDialog}
-        onOpenChange={(open) => !isCancelling && setShowCancelDialog(open)}
-      >
-        <DialogPopup>
-          <DialogClose />
-          <DialogHeader>
-            <DialogTitle>{t('settings.cancelDialogTitle')}</DialogTitle>
-            <DialogDescription>{t('settings.cancelDialogDescription')}</DialogDescription>
-            <p className="text-sm font-medium text-destructive">{t('transitions.cancelWarning')}</p>
-          </DialogHeader>
-          <DialogFooter className="mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCancelDialog(false)}
-              disabled={isCancelling}
-            >
-              {t('transitions.cancelButton')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={() => void handleCancel()}
-              disabled={isCancelling}
-              data-testid="cancel-trip-confirm-btn"
-            >
-              {t('transitions.confirmButton')}
-            </Button>
-          </DialogFooter>
-        </DialogPopup>
-      </Dialog>
+          <Dialog
+            open={showCancelDialog}
+            onOpenChange={(open) => !isCancelling && setShowCancelDialog(open)}
+          >
+            <DialogPopup>
+              <DialogClose />
+              <DialogHeader>
+                <DialogTitle>{t('settings.cancelDialogTitle')}</DialogTitle>
+                <DialogDescription>{t('settings.cancelDialogDescription')}</DialogDescription>
+                <p className="text-sm font-medium text-destructive">
+                  {t('transitions.cancelWarning')}
+                </p>
+              </DialogHeader>
+              <DialogFooter className="mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCancelDialog(false)}
+                  disabled={isCancelling}
+                >
+                  {t('transitions.cancelButton')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => void handleCancel()}
+                  disabled={isCancelling}
+                  data-testid="cancel-trip-confirm-btn"
+                >
+                  {t('transitions.confirmButton')}
+                </Button>
+              </DialogFooter>
+            </DialogPopup>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 }

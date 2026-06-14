@@ -113,7 +113,7 @@
     "title": "Trip Settings",
     "editSuccess": "Trip updated.",
     "dangerZone": "Danger Zone",
-    "cancelTrip": "Cancel Trip",
+    "cancelTrip": "Cancel trip",
     "cancelTripDescription": "This action is irreversible. All participants will be notified.",
     "cancelDialogTitle": "Cancel this trip?",
     "cancelDialogDescription": "Are you sure you want to cancel this trip? All confirmed participants will be notified.",

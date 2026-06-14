@@ -8,7 +8,6 @@ const mocks = vi.hoisted(() => ({
   mockApiPatch: vi.fn(),
   mockUseAuth: vi.fn(),
   mockRouterReplace: vi.fn(),
-  mockRouterPush: vi.fn(),
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
 }));
@@ -40,7 +39,6 @@ vi.mock('next/link', () => ({
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     replace: mocks.mockRouterReplace,
-    push: mocks.mockRouterPush,
   }),
 }));
 
@@ -199,7 +197,6 @@ describe('TripSettingsPage', () => {
     await waitFor(() => {
       expect(mocks.mockToastSuccess).toHaveBeenCalledWith('settings.editSuccess');
       expect(mocks.mockRouterReplace).not.toHaveBeenCalled();
-      expect(mocks.mockRouterPush).not.toHaveBeenCalled();
     });
   });
 
@@ -345,6 +342,27 @@ describe('TripSettingsPage', () => {
 
     await waitFor(() => {
       expect(mocks.mockToastError).toHaveBeenCalledWith('settings.cancelFailed');
+    });
+  });
+
+  it('cancel dialog closes when go-back button clicked', async () => {
+    setupMocks();
+    render(<TripSettingsPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('cancel-trip-btn')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('cancel-trip-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('cancel-trip-confirm-btn')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('transitions.cancelButton'));
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('cancel-trip-confirm-btn')).not.toBeInTheDocument();
     });
   });
 
