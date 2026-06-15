@@ -630,6 +630,60 @@ describe('TripParticipantsService', () => {
     });
   });
 
+  // ─── toggleParticipantConfirmation ───────────────────────────────────────────
+
+  describe('toggleParticipantConfirmation', () => {
+    it('toggles ACCEPTED → CONFIRMED', async () => {
+      const acceptedTarget = makeParticipation(TARGET_ID, TripParticipantStatus.ACCEPTED);
+      mockTripParticipantsFindFirst
+        .mockResolvedValueOnce(organizerParticipation) // assertTripOrganizer
+        .mockResolvedValueOnce(acceptedTarget); // target lookup
+
+      await service.toggleParticipantConfirmation(TRIP_ID, TARGET_ID, ORGANIZER_ID);
+
+      expect(mockUpdateSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: TripParticipantStatus.CONFIRMED,
+          confirmedAt: expect.any(Date),
+        }),
+      );
+    });
+
+    it('toggles CONFIRMED → ACCEPTED', async () => {
+      const confirmedTarget = makeParticipation(TARGET_ID, TripParticipantStatus.CONFIRMED);
+      mockTripParticipantsFindFirst
+        .mockResolvedValueOnce(organizerParticipation)
+        .mockResolvedValueOnce(confirmedTarget);
+
+      await service.toggleParticipantConfirmation(TRIP_ID, TARGET_ID, ORGANIZER_ID);
+
+      expect(mockUpdateSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: TripParticipantStatus.ACCEPTED,
+          confirmedAt: null,
+        }),
+      );
+    });
+
+    it('throws ForbiddenException when requester is not organizer', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValueOnce(undefined);
+
+      await expect(
+        service.toggleParticipantConfirmation(TRIP_ID, TARGET_ID, USER_ID),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('throws NotFoundException when target is not an active participant', async () => {
+      mockTripParticipantsFindFirst
+        .mockResolvedValueOnce(organizerParticipation)
+        .mockResolvedValueOnce(undefined);
+
+      await expect(
+        service.toggleParticipantConfirmation(TRIP_ID, TARGET_ID, ORGANIZER_ID),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
   // ─── notification error tolerance ────────────────────────────────────────────
 
   describe('notification error tolerance', () => {

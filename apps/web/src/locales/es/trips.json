@@ -74,9 +74,12 @@
       "remove": "Eliminar participante",
       "promote": "Promover a co-organizador",
       "demote": "Degradar a participante",
+      "confirm": "Confirmar asistencia",
+      "unconfirm": "Marcar como no confirmado",
       "removeError": "Error al eliminar al participante",
       "promoteError": "Error al promover al participante",
-      "demoteError": "Error al degradar al participante"
+      "demoteError": "Error al degradar al participante",
+      "confirmError": "Error al actualizar la confirmación"
     },
     "role": {
       "ORGANIZER": "Organizador",
@@ -85,6 +88,10 @@
     },
     "traveler": "Viajando",
     "notTraveler": "No viaja",
+    "sections": {
+      "confirmed": "Confirmados ({{count}})",
+      "pendingConfirmation": "Por confirmar ({{count}})"
+    },
     "empty": "Aún no hay participantes",
     "loading": "Cargando participantes...",
     "loadError": "Error al cargar los participantes"

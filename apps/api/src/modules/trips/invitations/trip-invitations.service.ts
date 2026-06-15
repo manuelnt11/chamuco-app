@@ -162,7 +162,6 @@ export class TripInvitationsService {
       .set({
         status: TripParticipantStatus.ACCEPTED,
         decidedBy: requestingUserId,
-        confirmedAt: now,
         updatedAt: now,
       })
       .where(

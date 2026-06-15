@@ -134,6 +134,7 @@ export interface TripParticipantResponse {
   avatarUrl: string | null;
   role: TripRole;
   isTraveler: boolean;
+  status: TripParticipantStatus.ACCEPTED | TripParticipantStatus.CONFIRMED;
   confirmedAt: string | null;
 }
 

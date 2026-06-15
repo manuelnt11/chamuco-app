@@ -181,6 +181,10 @@ export async function withdrawJoinRequest(id: string): Promise<void> {
   await apiClient.delete(`/v1/trips/${id}/join-request`);
 }
 
+export async function toggleTripParticipantConfirmation(id: string, userId: string): Promise<void> {
+  await apiClient.patch(`/v1/trips/${id}/participants/${userId}/confirmation`);
+}
+
 export async function acceptJoinRequest(id: string, userId: string): Promise<void> {
   await apiClient.patch(`/v1/trips/${id}/join-requests/${userId}/accept`);
 }

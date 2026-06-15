@@ -43,7 +43,8 @@ const mockParticipant: ParticipantResponseDto = {
   avatarUrl: null,
   role: TripRole.PARTICIPANT,
   isTraveler: true,
-  confirmedAt: '2026-01-01T00:00:00.000Z',
+  status: TripParticipantStatus.ACCEPTED,
+  confirmedAt: null,
 };
 
 const mockPending: PendingParticipantResponseDto = {

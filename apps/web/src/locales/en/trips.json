@@ -74,9 +74,12 @@
       "remove": "Remove participant",
       "promote": "Promote to co-organizer",
       "demote": "Demote to participant",
+      "confirm": "Confirm attendance",
+      "unconfirm": "Mark as not confirmed",
       "removeError": "Failed to remove participant",
       "promoteError": "Failed to promote participant",
-      "demoteError": "Failed to demote participant"
+      "demoteError": "Failed to demote participant",
+      "confirmError": "Failed to update confirmation"
     },
     "role": {
       "ORGANIZER": "Organizer",
@@ -85,6 +88,10 @@
     },
     "traveler": "Traveling",
     "notTraveler": "Not traveling",
+    "sections": {
+      "confirmed": "Confirmed ({{count}})",
+      "pendingConfirmation": "Pending confirmation ({{count}})"
+    },
     "empty": "No participants yet",
     "loading": "Loading participants...",
     "loadError": "Failed to load participants"

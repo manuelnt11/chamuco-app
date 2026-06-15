@@ -208,6 +208,35 @@ export class TripParticipantsService {
       });
   }
 
+  // ─── Confirmation toggle ──────────────────────────────────────────────────────
+
+  async toggleParticipantConfirmation(
+    tripId: string,
+    targetUserId: string,
+    requestingUserId: string,
+  ): Promise<void> {
+    await this.assertTripOrganizer(tripId, requestingUserId);
+
+    const targetParticipation = await this.db.query.tripParticipants.findFirst({
+      where: and(
+        eq(tripParticipants.tripId, tripId),
+        eq(tripParticipants.userId, targetUserId),
+        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+      ),
+    });
+    if (!targetParticipation) throw new NotFoundException('Active participant not found');
+
+    const isConfirmed = targetParticipation.status === TripParticipantStatus.CONFIRMED;
+    await this.db
+      .update(tripParticipants)
+      .set({
+        status: isConfirmed ? TripParticipantStatus.ACCEPTED : TripParticipantStatus.CONFIRMED,
+        confirmedAt: isConfirmed ? null : new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, targetUserId)));
+  }
+
   // ─── My participation ─────────────────────────────────────────────────────────
 
   async getMyParticipation(tripId: string, userId: string): Promise<MyParticipationResponseDto> {
@@ -300,6 +329,9 @@ export class TripParticipantsService {
         avatarUrl: avatarUrlMap.get(user.id) ?? null,
         role: participation.role as TripRole,
         isTraveler: participation.isTraveler,
+        status: participation.status as
+          | TripParticipantStatus.ACCEPTED
+          | TripParticipantStatus.CONFIRMED,
         confirmedAt: participation.confirmedAt?.toISOString() ?? null,
       };
     });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import { TripRole } from '@chamuco/shared-types';
+import { TripParticipantStatus, TripRole } from '@chamuco/shared-types';
 import { ParticipantListItem } from './ParticipantListItem';
 import { InviteParticipantModal } from './InviteParticipantModal';
 import type { TripParticipantResponse } from '@/services/trips.types';
@@ -19,6 +19,43 @@ interface ParticipantListProps {
 
 const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 
+function Section({
+  label,
+  participants,
+  tripId,
+  currentUserId,
+  callerRole,
+  onParticipantAction,
+}: {
+  label: string;
+  participants: TripParticipantResponse[];
+  tripId: string;
+  currentUserId: string | null;
+  callerRole: TripRole | null;
+  onParticipantAction: () => void;
+}) {
+  if (participants.length === 0) return null;
+  return (
+    <div>
+      <p className="px-4 pt-3 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        {label}
+      </p>
+      <ul className="divide-y divide-border px-4">
+        {participants.map((participant) => (
+          <ParticipantListItem
+            key={participant.userId}
+            participant={participant}
+            tripId={tripId}
+            currentUserId={currentUserId}
+            callerRole={callerRole}
+            onActionSuccess={onParticipantAction}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function ParticipantList({
   tripId,
   participants,
@@ -31,6 +68,11 @@ export function ParticipantList({
 }: ParticipantListProps) {
   const { t } = useTranslation('trips');
   const isOrganizer = callerRole !== null && ORGANIZER_ROLES.includes(callerRole);
+
+  const confirmed = participants.filter((p) => p.status === TripParticipantStatus.CONFIRMED);
+  const pendingConfirmation = participants.filter(
+    (p) => p.status === TripParticipantStatus.ACCEPTED,
+  );
 
   return (
     <div className="rounded-xl border border-border">
@@ -50,18 +92,26 @@ export function ParticipantList({
       {participants.length === 0 ? (
         <p className="px-4 pb-4 text-sm text-muted-foreground">{t('participants.empty')}</p>
       ) : (
-        <ul className="divide-y divide-border px-4">
-          {participants.map((participant) => (
-            <ParticipantListItem
-              key={participant.userId}
-              participant={participant}
-              tripId={tripId}
-              currentUserId={currentUserId}
-              callerRole={callerRole}
-              onActionSuccess={onParticipantAction}
-            />
-          ))}
-        </ul>
+        <div className="pb-2">
+          <Section
+            label={t('participants.sections.confirmed', { count: confirmed.length })}
+            participants={confirmed}
+            tripId={tripId}
+            currentUserId={currentUserId}
+            callerRole={callerRole}
+            onParticipantAction={onParticipantAction}
+          />
+          <Section
+            label={t('participants.sections.pendingConfirmation', {
+              count: pendingConfirmation.length,
+            })}
+            participants={pendingConfirmation}
+            tripId={tripId}
+            currentUserId={currentUserId}
+            callerRole={callerRole}
+            onParticipantAction={onParticipantAction}
+          />
+        </div>
       )}
     </div>
   );

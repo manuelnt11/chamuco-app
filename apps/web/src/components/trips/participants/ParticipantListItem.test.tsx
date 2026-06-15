@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { TripRole } from '@chamuco/shared-types';
+import { TripParticipantStatus, TripRole } from '@chamuco/shared-types';
 import type { TripParticipantResponse } from '@/services/trips.types';
 
 const mocks = vi.hoisted(() => ({
@@ -33,6 +33,7 @@ const baseParticipant: TripParticipantResponse = {
   avatarUrl: null,
   role: TripRole.PARTICIPANT,
   isTraveler: true,
+  status: TripParticipantStatus.ACCEPTED,
   confirmedAt: null,
 };
 
@@ -65,29 +66,65 @@ describe('ParticipantListItem', () => {
       expect(screen.getByText('@juan_viajero')).toBeInTheDocument();
     });
 
-    it('renders role badge via t key', () => {
-      renderItem();
-      expect(screen.getByText(`participants.role.${TripRole.PARTICIPANT}`)).toBeInTheDocument();
+    it('does not render role badge for PARTICIPANT (role is obvious)', () => {
+      renderItem({ role: TripRole.PARTICIPANT });
+      expect(
+        screen.queryByText(`participants.role.${TripRole.PARTICIPANT}`),
+      ).not.toBeInTheDocument();
     });
 
-    it('renders ORGANIZER role badge', () => {
+    it('renders role badge for ORGANIZER', () => {
       renderItem({ role: TripRole.ORGANIZER });
       expect(screen.getByText(`participants.role.${TripRole.ORGANIZER}`)).toBeInTheDocument();
     });
 
-    it('renders CO_ORGANIZER role badge', () => {
+    it('renders role badge for CO_ORGANIZER', () => {
       renderItem({ role: TripRole.CO_ORGANIZER });
       expect(screen.getByText(`participants.role.${TripRole.CO_ORGANIZER}`)).toBeInTheDocument();
     });
 
-    it('renders traveler badge when isTraveler is true', () => {
-      renderItem({ isTraveler: true });
+    it('renders traveler badge for ORGANIZER when isTraveler is true', () => {
+      renderItem({ isTraveler: true, role: TripRole.ORGANIZER });
       expect(screen.getByText('participants.traveler')).toBeInTheDocument();
+    });
+
+    it('renders traveler badge for CO_ORGANIZER when isTraveler is true', () => {
+      renderItem({ isTraveler: true, role: TripRole.CO_ORGANIZER });
+      expect(screen.getByText('participants.traveler')).toBeInTheDocument();
+    });
+
+    it('does not render traveler badge for PARTICIPANT even when isTraveler is true', () => {
+      renderItem({ isTraveler: true, role: TripRole.PARTICIPANT });
+      expect(screen.queryByText('participants.traveler')).not.toBeInTheDocument();
     });
 
     it('does not render traveler badge when isTraveler is false', () => {
       renderItem({ isTraveler: false });
       expect(screen.queryByText('participants.traveler')).not.toBeInTheDocument();
+    });
+
+    it('renders confirm button (not confirmed) for organizer', () => {
+      renderItem({ confirmedAt: null });
+      expect(screen.getByTitle('participants.actions.confirm')).toBeInTheDocument();
+    });
+
+    it('renders unconfirm button (confirmed) for organizer', () => {
+      renderItem({
+        status: TripParticipantStatus.CONFIRMED,
+        confirmedAt: '2026-01-01T00:00:00.000Z',
+      });
+      expect(screen.getByTitle('participants.actions.unconfirm')).toBeInTheDocument();
+    });
+
+    it('does not render confirmation button for non-organizer viewer', () => {
+      renderItem({ confirmedAt: null }, TripRole.PARTICIPANT);
+      expect(screen.queryByTitle('participants.actions.confirm')).not.toBeInTheDocument();
+    });
+
+    it('does not render confirmation toggle for ORGANIZER target', () => {
+      renderItem({ role: TripRole.ORGANIZER, userId: 'other-organizer' }, TripRole.ORGANIZER);
+      expect(screen.queryByTitle('participants.actions.confirm')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('participants.actions.unconfirm')).not.toBeInTheDocument();
     });
 
     it('renders initials as avatar fallback when no avatarUrl', () => {
@@ -237,6 +274,27 @@ describe('ParticipantListItem', () => {
       await userEvent.click(confirmBtn);
 
       expect(mocks.mockToastError).toHaveBeenCalledWith('participants.actions.removeError');
+    });
+
+    it('calls toggle confirmation endpoint and onActionSuccess on click', async () => {
+      const onActionSuccess = vi.fn();
+      renderItem({ confirmedAt: null }, TripRole.ORGANIZER, CURRENT_USER_ID, onActionSuccess);
+
+      await userEvent.click(screen.getByTitle('participants.actions.confirm'));
+
+      expect(mocks.mockPatch).toHaveBeenCalledWith(
+        `/v1/trips/${TRIP_ID}/participants/${baseParticipant.userId}/confirmation`,
+      );
+      expect(onActionSuccess).toHaveBeenCalled();
+    });
+
+    it('shows toast error when confirmation toggle fails', async () => {
+      mocks.mockPatch.mockRejectedValueOnce(new Error('fail'));
+      renderItem({ confirmedAt: null }, TripRole.ORGANIZER, CURRENT_USER_ID, vi.fn());
+
+      await userEvent.click(screen.getByTitle('participants.actions.confirm'));
+
+      expect(mocks.mockToastError).toHaveBeenCalledWith('participants.actions.confirmError');
     });
   });
 });
