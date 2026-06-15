@@ -113,7 +113,10 @@
     "noDescription": "No description provided.",
     "capacity": "Capacity",
     "currency": "Currency",
-    "timezone": "Timezone"
+    "timezone": "Timezone",
+    "itineraryNotes": "Itinerary notes",
+    "noItineraryNotes": "No itinerary notes yet.",
+    "editItineraryNotes": "Edit itinerary notes"
   },
   "role": {
     "organizer": "Organizer",

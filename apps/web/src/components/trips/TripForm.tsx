@@ -38,7 +38,6 @@ interface TripFormProps {
     landingCity: string;
     defaultTimezone: string | null;
     defaultCurrency: string | null;
-    itineraryNotes: string | null;
     isTravelingParticipant?: boolean;
   };
   onSuccess: (trip: TripResponse) => void;
@@ -75,7 +74,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
 
   const [defaultTimezone, setDefaultTimezone] = useState(initialValues?.defaultTimezone ?? '');
   const [defaultCurrency, setDefaultCurrency] = useState(initialValues?.defaultCurrency ?? '');
-  const [itineraryNotes, setItineraryNotes] = useState(initialValues?.itineraryNotes ?? '');
   const [showOptional, setShowOptional] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -142,7 +140,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
           landingCity: effectiveLandingCity,
           defaultTimezone: defaultTimezone || undefined,
           defaultCurrency: defaultCurrency.trim().toUpperCase() || undefined,
-          itineraryNotes: itineraryNotes.trim() || undefined,
           isTravelingParticipant,
           cover: { source: 'emoji', target: selectedEmoji },
         });
@@ -182,7 +179,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
           landingCity: effectiveLandingCity,
           defaultTimezone: defaultTimezone || undefined,
           defaultCurrency: defaultCurrency.trim().toUpperCase() || undefined,
-          itineraryNotes: itineraryNotes.trim() || undefined,
         });
         onSuccess(trip);
       }
@@ -464,18 +460,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                 maxLength={3}
                 disabled={isSaving}
                 className="w-28 uppercase"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="trip-itinerary-notes">{t('form.itineraryNotes')}</Label>
-              <Textarea
-                id="trip-itinerary-notes"
-                value={itineraryNotes}
-                onChange={(e) => setItineraryNotes(e.target.value)}
-                placeholder={t('form.itineraryNotesPlaceholder')}
-                disabled={isSaving}
-                rows={3}
               />
             </div>
           </div>

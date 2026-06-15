@@ -113,7 +113,10 @@
     "noDescription": "Sin descripción.",
     "capacity": "Capacidad",
     "currency": "Moneda",
-    "timezone": "Zona horaria"
+    "timezone": "Zona horaria",
+    "itineraryNotes": "Notas de itinerario",
+    "noItineraryNotes": "Sin notas de itinerario aún.",
+    "editItineraryNotes": "Editar notas de itinerario"
   },
   "role": {
     "organizer": "Organizador",

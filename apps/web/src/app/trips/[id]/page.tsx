@@ -14,13 +14,21 @@ import {
   MapPinIcon,
   UsersIcon,
   NavigationArrowIcon,
+  PencilSimpleIcon,
 } from '@phosphor-icons/react';
 
-import { getTrip, getTripDestinations, getTripParticipation } from '@/services/trips.service';
+import {
+  getTrip,
+  getTripDestinations,
+  getTripParticipation,
+  updateTrip,
+} from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
 import { TripStatusBadge } from '@/components/trips/TripStatusBadge';
 import { TripStatusTransition } from '@/components/trips/TripStatusTransition';
 import { DestinationList } from '@/components/trips/DestinationList';
+import { MarkdownContent } from '@/components/ui/markdown-content';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import type { TripResponse, DestinationResponse } from '@/services/trips.types';
 
 interface TripDetailPageProps {
@@ -31,13 +39,16 @@ const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 
 export default function TripDetailPage({ params }: TripDetailPageProps) {
   const { id } = use(params);
-  const { t } = useTranslation('trips');
+  const { t } = useTranslation(['trips', 'common']);
   const { isLoading: isAuthLoading } = useAuth();
   const [trip, setTrip] = useState<TripResponse | null>(null);
   const [destinations, setDestinations] = useState<DestinationResponse[]>([]);
   const [callerRole, setCallerRole] = useState<TripRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [draftNotes, setDraftNotes] = useState('');
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -55,6 +66,18 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       .catch(() => setNotFound(true))
       .finally(() => setIsLoading(false));
   }, [id, isAuthLoading]);
+
+  async function handleSaveNotes() {
+    if (!trip) return;
+    setIsSavingNotes(true);
+    try {
+      const updated = await updateTrip(id, { itineraryNotes: draftNotes });
+      setTrip(updated);
+      setIsEditingNotes(false);
+    } finally {
+      setIsSavingNotes(false);
+    }
+  }
 
   if (isLoading) return null;
 
@@ -155,6 +178,13 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         </div>
       </div>
 
+      {/* Description */}
+      <section className="mb-6">
+        <p className="text-sm text-muted-foreground">
+          {trip.description ?? t('detail.noDescription')}
+        </p>
+      </section>
+
       {/* Organizer status transitions */}
       {isOrganizer && (
         <section className="mb-6">
@@ -172,17 +202,9 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         <DestinationList tripId={id} initialDestinations={destinations} isOrganizer={isOrganizer} />
       </section>
 
-      {/* About section */}
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold mb-2">{t('detail.about')}</h2>
-        <p className="text-sm text-muted-foreground">
-          {trip.description ?? t('detail.noDescription')}
-        </p>
-      </section>
-
       {/* Quick stats — only rendered when at least one field has a value */}
       {(trip.defaultCurrency ?? trip.defaultTimezone) && (
-        <section>
+        <section className="mb-6">
           <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             {trip.defaultCurrency && (
               <div>
@@ -199,6 +221,60 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           </dl>
         </section>
       )}
+
+      {/* Itinerary notes */}
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold">{t('detail.itineraryNotes')}</h2>
+          {isOrganizer && !isEditingNotes && (
+            <button
+              type="button"
+              onClick={() => {
+                setDraftNotes(trip.itineraryNotes ?? '');
+                setIsEditingNotes(true);
+              }}
+              className="inline-flex items-center justify-center rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title={t('detail.editItineraryNotes')}
+              aria-label={t('detail.editItineraryNotes')}
+            >
+              <PencilSimpleIcon className="size-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
+        {isEditingNotes ? (
+          <div className="space-y-2">
+            <RichTextEditor
+              value={draftNotes}
+              onChange={setDraftNotes}
+              placeholder={t('form.itineraryNotesPlaceholder')}
+              disabled={isSavingNotes}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsEditingNotes(false)}
+                disabled={isSavingNotes}
+                className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+              >
+                {t('common:actions.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveNotes}
+                disabled={isSavingNotes}
+                className="rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+              >
+                {t('common:actions.save')}
+              </button>
+            </div>
+          </div>
+        ) : trip.itineraryNotes ? (
+          <MarkdownContent content={trip.itineraryNotes} />
+        ) : (
+          <p className="text-sm text-muted-foreground">{t('detail.noItineraryNotes')}</p>
+        )}
+      </section>
     </div>
   );
 }

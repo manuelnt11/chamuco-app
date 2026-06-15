@@ -117,7 +117,6 @@ export default function TripSettingsPage({ params }: TripSettingsPageProps) {
           landingCity: trip.landingCity,
           defaultTimezone: trip.defaultTimezone,
           defaultCurrency: trip.defaultCurrency,
-          itineraryNotes: trip.itineraryNotes,
         }}
         onSuccess={(updated) => {
           setTrip(updated);
