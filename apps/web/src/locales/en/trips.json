@@ -7,7 +7,7 @@
   "tripDetails": "Trip Details",
   "participants": {
     "title": "Participants",
-    "capacity": "{{confirmed}} / {{total}} participants",
+    "capacity": "{{active}} / {{total}} participants",
     "invite": {
       "button": "Invite",
       "title": "Invite participants",

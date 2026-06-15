@@ -9,7 +9,7 @@ interface TripInvitationsSectionProps {
 }
 
 export function TripInvitationsSection({ onSuccess }: TripInvitationsSectionProps) {
-  const { t } = useTranslation('trips');
+  const { t, i18n } = useTranslation('trips');
   const { invitations, count, refresh } = useTripInvitations();
 
   function handleSuccess() {
@@ -44,7 +44,7 @@ export function TripInvitationsSection({ onSuccess }: TripInvitationsSectionProp
             <div className="min-w-50 flex-1">
               <p className="truncate font-semibold text-sm">{trip.name}</p>
               <p className="text-xs text-muted-foreground">
-                {new Date(initiatedAt).toLocaleDateString(undefined, {
+                {new Date(initiatedAt).toLocaleDateString(i18n.language, {
                   month: 'short',
                   day: 'numeric',
                 })}

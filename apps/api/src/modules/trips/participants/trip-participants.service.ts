@@ -225,14 +225,17 @@ export class TripParticipantsService {
       ),
     });
     if (!targetParticipation) throw new NotFoundException('Active participant not found');
+    if (targetParticipation.role === TripRole.ORGANIZER)
+      throw new ForbiddenException('Cannot toggle confirmation for the trip organizer');
 
+    const now = new Date();
     const isConfirmed = targetParticipation.status === TripParticipantStatus.CONFIRMED;
     await this.db
       .update(tripParticipants)
       .set({
         status: isConfirmed ? TripParticipantStatus.ACCEPTED : TripParticipantStatus.CONFIRMED,
-        confirmedAt: isConfirmed ? null : new Date(),
-        updatedAt: new Date(),
+        confirmedAt: isConfirmed ? null : now,
+        updatedAt: now,
       })
       .where(and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, targetUserId)));
   }

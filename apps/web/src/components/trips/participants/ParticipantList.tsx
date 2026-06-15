@@ -78,7 +78,7 @@ export function ParticipantList({
     <div className="rounded-xl border border-border">
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <p className="text-sm font-semibold">
-          {t('participants.capacity', { confirmed: participants.length, total: capacity })}
+          {t('participants.capacity', { active: participants.length, total: capacity })}
         </p>
         {isOrganizer && (
           <InviteParticipantModal

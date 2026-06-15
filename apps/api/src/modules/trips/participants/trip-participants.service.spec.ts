@@ -682,6 +682,21 @@ describe('TripParticipantsService', () => {
         service.toggleParticipantConfirmation(TRIP_ID, TARGET_ID, ORGANIZER_ID),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('throws ForbiddenException when target is the ORGANIZER role', async () => {
+      const organizerTarget = makeParticipation(
+        TARGET_ID,
+        TripParticipantStatus.CONFIRMED,
+        TripRole.ORGANIZER,
+      );
+      mockTripParticipantsFindFirst
+        .mockResolvedValueOnce(organizerParticipation)
+        .mockResolvedValueOnce(organizerTarget);
+
+      await expect(
+        service.toggleParticipantConfirmation(TRIP_ID, TARGET_ID, ORGANIZER_ID),
+      ).rejects.toThrow(ForbiddenException);
+    });
   });
 
   // ─── notification error tolerance ────────────────────────────────────────────
