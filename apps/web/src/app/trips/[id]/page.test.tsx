@@ -37,6 +37,10 @@ vi.mock('@/services/api-client', () => ({
   apiClient: { get: mocks.mockApiGet, patch: mocks.mockApiPatch },
 }));
 
+vi.mock('@/components/ui/toast', () => ({
+  toast: { error: vi.fn(), success: vi.fn() },
+}));
+
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: mocks.mockUseAuth,
 }));
@@ -291,9 +295,10 @@ describe('TripDetailPage', () => {
     setupMocks({ participation: { role: TripRole.ORGANIZER, userId: 'user-1' } });
     render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
 
-    await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'detail.editItineraryNotes' }));
-    });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'detail.editItineraryNotes' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'detail.editItineraryNotes' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'common:actions.cancel' }));
 
@@ -306,9 +311,10 @@ describe('TripDetailPage', () => {
     setupMocks({ participation: { role: TripRole.ORGANIZER, userId: 'user-1' } });
     render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
 
-    await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'detail.editItineraryNotes' }));
-    });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'detail.editItineraryNotes' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'detail.editItineraryNotes' }));
 
     fireEvent.change(screen.getByTestId('rich-text-editor'), {
       target: { value: 'Updated notes' },

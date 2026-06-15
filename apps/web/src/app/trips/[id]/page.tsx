@@ -17,6 +17,7 @@ import {
   PencilSimpleIcon,
 } from '@phosphor-icons/react';
 
+import { toast } from '@/components/ui/toast';
 import {
   getTrip,
   getTripDestinations,
@@ -71,9 +72,11 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
     if (!trip) return;
     setIsSavingNotes(true);
     try {
-      const updated = await updateTrip(id, { itineraryNotes: draftNotes });
+      const updated = await updateTrip(id, { itineraryNotes: draftNotes.trim() });
       setTrip(updated);
       setIsEditingNotes(false);
+    } catch {
+      toast.error(t('settings.saveFailed'));
     } finally {
       setIsSavingNotes(false);
     }
