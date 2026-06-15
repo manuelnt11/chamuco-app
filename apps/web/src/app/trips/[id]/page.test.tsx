@@ -1,10 +1,11 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import type { TripResponse, DestinationResponse } from '@/services/trips.types';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
+  mockApiPatch: vi.fn(),
   mockUseAuth: vi.fn(),
 }));
 
@@ -33,7 +34,11 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('@/services/api-client', () => ({
-  apiClient: { get: mocks.mockApiGet },
+  apiClient: { get: mocks.mockApiGet, patch: mocks.mockApiPatch },
+}));
+
+vi.mock('@/components/ui/toast', () => ({
+  toast: { error: vi.fn(), success: vi.fn() },
 }));
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -50,6 +55,33 @@ vi.mock('@phosphor-icons/react', () => ({
   MapPinIcon: () => null,
   UsersIcon: () => null,
   NavigationArrowIcon: () => null,
+  PencilSimpleIcon: () => null,
+}));
+
+vi.mock('@/components/ui/markdown-content', () => ({
+  MarkdownContent: ({ content }: { content: string }) => (
+    <div data-testid="markdown-content">{content}</div>
+  ),
+}));
+
+vi.mock('@/components/ui/rich-text-editor', () => ({
+  RichTextEditor: ({
+    value,
+    onChange,
+    disabled,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+    disabled?: boolean;
+    placeholder?: string;
+  }) => (
+    <textarea
+      data-testid="rich-text-editor"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+    />
+  ),
 }));
 
 vi.mock('@/components/trips/TripStatusBadge', () => ({
@@ -151,9 +183,11 @@ function setupMocks({
     userId: string;
   } | null,
   destinations = [mockDestination],
+  trip = mockTrip,
 }: {
   participation?: { role: TripRole; userId: string } | null;
   destinations?: (typeof mockDestination)[];
+  trip?: TripResponse;
 } = {}) {
   mocks.mockUseAuth.mockReturnValue({ isLoading: false });
 
@@ -172,7 +206,7 @@ function setupMocks({
           })
         : Promise.reject(new Error('Not a participant'));
     if (url.includes('/destinations')) return Promise.resolve({ data: destinations });
-    return Promise.resolve({ data: mockTrip });
+    return Promise.resolve({ data: trip });
   });
 }
 
@@ -193,12 +227,106 @@ describe('TripDetailPage', () => {
     });
   });
 
-  it('renders trip description in about section', async () => {
+  it('renders trip description', async () => {
     setupMocks();
     render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
       expect(screen.getByText('Beach trip for the crew.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows noItineraryNotes when itineraryNotes is null', async () => {
+    setupMocks();
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('detail.noItineraryNotes')).toBeInTheDocument();
+    });
+  });
+
+  it('renders itinerary notes as markdown when present', async () => {
+    setupMocks({ trip: { ...mockTrip, itineraryNotes: '## Day 1\nArrival' } });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      const el = screen.getByTestId('markdown-content');
+      expect(el).toHaveTextContent('## Day 1');
+      expect(el).toHaveTextContent('Arrival');
+    });
+  });
+
+  it('shows edit itinerary notes button for ORGANIZER', async () => {
+    setupMocks({ participation: { role: TripRole.ORGANIZER, userId: 'user-1' } });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'detail.editItineraryNotes' })).toBeInTheDocument();
+    });
+  });
+
+  it('hides edit itinerary notes button for PARTICIPANT', async () => {
+    setupMocks({ participation: { role: TripRole.PARTICIPANT, userId: 'user-3' } });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: 'detail.editItineraryNotes' }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('clicking edit shows rich text editor', async () => {
+    setupMocks({ participation: { role: TripRole.ORGANIZER, userId: 'user-1' } });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'detail.editItineraryNotes' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'detail.editItineraryNotes' }));
+
+    expect(screen.getByTestId('rich-text-editor')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'common:actions.save' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'common:actions.cancel' })).toBeInTheDocument();
+  });
+
+  it('cancel exits edit mode', async () => {
+    setupMocks({ participation: { role: TripRole.ORGANIZER, userId: 'user-1' } });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'detail.editItineraryNotes' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'detail.editItineraryNotes' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'common:actions.cancel' }));
+
+    expect(screen.queryByTestId('rich-text-editor')).not.toBeInTheDocument();
+  });
+
+  it('save calls updateTrip and exits edit mode', async () => {
+    const updatedTrip = { ...mockTrip, itineraryNotes: 'Updated notes' };
+    mocks.mockApiPatch.mockResolvedValue({ data: updatedTrip });
+    setupMocks({ participation: { role: TripRole.ORGANIZER, userId: 'user-1' } });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'detail.editItineraryNotes' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'detail.editItineraryNotes' }));
+
+    fireEvent.change(screen.getByTestId('rich-text-editor'), {
+      target: { value: 'Updated notes' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'common:actions.save' }));
+
+    await waitFor(() => {
+      expect(mocks.mockApiPatch).toHaveBeenCalledWith('/v1/trips/trip-id', {
+        itineraryNotes: 'Updated notes',
+      });
+      expect(screen.queryByTestId('rich-text-editor')).not.toBeInTheDocument();
+      expect(screen.getByTestId('markdown-content')).toHaveTextContent('Updated notes');
     });
   });
 

@@ -202,7 +202,6 @@ function setupEdit() {
         landingCity: 'CIUDAD DE MEXICO',
         defaultTimezone: null,
         defaultCurrency: null,
-        itineraryNotes: null,
         isTravelingParticipant: true,
       }}
       onSuccess={mocks.mockOnSuccess}
@@ -497,7 +496,6 @@ describe('TripForm', () => {
             landingCity: 'CIUDAD DE MEXICO',
             defaultTimezone: null,
             defaultCurrency: null,
-            itineraryNotes: null,
           }}
           onSuccess={mocks.mockOnSuccess}
         />,

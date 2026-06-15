@@ -109,11 +109,13 @@
     "createFirst": "Create your first trip and start planning your next adventure.",
     "destinations": "Destinations",
     "noDestinations": "No destinations added yet.",
-    "about": "About",
     "noDescription": "No description provided.",
     "capacity": "Capacity",
     "currency": "Currency",
-    "timezone": "Timezone"
+    "timezone": "Timezone",
+    "itineraryNotes": "Itinerary notes",
+    "noItineraryNotes": "No itinerary notes yet.",
+    "editItineraryNotes": "Edit itinerary notes"
   },
   "role": {
     "organizer": "Organizer",
