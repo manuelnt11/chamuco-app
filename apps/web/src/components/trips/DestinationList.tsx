@@ -26,6 +26,8 @@ import {
   PlusIcon,
 } from '@phosphor-icons/react';
 
+import axios from 'axios';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -316,9 +318,12 @@ export function DestinationList({
     );
     try {
       await deleteTripDestination(tripId, dest.id);
-    } catch {
+    } catch (err) {
       setDestinations(prev);
-      toast.error(t('destinations.deleteError'));
+      const isLastDestinationError = axios.isAxiosError(err) && err.response?.status === 422;
+      toast.error(
+        t(isLastDestinationError ? 'destinations.deleteLastError' : 'destinations.deleteError'),
+      );
     }
   }
 

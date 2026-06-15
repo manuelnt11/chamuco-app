@@ -375,22 +375,18 @@ describe('TripsDestinationsService', () => {
   });
 
   describe('deleteDestination', () => {
-    it('deletes destination when count is > 1', async () => {
+    it('deletes destination and compacts positions in a single transaction', async () => {
       mockSelectWhere.mockResolvedValue([{ total: 2 }]);
 
       await expect(
         service.deleteDestination(mockUser, 'trip-uuid', 'dest-uuid'),
       ).resolves.toBeUndefined();
 
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
       expect(mockDeleteWhere).toHaveBeenCalled();
-    });
-
-    it('compacts positions of remaining destinations after delete', async () => {
-      mockSelectWhere.mockResolvedValue([{ total: 2 }]);
-
-      await service.deleteDestination(mockUser, 'trip-uuid', 'dest-uuid');
-
-      expect(mockUpdateWhere).toHaveBeenCalled();
+      expect(mockUpdateSet).toHaveBeenCalledWith(
+        expect.objectContaining({ position: expect.anything() }),
+      );
     });
 
     it('throws UnprocessableEntityException when deleting the last destination', async () => {

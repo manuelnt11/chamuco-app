@@ -123,14 +123,16 @@ export class TripsDestinationsService {
       );
     }
 
-    await this.db.delete(tripDestinations).where(eq(tripDestinations.id, destId));
+    await this.db.transaction(async (trx) => {
+      await trx.delete(tripDestinations).where(eq(tripDestinations.id, destId));
 
-    await this.db
-      .update(tripDestinations)
-      .set({ position: sql`${tripDestinations.position} - 1` })
-      .where(
-        and(eq(tripDestinations.tripId, tripId), gt(tripDestinations.position, dest.position)),
-      );
+      await trx
+        .update(tripDestinations)
+        .set({ position: sql`${tripDestinations.position} - 1` })
+        .where(
+          and(eq(tripDestinations.tripId, tripId), gt(tripDestinations.position, dest.position)),
+        );
+    });
   }
 
   async reorderDestinations(
