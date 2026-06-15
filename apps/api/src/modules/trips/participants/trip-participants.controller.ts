@@ -76,6 +76,28 @@ export class TripParticipantsController {
     return this.tripParticipantsService.removeParticipant(id, userId, user.id);
   }
 
+  @Patch(':id/participants/:userId/confirmation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Toggle participant confirmation',
+    description:
+      'Toggles a participant confirmation status between ACCEPTED and CONFIRMED. ' +
+      'Organizer and co-organizer only.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
+  @ApiParam({ name: 'userId', type: String, description: 'User UUID of the target participant' })
+  @ApiResponse({ status: 204, description: 'Confirmation toggled.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
+  @ApiForbiddenResponse({ description: 'Caller is not a trip organizer or co-organizer.' })
+  @ApiNotFoundResponse({ description: 'Trip or active participant not found.' })
+  async toggleParticipantConfirmation(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.tripParticipantsService.toggleParticipantConfirmation(id, userId, user.id);
+  }
+
   @Patch(':id/participants/:userId/role')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({

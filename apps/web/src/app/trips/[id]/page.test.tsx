@@ -300,7 +300,7 @@ describe('TripDetailPage', () => {
     render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      const link = screen.getByRole('link', { name: 'participants' });
+      const link = screen.getByRole('link', { name: 'participants.title' });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute('href', '/trips/trip-id/participants');
     });
@@ -311,7 +311,7 @@ describe('TripDetailPage', () => {
     render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'participants' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'participants.title' })).toBeInTheDocument();
     });
   });
 

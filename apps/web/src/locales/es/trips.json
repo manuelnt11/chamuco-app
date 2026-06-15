@@ -5,7 +5,97 @@
   "upcomingTrips": "Próximos Viajes",
   "pastTrips": "Viajes Pasados",
   "tripDetails": "Detalles del Viaje",
-  "participants": "Participantes",
+  "participants": {
+    "title": "Participantes",
+    "capacity": "{{active}} / {{total}} participantes",
+    "invite": {
+      "button": "Invitar",
+      "title": "Invitar participantes",
+      "usernamePlaceholder": "Buscar por nombre o @usuario",
+      "submit": "Enviar invitaciones",
+      "sending": "Enviando...",
+      "cancel": "Cancelar",
+      "success": "Invitación enviada",
+      "error": "Error al enviar la invitación",
+      "noResults": "No se encontraron usuarios",
+      "removeUser": "Eliminar {{username}}",
+      "alreadyExcluded": "Este usuario ya es participante o tiene una invitación pendiente",
+      "maxUsers": "Puedes invitar hasta 20 usuarios a la vez",
+      "done": "Listo",
+      "results": { "title": "Resultados de invitación" },
+      "result": {
+        "INVITED": "Invitado exitosamente",
+        "ALREADY_MEMBER": "Ya es participante",
+        "ALREADY_INVITED": "Ya fue invitado",
+        "HAS_PENDING_REQUEST": "Tiene una solicitud pendiente",
+        "NOT_FOUND": "Usuario no encontrado"
+      }
+    },
+    "joinRequest": {
+      "button": "Solicitar unirse",
+      "requesting": "Solicitando...",
+      "success": "Solicitud enviada",
+      "error": "Error al enviar la solicitud",
+      "capacityFull": "El viaje está al máximo de capacidad",
+      "withdraw": "Retirar solicitud",
+      "withdrawing": "Retirando...",
+      "withdrawSuccess": "Solicitud retirada",
+      "withdrawError": "Error al retirar la solicitud"
+    },
+    "leave": {
+      "button": "Salir del viaje",
+      "confirm": "¿Estás seguro de que quieres salir de este viaje?",
+      "cancel": "Cancelar",
+      "confirmButton": "Salir del viaje",
+      "leaving": "Saliendo...",
+      "success": "Has salido del viaje",
+      "error": "Error al salir del viaje",
+      "lastOrganizer": "Eres el último organizador. Transfiere el rol antes de salir."
+    },
+    "invitation": {
+      "received": "Has sido invitado a unirte a este viaje",
+      "acceptError": "Error al aceptar la invitación",
+      "declineError": "Error al rechazar la invitación"
+    },
+    "pending": {
+      "title": "Pendientes ({{count}})",
+      "noItems": "No hay solicitudes ni invitaciones pendientes",
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "revoke": "Revocar",
+      "statusRequest": "Quiere unirse",
+      "statusInvited": "Invitado",
+      "capacityFull": "El viaje está al máximo de capacidad",
+      "acceptError": "Error al aceptar la solicitud",
+      "rejectError": "Error al rechazar la solicitud",
+      "revokeError": "Error al revocar la invitación"
+    },
+    "actions": {
+      "remove": "Eliminar participante",
+      "promote": "Promover a co-organizador",
+      "demote": "Degradar a participante",
+      "confirm": "Confirmar asistencia",
+      "unconfirm": "Marcar como no confirmado",
+      "removeError": "Error al eliminar al participante",
+      "promoteError": "Error al promover al participante",
+      "demoteError": "Error al degradar al participante",
+      "confirmError": "Error al actualizar la confirmación"
+    },
+    "role": {
+      "ORGANIZER": "Organizador",
+      "CO_ORGANIZER": "Co-organizador",
+      "PARTICIPANT": "Participante"
+    },
+    "traveler": "Viajando",
+    "notTraveler": "No viaja",
+    "sections": {
+      "confirmed": "Confirmados ({{count}})",
+      "pendingConfirmation": "Por confirmar ({{count}})"
+    },
+    "empty": "Aún no hay participantes",
+    "loading": "Cargando participantes...",
+    "loadError": "Error al cargar los participantes"
+  },
   "itinerary": "Itinerario",
   "budget": "Presupuesto",
   "expenses": "Gastos",
@@ -90,6 +180,9 @@
     "forbidden": "No tienes permiso para realizar esta acción.",
     "cannotMakePublic": "Un viaje privado no puede hacerse público.",
     "coverUploadFailed": "Viaje creado. Error al subir la portada — puedes actualizarla más tarde."
+  },
+  "invitations": {
+    "titleWithCount": "Invitaciones a viajes ({{count}})"
   },
   "announcements": "Anuncios",
   "announcementsPublish": "Publicar anuncio",

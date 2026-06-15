@@ -84,8 +84,8 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           <Link
             href={`/trips/${trip.id}/participants`}
             className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
-            title={t('participants')}
-            aria-label={t('participants')}
+            title={t('participants.title')}
+            aria-label={t('participants.title')}
           >
             <UsersThreeIcon className="size-5" aria-hidden="true" />
           </Link>

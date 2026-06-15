@@ -18,11 +18,14 @@ import { TripJoinRequestsService } from './join-requests/trip-join-requests.serv
 @Module({
   imports: [NotificationsModule],
   controllers: [
+    // TripParticipantsController must come before TripsController so that
+    // GET /v1/trips/invitations (static) registers before GET /v1/trips/:id (param)
+    // and NestJS resolves the static route first.
+    TripParticipantsController,
     TripsController,
     TripsDestinationsController,
     TripsGroupsController,
     TripAnnouncementsController,
-    TripParticipantsController,
     TripInvitationsController,
     TripJoinRequestsController,
   ],

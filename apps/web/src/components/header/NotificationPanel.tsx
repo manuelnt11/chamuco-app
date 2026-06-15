@@ -71,7 +71,9 @@ export function NotificationPanel({
 
   function handleItemClick(notif: NotificationItem) {
     onMarkRead(notif.id);
-    if (notif.url) {
+    if (notif.type === NotificationType.TRIP_INVITATION) {
+      router.push('/trips');
+    } else if (notif.url) {
       router.push(notif.url);
     }
   }

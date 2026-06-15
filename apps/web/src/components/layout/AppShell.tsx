@@ -6,6 +6,7 @@ import { Header } from '@/components/header';
 import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
 import { FeedbackButton } from '@/components/feedback/FeedbackButton';
 import { GroupInvitationsProvider } from '@/store/group-invitations';
+import { TripInvitationsProvider } from '@/store/trip-invitations';
 // TODO: re-enable once notifications/banners are fully designed
 // import { ProfileCompletionBanner } from '@/components/ProfileCompletionBanner';
 
@@ -31,14 +32,16 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <GroupInvitationsProvider>
-      <Header />
-      <DesktopSideNav />
-      <MobileBottomNav />
-      {/* <div className="md:pl-sidebar"><ProfileCompletionBanner /></div> */}
-      <main className="relative pt-header-safe pb-nav-safe md:pb-0 md:pl-sidebar md:transition-[padding-left] md:duration-200 md:ease-in-out min-h-screen">
-        {children}
-      </main>
-      <FeedbackButton />
+      <TripInvitationsProvider>
+        <Header />
+        <DesktopSideNav />
+        <MobileBottomNav />
+        {/* <div className="md:pl-sidebar"><ProfileCompletionBanner /></div> */}
+        <main className="relative pt-header-safe pb-nav-safe md:pb-0 md:pl-sidebar md:transition-[padding-left] md:duration-200 md:ease-in-out min-h-screen">
+          {children}
+        </main>
+        <FeedbackButton />
+      </TripInvitationsProvider>
     </GroupInvitationsProvider>
   );
 }

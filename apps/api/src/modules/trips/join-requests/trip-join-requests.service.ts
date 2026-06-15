@@ -105,7 +105,6 @@ export class TripJoinRequestsService {
       .set({
         status: TripParticipantStatus.ACCEPTED,
         decidedBy: organizerUserId,
-        confirmedAt: now,
         updatedAt: now,
       })
       .where(and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, targetUserId)));

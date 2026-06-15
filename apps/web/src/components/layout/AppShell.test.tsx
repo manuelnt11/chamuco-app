@@ -33,6 +33,16 @@ vi.mock('@/store/group-invitations', () => ({
   })),
 }));
 
+vi.mock('@/store/trip-invitations', () => ({
+  TripInvitationsProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useTripInvitations: vi.fn(() => ({
+    invitations: [],
+    count: 0,
+    isLoading: false,
+    refresh: vi.fn(),
+  })),
+}));
+
 describe('AppShell', () => {
   describe('standard layout (non-auth pages)', () => {
     it('renders Header component', () => {

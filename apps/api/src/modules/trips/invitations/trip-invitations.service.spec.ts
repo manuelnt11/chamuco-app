@@ -269,7 +269,7 @@ describe('TripInvitationsService', () => {
   // ─── acceptInvitation ────────────────────────────────────────────────────────
 
   describe('acceptInvitation', () => {
-    it('transitions INVITED → ACCEPTED, sets confirmedAt, and notifies organizers', async () => {
+    it('transitions INVITED → ACCEPTED and notifies organizers', async () => {
       mockTripParticipantsFindMany.mockResolvedValueOnce([organizerParticipation]);
 
       await service.acceptInvitation(TRIP_ID, USER_ID);
