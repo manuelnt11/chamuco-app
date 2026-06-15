@@ -126,6 +126,70 @@ beforeEach(() => {
 });
 
 describe('DestinationList', () => {
+  describe('fixed departure and landing items', () => {
+    it('renders departure city in participant mode', () => {
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[]}
+          isOrganizer={false}
+          departureCity="Mexico City"
+          departureCountry="MX"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
+      expect(screen.getByText(/Mexico City/)).toBeInTheDocument();
+    });
+
+    it('renders landing city in participant mode', () => {
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[]}
+          isOrganizer={false}
+          departureCity="Mexico City"
+          departureCountry="MX"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
+      expect(screen.getByText(/Bogota/)).toBeInTheDocument();
+    });
+
+    it('renders departure and landing labels', () => {
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[]}
+          isOrganizer={false}
+          departureCity="Mexico City"
+          departureCountry="MX"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
+      expect(screen.getByText('form.departureLocation')).toBeInTheDocument();
+      expect(screen.getByText('form.landingLocation')).toBeInTheDocument();
+    });
+
+    it('renders departure and landing in organizer mode', () => {
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[]}
+          isOrganizer={true}
+          departureCity="Mexico City"
+          departureCountry="MX"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
+      expect(screen.getByText(/Mexico City/)).toBeInTheDocument();
+      expect(screen.getByText(/Bogota/)).toBeInTheDocument();
+    });
+  });
+
   describe('read-only (participant) mode', () => {
     it('renders ordered destination list', () => {
       render(
@@ -133,6 +197,10 @@ describe('DestinationList', () => {
           tripId="trip-1"
           initialDestinations={[destA, destB]}
           isOrganizer={false}
+          departureCity="Bogota"
+          departureCountry="CO"
+          landingCity="Bogota"
+          landingCountry="CO"
         />,
       );
       expect(screen.getByText(/Cancun/)).toBeInTheDocument();
@@ -145,6 +213,10 @@ describe('DestinationList', () => {
           tripId="trip-1"
           initialDestinations={[destA, destB]}
           isOrganizer={false}
+          departureCity="Bogota"
+          departureCountry="CO"
+          landingCity="Bogota"
+          landingCountry="CO"
         />,
       );
       expect(screen.getByText('1.')).toBeInTheDocument();
@@ -153,22 +225,62 @@ describe('DestinationList', () => {
 
     it('renders label when present', () => {
       const dest = makeDestination({ label: 'Beach stop' });
-      render(<DestinationList tripId="trip-1" initialDestinations={[dest]} isOrganizer={false} />);
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[dest]}
+          isOrganizer={false}
+          departureCity="Bogota"
+          departureCountry="CO"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
       expect(screen.getByText(/Beach stop/)).toBeInTheDocument();
     });
 
     it('shows empty state when no destinations', () => {
-      render(<DestinationList tripId="trip-1" initialDestinations={[]} isOrganizer={false} />);
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[]}
+          isOrganizer={false}
+          departureCity="Bogota"
+          departureCountry="CO"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
       expect(screen.getByText('detail.noDestinations')).toBeInTheDocument();
     });
 
     it('does not show add button', () => {
-      render(<DestinationList tripId="trip-1" initialDestinations={[destA]} isOrganizer={false} />);
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[destA]}
+          isOrganizer={false}
+          departureCity="Bogota"
+          departureCountry="CO"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
       expect(screen.queryByLabelText('destinations.addButton')).not.toBeInTheDocument();
     });
 
     it('does not show edit/delete actions', () => {
-      render(<DestinationList tripId="trip-1" initialDestinations={[destA]} isOrganizer={false} />);
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[destA]}
+          isOrganizer={false}
+          departureCity="Bogota"
+          departureCountry="CO"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
       expect(screen.queryByLabelText('actions.edit')).not.toBeInTheDocument();
       expect(screen.queryByLabelText('actions.delete')).not.toBeInTheDocument();
     });
@@ -176,12 +288,32 @@ describe('DestinationList', () => {
 
   describe('organizer mode', () => {
     it('shows add button', () => {
-      render(<DestinationList tripId="trip-1" initialDestinations={[]} isOrganizer={true} />);
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[]}
+          isOrganizer={true}
+          departureCity="Bogota"
+          departureCountry="CO"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
       expect(screen.getByLabelText('destinations.addButton')).toBeInTheDocument();
     });
 
     it('shows edit and delete actions per item', () => {
-      render(<DestinationList tripId="trip-1" initialDestinations={[destA]} isOrganizer={true} />);
+      render(
+        <DestinationList
+          tripId="trip-1"
+          initialDestinations={[destA]}
+          isOrganizer={true}
+          departureCity="Bogota"
+          departureCountry="CO"
+          landingCity="Bogota"
+          landingCountry="CO"
+        />,
+      );
       expect(screen.getByTitle('actions.edit')).toBeInTheDocument();
       expect(screen.getByTitle('actions.delete')).toBeInTheDocument();
     });
@@ -189,7 +321,17 @@ describe('DestinationList', () => {
     describe('add flow', () => {
       it('opens add dialog on button click', async () => {
         const user = userEvent.setup();
-        render(<DestinationList tripId="trip-1" initialDestinations={[]} isOrganizer={true} />);
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
         await user.click(screen.getByLabelText('destinations.addButton'));
         expect(screen.getByText('destinations.addTitle')).toBeInTheDocument();
       });
@@ -199,7 +341,17 @@ describe('DestinationList', () => {
         const newDest = makeDestination({ id: 'dest-new', city: 'Oaxaca', countryCode: 'MX' });
         mocks.addTripDestination.mockResolvedValueOnce(writeResponse(newDest));
 
-        render(<DestinationList tripId="trip-1" initialDestinations={[]} isOrganizer={true} />);
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
 
         await user.click(screen.getByLabelText('destinations.addButton'));
         await user.selectOptions(screen.getByTestId('country-combobox'), 'MX');
@@ -222,7 +374,17 @@ describe('DestinationList', () => {
         const user = userEvent.setup();
         mocks.addTripDestination.mockRejectedValueOnce(new Error('network'));
 
-        render(<DestinationList tripId="trip-1" initialDestinations={[]} isOrganizer={true} />);
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
 
         await user.click(screen.getByLabelText('destinations.addButton'));
         await user.selectOptions(screen.getByTestId('country-combobox'), 'MX');
@@ -239,7 +401,15 @@ describe('DestinationList', () => {
       it('opens edit dialog pre-filled with destination data', async () => {
         const user = userEvent.setup();
         render(
-          <DestinationList tripId="trip-1" initialDestinations={[destA]} isOrganizer={true} />,
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
         );
         await user.click(screen.getByTitle('actions.edit'));
         expect(screen.getByText('destinations.editTitle')).toBeInTheDocument();
@@ -253,7 +423,15 @@ describe('DestinationList', () => {
         mocks.updateTripDestination.mockResolvedValueOnce(writeResponse(updated));
 
         render(
-          <DestinationList tripId="trip-1" initialDestinations={[destA]} isOrganizer={true} />,
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
         );
 
         await user.click(screen.getByTitle('actions.edit'));
@@ -283,6 +461,10 @@ describe('DestinationList', () => {
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
           />,
         );
 
@@ -302,7 +484,15 @@ describe('DestinationList', () => {
         mocks.deleteTripDestination.mockRejectedValueOnce(new Error('network'));
 
         render(
-          <DestinationList tripId="trip-1" initialDestinations={[destA]} isOrganizer={true} />,
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
         );
 
         const deleteButton = screen.getByTitle('actions.delete');
@@ -330,6 +520,10 @@ describe('DestinationList', () => {
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
           />,
         );
 
@@ -352,6 +546,10 @@ describe('DestinationList', () => {
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
           />,
         );
 
@@ -371,6 +569,10 @@ describe('DestinationList', () => {
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
           />,
         );
 
@@ -384,6 +586,10 @@ describe('DestinationList', () => {
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
           />,
         );
 
