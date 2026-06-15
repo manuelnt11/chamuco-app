@@ -486,6 +486,32 @@ describe('DestinationList', () => {
         render(
           <DestinationList
             tripId="trip-1"
+            initialDestinations={[destA, destB]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+
+        const deleteButtons = screen.getAllByTitle('actions.delete');
+        await user.click(deleteButtons[0]!);
+        await user.click(screen.getByText('actions.deleteConfirm'));
+
+        await waitFor(() => {
+          expect(mocks.toastError).toHaveBeenCalledWith('destinations.deleteError');
+        });
+
+        expect(screen.getByText(/Cancun/)).toBeInTheDocument();
+      });
+
+      it('shows deleteLastError toast when only one destination remains', async () => {
+        const user = userEvent.setup();
+
+        render(
+          <DestinationList
+            tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}
             departureCity="Bogota"
@@ -500,9 +526,10 @@ describe('DestinationList', () => {
         await user.click(screen.getByText('actions.deleteConfirm'));
 
         await waitFor(() => {
-          expect(mocks.toastError).toHaveBeenCalledWith('destinations.deleteError');
+          expect(mocks.toastError).toHaveBeenCalledWith('destinations.deleteLastError');
         });
 
+        expect(mocks.deleteTripDestination).not.toHaveBeenCalled();
         expect(screen.getByText(/Cancun/)).toBeInTheDocument();
       });
     });

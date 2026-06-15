@@ -241,6 +241,7 @@
     "labelPlaceholder": "ej. Parada en la playa",
     "saveError": "Error al guardar el destino.",
     "deleteError": "Error al eliminar el destino.",
+    "deleteLastError": "Los viajes deben tener al menos un destino.",
     "reorderError": "Error al reordenar los destinos."
   }
 }

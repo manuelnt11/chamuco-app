@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { and, asc, count, eq, inArray, max, sql } from 'drizzle-orm';
+import { and, asc, count, eq, gt, inArray, max, sql } from 'drizzle-orm';
 
 import { TripStatus } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -123,7 +123,16 @@ export class TripsDestinationsService {
       );
     }
 
-    await this.db.delete(tripDestinations).where(eq(tripDestinations.id, destId));
+    await this.db.transaction(async (trx) => {
+      await trx.delete(tripDestinations).where(eq(tripDestinations.id, destId));
+
+      await trx
+        .update(tripDestinations)
+        .set({ position: sql`${tripDestinations.position} - 1` })
+        .where(
+          and(eq(tripDestinations.tripId, tripId), gt(tripDestinations.position, dest.position)),
+        );
+    });
   }
 
   async reorderDestinations(
