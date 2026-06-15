@@ -11,7 +11,6 @@ import {
   UsersThreeIcon,
   AirplaneTakeoffIcon,
   AirplaneLandingIcon,
-  MapPinIcon,
   UsersIcon,
   NavigationArrowIcon,
   PencilSimpleIcon,
@@ -166,13 +165,6 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           </div>
 
           <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPinIcon className="size-3.5 shrink-0" aria-hidden="true" />
-            <span>{trip.departureCity}</span>
-            <span>→</span>
-            <span>{trip.landingCity}</span>
-          </div>
-
-          <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
             <UsersIcon className="size-3.5 shrink-0" aria-hidden="true" />
             <span>
               {t('detail.capacity')}: {trip.participantCapacity}
@@ -202,7 +194,15 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           <h2 className="text-sm font-semibold">{t('detail.destinations')}</h2>
         </div>
 
-        <DestinationList tripId={id} initialDestinations={destinations} isOrganizer={isOrganizer} />
+        <DestinationList
+          tripId={id}
+          initialDestinations={destinations}
+          isOrganizer={isOrganizer}
+          departureCity={trip.departureCity}
+          departureCountry={trip.departureCountry}
+          landingCity={trip.landingCity}
+          landingCountry={trip.landingCountry}
+        />
       </section>
 
       {/* Quick stats — only rendered when at least one field has a value */}

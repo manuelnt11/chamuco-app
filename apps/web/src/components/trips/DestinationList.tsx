@@ -19,7 +19,12 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { DotsSixVerticalIcon, PlusIcon } from '@phosphor-icons/react';
+import {
+  AirplaneLandingIcon,
+  AirplaneTakeoffIcon,
+  DotsSixVerticalIcon,
+  PlusIcon,
+} from '@phosphor-icons/react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +55,10 @@ interface DestinationListProps {
   tripId: string;
   initialDestinations: DestinationResponse[];
   isOrganizer: boolean;
+  departureCity: string;
+  departureCountry: string;
+  landingCity: string;
+  landingCountry: string;
 }
 
 type FormMode = 'add' | 'edit';
@@ -258,6 +267,10 @@ export function DestinationList({
   tripId,
   initialDestinations,
   isOrganizer,
+  departureCity,
+  departureCountry,
+  landingCity,
+  landingCountry,
 }: DestinationListProps) {
   const { t } = useTranslation('trips');
   const [destinations, setDestinations] = useState<DestinationResponse[]>(initialDestinations);
@@ -329,17 +342,28 @@ export function DestinationList({
 
   if (!isOrganizer) {
     return (
-      <div>
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+          <AirplaneTakeoffIcon
+            className="size-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <span className="flex-1">
+            {departureCity}, {departureCountry}
+          </span>
+          <span className="text-xs text-muted-foreground">{t('form.departureLocation')}</span>
+        </div>
+
         {destinations.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('detail.noDestinations')}</p>
+          <p className="px-2 text-sm text-muted-foreground">{t('detail.noDestinations')}</p>
         ) : (
-          <ol className="space-y-2">
+          <ol className="space-y-1">
             {destinations.map((dest) => (
-              <li key={dest.id} className="flex items-center gap-2 text-sm">
+              <li key={dest.id} className="flex items-center gap-2 px-2 py-1.5 text-sm">
                 <span className="text-muted-foreground tabular-nums w-5 shrink-0 text-right">
                   {dest.position}.
                 </span>
-                <span>
+                <span className="flex-1">
                   {dest.city}, {dest.countryCode}
                   {dest.label && <span className="ml-1 text-muted-foreground">— {dest.label}</span>}
                 </span>
@@ -347,19 +371,38 @@ export function DestinationList({
             ))}
           </ol>
         )}
+
+        <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+          <AirplaneLandingIcon
+            className="size-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <span className="flex-1">
+            {landingCity}, {landingCountry}
+          </span>
+          <span className="text-xs text-muted-foreground">{t('form.landingLocation')}</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
+      <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+        <AirplaneTakeoffIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <span className="flex-1">
+          {departureCity}, {departureCountry}
+        </span>
+        <span className="text-xs text-muted-foreground">{t('form.departureLocation')}</span>
+      </div>
+
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext
           items={destinations.map((d) => d.id)}
           strategy={verticalListSortingStrategy}
         >
           {destinations.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('detail.noDestinations')}</p>
+            <p className="px-2 text-sm text-muted-foreground">{t('detail.noDestinations')}</p>
           ) : (
             <ol className="space-y-1">
               {destinations.map((dest) => (
@@ -375,6 +418,14 @@ export function DestinationList({
           )}
         </SortableContext>
       </DndContext>
+
+      <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+        <AirplaneLandingIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <span className="flex-1">
+          {landingCity}, {landingCountry}
+        </span>
+        <span className="text-xs text-muted-foreground">{t('form.landingLocation')}</span>
+      </div>
 
       <Button
         type="button"
