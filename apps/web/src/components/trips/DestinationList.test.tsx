@@ -127,7 +127,7 @@ beforeEach(() => {
 
 describe('DestinationList', () => {
   describe('fixed departure and landing items', () => {
-    it('renders departure city in both modes', () => {
+    it('renders departure city in participant mode', () => {
       render(
         <DestinationList
           tripId="trip-1"
@@ -142,7 +142,7 @@ describe('DestinationList', () => {
       expect(screen.getByText(/Mexico City/)).toBeInTheDocument();
     });
 
-    it('renders landing city in both modes', () => {
+    it('renders landing city in participant mode', () => {
       render(
         <DestinationList
           tripId="trip-1"

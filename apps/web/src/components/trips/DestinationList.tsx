@@ -388,43 +388,51 @@ export function DestinationList({
 
   return (
     <div>
-      <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
-        <AirplaneTakeoffIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <span className="flex-1">
-          {departureCity}, {departureCountry}
-        </span>
-        <span className="text-xs text-muted-foreground">{t('form.departureLocation')}</span>
-      </div>
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+          <AirplaneTakeoffIcon
+            className="size-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <span className="flex-1">
+            {departureCity}, {departureCountry}
+          </span>
+          <span className="text-xs text-muted-foreground">{t('form.departureLocation')}</span>
+        </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext
-          items={destinations.map((d) => d.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {destinations.length === 0 ? (
-            <p className="px-2 text-sm text-muted-foreground">{t('detail.noDestinations')}</p>
-          ) : (
-            <ol className="space-y-1">
-              {destinations.map((dest) => (
-                <SortableItem
-                  key={dest.id}
-                  dest={dest}
-                  isSaving={isSaving}
-                  onEdit={openEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </ol>
-          )}
-        </SortableContext>
-      </DndContext>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={destinations.map((d) => d.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {destinations.length === 0 ? (
+              <p className="px-2 text-sm text-muted-foreground">{t('detail.noDestinations')}</p>
+            ) : (
+              <ol className="space-y-1">
+                {destinations.map((dest) => (
+                  <SortableItem
+                    key={dest.id}
+                    dest={dest}
+                    isSaving={isSaving}
+                    onEdit={openEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </ol>
+            )}
+          </SortableContext>
+        </DndContext>
 
-      <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
-        <AirplaneLandingIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <span className="flex-1">
-          {landingCity}, {landingCountry}
-        </span>
-        <span className="text-xs text-muted-foreground">{t('form.landingLocation')}</span>
+        <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+          <AirplaneLandingIcon
+            className="size-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <span className="flex-1">
+            {landingCity}, {landingCountry}
+          </span>
+          <span className="text-xs text-muted-foreground">{t('form.landingLocation')}</span>
+        </div>
       </div>
 
       <Button
