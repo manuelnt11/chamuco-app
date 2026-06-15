@@ -241,6 +241,7 @@
     "labelPlaceholder": "e.g. Beach stop",
     "saveError": "Failed to save destination.",
     "deleteError": "Failed to delete destination.",
+    "deleteLastError": "Trips must have at least one destination.",
     "reorderError": "Failed to reorder destinations."
   }
 }

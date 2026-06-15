@@ -305,8 +305,15 @@ export function DestinationList({
   }
 
   async function handleDelete(dest: DestinationResponse) {
+    if (destinations.length <= 1) {
+      toast.error(t('destinations.deleteLastError'));
+      return;
+    }
+
     const prev = destinations;
-    setDestinations((d) => d.filter((x) => x.id !== dest.id));
+    setDestinations((d) =>
+      d.filter((x) => x.id !== dest.id).map((x, i) => ({ ...x, position: i + 1 })),
+    );
     try {
       await deleteTripDestination(tripId, dest.id);
     } catch {

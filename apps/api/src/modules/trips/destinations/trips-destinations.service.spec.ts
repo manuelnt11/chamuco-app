@@ -385,6 +385,14 @@ describe('TripsDestinationsService', () => {
       expect(mockDeleteWhere).toHaveBeenCalled();
     });
 
+    it('compacts positions of remaining destinations after delete', async () => {
+      mockSelectWhere.mockResolvedValue([{ total: 2 }]);
+
+      await service.deleteDestination(mockUser, 'trip-uuid', 'dest-uuid');
+
+      expect(mockUpdateWhere).toHaveBeenCalled();
+    });
+
     it('throws UnprocessableEntityException when deleting the last destination', async () => {
       mockSelectWhere.mockResolvedValue([{ total: 1 }]);
 
