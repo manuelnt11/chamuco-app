@@ -225,10 +225,17 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder={t('form.descriptionPlaceholder')}
-          maxLength={500}
+          maxLength={200}
           disabled={isSaving}
           rows={3}
         />
+        <div className="flex justify-end">
+          <span
+            className={`text-xs ${description.length >= 200 ? 'text-destructive' : 'text-muted-foreground'}`}
+          >
+            {description.length}/200
+          </span>
+        </div>
       </div>
 
       {/* Dates */}

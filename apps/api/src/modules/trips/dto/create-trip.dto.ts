@@ -70,11 +70,11 @@ export class CreateTripDto {
     description: 'Optional trip description',
     example: 'Beach trip for the whole crew.',
     required: false,
-    maxLength: 500,
+    maxLength: 200,
   })
   @IsOptional()
   @IsString()
-  @MaxLength(500)
+  @MaxLength(200)
   description?: string;
 
   @ApiProperty({ enum: TripVisibility, example: TripVisibility.PUBLIC })
@@ -171,9 +171,11 @@ export class CreateTripDto {
   @ApiProperty({
     description: 'Optional itinerary notes.',
     required: false,
+    maxLength: 2000,
   })
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   itineraryNotes?: string;
 
   @ApiProperty({

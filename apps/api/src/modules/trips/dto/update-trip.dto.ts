@@ -31,10 +31,10 @@ export class UpdateTripDto {
   @Transform(({ value }) => sanitizeName(value))
   name?: string;
 
-  @ApiProperty({ required: false, description: 'Trip description', maxLength: 500 })
+  @ApiProperty({ required: false, description: 'Trip description', maxLength: 200 })
   @IsOptional()
   @IsString()
-  @MaxLength(500)
+  @MaxLength(200)
   description?: string;
 
   @ApiProperty({ required: false, enum: TripVisibility })
@@ -131,9 +131,10 @@ export class UpdateTripDto {
   @Transform(({ value }) => sanitizeUpperCase(value))
   defaultCurrency?: string;
 
-  @ApiProperty({ required: false, description: 'Itinerary notes.' })
+  @ApiProperty({ required: false, description: 'Itinerary notes.', maxLength: 2000 })
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   itineraryNotes?: string;
 
   @ApiProperty({

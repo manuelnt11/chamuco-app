@@ -251,6 +251,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
               value={draftNotes}
               onChange={setDraftNotes}
               placeholder={t('form.itineraryNotesPlaceholder')}
+              maxLength={2000}
               disabled={isSavingNotes}
             />
             <div className="flex justify-end gap-2">
