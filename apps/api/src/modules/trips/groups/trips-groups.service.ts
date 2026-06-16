@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -16,6 +16,8 @@ import type { AddTripGroupDto } from './dto/add-trip-group.dto';
 
 @Injectable()
 export class TripsGroupsService {
+  private readonly logger = new Logger(TripsGroupsService.name);
+
   constructor(
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly tripsService: TripsService,
@@ -43,11 +45,17 @@ export class TripsGroupsService {
 
     return Promise.all(
       groupRows.map(async (group) => {
-        if (!group.cover) throw new NotFoundException('Group cover asset not found');
+        if (!group.cover) return { id: group.id, name: group.name, coverUrl: null };
         const coverRow = assetMap.get(group.cover);
-        if (!coverRow) throw new NotFoundException('Group cover asset not found');
+        if (!coverRow) {
+          this.logger.warn(`Orphaned cover asset ${group.cover} on group ${group.id}`);
+          return { id: group.id, name: group.name, coverUrl: null };
+        }
         const resolved = await this.assetResolver.resolve(assetRowToAsset(coverRow));
-        if (!resolved) throw new NotFoundException('Failed to resolve group cover');
+        if (!resolved) {
+          this.logger.warn(`Failed to resolve cover asset ${group.cover} on group ${group.id}`);
+          return { id: group.id, name: group.name, coverUrl: null };
+        }
         return { id: group.id, name: group.name, coverUrl: resolved.url };
       }),
     );

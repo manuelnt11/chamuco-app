@@ -130,7 +130,7 @@ export interface TripGroupResponse {
 export interface TripLinkedGroup {
   id: string;
   name: string;
-  coverUrl: string;
+  coverUrl: string | null;
 }
 
 export interface TripParticipantResponse {

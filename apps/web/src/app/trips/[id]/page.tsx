@@ -99,6 +99,9 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
   }
 
   const isOrganizer = callerRole !== null && ORGANIZER_ROLES.includes(callerRole);
+  const isTerminal = trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED;
+  const isDestinationEditable =
+    isOrganizer && (trip.status === TripStatus.DRAFT || trip.status === TripStatus.OPEN);
 
   return (
     <div className="p-8 max-w-2xl">
@@ -134,17 +137,11 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           )}
           {isOrganizer && (
             <Link
-              href={
-                trip.status !== TripStatus.COMPLETED && trip.status !== TripStatus.CANCELLED
-                  ? `/trips/${trip.id}/settings`
-                  : '#'
-              }
-              className={`inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted${trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED ? ' pointer-events-none opacity-50' : ''}`}
+              href={!isTerminal ? `/trips/${trip.id}/settings` : '#'}
+              className={`inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted${isTerminal ? ' pointer-events-none opacity-50' : ''}`}
               title={t('actions.editSettings')}
               aria-label={t('actions.editSettings')}
-              aria-disabled={
-                trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED
-              }
+              aria-disabled={isTerminal}
             >
               <GearSixIcon className="size-5" aria-hidden="true" />
             </Link>
@@ -217,9 +214,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         <DestinationList
           tripId={id}
           initialDestinations={destinations}
-          isOrganizer={
-            isOrganizer && (trip.status === TripStatus.DRAFT || trip.status === TripStatus.OPEN)
-          }
+          isOrganizer={isDestinationEditable}
           departureCity={trip.departureCity}
           departureCountry={trip.departureCountry}
           landingCity={trip.landingCity}
@@ -282,23 +277,20 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       <section>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-semibold">{t('detail.itineraryNotes')}</h2>
-          {isOrganizer &&
-            !isEditingNotes &&
-            trip.status !== TripStatus.COMPLETED &&
-            trip.status !== TripStatus.CANCELLED && (
-              <button
-                type="button"
-                onClick={() => {
-                  setDraftNotes(trip.itineraryNotes ?? '');
-                  setIsEditingNotes(true);
-                }}
-                className="inline-flex items-center justify-center rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                title={t('detail.editItineraryNotes')}
-                aria-label={t('detail.editItineraryNotes')}
-              >
-                <PencilSimpleIcon className="size-4" aria-hidden="true" />
-              </button>
-            )}
+          {isOrganizer && !isEditingNotes && !isTerminal && (
+            <button
+              type="button"
+              onClick={() => {
+                setDraftNotes(trip.itineraryNotes ?? '');
+                setIsEditingNotes(true);
+              }}
+              className="inline-flex items-center justify-center rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title={t('detail.editItineraryNotes')}
+              aria-label={t('detail.editItineraryNotes')}
+            >
+              <PencilSimpleIcon className="size-4" aria-hidden="true" />
+            </button>
+          )}
         </div>
 
         {isEditingNotes ? (

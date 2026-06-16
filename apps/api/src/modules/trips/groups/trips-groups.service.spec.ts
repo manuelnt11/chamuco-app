@@ -171,10 +171,22 @@ describe('TripsGroupsService', () => {
       expect(result).toEqual([]);
     });
 
-    it('throws NotFoundException when a group cover asset is missing', async () => {
+    it('returns null coverUrl when group cover asset is orphaned', async () => {
       mockAssetsFindMany.mockResolvedValue([]);
 
-      await expect(service.listLinkedGroups('trip-uuid')).rejects.toThrow(NotFoundException);
+      const result = await service.listLinkedGroups('trip-uuid');
+
+      expect(result).toHaveLength(1);
+      expect(result.at(0)?.coverUrl).toBeNull();
+    });
+
+    it('returns null coverUrl when group has no cover', async () => {
+      mockGroupsFindMany.mockResolvedValue([{ ...mockGroupRow, cover: null }]);
+
+      const result = await service.listLinkedGroups('trip-uuid');
+
+      expect(result).toHaveLength(1);
+      expect(result.at(0)?.coverUrl).toBeNull();
     });
   });
 

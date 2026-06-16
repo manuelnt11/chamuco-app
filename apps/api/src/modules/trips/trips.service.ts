@@ -359,7 +359,11 @@ export class TripsService {
     await this.db.update(trips).set({ status: dto.status }).where(eq(trips.id, id));
 
     if (trip.status === TripStatus.DRAFT && dto.status === TripStatus.OPEN) {
-      await this.inviteLinkedGroupMembers(id, user.id, trip.name);
+      try {
+        await this.inviteLinkedGroupMembers(id, user.id, trip.name);
+      } catch (err: unknown) {
+        this.logger.error('Failed to invite linked group members after DRAFT→OPEN', err);
+      }
     }
 
     return this.fetchAndMapTrip(id);
