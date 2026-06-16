@@ -14,9 +14,10 @@ import { CountryCombobox } from '@/components/ui/country-combobox';
 import { CityCombobox } from '@/components/ui/city-combobox';
 import { TimezoneCombobox } from '@/components/ui/timezone-combobox';
 import { CropModal } from '@/components/ui/crop-modal';
-import { createTrip, updateTrip } from '@/services/trips.service';
+import { createTrip, updateTrip, addTripGroup } from '@/services/trips.service';
 import { getSignedUrl } from '@/services/uploads.service';
 import { uploadToGcs } from '@/services/gcs-upload';
+import { GroupAutocomplete, type GroupPickerItem } from '@/components/ui/group-autocomplete';
 import { AVATAR_EMOJIS } from '@/lib/avatar-emojis';
 import type { TripResponse } from '@/services/trips.types';
 
@@ -76,6 +77,9 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
   const [defaultCurrency, setDefaultCurrency] = useState(initialValues?.defaultCurrency ?? '');
   const [showOptional, setShowOptional] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const [linkedGroups, setLinkedGroups] = useState<GroupPickerItem[]>([]);
+  const [groupSearchInput, setGroupSearchInput] = useState('');
 
   const [coverTab, setCoverTab] = useState<CoverTab>('emoji');
   const [selectedEmoji, setSelectedEmoji] = useState(AVATAR_EMOJIS[0] ?? '😀');
@@ -161,6 +165,14 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
             toast.error(t('errors.coverUploadFailed'));
             onSuccess(trip);
             return;
+          }
+        }
+
+        for (const group of linkedGroups) {
+          try {
+            await addTripGroup(trip.id, { groupId: group.id });
+          } catch {
+            // best-effort: group linking failure does not block trip creation
           }
         }
 
@@ -379,6 +391,53 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Linked groups (create only) */}
+      {mode === 'create' && (
+        <div className="space-y-2">
+          <Label>{t('form.linkedGroups')}</Label>
+          {linkedGroups.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {linkedGroups.map((g) => (
+                <span
+                  key={g.id}
+                  className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm"
+                >
+                  {g.coverUrl && (
+                    <img
+                      src={g.coverUrl}
+                      alt=""
+                      className="size-4 rounded-sm object-cover"
+                      aria-hidden="true"
+                    />
+                  )}
+                  {g.name}
+                  <button
+                    type="button"
+                    onClick={() => setLinkedGroups((prev) => prev.filter((x) => x.id !== g.id))}
+                    className="ml-0.5 rounded-full hover:text-destructive"
+                    aria-label={t('form.linkedGroupsRemove', { name: g.name })}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <GroupAutocomplete
+            value={groupSearchInput}
+            onChange={setGroupSearchInput}
+            onSelect={(group) => {
+              setLinkedGroups((prev) =>
+                prev.some((g) => g.id === group.id) ? prev : [...prev, group],
+              );
+            }}
+            excludedIds={linkedGroups.map((g) => g.id)}
+            placeholder={t('form.linkedGroupsPlaceholder')}
+            disabled={isSaving}
+          />
         </div>
       )}
 

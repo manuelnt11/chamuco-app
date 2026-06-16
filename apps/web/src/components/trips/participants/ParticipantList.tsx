@@ -12,6 +12,7 @@ interface ParticipantListProps {
   capacity: number;
   currentUserId: string | null;
   callerRole: TripRole | null;
+  canInvite?: boolean;
   onInviteSuccess: () => void;
   onParticipantAction: () => void;
   excludedIds?: string[];
@@ -62,6 +63,7 @@ export function ParticipantList({
   capacity,
   currentUserId,
   callerRole,
+  canInvite = true,
   onInviteSuccess,
   onParticipantAction,
   excludedIds,
@@ -85,6 +87,7 @@ export function ParticipantList({
             tripId={tripId}
             onSuccess={onInviteSuccess}
             excludedIds={excludedIds}
+            disabled={!canInvite}
           />
         )}
       </div>

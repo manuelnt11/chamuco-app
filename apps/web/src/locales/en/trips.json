@@ -22,7 +22,9 @@
       "alreadyExcluded": "This user is already a participant or has a pending invitation",
       "maxUsers": "You can invite up to 20 users at once",
       "done": "Done",
-      "results": { "title": "Invitation results" },
+      "results": {
+        "title": "Invitation results"
+      },
       "result": {
         "INVITED": "Invited successfully",
         "ALREADY_MEMBER": "Already a participant",
@@ -115,7 +117,8 @@
     "timezone": "Timezone",
     "itineraryNotes": "Itinerary notes",
     "noItineraryNotes": "No itinerary notes yet.",
-    "editItineraryNotes": "Edit itinerary notes"
+    "editItineraryNotes": "Edit itinerary notes",
+    "linkedGroups": "Linked groups"
   },
   "role": {
     "organizer": "Organizer",
@@ -164,7 +167,13 @@
       "cropTitle": "Crop cover photo",
       "usePhoto": "Use this photo",
       "editButton": "Change photo"
-    }
+    },
+    "linkedGroups": "Linked groups",
+    "linkedGroupsPlaceholder": "Search groups...",
+    "linkedGroupsMyGroups": "My groups",
+    "linkedGroupsPublicGroups": "Public groups",
+    "linkedGroupsNoResults": "No groups found",
+    "linkedGroupsRemove": "Remove {{name}}"
   },
   "visibility": {
     "label": "Visibility",
@@ -213,7 +222,18 @@
     "cancelDialogTitle": "Cancel this trip?",
     "cancelDialogDescription": "Are you sure you want to cancel this trip? All confirmed participants will be notified.",
     "cancelSuccess": "Trip cancelled.",
-    "cancelFailed": "Failed to cancel trip. Please try again."
+    "cancelFailed": "Failed to cancel trip. Please try again.",
+    "deleteTrip": "Delete trip",
+    "deleteTripDescription": "Permanently delete this draft. This action cannot be undone.",
+    "deleteDialogTitle": "Delete this trip?",
+    "deleteDialogDescription": "Are you sure you want to permanently delete this trip? This action cannot be undone.",
+    "deleteSuccess": "Trip deleted.",
+    "deleteFailed": "Failed to delete trip. Please try again.",
+    "saveFailed": "Failed to save trip settings.",
+    "linkedGroups": "Linked Groups",
+    "linkedGroupRemoveFailed": "Failed to remove group.",
+    "linkedGroupAddFailed": "Failed to add group.",
+    "linkedGroupRemove": "Remove {{name}} from this trip"
   },
   "card": {
     "capacityOf": "of"

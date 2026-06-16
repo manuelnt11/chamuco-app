@@ -2,6 +2,8 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   AuthProvider,
+  NotificationChannel,
+  NotificationType,
   PlatformRole,
   ProfileVisibility,
   TripParticipantStatus,
@@ -12,6 +14,7 @@ import {
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { TripsService } from './trips.service';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
@@ -108,6 +111,7 @@ describe('TripsService', () => {
   let mockInsert: jest.Mock;
   let mockTransaction: jest.Mock;
   let mockCloudStorage: { makePublic: jest.Mock; deleteObject: jest.Mock };
+  let mockNotificationsService: { notifyMany: jest.Mock };
 
   beforeEach(async () => {
     mockTripsFindFirst = jest.fn().mockResolvedValue(mockTripRow);
@@ -126,7 +130,10 @@ describe('TripsService', () => {
     mockDelete = jest.fn().mockReturnValue({ where: mockDeleteWhere });
 
     mockInsertReturning = jest.fn().mockResolvedValue([mockTripRow]);
-    mockInsertValues = jest.fn().mockReturnValue({ returning: mockInsertReturning });
+    mockInsertValues = jest.fn().mockReturnValue({
+      returning: mockInsertReturning,
+      onConflictDoNothing: jest.fn().mockResolvedValue([]),
+    });
     mockInsert = jest.fn().mockReturnValue({ values: mockInsertValues });
 
     mockTransaction = jest
@@ -143,6 +150,10 @@ describe('TripsService', () => {
     mockCloudStorage = {
       makePublic: jest.fn().mockResolvedValue(undefined),
       deleteObject: jest.fn().mockResolvedValue(undefined),
+    };
+
+    mockNotificationsService = {
+      notifyMany: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -170,6 +181,10 @@ describe('TripsService', () => {
         {
           provide: CloudStorageService,
           useValue: mockCloudStorage,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
         },
       ],
     }).compile();
@@ -504,6 +519,80 @@ describe('TripsService', () => {
         new Date('2026-12-08').getTime(),
       );
     });
+
+    it('invites active group members when transitioning DRAFT→OPEN', async () => {
+      // 1. destinations count
+      mockSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      // 2. linked groups query
+      mockSelectWhere.mockResolvedValueOnce([{ groupId: 'group-uuid' }]);
+      // 3. active group members
+      mockSelectWhere.mockResolvedValueOnce([{ userId: 'member-uuid' }]);
+      // 4. existing trip participants (none)
+      mockSelectWhere.mockResolvedValueOnce([]);
+      const dto: TransitionTripStatusDto = { status: TripStatus.OPEN };
+
+      await service.transitionStatus(mockUser, 'trip-uuid', dto);
+
+      expect(mockInsertValues).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            tripId: 'trip-uuid',
+            userId: 'member-uuid',
+            role: TripRole.PARTICIPANT,
+            status: TripParticipantStatus.INVITED,
+          }),
+        ]),
+      );
+      expect(mockNotificationsService.notifyMany).toHaveBeenCalledWith(
+        ['member-uuid'],
+        NotificationType.TRIP_INVITATION,
+        { tripId: 'trip-uuid', tripName: 'Cancún 2026' },
+        [NotificationChannel.PUSH],
+      );
+    });
+
+    it('skips invitations when trip has no linked groups on DRAFT→OPEN', async () => {
+      // 1. destinations count
+      mockSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      // 2. no linked groups
+      mockSelectWhere.mockResolvedValueOnce([]);
+      const dto: TransitionTripStatusDto = { status: TripStatus.OPEN };
+
+      await service.transitionStatus(mockUser, 'trip-uuid', dto);
+
+      expect(mockNotificationsService.notifyMany).not.toHaveBeenCalled();
+    });
+
+    it('does not re-invite users already participating when DRAFT→OPEN', async () => {
+      // 1. destinations count
+      mockSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      // 2. linked groups
+      mockSelectWhere.mockResolvedValueOnce([{ groupId: 'group-uuid' }]);
+      // 3. active members
+      mockSelectWhere.mockResolvedValueOnce([{ userId: 'member-uuid' }]);
+      // 4. member already a participant
+      mockSelectWhere.mockResolvedValueOnce([{ userId: 'member-uuid' }]);
+      const dto: TransitionTripStatusDto = { status: TripStatus.OPEN };
+
+      await service.transitionStatus(mockUser, 'trip-uuid', dto);
+
+      // insert should not be called for the invite (newInviteeIds is empty)
+      expect(mockNotificationsService.notifyMany).not.toHaveBeenCalled();
+    });
+
+    it('excludes organizer from group member invitations on DRAFT→OPEN', async () => {
+      // 1. destinations count
+      mockSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      // 2. linked groups
+      mockSelectWhere.mockResolvedValueOnce([{ groupId: 'group-uuid' }]);
+      // 3. active members: only the organizer
+      mockSelectWhere.mockResolvedValueOnce([{ userId: mockUser.id }]);
+      const dto: TransitionTripStatusDto = { status: TripStatus.OPEN };
+
+      await service.transitionStatus(mockUser, 'trip-uuid', dto);
+
+      expect(mockNotificationsService.notifyMany).not.toHaveBeenCalled();
+    });
   });
 
   describe('getMyTrips', () => {
@@ -556,6 +645,10 @@ describe('TripsService', () => {
           {
             provide: CloudStorageService,
             useValue: { makePublic: jest.fn(), deleteObject: jest.fn() },
+          },
+          {
+            provide: NotificationsService,
+            useValue: { notifyMany: jest.fn().mockResolvedValue(undefined) },
           },
         ],
       }).compile();

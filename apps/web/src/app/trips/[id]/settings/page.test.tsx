@@ -6,6 +6,7 @@ import type { TripResponse } from '@/services/trips.types';
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
   mockApiPatch: vi.fn(),
+  mockApiDelete: vi.fn(),
   mockUseAuth: vi.fn(),
   mockRouterReplace: vi.fn(),
   mockToastSuccess: vi.fn(),
@@ -46,6 +47,7 @@ vi.mock('@/services/api-client', () => ({
   apiClient: {
     get: mocks.mockApiGet,
     patch: mocks.mockApiPatch,
+    delete: mocks.mockApiDelete,
   },
 }));
 
@@ -76,6 +78,10 @@ vi.mock('@/components/trips/TripForm', () => ({
       </button>
     </div>
   ),
+}));
+
+vi.mock('@/components/trips/TripLinkedGroupsEditor', () => ({
+  TripLinkedGroupsEditor: () => <div data-testid="linked-groups-editor" />,
 }));
 
 vi.mock('@/components/ui/toast', () => ({
@@ -237,12 +243,13 @@ describe('TripSettingsPage', () => {
     });
   });
 
-  it('shows danger zone for DRAFT trip', async () => {
+  it('shows delete button (not cancel) for DRAFT trip', async () => {
     setupMocks({ tripStatus: TripStatus.DRAFT });
     render(<TripSettingsPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('cancel-trip-btn')).toBeInTheDocument();
+      expect(screen.getByTestId('delete-trip-btn')).toBeInTheDocument();
+      expect(screen.queryByTestId('cancel-trip-btn')).not.toBeInTheDocument();
     });
   });
 
@@ -261,24 +268,25 @@ describe('TripSettingsPage', () => {
 
     await waitFor(() => {
       expect(screen.queryByTestId('cancel-trip-btn')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('delete-trip-btn')).not.toBeInTheDocument();
     });
   });
 
-  it('hides danger zone for CANCELLED trip', async () => {
+  it('redirects to trip detail for CANCELLED trip', async () => {
     setupMocks({ tripStatus: TripStatus.CANCELLED });
     render(<TripSettingsPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      expect(screen.queryByTestId('cancel-trip-btn')).not.toBeInTheDocument();
+      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips/trip-id');
     });
   });
 
-  it('hides danger zone for COMPLETED trip', async () => {
+  it('redirects to trip detail for COMPLETED trip', async () => {
     setupMocks({ tripStatus: TripStatus.COMPLETED });
     render(<TripSettingsPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      expect(screen.queryByTestId('cancel-trip-btn')).not.toBeInTheDocument();
+      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips/trip-id');
     });
   });
 
@@ -363,6 +371,67 @@ describe('TripSettingsPage', () => {
 
     await waitFor(() => {
       expect(screen.queryByTestId('cancel-trip-confirm-btn')).not.toBeInTheDocument();
+    });
+  });
+
+  it('opens delete dialog when delete button clicked', async () => {
+    setupMocks({ tripStatus: TripStatus.DRAFT });
+    render(<TripSettingsPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-trip-btn')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('delete-trip-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-trip-confirm-btn')).toBeInTheDocument();
+    });
+  });
+
+  it('calls deleteTrip and redirects to /trips on confirm', async () => {
+    mocks.mockApiDelete.mockResolvedValue({});
+    setupMocks({ tripStatus: TripStatus.DRAFT });
+    render(<TripSettingsPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-trip-btn')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('delete-trip-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-trip-confirm-btn')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('delete-trip-confirm-btn'));
+
+    await waitFor(() => {
+      expect(mocks.mockApiDelete).toHaveBeenCalledWith('/v1/trips/trip-id');
+      expect(mocks.mockToastSuccess).toHaveBeenCalledWith('settings.deleteSuccess');
+      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips');
+    });
+  });
+
+  it('shows error toast when delete fails', async () => {
+    mocks.mockApiDelete.mockRejectedValue(new Error('Server error'));
+    setupMocks({ tripStatus: TripStatus.DRAFT });
+    render(<TripSettingsPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-trip-btn')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('delete-trip-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-trip-confirm-btn')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('delete-trip-confirm-btn'));
+
+    await waitFor(() => {
+      expect(mocks.mockToastError).toHaveBeenCalledWith('settings.deleteFailed');
     });
   });
 

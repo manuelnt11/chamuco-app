@@ -29,12 +29,14 @@ interface TripStatusTransitionProps {
   tripId: string;
   currentStatus: TripStatus;
   onTransitioned: (trip: TripResponse) => void;
+  disabledTargets?: TripStatus[];
 }
 
 export function TripStatusTransition({
   tripId,
   currentStatus,
   onTransitioned,
+  disabledTargets = [],
 }: TripStatusTransitionProps) {
   const { t } = useTranslation('trips');
   const [pendingTransition, setPendingTransition] = useState<TripStatus | null>(null);
@@ -78,6 +80,7 @@ export function TripStatusTransition({
             variant={target === TripStatus.CANCELLED ? 'destructive' : 'outline'}
             size="sm"
             onClick={() => handleButtonClick(target)}
+            disabled={disabledTargets.includes(target)}
             data-testid={`transition-btn-${target}`}
           >
             {t(`transitions.${target}`)}

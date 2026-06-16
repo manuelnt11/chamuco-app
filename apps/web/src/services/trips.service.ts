@@ -16,6 +16,7 @@ import type {
   ReorderDestinationsPayload,
   TransitionTripStatusPayload,
   TripGroupResponse,
+  TripLinkedGroup,
   TripParticipantResponse,
   TripResponse,
   UpdateDestinationPayload,
@@ -197,6 +198,11 @@ export async function rejectJoinRequest(id: string, userId: string): Promise<voi
 
 export async function getTripGroups(id: string): Promise<TripGroupResponse[]> {
   const { data } = await apiClient.get<TripGroupResponse[]>(`/v1/trips/${id}/groups`);
+  return data;
+}
+
+export async function getTripLinkedGroups(id: string): Promise<TripLinkedGroup[]> {
+  const { data } = await apiClient.get<TripLinkedGroup[]>(`/v1/trips/${id}/linked-groups`);
   return data;
 }
 

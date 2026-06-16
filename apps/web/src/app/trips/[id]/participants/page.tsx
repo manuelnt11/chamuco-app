@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { TripParticipantStatus, TripRole, TripVisibility } from '@chamuco/shared-types';
+import { TripParticipantStatus, TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 import {
   getTrip,
@@ -157,6 +157,7 @@ export default function TripParticipantsPage({ params }: ParticipantsPageProps) 
             capacity={trip.participantCapacity}
             currentUserId={appUser?.id ?? null}
             callerRole={callerRole}
+            canInvite={trip.status !== TripStatus.DRAFT}
             onInviteSuccess={() => void loadData()}
             onParticipantAction={() => void loadData()}
             excludedIds={excludedIds}
