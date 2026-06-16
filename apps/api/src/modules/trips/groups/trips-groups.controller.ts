@@ -41,7 +41,7 @@ export class TripsGroupsController {
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiResponse({ status: 200, type: [TripLinkedGroupDto] })
-  @ApiNotFoundResponse({ description: 'Trip not found or a group cover asset is missing.' })
+  @ApiNotFoundResponse({ description: 'Trip not found.' })
   async listLinkedGroups(@Param('id', ParseUUIDPipe) id: string): Promise<TripLinkedGroupDto[]> {
     return this.tripsGroupsService.listLinkedGroups(id);
   }

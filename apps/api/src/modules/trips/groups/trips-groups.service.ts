@@ -25,6 +25,9 @@ export class TripsGroupsService {
   ) {}
 
   async listLinkedGroups(tripId: string): Promise<TripLinkedGroupDto[]> {
+    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
+    if (!trip) throw new NotFoundException('Trip not found');
+
     const links = await this.db.select().from(groupTrips).where(eq(groupTrips.tripId, tripId));
 
     if (links.length === 0) return [];

@@ -99,6 +99,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
   }
 
   const isOrganizer = callerRole !== null && ORGANIZER_ROLES.includes(callerRole);
+  const isDraft = trip.status === TripStatus.DRAFT;
   const isTerminal = trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED;
   const isDestinationEditable =
     isOrganizer && (trip.status === TripStatus.DRAFT || trip.status === TripStatus.OPEN);
@@ -126,11 +127,11 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           </Link>
           {isOrganizer && (
             <Link
-              href={trip.status !== TripStatus.DRAFT ? `/trips/${trip.id}/announcements/new` : '#'}
-              className={`inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted${trip.status === TripStatus.DRAFT ? ' pointer-events-none opacity-50' : ''}`}
+              href={!isDraft ? `/trips/${trip.id}/announcements/new` : '#'}
+              className={`inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted${isDraft ? ' pointer-events-none opacity-50' : ''}`}
               title={t('announcementsPublish')}
               aria-label={t('announcementsPublish')}
-              aria-disabled={trip.status === TripStatus.DRAFT}
+              aria-disabled={isDraft}
             >
               <MegaphoneIcon className="size-5" aria-hidden="true" />
             </Link>

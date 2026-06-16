@@ -144,6 +144,12 @@ describe('TripsGroupsService', () => {
   });
 
   describe('listLinkedGroups', () => {
+    it('throws NotFoundException when trip does not exist', async () => {
+      mockTripsFindFirst.mockResolvedValueOnce(null);
+
+      await expect(service.listLinkedGroups('trip-uuid')).rejects.toThrow(NotFoundException);
+    });
+
     it('returns groups with id, name, and coverUrl', async () => {
       const result = await service.listLinkedGroups('trip-uuid');
 
