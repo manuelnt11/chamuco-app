@@ -127,6 +127,12 @@ export interface TripGroupResponse {
   addedAt: string;
 }
 
+export interface TripLinkedGroup {
+  id: string;
+  name: string;
+  coverUrl: string | null;
+}
+
 export interface TripParticipantResponse {
   userId: string;
   username: string;

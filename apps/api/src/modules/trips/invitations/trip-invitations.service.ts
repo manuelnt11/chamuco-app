@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import { and, count, eq, inArray } from 'drizzle-orm';
 
 import {
@@ -6,6 +6,7 @@ import {
   NotificationType,
   TripParticipantStatus,
   TripRole,
+  TripStatus,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { isUniqueViolation } from '@/database/db-errors';
@@ -42,8 +43,12 @@ export class TripInvitationsService {
 
     const trip = await this.db.query.trips.findFirst({
       where: eq(trips.id, tripId),
-      columns: { name: true },
+      columns: { name: true, status: true },
     });
+
+    if (trip?.status === TripStatus.DRAFT) {
+      throw new BadRequestException('Invitations are not allowed on DRAFT trips');
+    }
 
     const targetUsers = await this.db.query.users.findMany({
       where: inArray(users.username, dto.usernames),

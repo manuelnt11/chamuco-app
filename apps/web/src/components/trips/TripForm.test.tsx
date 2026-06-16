@@ -125,6 +125,10 @@ vi.mock('@/components/ui/timezone-combobox', () => ({
   ),
 }));
 
+vi.mock('@/components/ui/group-autocomplete', () => ({
+  GroupAutocomplete: () => <input data-testid="group-autocomplete" readOnly />,
+}));
+
 import { TripForm } from './TripForm';
 
 const mockTrip = {

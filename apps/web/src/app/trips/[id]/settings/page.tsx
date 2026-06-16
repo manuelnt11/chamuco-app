@@ -7,10 +7,16 @@ import { useTranslation } from 'react-i18next';
 import { TripRole, TripStatus } from '@chamuco/shared-types';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 
-import { getTrip, getTripParticipation, transitionTripStatus } from '@/services/trips.service';
+import {
+  deleteTrip,
+  getTrip,
+  getTripParticipation,
+  transitionTripStatus,
+} from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
 import { TripCoverEditor } from '@/components/trips/TripCoverEditor';
 import { TripForm } from '@/components/trips/TripForm';
+import { TripLinkedGroupsEditor } from '@/components/trips/TripLinkedGroupsEditor';
 import { toast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +50,8 @@ export default function TripSettingsPage({ params }: TripSettingsPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchTrip = useCallback(() => {
     if (isAuthLoading) return;
@@ -51,6 +59,10 @@ export default function TripSettingsPage({ params }: TripSettingsPageProps) {
       .then(([tripData, participation]) => {
         const role = participation?.role ?? null;
         if (role === null || !ORGANIZER_ROLES.includes(role)) {
+          router.replace(`/trips/${id}`);
+          return;
+        }
+        if (tripData.status === TripStatus.COMPLETED || tripData.status === TripStatus.CANCELLED) {
           router.replace(`/trips/${id}`);
           return;
         }
@@ -78,9 +90,24 @@ export default function TripSettingsPage({ params }: TripSettingsPageProps) {
     }
   }
 
+  async function handleDelete() {
+    setIsDeleting(true);
+    try {
+      await deleteTrip(id);
+      setShowDeleteDialog(false);
+      toast.success(t('settings.deleteSuccess'));
+      router.replace('/trips');
+    } catch {
+      toast.error(t('settings.deleteFailed'));
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   if (isLoading || !trip) return null;
 
-  const canCancel = CANCELLABLE_STATUSES.includes(trip.status);
+  const isDraft = trip.status === TripStatus.DRAFT;
+  const canCancel = CANCELLABLE_STATUSES.includes(trip.status) && !isDraft;
 
   return (
     <div className="p-8 max-w-xl">
@@ -99,6 +126,10 @@ export default function TripSettingsPage({ params }: TripSettingsPageProps) {
       <div className="mb-8">
         <p className="text-sm font-medium mb-3">{t('cover.label')}</p>
         <TripCoverEditor trip={trip} onUpdate={fetchTrip} />
+      </div>
+
+      <div className="mb-8">
+        <TripLinkedGroupsEditor tripId={id} />
       </div>
 
       <TripForm
@@ -123,6 +154,62 @@ export default function TripSettingsPage({ params }: TripSettingsPageProps) {
           toast.success(t('settings.editSuccess'));
         }}
       />
+
+      {isDraft && (
+        <>
+          <div className="mt-10 rounded-xl border border-destructive/50 p-6">
+            <h2 className="text-base font-semibold text-destructive mb-3">
+              {t('settings.dangerZone')}
+            </h2>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground">{t('settings.deleteTripDescription')}</p>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+                data-testid="delete-trip-btn"
+              >
+                {t('settings.deleteTrip')}
+              </Button>
+            </div>
+          </div>
+
+          <Dialog
+            open={showDeleteDialog}
+            onOpenChange={(open) => !isDeleting && setShowDeleteDialog(open)}
+          >
+            <DialogPopup>
+              <DialogClose />
+              <DialogHeader>
+                <DialogTitle>{t('settings.deleteDialogTitle')}</DialogTitle>
+                <DialogDescription>{t('settings.deleteDialogDescription')}</DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(false)}
+                  disabled={isDeleting}
+                >
+                  {t('transitions.cancelButton')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => void handleDelete()}
+                  disabled={isDeleting}
+                  data-testid="delete-trip-confirm-btn"
+                >
+                  {t('transitions.confirmButton')}
+                </Button>
+              </DialogFooter>
+            </DialogPopup>
+          </Dialog>
+        </>
+      )}
 
       {canCancel && (
         <>

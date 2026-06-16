@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -61,6 +61,7 @@ interface DestinationListProps {
   departureCountry: string;
   landingCity: string;
   landingCountry: string;
+  onCountChange?: (count: number) => void;
 }
 
 type FormMode = 'add' | 'edit';
@@ -273,11 +274,16 @@ export function DestinationList({
   departureCountry,
   landingCity,
   landingCountry,
+  onCountChange,
 }: DestinationListProps) {
   const { t } = useTranslation('trips');
   const [destinations, setDestinations] = useState<DestinationResponse[]>(initialDestinations);
   const [isSaving, setIsSaving] = useState(false);
   const [formState, setFormState] = useState<FormState | null>(null);
+
+  useEffect(() => {
+    onCountChange?.(destinations.length);
+  }, [destinations.length, onCountChange]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),

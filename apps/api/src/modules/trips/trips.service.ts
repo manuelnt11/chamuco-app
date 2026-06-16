@@ -3,18 +3,25 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { and, count, eq, inArray } from 'drizzle-orm';
 
 import {
+  GroupMemberStatus,
+  NotificationChannel,
+  NotificationType,
   PlatformRole,
   TripParticipantStatus,
   TripRole,
   TripStatus,
   TripVisibility,
 } from '@chamuco/shared-types';
+import { groupMembers } from '@/modules/groups/schema/group-members.schema';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { tripAnnouncements } from '@/modules/trips/schema/trip-announcements.schema';
+import { groupTrips } from '@/modules/trips/schema/group-trips.schema';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
@@ -43,10 +50,13 @@ const VALID_TRANSITIONS: Partial<Record<TripStatus, TripStatus[]>> = {
 
 @Injectable()
 export class TripsService {
+  private readonly logger = new Logger(TripsService.name);
+
   constructor(
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly assetResolver: AssetResolverService,
     private readonly cloudStorage: CloudStorageService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async getMyTrips(user: AuthenticatedUser): Promise<MyTripListItemResponseDto[]> {
@@ -348,7 +358,78 @@ export class TripsService {
 
     await this.db.update(trips).set({ status: dto.status }).where(eq(trips.id, id));
 
+    if (trip.status === TripStatus.DRAFT && dto.status === TripStatus.OPEN) {
+      try {
+        await this.inviteLinkedGroupMembers(id, user.id, trip.name);
+      } catch (err: unknown) {
+        this.logger.error('Failed to invite linked group members after DRAFT→OPEN', err);
+      }
+    }
+
     return this.fetchAndMapTrip(id);
+  }
+
+  private async inviteLinkedGroupMembers(
+    tripId: string,
+    organizerUserId: string,
+    tripName: string,
+  ): Promise<void> {
+    const linkedGroups = await this.db
+      .select({ groupId: groupTrips.groupId })
+      .from(groupTrips)
+      .where(eq(groupTrips.tripId, tripId));
+
+    if (linkedGroups.length === 0) return;
+
+    const groupIds = linkedGroups.map((r) => r.groupId);
+
+    const activeMembers = await this.db
+      .select({ userId: groupMembers.userId })
+      .from(groupMembers)
+      .where(
+        and(
+          inArray(groupMembers.groupId, groupIds),
+          eq(groupMembers.status, GroupMemberStatus.ACTIVE),
+        ),
+      );
+
+    const candidateIds = [
+      ...new Set(activeMembers.map((m) => m.userId).filter((id) => id !== organizerUserId)),
+    ];
+    if (candidateIds.length === 0) return;
+
+    const existing = await this.db
+      .select({ userId: tripParticipants.userId })
+      .from(tripParticipants)
+      .where(
+        and(eq(tripParticipants.tripId, tripId), inArray(tripParticipants.userId, candidateIds)),
+      );
+
+    const existingIds = new Set(existing.map((r) => r.userId));
+    const newInviteeIds = candidateIds.filter((id) => !existingIds.has(id));
+    if (newInviteeIds.length === 0) return;
+
+    await this.db
+      .insert(tripParticipants)
+      .values(
+        newInviteeIds.map((userId) => ({
+          tripId,
+          userId,
+          role: TripRole.PARTICIPANT,
+          status: TripParticipantStatus.INVITED,
+          isTraveler: true,
+          initiatedBy: organizerUserId,
+        })),
+      )
+      .onConflictDoNothing();
+
+    this.notifications
+      .notifyMany(newInviteeIds, NotificationType.TRIP_INVITATION, { tripId, tripName }, [
+        NotificationChannel.PUSH,
+      ])
+      .catch((err: unknown) => {
+        this.logger.error('Failed to send TRIP_INVITATION notifications after DRAFT→OPEN', err);
+      });
   }
 
   async assertOrganizerRole(

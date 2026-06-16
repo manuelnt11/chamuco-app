@@ -22,7 +22,9 @@
       "alreadyExcluded": "Este usuario ya es participante o tiene una invitación pendiente",
       "maxUsers": "Puedes invitar hasta 20 usuarios a la vez",
       "done": "Listo",
-      "results": { "title": "Resultados de invitación" },
+      "results": {
+        "title": "Resultados de invitación"
+      },
       "result": {
         "INVITED": "Invitado exitosamente",
         "ALREADY_MEMBER": "Ya es participante",
@@ -115,7 +117,8 @@
     "timezone": "Zona horaria",
     "itineraryNotes": "Notas de itinerario",
     "noItineraryNotes": "Sin notas de itinerario aún.",
-    "editItineraryNotes": "Editar notas de itinerario"
+    "editItineraryNotes": "Editar notas de itinerario",
+    "linkedGroups": "Grupos vinculados"
   },
   "role": {
     "organizer": "Organizador",
@@ -164,7 +167,13 @@
       "cropTitle": "Recortar foto de portada",
       "usePhoto": "Usar esta foto",
       "editButton": "Cambiar foto"
-    }
+    },
+    "linkedGroups": "Grupos vinculados",
+    "linkedGroupsPlaceholder": "Buscar grupos...",
+    "linkedGroupsMyGroups": "Mis grupos",
+    "linkedGroupsPublicGroups": "Grupos públicos",
+    "linkedGroupsNoResults": "No se encontraron grupos",
+    "linkedGroupsRemove": "Quitar {{name}}"
   },
   "visibility": {
     "label": "Visibilidad",
@@ -213,7 +222,18 @@
     "cancelDialogTitle": "¿Cancelar este viaje?",
     "cancelDialogDescription": "¿Estás seguro de que deseas cancelar este viaje? Todos los participantes confirmados serán notificados.",
     "cancelSuccess": "Viaje cancelado.",
-    "cancelFailed": "Error al cancelar el viaje. Por favor intenta de nuevo."
+    "cancelFailed": "Error al cancelar el viaje. Por favor intenta de nuevo.",
+    "deleteTrip": "Eliminar viaje",
+    "deleteTripDescription": "Elimina permanentemente este borrador. Esta acción no se puede deshacer.",
+    "deleteDialogTitle": "¿Eliminar este viaje?",
+    "deleteDialogDescription": "¿Estás seguro de que deseas eliminar permanentemente este viaje? Esta acción no se puede deshacer.",
+    "deleteSuccess": "Viaje eliminado.",
+    "deleteFailed": "Error al eliminar el viaje. Por favor intenta de nuevo.",
+    "saveFailed": "Error al guardar la configuración del viaje.",
+    "linkedGroups": "Grupos Vinculados",
+    "linkedGroupRemoveFailed": "Error al quitar el grupo.",
+    "linkedGroupAddFailed": "Error al agregar el grupo.",
+    "linkedGroupRemove": "Quitar {{name}} de este viaje"
   },
   "card": {
     "capacityOf": "de"

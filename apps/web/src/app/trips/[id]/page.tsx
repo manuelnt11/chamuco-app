@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { TripRole, TripVisibility } from '@chamuco/shared-types';
+import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import {
   ArrowLeftIcon,
   GearSixIcon,
@@ -14,12 +14,14 @@ import {
   UsersIcon,
   NavigationArrowIcon,
   PencilSimpleIcon,
+  LinkIcon,
 } from '@phosphor-icons/react';
 
 import { toast } from '@/components/ui/toast';
 import {
   getTrip,
   getTripDestinations,
+  getTripLinkedGroups,
   getTripParticipation,
   updateTrip,
 } from '@/services/trips.service';
@@ -29,7 +31,7 @@ import { TripStatusTransition } from '@/components/trips/TripStatusTransition';
 import { DestinationList } from '@/components/trips/DestinationList';
 import { MarkdownContent } from '@/components/ui/markdown-content';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import type { TripResponse, DestinationResponse } from '@/services/trips.types';
+import type { TripResponse, DestinationResponse, TripLinkedGroup } from '@/services/trips.types';
 
 interface TripDetailPageProps {
   params: Promise<{ id: string }>;
@@ -43,6 +45,8 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
   const { isLoading: isAuthLoading } = useAuth();
   const [trip, setTrip] = useState<TripResponse | null>(null);
   const [destinations, setDestinations] = useState<DestinationResponse[]>([]);
+  const [destinationCount, setDestinationCount] = useState(0);
+  const [linkedGroups, setLinkedGroups] = useState<TripLinkedGroup[]>([]);
   const [callerRole, setCallerRole] = useState<TripRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -57,11 +61,14 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       getTrip(id),
       getTripDestinations(id).catch(() => []),
       getTripParticipation(id).catch(() => null),
+      getTripLinkedGroups(id).catch(() => []),
     ])
-      .then(([tripData, destinationsData, participation]) => {
+      .then(([tripData, destinationsData, participation, linkedGroupsData]) => {
         setTrip(tripData);
         setDestinations(destinationsData);
+        setDestinationCount(destinationsData.length);
         setCallerRole(participation?.role ?? null);
+        setLinkedGroups(linkedGroupsData);
       })
       .catch(() => setNotFound(true))
       .finally(() => setIsLoading(false));
@@ -92,6 +99,10 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
   }
 
   const isOrganizer = callerRole !== null && ORGANIZER_ROLES.includes(callerRole);
+  const isDraft = trip.status === TripStatus.DRAFT;
+  const isTerminal = trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED;
+  const isDestinationEditable =
+    isOrganizer && (trip.status === TripStatus.DRAFT || trip.status === TripStatus.OPEN);
 
   return (
     <div className="p-8 max-w-2xl">
@@ -116,20 +127,22 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           </Link>
           {isOrganizer && (
             <Link
-              href={`/trips/${trip.id}/announcements/new`}
-              className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
+              href={!isDraft ? `/trips/${trip.id}/announcements/new` : '#'}
+              className={`inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted${isDraft ? ' pointer-events-none opacity-50' : ''}`}
               title={t('announcementsPublish')}
               aria-label={t('announcementsPublish')}
+              aria-disabled={isDraft}
             >
               <MegaphoneIcon className="size-5" aria-hidden="true" />
             </Link>
           )}
           {isOrganizer && (
             <Link
-              href={`/trips/${trip.id}/settings`}
-              className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
+              href={!isTerminal ? `/trips/${trip.id}/settings` : '#'}
+              className={`inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted${isTerminal ? ' pointer-events-none opacity-50' : ''}`}
               title={t('actions.editSettings')}
               aria-label={t('actions.editSettings')}
+              aria-disabled={isTerminal}
             >
               <GearSixIcon className="size-5" aria-hidden="true" />
             </Link>
@@ -183,7 +196,12 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       {/* Organizer status transitions */}
       {isOrganizer && (
         <section className="mb-6">
-          <TripStatusTransition tripId={id} currentStatus={trip.status} onTransitioned={setTrip} />
+          <TripStatusTransition
+            tripId={id}
+            currentStatus={trip.status}
+            onTransitioned={setTrip}
+            disabledTargets={destinationCount === 0 ? [TripStatus.OPEN] : []}
+          />
         </section>
       )}
 
@@ -197,11 +215,12 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         <DestinationList
           tripId={id}
           initialDestinations={destinations}
-          isOrganizer={isOrganizer}
+          isOrganizer={isDestinationEditable}
           departureCity={trip.departureCity}
           departureCountry={trip.departureCountry}
           landingCity={trip.landingCity}
           landingCountry={trip.landingCountry}
+          onCountChange={setDestinationCount}
         />
       </section>
 
@@ -225,11 +244,41 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         </section>
       )}
 
+      {/* Linked groups */}
+      {linkedGroups.length > 0 && (
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <LinkIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+            <h2 className="text-sm font-semibold">{t('detail.linkedGroups')}</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {linkedGroups.map((group) => (
+              <div
+                key={group.id}
+                className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-sm"
+              >
+                <div className="size-5 shrink-0 overflow-hidden rounded-sm bg-muted">
+                  {group.coverUrl && (
+                    <img
+                      src={group.coverUrl}
+                      alt=""
+                      className="size-full object-cover"
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+                <span className="font-medium">{group.name}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Itinerary notes */}
       <section>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-semibold">{t('detail.itineraryNotes')}</h2>
-          {isOrganizer && !isEditingNotes && (
+          {isOrganizer && !isEditingNotes && !isTerminal && (
             <button
               type="button"
               onClick={() => {

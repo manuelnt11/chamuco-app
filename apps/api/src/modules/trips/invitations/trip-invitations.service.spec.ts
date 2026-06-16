@@ -1,4 +1,9 @@
-import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 jest.mock('@google-cloud/storage', () => ({
@@ -9,6 +14,7 @@ import {
   NotificationType,
   TripParticipantStatus,
   TripRole,
+  TripStatus,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { TripInvitationsService } from './trip-invitations.service';
@@ -82,7 +88,9 @@ describe('TripInvitationsService', () => {
   let mockFindParticipantOrThrow: jest.Mock;
 
   beforeEach(async () => {
-    mockTripsFindFirst = jest.fn().mockResolvedValue({ name: 'Alps Adventure' });
+    mockTripsFindFirst = jest
+      .fn()
+      .mockResolvedValue({ name: 'Alps Adventure', status: TripStatus.OPEN });
     mockTripParticipantsFindMany = jest.fn().mockResolvedValue([]);
     mockUsersFindMany = jest.fn().mockResolvedValue([]);
     mockUsersFindFirst = jest.fn().mockResolvedValue(mockOrganizerUser);
@@ -161,6 +169,17 @@ describe('TripInvitationsService', () => {
         NotificationType.TRIP_INVITATION,
         { tripId: TRIP_ID, tripName: 'Alps Adventure' },
         [NotificationChannel.PUSH],
+      );
+    });
+
+    it('throws BadRequestException when trip is DRAFT', async () => {
+      mockTripsFindFirst.mockResolvedValueOnce({
+        name: 'Alps Adventure',
+        status: TripStatus.DRAFT,
+      });
+
+      await expect(service.sendInvitations(TRIP_ID, dto, ORGANIZER_ID)).rejects.toThrow(
+        BadRequestException,
       );
     });
 

@@ -1,4 +1,11 @@
-import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, count, desc, eq, inArray } from 'drizzle-orm';
 
 import {
@@ -6,6 +13,7 @@ import {
   NotificationType,
   TripParticipantStatus,
   TripRole,
+  TripStatus,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { users } from '@/modules/users/schema/users.schema';
@@ -37,6 +45,14 @@ export class TripAnnouncementsService {
     dto: CreateTripAnnouncementDto,
   ): Promise<TripAnnouncementResponseDto> {
     await this.assertTripOrganizer(tripId, callerId);
+
+    const tripStatus = await this.db.query.trips.findFirst({
+      where: eq(trips.id, tripId),
+      columns: { status: true },
+    });
+    if (tripStatus?.status === TripStatus.DRAFT) {
+      throw new BadRequestException('Announcements are not allowed on DRAFT trips');
+    }
 
     const [inserted] = await this.db
       .insert(tripAnnouncements)

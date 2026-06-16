@@ -23,6 +23,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { TripsGroupsService } from './trips-groups.service';
 import { TripGroupResponseDto } from './dto/trip-group-response.dto';
+import { TripLinkedGroupDto } from './dto/trip-linked-group.dto';
 import { AddTripGroupDto } from './dto/add-trip-group.dto';
 
 @ApiTags('trip-groups')
@@ -30,6 +31,20 @@ import { AddTripGroupDto } from './dto/add-trip-group.dto';
 @Controller('v1/trips')
 export class TripsGroupsController {
   constructor(private readonly tripsGroupsService: TripsGroupsService) {}
+
+  @Get(':id/linked-groups')
+  @ApiOperation({
+    summary: 'List linked groups with full details',
+    description:
+      'Returns id, name, and coverUrl for every group associated with the trip. ' +
+      'Accessible to any authenticated user.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
+  @ApiResponse({ status: 200, type: [TripLinkedGroupDto] })
+  @ApiNotFoundResponse({ description: 'Trip not found.' })
+  async listLinkedGroups(@Param('id', ParseUUIDPipe) id: string): Promise<TripLinkedGroupDto[]> {
+    return this.tripsGroupsService.listLinkedGroups(id);
+  }
 
   @Get(':id/groups')
   @ApiOperation({

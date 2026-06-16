@@ -7,6 +7,7 @@ import {
   TripVisibility,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { TripsGroupsService } from './trips-groups.service';
 import { TripsService } from '@/modules/trips/trips.service';
 import type { AuthenticatedUser } from '@/types/express';
@@ -64,7 +65,9 @@ describe('TripsGroupsService', () => {
   let service: TripsGroupsService;
   let mockTripsFindFirst: jest.Mock;
   let mockGroupsFindFirst: jest.Mock;
+  let mockGroupsFindMany: jest.Mock;
   let mockGroupTripsFindFirst: jest.Mock;
+  let mockAssetsFindMany: jest.Mock;
   let mockSelectWhere: jest.Mock;
   let mockSelectFrom: jest.Mock;
   let mockSelect: jest.Mock;
@@ -74,11 +77,25 @@ describe('TripsGroupsService', () => {
   let mockInsertValues: jest.Mock;
   let mockInsert: jest.Mock;
   let mockAssertOrganizerRole: jest.Mock;
+  let mockAssetResolve: jest.Mock;
+
+  const mockAssetRow = {
+    id: 'asset-uuid',
+    type: 'EMOJI' as const,
+    source: 'emoji',
+    target: '🏔️',
+    fileSize: null,
+    isPublic: true,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  };
 
   beforeEach(async () => {
     mockTripsFindFirst = jest.fn().mockResolvedValue(mockTripRow);
     mockGroupsFindFirst = jest.fn().mockResolvedValue(mockGroupRow);
+    mockGroupsFindMany = jest.fn().mockResolvedValue([{ ...mockGroupRow, cover: 'asset-uuid' }]);
     mockGroupTripsFindFirst = jest.fn().mockResolvedValue(mockGroupTripRow);
+    mockAssetsFindMany = jest.fn().mockResolvedValue([mockAssetRow]);
+    mockAssetResolve = jest.fn().mockResolvedValue({ url: 'https://cdn/emoji.svg' });
 
     mockSelectWhere = jest.fn().mockResolvedValue([mockGroupTripRow]);
     mockSelectFrom = jest.fn().mockReturnValue({ where: mockSelectWhere });
@@ -103,8 +120,9 @@ describe('TripsGroupsService', () => {
           useValue: {
             query: {
               trips: { findFirst: mockTripsFindFirst },
-              groups: { findFirst: mockGroupsFindFirst },
+              groups: { findFirst: mockGroupsFindFirst, findMany: mockGroupsFindMany },
               groupTrips: { findFirst: mockGroupTripsFindFirst },
+              assets: { findMany: mockAssetsFindMany },
             },
             select: mockSelect,
             insert: mockInsert,
@@ -115,10 +133,67 @@ describe('TripsGroupsService', () => {
           provide: TripsService,
           useValue: { assertOrganizerRole: mockAssertOrganizerRole },
         },
+        {
+          provide: AssetResolverService,
+          useValue: { resolve: mockAssetResolve },
+        },
       ],
     }).compile();
 
     service = module.get<TripsGroupsService>(TripsGroupsService);
+  });
+
+  describe('listLinkedGroups', () => {
+    it('throws NotFoundException when trip does not exist', async () => {
+      mockTripsFindFirst.mockResolvedValueOnce(null);
+
+      await expect(service.listLinkedGroups('trip-uuid')).rejects.toThrow(NotFoundException);
+    });
+
+    it('returns groups with id, name, and coverUrl', async () => {
+      const result = await service.listLinkedGroups('trip-uuid');
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: 'group-uuid',
+        name: 'Aventureros MX',
+        coverUrl: 'https://cdn/emoji.svg',
+      });
+    });
+
+    it('returns empty array when no groups are linked', async () => {
+      mockSelectWhere.mockResolvedValue([]);
+
+      const result = await service.listLinkedGroups('trip-uuid');
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when all linked groups are soft-deleted', async () => {
+      mockGroupsFindMany.mockResolvedValue([]);
+
+      const result = await service.listLinkedGroups('trip-uuid');
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns null coverUrl when group cover asset is orphaned', async () => {
+      mockAssetsFindMany.mockResolvedValue([]);
+
+      const result = await service.listLinkedGroups('trip-uuid');
+
+      expect(result).toHaveLength(1);
+      expect(result.at(0)?.coverUrl).toBeNull();
+    });
+
+    it('returns null coverUrl when group has no cover', async () => {
+      mockGroupsFindMany.mockResolvedValue([{ ...mockGroupRow, cover: null }]);
+
+      const result = await service.listLinkedGroups('trip-uuid');
+
+      expect(result).toHaveLength(1);
+      expect(result.at(0)?.coverUrl).toBeNull();
+    });
   });
 
   describe('listTripGroups', () => {

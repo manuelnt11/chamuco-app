@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   NotificationChannel,
@@ -244,9 +244,22 @@ describe('TripAnnouncementsService', () => {
       );
     });
 
+    it('throws BadRequestException when trip is DRAFT', async () => {
+      mockTripsFindFirst
+        .mockResolvedValueOnce(mockTrip)
+        .mockResolvedValueOnce({ ...mockTrip, status: TripStatus.DRAFT });
+
+      await expect(service.create(TRIP_ID, ORGANIZER_ID, ORGANIZER_USERNAME, dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
     it('uses empty string for tripName when trip lookup returns undefined', async () => {
-      // First call: assertTripExists; second call: name lookup after insert
-      mockTripsFindFirst.mockResolvedValueOnce(mockTrip).mockResolvedValueOnce(undefined);
+      // 1. assertTripExists; 2. status check; 3. name lookup after insert
+      mockTripsFindFirst
+        .mockResolvedValueOnce(mockTrip)
+        .mockResolvedValueOnce(mockTrip)
+        .mockResolvedValueOnce(undefined);
 
       await service.create(TRIP_ID, ORGANIZER_ID, ORGANIZER_USERNAME, dto);
 

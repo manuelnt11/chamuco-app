@@ -21,12 +21,14 @@ interface InviteParticipantModalProps {
   tripId: string;
   onSuccess: () => void;
   excludedIds?: string[];
+  disabled?: boolean;
 }
 
 export function InviteParticipantModal({
   tripId,
   onSuccess,
   excludedIds,
+  disabled = false,
 }: InviteParticipantModalProps) {
   const { t } = useTranslation('trips');
   const [open, setOpen] = useState(false);
@@ -95,7 +97,7 @@ export function InviteParticipantModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" disabled={disabled}>
             <UserPlusIcon />
             {t('participants.invite.button')}
           </Button>
