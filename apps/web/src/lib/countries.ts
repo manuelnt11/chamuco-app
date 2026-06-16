@@ -8,10 +8,24 @@ export interface CountryEntry {
   dialCode: string;
 }
 
-// Sorted longest-first so +1868 (TT) matches before +1 (US/CA).
-const CALLING_CODE_TO_ISO2: Map<string, CountryCode> = new Map(
-  getCountries().map((iso2) => [getCountryCallingCode(iso2), iso2]),
-);
+// When multiple countries share a dial code, these are the canonical ones.
+const DIAL_CODE_PRIMARY: Record<string, CountryCode> = {
+  '1': 'US', // NANP — US over AG, CA, and other territories
+  '7': 'RU', // Russia over KZ
+  '44': 'GB', // UK over GG, JE, IM
+  '61': 'AU', // Australia over CC, CX
+  '64': 'NZ', // New Zealand over PN
+};
+
+// First-wins so behavior is consistent with a linear find(); then overrides applied.
+const CALLING_CODE_TO_ISO2 = new Map<string, CountryCode>();
+for (const iso2 of getCountries()) {
+  const code = getCountryCallingCode(iso2);
+  if (!CALLING_CODE_TO_ISO2.has(code)) CALLING_CODE_TO_ISO2.set(code, iso2);
+}
+for (const [code, iso2] of Object.entries(DIAL_CODE_PRIMARY)) {
+  CALLING_CODE_TO_ISO2.set(code, iso2);
+}
 
 export function getEmojiFlag(iso2: string): string {
   const upper = iso2.toUpperCase();
