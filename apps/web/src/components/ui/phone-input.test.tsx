@@ -7,19 +7,15 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('libphonenumber-js', () => ({
   isValidPhoneNumber: mocks.mockIsValidPhoneNumber,
+  getCountries: () => ['CO', 'US', 'TT', 'MX'],
+  getCountryCallingCode: (iso2: string) => {
+    const map: Record<string, string> = { CO: '57', US: '1', TT: '1868', MX: '52' };
+    return map[iso2] ?? '0';
+  },
 }));
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
-}));
-
-vi.mock('countries-list', () => ({
-  getCountryDataList: () => [
-    { iso2: 'CO', name: 'Colombia', phone: [57] },
-    { iso2: 'US', name: 'United States', phone: [1] },
-    { iso2: 'TT', name: 'Trinidad and Tobago', phone: [1868] },
-    { iso2: 'MX', name: 'Mexico', phone: [52] },
-  ],
 }));
 
 vi.mock('@/components/ui/country-combobox', () => ({

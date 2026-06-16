@@ -9,7 +9,6 @@ import { DateOfBirthField } from '@/components/ui/date-of-birth-field';
 import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import type { TFunction } from 'i18next';
 import { useTheme } from 'next-themes';
-import { getCountryData, type TCountryCode } from 'countries-list';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
@@ -62,13 +61,30 @@ function computeAge(day: number, month: number, year: number): number {
   return age;
 }
 
+// Countries whose primary currency is USD (not Colombia-focused, but needed for detection).
+const USD_COUNTRIES = new Set([
+  'US',
+  'EC',
+  'SV',
+  'PA',
+  'TL',
+  'ZW',
+  'FM',
+  'MH',
+  'PW',
+  'TC',
+  'PR',
+  'VG',
+  'GU',
+  'AS',
+  'MP',
+  'UM',
+  'IO',
+  'BQ',
+]);
+
 function deriveCurrency(countryCode: string): 'COP' | 'USD' {
-  try {
-    const primary = getCountryData(countryCode as TCountryCode).currency[0]?.toUpperCase();
-    if (primary === 'COP' || primary === 'USD') return primary;
-  } catch {
-    // unknown country code — use default
-  }
+  if (USD_COUNTRIES.has(countryCode.toUpperCase())) return 'USD';
   return 'COP';
 }
 

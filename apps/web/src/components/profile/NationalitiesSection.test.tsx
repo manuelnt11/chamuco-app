@@ -28,16 +28,16 @@ vi.mock('@/components/ui/toast', () => ({
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
+    i18n: { language: 'en' },
   }),
 }));
 
-vi.mock('countries-list', () => ({
-  getCountryDataList: () => [
-    { iso2: 'CO', name: 'Colombia', phone: [57] },
-    { iso2: 'US', name: 'United States', phone: [1] },
-    { iso2: 'MX', name: 'Mexico', phone: [52] },
-  ],
+vi.mock('@/lib/countries', () => ({
   getEmojiFlag: (iso2: string) => `[${iso2}]`,
+  getCountryName: (iso2: string) => {
+    const map: Record<string, string> = { CO: 'Colombia', US: 'United States', MX: 'Mexico' };
+    return map[iso2] ?? iso2;
+  },
 }));
 
 vi.mock('@/components/ui/country-combobox', () => ({

@@ -2,7 +2,7 @@
 
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getCountryDataList } from 'countries-list';
+import { isoByCallingCode } from '@/lib/countries';
 
 import { DateOfBirthField } from '@/components/ui/date-of-birth-field';
 import { Input } from '@/components/ui/input';
@@ -23,8 +23,7 @@ interface PersonalDetailsSectionProps {
 }
 
 function callingCodeToIso2(callingCode: string): string {
-  const digits = Number(callingCode.replace('+', ''));
-  return getCountryDataList().find((c) => c.phone[0] === digits)?.iso2 ?? 'CO';
+  return isoByCallingCode(callingCode.replace('+', '')) ?? 'CO';
 }
 
 function isValidCalendarDay(day: number, month: number, year: number): boolean {

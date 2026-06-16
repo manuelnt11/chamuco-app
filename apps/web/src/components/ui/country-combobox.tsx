@@ -1,10 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { getCountryDataList, getEmojiFlag, type ICountryData } from 'countries-list';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CaretUpDownIcon, CheckIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
+import {
+  buildCountryList,
+  getCallingCodePrefix,
+  getEmojiFlag,
+  type CountryEntry,
+} from '@/lib/countries';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -17,16 +23,11 @@ import {
 } from '@/components/ui/command';
 
 // ---------------------------------------------------------------------------
-// Data
+// Utilities
 // ---------------------------------------------------------------------------
 
-const ALL_COUNTRIES: ICountryData[] = getCountryDataList().sort((a, b) =>
-  a.name.localeCompare(b.name),
-);
-
 export function getCallingCode(iso2: string): string {
-  const country = ALL_COUNTRIES.find((c) => c.iso2 === iso2);
-  return country ? `+${country.phone[0]}` : '';
+  return getCallingCodePrefix(iso2);
 }
 
 // ---------------------------------------------------------------------------
@@ -59,13 +60,10 @@ function CountryCombobox({
   'data-testid': testId,
 }: CountryComboboxProps) {
   const [open, setOpen] = useState(false);
-  const selected = value ? ALL_COUNTRIES.find((c) => c.iso2 === value) : undefined;
+  const { i18n } = useTranslation();
+  const countries = useMemo<CountryEntry[]>(() => buildCountryList(i18n.language), [i18n.language]);
 
-  const triggerLabel = selected
-    ? displayMode === 'phone'
-      ? `${getEmojiFlag(selected.iso2)} +${selected.phone[0]}`
-      : `${getEmojiFlag(selected.iso2)} ${selected.name}`
-    : placeholder;
+  const selected = value ? countries.find((c) => c.iso2 === value) : undefined;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -80,7 +78,16 @@ function CountryCombobox({
           />
         }
       >
-        <span className="truncate">{triggerLabel}</span>
+        {selected ? (
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="text-base leading-none">{getEmojiFlag(selected.iso2)}</span>
+            <span className="truncate">
+              {displayMode === 'phone' ? `+${selected.dialCode}` : selected.name.toUpperCase()}
+            </span>
+          </span>
+        ) : (
+          <span className="truncate text-muted-foreground">{placeholder}</span>
+        )}
         <CaretUpDownIcon className="ml-1 size-3.5 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent className="w-64 p-0" sideOffset={4}>
@@ -89,10 +96,10 @@ function CountryCombobox({
           <CommandItems>
             <CommandNoResults>{noResultsText}</CommandNoResults>
             <CommandGroupSection>
-              {ALL_COUNTRIES.map((c) => (
+              {countries.map((c) => (
                 <CommandOption
                   key={c.iso2}
-                  value={`${c.name} ${c.iso2} +${c.phone[0]}`}
+                  value={`${c.name} ${c.iso2} +${c.dialCode}`}
                   onSelect={() => {
                     onChange(c.iso2);
                     setOpen(false);
@@ -101,11 +108,13 @@ function CountryCombobox({
                   <span className="text-base leading-none">{getEmojiFlag(c.iso2)}</span>
                   {displayMode === 'phone' ? (
                     <>
-                      <span className="font-mono text-sm">+{c.phone[0]}</span>
-                      <span className="truncate text-xs text-muted-foreground">{c.name}</span>
+                      <span className="font-mono text-sm">+{c.dialCode}</span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        {c.name.toUpperCase()}
+                      </span>
                     </>
                   ) : (
-                    <span className="truncate">{c.name}</span>
+                    <span className="truncate">{c.name.toUpperCase()}</span>
                   )}
                   {value === c.iso2 && (
                     <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" />

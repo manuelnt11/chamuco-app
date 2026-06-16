@@ -27,13 +27,15 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('libphonenumber-js', () => ({
   isValidPhoneNumber: mocks.mockIsValidPhoneNumber,
+  getCountries: () => ['CO', 'US'],
+  getCountryCallingCode: (iso2: string) => (iso2 === 'US' ? '1' : '57'),
 }));
 
-vi.mock('countries-list', () => ({
-  getCountryDataList: () => [
-    { iso2: 'CO', phone: ['57'] },
-    { iso2: 'US', phone: ['1'] },
-  ],
+vi.mock('@/lib/countries', () => ({
+  isoByCallingCode: (dialCode: string) => {
+    const map: Record<string, string> = { '57': 'CO', '1': 'US' };
+    return map[dialCode];
+  },
 }));
 
 vi.mock('@/components/ui/input', () => ({
