@@ -71,6 +71,8 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('libphonenumber-js', () => ({
   isValidPhoneNumber: vi.fn().mockReturnValue(true),
+  getCountries: () => ['CO', 'US'],
+  getCountryCallingCode: (iso2: string) => (iso2 === 'US' ? '1' : '57'),
 }));
 
 vi.mock('@/components/ui/country-combobox', () => ({

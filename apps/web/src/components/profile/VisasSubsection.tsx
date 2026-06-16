@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getEmojiFlag, type TCountryCode } from 'countries-list';
+import { getEmojiFlag } from '@/lib/countries';
 import {
   DocumentStatus,
   VisaCoverageType,
@@ -148,7 +148,7 @@ function VisaForm({
             {isEdit ? (
               <p className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm">
                 {form.countryCode && (
-                  <span aria-hidden="true">{getEmojiFlag(form.countryCode as TCountryCode)}</span>
+                  <span aria-hidden="true">{getEmojiFlag(form.countryCode)}</span>
                 )}
                 {form.countryCode}
               </p>
@@ -528,7 +528,7 @@ export function VisasSubsection({ nationalityId }: VisasSubsectionProps) {
               <div className="min-w-0 flex-1 text-sm">
                 <div className="flex flex-wrap items-center gap-1.5">
                   {visa.coverageType === VisaCoverageType.COUNTRY && visa.countryCode && (
-                    <span aria-hidden="true">{getEmojiFlag(visa.countryCode as TCountryCode)}</span>
+                    <span aria-hidden="true">{getEmojiFlag(visa.countryCode)}</span>
                   )}
                   <span className="font-medium">
                     {visa.coverageType === VisaCoverageType.ZONE && visa.visaZone

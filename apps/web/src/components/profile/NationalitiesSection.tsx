@@ -3,7 +3,7 @@
 import { useState, type SubmitEvent } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { getCountryDataList, getEmojiFlag, type TCountryCode } from 'countries-list';
+import { getCountryName, getEmojiFlag } from '@/lib/countries';
 import { CaretDownIcon, GlobeIcon, IdentificationCardIcon, PlusIcon } from '@phosphor-icons/react';
 import { PassportStatus } from '@chamuco/shared-types';
 import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
@@ -56,12 +56,6 @@ function makeEmptyForm(isPrimary = false): FormState {
   };
 }
 
-const countryList = getCountryDataList();
-
-function getCountryName(iso2: string): string {
-  return countryList.find((c) => c.iso2 === iso2)?.name ?? iso2;
-}
-
 function passportStatusBadgeClass(status: PassportStatus): string {
   switch (status) {
     case PassportStatus.ACTIVE:
@@ -101,7 +95,7 @@ function NationalityForm({
   onCancel,
   saveLabel,
 }: NationalityFormProps) {
-  const { t } = useTranslation('profile');
+  const { t, i18n } = useTranslation('profile');
 
   const passportFilled = Boolean(
     form.passportNumber || form.passportIssueDate || form.passportExpiryDate,
@@ -113,8 +107,8 @@ function NationalityForm({
         <Label id={`${idPrefix}-country-label`}>{t('nationalities.countryCode')}</Label>
         {readOnlyCountry ? (
           <p className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm">
-            <span aria-hidden="true">{getEmojiFlag(form.countryCode as TCountryCode)}</span>
-            {getCountryName(form.countryCode)}
+            <span aria-hidden="true">{getEmojiFlag(form.countryCode)}</span>
+            {getCountryName(form.countryCode, i18n.language)}
           </p>
         ) : (
           <>
@@ -241,7 +235,7 @@ interface NationalitiesSectionProps {
 }
 
 export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionProps) {
-  const { t } = useTranslation(['profile', 'common']);
+  const { t, i18n } = useTranslation(['profile', 'common']);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedNatId, setExpandedNatId] = useState<string | null>(null);
@@ -474,9 +468,9 @@ export function NationalitiesSection({ data, onRefresh }: NationalitiesSectionPr
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-lg leading-none" aria-hidden="true">
-                      {getEmojiFlag(nat.countryCode as TCountryCode)}
+                      {getEmojiFlag(nat.countryCode)}
                     </span>
-                    <p className="font-medium">{getCountryName(nat.countryCode)}</p>
+                    <p className="font-medium">{getCountryName(nat.countryCode, i18n.language)}</p>
                     {nat.isPrimary && (
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                         {t('nationalities.primaryBadge')}

@@ -2,8 +2,12 @@
 
 import { useId, type ClipboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
-import { getCountryDataList } from 'countries-list';
+import {
+  isValidPhoneNumber,
+  getCountries,
+  getCountryCallingCode,
+  type CountryCode,
+} from 'libphonenumber-js';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,8 +24,8 @@ export function cleanPhoneNumber(value: string): string {
 }
 
 // Sorted longest-first so +1868 (TT) matches before +1 (US/CA).
-const PHONE_PREFIXES = getCountryDataList()
-  .map((c) => ({ iso2: c.iso2, prefix: `+${c.phone[0]}` }))
+const PHONE_PREFIXES = getCountries()
+  .map((iso2) => ({ iso2, prefix: `+${getCountryCallingCode(iso2)}` }))
   .sort((a, b) => b.prefix.length - a.prefix.length);
 
 export function isPhoneValid(localNumber: string, countryIso: string): boolean {

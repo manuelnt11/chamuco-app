@@ -28,16 +28,16 @@ vi.mock('@/components/ui/toast', () => ({
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
+    i18n: { language: 'en' },
   }),
 }));
 
-vi.mock('countries-list', () => ({
-  getCountryDataList: () => [
-    { iso2: 'CO', name: 'Colombia', phone: [57] },
-    { iso2: 'US', name: 'United States', phone: [1] },
-    { iso2: 'MX', name: 'Mexico', phone: [52] },
-  ],
+vi.mock('@/lib/countries', () => ({
   getEmojiFlag: (iso2: string) => `[${iso2}]`,
+  getCountryName: (iso2: string) => {
+    const map: Record<string, string> = { CO: 'Colombia', US: 'United States', MX: 'Mexico' };
+    return (map[iso2] ?? iso2).toUpperCase();
+  },
 }));
 
 vi.mock('@/components/ui/country-combobox', () => ({
@@ -124,8 +124,8 @@ describe('NationalitiesSection', () => {
 
     it('renders existing nationalities', () => {
       setup();
-      expect(screen.getByText('Colombia')).toBeInTheDocument();
-      expect(screen.getByText('United States')).toBeInTheDocument();
+      expect(screen.getByText('COLOMBIA')).toBeInTheDocument();
+      expect(screen.getByText('UNITED STATES')).toBeInTheDocument();
     });
 
     it('renders national ID when present', () => {
@@ -489,7 +489,7 @@ describe('NationalitiesSection', () => {
       const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.queryByTestId('edit-nat-1-country')).not.toBeInTheDocument();
-      expect(screen.getByText('Colombia')).toBeInTheDocument();
+      expect(screen.getByText('COLOMBIA')).toBeInTheDocument();
     });
 
     it('pre-fills edit form with existing values', async () => {

@@ -33,7 +33,7 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('countries-list', () => ({
+vi.mock('@/lib/countries', () => ({
   getEmojiFlag: (iso2: string) => `[${iso2}]`,
 }));
 

@@ -2,7 +2,7 @@
 
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getCountryDataList } from 'countries-list';
+import { isoByCallingCode } from '@/lib/countries';
 import { PlusIcon } from '@phosphor-icons/react';
 
 import { Button } from '@/components/ui/button';
@@ -70,9 +70,7 @@ function makeEmptyForm(isPrimary = false): FormState {
 }
 
 function getIsoFromCallingCode(callingCode: string): string {
-  const digits = callingCode.replace('+', '');
-  const match = getCountryDataList().find((c) => String(c.phone[0]) === digits);
-  return match?.iso2 ?? 'CO';
+  return isoByCallingCode(callingCode.replace('+', '')) ?? 'CO';
 }
 
 interface ContactFormProps {

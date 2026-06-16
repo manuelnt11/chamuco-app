@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getEmojiFlag, type TCountryCode } from 'countries-list';
+import { getEmojiFlag } from '@/lib/countries';
 import { DocumentStatus, EtaType, VisaEntries } from '@chamuco/shared-types';
 import { DOCUMENT_ID_FORMAT_REGEX } from '@chamuco/shared-utils';
 
@@ -116,9 +116,7 @@ function EtaForm({
         {isEdit ? (
           <p className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm">
             {form.destinationCountry && (
-              <span aria-hidden="true">
-                {getEmojiFlag(form.destinationCountry as TCountryCode)}
-              </span>
+              <span aria-hidden="true">{getEmojiFlag(form.destinationCountry)}</span>
             )}
             {form.destinationCountry}
           </p>
@@ -486,9 +484,7 @@ export function EtasSubsection({ nationalityId, passportNumber }: EtasSubsection
             >
               <div className="min-w-0 flex-1 text-sm">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span aria-hidden="true">
-                    {getEmojiFlag(eta.destinationCountry as TCountryCode)}
-                  </span>
+                  <span aria-hidden="true">{getEmojiFlag(eta.destinationCountry)}</span>
                   <span className="font-mono text-xs">{eta.passportNumber}</span>
                   <span className="text-muted-foreground">·</span>
                   <span>{t(`nationalities.etas.etaTypes.${eta.etaType}`)}</span>
