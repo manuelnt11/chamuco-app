@@ -7,7 +7,7 @@
   "prConcurrentLimit": 10,
   "branchConcurrentLimit": 1,
   "env": {
-    "PNPM_MAX_WORKERS": "2"
+    "PNPM_MAX_WORKERS": "1"
   },
   "ignoreDeps": [
     "@img/sharp-darwin-arm64",
