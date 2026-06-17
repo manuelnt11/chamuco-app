@@ -16,7 +16,7 @@ catalog:
   '@types/node': ^25.9.3
   '@typescript-eslint/eslint-plugin': ^8.61.0
   '@typescript-eslint/parser': ^8.61.0
-  eslint: ^10.4.1
+  eslint: ^10.5.0
   eslint-config-prettier: ^10.1.8
   eslint-plugin-i18next: ^6.1.4
   eslint-plugin-prettier: ^5.5.6
@@ -25,68 +25,22 @@ catalog:
   '@vitest/coverage-v8': ^4.1.8
   vitest: ^4.1.8
 minimumReleaseAgeExclude:
-  - '@img/sharp-darwin-arm64@0.35.0'
-  - '@img/sharp-darwin-x64@0.35.0'
-  - '@img/sharp-freebsd-wasm32@0.35.0'
-  - '@img/sharp-libvips-darwin-arm64@1.3.0'
-  - '@img/sharp-libvips-darwin-x64@1.3.0'
-  - '@img/sharp-libvips-linux-arm64@1.3.0'
-  - '@img/sharp-libvips-linux-arm@1.3.0'
-  - '@img/sharp-libvips-linux-ppc64@1.3.0'
-  - '@img/sharp-libvips-linux-riscv64@1.3.0'
-  - '@img/sharp-libvips-linux-s390x@1.3.0'
-  - '@img/sharp-libvips-linux-x64@1.3.0'
-  - '@img/sharp-libvips-linuxmusl-arm64@1.3.0'
-  - '@img/sharp-libvips-linuxmusl-x64@1.3.0'
-  - '@img/sharp-linux-arm64@0.35.0'
-  - '@img/sharp-linux-arm@0.35.0'
-  - '@img/sharp-linux-ppc64@0.35.0'
-  - '@img/sharp-linux-riscv64@0.35.0'
-  - '@img/sharp-linux-s390x@0.35.0'
-  - '@img/sharp-linux-x64@0.35.0'
-  - '@img/sharp-linuxmusl-arm64@0.35.0'
-  - '@img/sharp-linuxmusl-x64@0.35.0'
-  - '@img/sharp-wasm32@0.35.0'
-  - '@img/sharp-webcontainers-wasm32@0.35.0'
-  - '@img/sharp-win32-arm64@0.35.0'
-  - '@img/sharp-win32-ia32@0.35.0'
-  - '@img/sharp-win32-x64@0.35.0'
-  - '@turbo/darwin-64@2.9.18'
-  - '@turbo/darwin-arm64@2.9.18'
-  - '@turbo/linux-64@2.9.18'
-  - '@turbo/linux-arm64@2.9.18'
-  - '@turbo/windows-64@2.9.18'
-  - '@turbo/windows-arm64@2.9.18'
-  - turbo@2.9.18
   - '@types/node@25.9.3'
-  - sharp@0.35.0
   - esbuild@0.28.1
-  - '@esbuild/aix-ppc64@0.28.1'
-  - '@esbuild/android-arm64@0.28.1'
-  - '@esbuild/android-arm@0.28.1'
-  - '@esbuild/android-x64@0.28.1'
-  - '@esbuild/darwin-arm64@0.28.1'
-  - '@esbuild/darwin-x64@0.28.1'
-  - '@esbuild/freebsd-arm64@0.28.1'
-  - '@esbuild/freebsd-x64@0.28.1'
-  - '@esbuild/linux-arm64@0.28.1'
-  - '@esbuild/linux-arm@0.28.1'
-  - '@esbuild/linux-ia32@0.28.1'
-  - '@esbuild/linux-loong64@0.28.1'
-  - '@esbuild/linux-mips64el@0.28.1'
-  - '@esbuild/linux-ppc64@0.28.1'
-  - '@esbuild/linux-riscv64@0.28.1'
-  - '@esbuild/linux-s390x@0.28.1'
-  - '@esbuild/linux-x64@0.28.1'
-  - '@esbuild/netbsd-arm64@0.28.1'
-  - '@esbuild/netbsd-x64@0.28.1'
-  - '@esbuild/openbsd-arm64@0.28.1'
-  - '@esbuild/openbsd-x64@0.28.1'
-  - '@esbuild/openharmony-arm64@0.28.1'
-  - '@esbuild/sunos-x64@0.28.1'
-  - '@esbuild/win32-arm64@0.28.1'
-  - '@esbuild/win32-ia32@0.28.1'
-  - '@esbuild/win32-x64@0.28.1'
+  - sharp@0.35.0
+  - turbo@2.9.18
+  - '@firebase/ai@2.13.1'
+  - '@firebase/app-check-compat@0.4.5'
+  - '@firebase/app-check@0.12.0'
+  - '@firebase/app-compat@0.5.14'
+  - '@firebase/app@0.15.0'
+  - '@firebase/auth-compat@0.6.8'
+  - '@firebase/auth@1.13.3'
+  - '@firebase/firestore-compat@0.4.11'
+  - '@firebase/firestore@4.16.0'
+  - '@firebase/remote-config-compat@0.2.26'
+  - '@firebase/remote-config@0.8.5'
+  - firebase@12.15.0
 overrides:
   '@grpc/grpc-js': '>=1.14.4'
   ajv@>=7.0.0-alpha.0 <8.18.0: '>=8.18.0'
@@ -95,7 +49,7 @@ overrides:
   esbuild@>=0.17.0 <0.28.1: ^0.28.1
   fast-xml-parser@<5.7.0: '>=5.7.0'
   file-type@>=13.0.0 <21.3.1: '>=21.3.1'
-  form-data@<2.5.6: '>=2.5.6 <3.0.0'
+  form-data@<2.5.6: '>=2.5.6 <5.0.0'
   form-data@>=4.0.0 <4.0.6: '>=4.0.6'
   glob: '>=10.5.0'
   hono: '>=4.12.21'
@@ -103,8 +57,7 @@ overrides:
   path-to-regexp: '>=8.4.0'
   picomatch: '>=4.0.4'
   postcss@<8.5.10: '>=8.5.10'
-  protobufjs@<7.6.1: '>=7.6.1 <8.0.0'
-  protobufjs@>=8.0.0 <8.4.1: '>=8.4.1'
+  protobufjs@<7.6.1: '>=7.6.1 <9.0.0'
   qs@<6.14.1: '>=6.14.1'
   test-exclude: '>=8.0.0'
   tough-cookie@<4.1.3: '>=4.1.3'
