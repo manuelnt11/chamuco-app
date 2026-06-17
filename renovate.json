@@ -67,7 +67,10 @@
     "@turbo/linux-64",
     "@turbo/linux-arm64",
     "@turbo/windows-64",
-    "@turbo/windows-arm64"
+    "@turbo/windows-arm64",
+    "@playwright/test",
+    "playwright",
+    "playwright-core"
   ],
   "packageRules": [
     {
