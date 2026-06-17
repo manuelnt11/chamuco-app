@@ -5,7 +5,10 @@
   "timezone": "America/Bogota",
   "labels": ["dependencies"],
   "prConcurrentLimit": 10,
-  "branchConcurrentLimit": 3,
+  "branchConcurrentLimit": 1,
+  "env": {
+    "PNPM_MAX_WORKERS": "2"
+  },
   "ignoreDeps": [
     "@img/sharp-darwin-arm64",
     "@img/sharp-darwin-x64",
