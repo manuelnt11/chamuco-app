@@ -74,6 +74,10 @@
   ],
   "packageRules": [
     {
+      "matchPackageNames": ["/^@tiptap//", "firebase", "firebase-admin"],
+      "enabled": false
+    },
+    {
       "groupName": "NestJS",
       "matchPackageNames": ["/^@nestjs//"]
     },
