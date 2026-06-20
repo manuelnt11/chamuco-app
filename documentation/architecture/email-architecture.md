@@ -100,16 +100,14 @@ The template placeholder (`email-verification.hbs`) is ready. No `NotificationTy
 
 ```
 AppModule
-├── AuthModule (@Global)          ← imports EmailModule (for WELCOME)
-│   └── EmailModule
-│       └── MailerModule
-├── NotificationsModule           ← imports EmailModule (for EmailChannelStrategy)
-│   └── EmailModule
-│       └── MailerModule
+├── EmailModule (@Global)         ← single SMTP transport, EmailService available everywhere
+│   └── MailerModule
+├── AuthModule (@Global)          ← injects EmailService via global scope (sendWelcome)
+├── NotificationsModule           ← injects EmailService via global scope (EmailChannelStrategy)
 └── ...
 ```
 
-`MailerModule` is instantiated once per importer. If this causes duplicate SMTP connections, move `EmailModule` to `@Global()` or extract it to a shared lazy import.
+`EmailModule` is `@Global()` and registered in `AppModule`. `MailerModule` is instantiated once — a single SMTP connection pool for the entire application. Any module that needs `EmailService` injects it directly without importing `EmailModule`.
 
 ---
 
