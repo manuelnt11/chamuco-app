@@ -137,3 +137,17 @@ All user-generated media uploads follow the signed URL pattern — never proxy f
 4. Add the accepted MIME types to `ACCEPTED_TYPES` in `apps/web/src/components/ui/file-upload-button.tsx`
 
 **Runtime requirement:** `GOOGLE_CLOUD_STORAGE_BUCKET` env var must be set. Validated at startup by `environment.schema.ts`. For e2e tests, `test-bucket` is injected via `test/setup-env.ts`.
+
+### 5. Email — adding a new transactional email type
+
+All transactional emails go through `EmailService` in `src/modules/email/`. When adding a new email type, follow the seven-step guide in `documentation/features/email.md`. The short version:
+
+1. Add value to `EmailTemplate` enum in `src/modules/email/email-template.enum.ts`.
+2. Create `src/modules/email/templates/<name>.hbs` using the Horizonte palette structure. Create a companion `<name>.hbs.json` fixture.
+3. **If dispatched via the notification pipeline:** add entries to `TEMPLATE_MAP`, `buildCTAUrl`, and `extractPayloadContext` in `EmailChannelStrategy`. Add `NotificationChannel.EMAIL` to the caller's channel array.
+4. **If dispatched directly:** add a convenience method to `EmailService` (e.g. `sendWelcome()`).
+5. Add backend i18n copy to `src/i18n/es/notifications.json` and `src/i18n/en/notifications.json`.
+6. Add the type label to `notificationPreferences.types` in `apps/web/src/locales/{es,en}/profile.json`.
+7. Add the type to `EMAIL_SUPPORTED` in `NotificationPreferencesSection.tsx` if the user should be able to opt out.
+
+**Never hardcode SMTP credentials.** All SMTP config is validated at startup via `environment.schema.ts` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `FRONTEND_URL`). See `documentation/features/email.md` for the full guide and `documentation/architecture/email-architecture.md` for the ADR.
