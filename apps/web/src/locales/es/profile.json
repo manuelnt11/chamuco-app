@@ -77,9 +77,17 @@
     "description": "Elige por qué canales deseas recibir cada tipo de notificación.",
     "types": {
       "GROUP_INVITATION": "Invitación a grupo",
+      "GROUP_INVITATION_ACCEPTED": "Invitación a grupo aceptada",
       "GROUP_JOIN_ACCEPTED": "Solicitud de unión aceptada",
       "GROUP_ANNOUNCEMENT": "Anuncio del grupo",
+      "GROUP_MEMBER_REMOVED": "Eliminado del grupo",
+      "GROUP_MEMBER_PROMOTED": "Ascenso de miembro",
+      "GROUP_MEMBER_DEMOTED": "Cambio de rol en grupo",
       "TRIP_INVITATION": "Invitación a viaje",
+      "TRIP_INVITATION_ACCEPTED": "Invitación a viaje aceptada",
+      "TRIP_JOIN_ACCEPTED": "Solicitud de unión al viaje aceptada",
+      "TRIP_PARTICIPANT_REMOVED": "Eliminado del viaje",
+      "TRIP_ROLE_CHANGED": "Cambio de rol en viaje",
       "TRIP_ANNOUNCEMENT": "Anuncio del viaje",
       "TRIP_KEY_DATE_REMINDER": "Recordatorio de fecha clave",
       "TRIP_COMPLETED": "Viaje completado",
@@ -92,6 +100,7 @@
       "EMAIL": "Correo",
       "SMS": "SMS"
     },
+    "notAvailable": "No disponible",
     "saveError": "Error al guardar las preferencias de notificaciones"
   },
   "personalDetails": {

@@ -9,6 +9,10 @@
       {
         "include": "i18n/**/*.json",
         "watchAssets": true
+      },
+      {
+        "include": "modules/email/templates/**/*.hbs",
+        "watchAssets": true
       }
     ]
   }

@@ -27,6 +27,22 @@
     "title": "Trip Invitation",
     "body": "You have been invited to join a trip."
   },
+  "tripInvitationAccepted": {
+    "title": "Invitation Accepted",
+    "body": "@{username} accepted your invitation to join {tripName}."
+  },
+  "tripJoinAccepted": {
+    "title": "Join Request Accepted",
+    "body": "Your request to join {tripName} has been accepted."
+  },
+  "tripParticipantRemoved": {
+    "title": "Removed from trip",
+    "body": "You have been removed from {tripName}."
+  },
+  "tripRoleChanged": {
+    "title": "Role updated",
+    "body": "Your role in {tripName} has changed."
+  },
   "tripAnnouncement": {
     "title": "New announcement in {tripName}",
     "body": "@{senderUsername} posted a new announcement."

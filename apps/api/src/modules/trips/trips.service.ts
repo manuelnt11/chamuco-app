@@ -426,6 +426,7 @@ export class TripsService {
     this.notifications
       .notifyMany(newInviteeIds, NotificationType.TRIP_INVITATION, { tripId, tripName }, [
         NotificationChannel.PUSH,
+        NotificationChannel.EMAIL,
       ])
       .catch((err: unknown) => {
         this.logger.error('Failed to send TRIP_INVITATION notifications after DRAFT→OPEN', err);

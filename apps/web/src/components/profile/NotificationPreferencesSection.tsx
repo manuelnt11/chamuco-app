@@ -16,10 +16,21 @@ interface NotificationPreferencesSectionProps {
   preferences: NotificationPreferencesData;
 }
 
-// TODO: add NotificationChannel.EMAIL and NotificationChannel.SMS once those delivery channels are implemented
-const CONFIGURABLE_CHANNELS = [NotificationChannel.PUSH] as const;
+const CONFIGURABLE_CHANNELS = [NotificationChannel.PUSH, NotificationChannel.EMAIL] as const;
 
 type ConfigurableChannel = (typeof CONFIGURABLE_CHANNELS)[number];
+
+const EMAIL_SUPPORTED = new Set<NotificationType>([
+  NotificationType.TRIP_INVITATION,
+  NotificationType.GROUP_INVITATION,
+  NotificationType.PASSPORT_EXPIRING_SOON,
+  NotificationType.PASSPORT_EXPIRED,
+]);
+
+function supportsChannel(type: NotificationType, channel: ConfigurableChannel): boolean {
+  if (channel === NotificationChannel.EMAIL) return EMAIL_SUPPORTED.has(type);
+  return true;
+}
 
 export function NotificationPreferencesSection({
   preferences,
@@ -87,6 +98,17 @@ export function NotificationPreferencesSection({
                 <td className="py-3 pr-4 text-sm">{t(`notificationPreferences.types.${type}`)}</td>
 
                 {CONFIGURABLE_CHANNELS.map((channel) => {
+                  if (!supportsChannel(type, channel)) {
+                    return (
+                      <td
+                        key={channel}
+                        className="px-4 py-3 text-center text-muted-foreground/40"
+                        aria-label={t('notificationPreferences.notAvailable')}
+                      >
+                        —
+                      </td>
+                    );
+                  }
                   const enabled = isEnabled(type, channel);
                   const isSaving = saving === type;
                   return (

@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, UnauthorizedException } from '@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { EmailService } from '@/modules/email/email.service';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { AuthService } from '@/modules/auth/auth.service';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
@@ -65,6 +66,7 @@ describe('AuthService', () => {
   let mockFindFirst: jest.Mock;
   let mockTrxInsert: jest.Mock;
   let mockTransaction: jest.Mock;
+  let mockSendWelcome: jest.Mock;
 
   beforeEach(async () => {
     mockVerifyIdToken = jest.fn();
@@ -99,6 +101,10 @@ describe('AuthService', () => {
             query: { users: { findFirst: mockFindFirst } },
             transaction: mockTransaction,
           },
+        },
+        {
+          provide: EmailService,
+          useValue: { sendWelcome: (mockSendWelcome = jest.fn().mockResolvedValue(undefined)) },
         },
       ],
     }).compile();
@@ -310,6 +316,18 @@ describe('AuthService', () => {
       expect(mockTransaction).toHaveBeenCalledTimes(1);
       // Four inserts: users + user_preferences + user_profiles + user_nationalities
       expect(mockTrxInsert).toHaveBeenCalledTimes(4);
+    });
+
+    it('should fire welcome email with displayName after registration', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', validRegisterDto);
+
+      expect(mockSendWelcome).toHaveBeenCalledWith({
+        to: mockDecodedToken.email,
+        displayName: mockCreatedUser.displayName,
+      });
     });
 
     it('should use dto.displayName in the insert', async () => {

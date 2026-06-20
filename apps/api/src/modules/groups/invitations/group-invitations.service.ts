@@ -120,7 +120,7 @@ export class GroupInvitationsService {
           invitedUserIds,
           NotificationType.GROUP_INVITATION,
           { groupId, groupName: group?.name ?? '' },
-          [NotificationChannel.PUSH],
+          [NotificationChannel.PUSH, NotificationChannel.EMAIL],
         )
         .catch((err: unknown) => {
           this.logger.error('Failed to send GROUP_INVITATION notifications', err);

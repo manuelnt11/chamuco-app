@@ -68,6 +68,7 @@ export class NotificationsService {
     const dispatchable: DispatchableNotification = {
       id: row!.id,
       userId: row!.userId,
+      type,
       title,
       body,
       url,
@@ -113,7 +114,7 @@ export class NotificationsService {
         groupedByChannel.set(key, { dispatchables: [], channels: effective });
       groupedByChannel
         .get(key)!
-        .dispatchables.push({ id: row.id, userId: row.userId, title, body, url });
+        .dispatchables.push({ id: row.id, userId: row.userId, type, title, body, url });
     }
     await Promise.allSettled(
       Array.from(groupedByChannel.values()).map((g) =>

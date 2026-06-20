@@ -27,6 +27,22 @@
     "title": "Invitación a Viaje",
     "body": "Has sido invitado a unirte a un viaje."
   },
+  "tripInvitationAccepted": {
+    "title": "Invitación Aceptada",
+    "body": "@{username} aceptó la invitación para unirse a {tripName}."
+  },
+  "tripJoinAccepted": {
+    "title": "Solicitud Aceptada",
+    "body": "Tu solicitud para unirte a {tripName} ha sido aceptada."
+  },
+  "tripParticipantRemoved": {
+    "title": "Eliminado del viaje",
+    "body": "Has sido eliminado de {tripName}."
+  },
+  "tripRoleChanged": {
+    "title": "Rol actualizado",
+    "body": "Tu rol en {tripName} ha cambiado."
+  },
   "tripAnnouncement": {
     "title": "Nuevo anuncio en {tripName}",
     "body": "@{senderUsername} publicó un nuevo anuncio."

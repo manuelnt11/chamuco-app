@@ -122,33 +122,35 @@ These are the rules that directly affect how code is written. Full domain specs 
 
 Full specs live in `documentation/`. Key files:
 
-| File                                   | Contents                                             |
-| -------------------------------------- | ---------------------------------------------------- |
-| `overview/mvp.md`                      | MVP scope and out-of-scope features                  |
-| `overview/project-overview.md`         | Vision, goals, principles                            |
-| `overview/tech-stack.md`               | Full stack decisions with rationale                  |
-| `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger          |
-| `architecture/database-design.md`      | Schema philosophy, JSONB usage                       |
-| `architecture/monorepo-structure.md`   | Directory layout, import aliases, pnpm catalog       |
-| `features/users.md`                    | User account, profile, passports, health             |
-| `features/agencies.md`                 | Travel agencies, coordinators                        |
-| `features/trips.md`                    | Trip lifecycle, roles, destinations, completion flow |
-| `features/participants.md`             | Membership flows, states, waitlist                   |
-| `features/community.md`                | Groups, messaging (post-MVP), Firestore              |
-| `features/expenses.md`                 | Expense model, splits, settlements, multi-currency   |
-| `features/gamification.md`             | Traveler Score, achievements, Chamuco Points         |
-| `features/notifications.md`            | FCM, in-app feed, opt-out preferences                |
-| `features/reservations.md`             | Booking records, metadata by type                    |
-| `features/pre-trip-planning.md`        | Pre-trip tasks, route planning, budget envelopes     |
-| `features/events.md`                   | Events: modes, categories, RSVP, gamification        |
-| `features/calendar.md`                 | Calendar views: monthly grid + upcoming list         |
-| `infrastructure/auth.md`               | Firebase Authentication integration                  |
-| `infrastructure/cloud.md`              | GCP services, CI/CD pipelines                        |
-| `infrastructure/cloud-sql-setup.md`    | Cloud SQL provisioning guide                         |
-| `infrastructure/cloud-sql-config.md`   | Project-specific Cloud SQL config                    |
-| `infrastructure/backup-restore.md`     | Backup and restore workflow                          |
-| `infrastructure/local-development.md`  | Docker Compose, database scripts, dev workflow       |
-| `design/localization.md`               | i18n spec, key naming, enforcement                   |
+| File                                   | Contents                                                |
+| -------------------------------------- | ------------------------------------------------------- |
+| `overview/mvp.md`                      | MVP scope and out-of-scope features                     |
+| `overview/project-overview.md`         | Vision, goals, principles                               |
+| `overview/tech-stack.md`               | Full stack decisions with rationale                     |
+| `architecture/backend-architecture.md` | NestJS modules, API design, OpenAPI/Swagger             |
+| `architecture/database-design.md`      | Schema philosophy, JSONB usage                          |
+| `architecture/monorepo-structure.md`   | Directory layout, import aliases, pnpm catalog          |
+| `architecture/email-architecture.md`   | Email module ADR: library, boundaries, retry, templates |
+| `features/users.md`                    | User account, profile, passports, health                |
+| `features/agencies.md`                 | Travel agencies, coordinators                           |
+| `features/trips.md`                    | Trip lifecycle, roles, destinations, completion flow    |
+| `features/participants.md`             | Membership flows, states, waitlist                      |
+| `features/community.md`                | Groups, messaging (post-MVP), Firestore                 |
+| `features/expenses.md`                 | Expense model, splits, settlements, multi-currency      |
+| `features/gamification.md`             | Traveler Score, achievements, Chamuco Points            |
+| `features/notifications.md`            | FCM, in-app feed, opt-out preferences                   |
+| `features/email.md`                    | Transactional email: types, templates, how to add new   |
+| `features/reservations.md`             | Booking records, metadata by type                       |
+| `features/pre-trip-planning.md`        | Pre-trip tasks, route planning, budget envelopes        |
+| `features/events.md`                   | Events: modes, categories, RSVP, gamification           |
+| `features/calendar.md`                 | Calendar views: monthly grid + upcoming list            |
+| `infrastructure/auth.md`               | Firebase Authentication integration                     |
+| `infrastructure/cloud.md`              | GCP services, CI/CD pipelines                           |
+| `infrastructure/cloud-sql-setup.md`    | Cloud SQL provisioning guide                            |
+| `infrastructure/cloud-sql-config.md`   | Project-specific Cloud SQL config                       |
+| `infrastructure/backup-restore.md`     | Backup and restore workflow                             |
+| `infrastructure/local-development.md`  | Docker Compose, database scripts, dev workflow          |
+| `design/localization.md`               | i18n spec, key naming, enforcement                      |
 
 ---
 

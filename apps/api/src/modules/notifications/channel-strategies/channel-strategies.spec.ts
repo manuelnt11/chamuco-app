@@ -1,6 +1,8 @@
-import { DeliveryStatus } from '@chamuco/shared-types';
+import { DeliveryStatus, NotificationType } from '@chamuco/shared-types';
+import type { ConfigService } from '@nestjs/config';
 import type { DrizzleClient } from '@/database/drizzle.provider';
 import type { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
+import type { EmailService } from '@/modules/email/email.service';
 import { PushChannelStrategy } from './push-channel.strategy';
 import { EmailChannelStrategy } from './email-channel.strategy';
 import { SmsChannelStrategy } from './sms-channel.strategy';
@@ -9,8 +11,9 @@ import type { DispatchableNotification } from './notification-channel.strategy';
 const FAKE_NOTIFICATION: DispatchableNotification = {
   id: 'notif-1',
   userId: 'user-1',
-  title: 'Test title',
-  body: 'Test body',
+  type: NotificationType.TRIP_INVITATION,
+  title: 'You have a trip invitation',
+  body: 'Join the trip',
   url: null,
 };
 
@@ -244,10 +247,196 @@ describe('PushChannelStrategy', () => {
 
 // ─── Stub strategy smoke tests ───────────────────────────────────────────────
 
+// ─── EmailChannelStrategy ────────────────────────────────────────────────────
+
+function makeEmailContext(opts: {
+  email: string | null;
+  displayName?: string;
+  sendMail?: jest.Mock;
+  frontendUrl?: string;
+}) {
+  const updateSetWhere = jest.fn().mockResolvedValue(undefined);
+  const updateSet = jest.fn().mockReturnValue({ where: updateSetWhere });
+
+  const profileResult =
+    opts.email !== null
+      ? [{ email: opts.email, displayName: opts.displayName ?? 'Ana García' }]
+      : [];
+
+  const db = {
+    select: jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnValue({
+        innerJoin: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue(profileResult),
+        }),
+      }),
+    }),
+    update: jest.fn().mockReturnValue({ set: updateSet }),
+  } as unknown as DrizzleClient;
+
+  const emailService = {
+    sendMail: opts.sendMail ?? jest.fn().mockResolvedValue(undefined),
+  } as unknown as EmailService;
+
+  const cfg = {
+    get: jest.fn().mockReturnValue(opts.frontendUrl ?? 'https://app.test'),
+  } as unknown as ConfigService;
+
+  const strategy = new EmailChannelStrategy(db, emailService, cfg);
+
+  const getDeliveryUpdate = () =>
+    updateSet.mock.calls[0]?.[0] as
+      | { status: DeliveryStatus; sentAt: Date | null; error: string | null }
+      | undefined;
+
+  return { strategy, db, emailService, updateSet, updateSetWhere, getDeliveryUpdate };
+}
+
 describe('EmailChannelStrategy', () => {
-  it('send() resolves without throwing', async () => {
-    const strategy = new EmailChannelStrategy();
-    await expect(strategy.send(FAKE_NOTIFICATION, {})).resolves.toBeUndefined();
+  it('marks FAILED and skips send when type has no template', async () => {
+    const { strategy, emailService, getDeliveryUpdate } = makeEmailContext({
+      email: 'ana@example.com',
+    });
+    const unhandledNotif: DispatchableNotification = {
+      ...FAKE_NOTIFICATION,
+      type: NotificationType.ACHIEVEMENT_UNLOCKED,
+    };
+
+    await strategy.send(unhandledNotif, {});
+
+    expect((emailService as unknown as { sendMail: jest.Mock }).sendMail).not.toHaveBeenCalled();
+    expect(getDeliveryUpdate()?.status).toBe(DeliveryStatus.FAILED);
+    expect(getDeliveryUpdate()?.error).toBe('no_template');
+  });
+
+  it('marks FAILED when user has no email on file', async () => {
+    const { strategy, emailService, getDeliveryUpdate } = makeEmailContext({ email: null });
+
+    await strategy.send(FAKE_NOTIFICATION, { tripId: 'trip-1', tripName: 'Alps' });
+
+    expect((emailService as unknown as { sendMail: jest.Mock }).sendMail).not.toHaveBeenCalled();
+    expect(getDeliveryUpdate()?.status).toBe(DeliveryStatus.FAILED);
+    expect(getDeliveryUpdate()?.error).toBe('no_email');
+  });
+
+  it('sends email and marks SENT on success', async () => {
+    const sendMail = jest.fn().mockResolvedValue(undefined);
+    const { strategy, getDeliveryUpdate } = makeEmailContext({
+      email: 'ana@example.com',
+      displayName: 'Ana García',
+      sendMail,
+    });
+
+    await strategy.send(FAKE_NOTIFICATION, { tripId: 'trip-1', tripName: 'Alps' });
+
+    expect(sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'ana@example.com',
+        subject: FAKE_NOTIFICATION.title,
+        context: expect.objectContaining({ displayName: 'Ana García', tripName: 'Alps' }),
+      }),
+    );
+    expect(getDeliveryUpdate()?.status).toBe(DeliveryStatus.SENT);
+    expect(getDeliveryUpdate()?.sentAt).toBeInstanceOf(Date);
+  });
+
+  it('marks FAILED when sendMail throws', async () => {
+    const sendMail = jest.fn().mockRejectedValue(new Error('SMTP down'));
+    const { strategy, getDeliveryUpdate } = makeEmailContext({
+      email: 'ana@example.com',
+      sendMail,
+    });
+
+    await strategy.send(FAKE_NOTIFICATION, { tripId: 'trip-1', tripName: 'Alps' });
+
+    expect(getDeliveryUpdate()?.status).toBe(DeliveryStatus.FAILED);
+    expect(getDeliveryUpdate()?.error).toBe('SMTP down');
+  });
+
+  it('builds absolute ctaUrl for TRIP_INVITATION', async () => {
+    const sendMail = jest.fn().mockResolvedValue(undefined);
+    const { strategy } = makeEmailContext({
+      email: 'ana@example.com',
+      sendMail,
+      frontendUrl: 'https://app.test',
+    });
+
+    await strategy.send(FAKE_NOTIFICATION, { tripId: 'abc-123', tripName: 'Alps' });
+
+    expect(sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({ ctaUrl: 'https://app.test/trips/abc-123' }),
+      }),
+    );
+  });
+
+  it('builds absolute ctaUrl for GROUP_INVITATION', async () => {
+    const sendMail = jest.fn().mockResolvedValue(undefined);
+    const { strategy } = makeEmailContext({
+      email: 'ana@example.com',
+      sendMail,
+      frontendUrl: 'https://app.test',
+    });
+    const groupNotif: DispatchableNotification = {
+      ...FAKE_NOTIFICATION,
+      type: NotificationType.GROUP_INVITATION,
+    };
+
+    await strategy.send(groupNotif, { groupId: 'grp-1', groupName: 'Backpackers' });
+
+    expect(sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({ ctaUrl: 'https://app.test/groups/grp-1' }),
+      }),
+    );
+  });
+
+  it('builds passport travel-docs ctaUrl for PASSPORT_EXPIRING_SOON', async () => {
+    const sendMail = jest.fn().mockResolvedValue(undefined);
+    const { strategy } = makeEmailContext({
+      email: 'ana@example.com',
+      sendMail,
+      frontendUrl: 'https://app.test',
+    });
+    const passportNotif: DispatchableNotification = {
+      ...FAKE_NOTIFICATION,
+      type: NotificationType.PASSPORT_EXPIRING_SOON,
+    };
+
+    await strategy.send(passportNotif, { countryCode: 'MX' });
+
+    expect(sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({
+          ctaUrl: 'https://app.test/profile/travel-docs',
+          countryCode: 'MX',
+        }),
+      }),
+    );
+  });
+
+  it('builds passport travel-docs ctaUrl for PASSPORT_EXPIRED', async () => {
+    const sendMail = jest.fn().mockResolvedValue(undefined);
+    const { strategy } = makeEmailContext({
+      email: 'ana@example.com',
+      sendMail,
+      frontendUrl: 'https://app.test',
+    });
+    const passportNotif: DispatchableNotification = {
+      ...FAKE_NOTIFICATION,
+      type: NotificationType.PASSPORT_EXPIRED,
+    };
+
+    await strategy.send(passportNotif, { countryCode: 'US' });
+
+    expect(sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({
+          ctaUrl: 'https://app.test/profile/travel-docs',
+          countryCode: 'US',
+        }),
+      }),
+    );
   });
 });
 

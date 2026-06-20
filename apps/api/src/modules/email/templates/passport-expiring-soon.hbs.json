@@ -1,0 +1,8 @@
+{
+  "displayName": "Manuel Núñez",
+  "title": "Pasaporte por Vencer",
+  "body": "Tu pasaporte de MX está por vencer.",
+  "ctaUrl": "http://localhost:3000/profile/travel-docs",
+  "frontendUrl": "http://localhost:3000",
+  "currentYear": 2026
+}

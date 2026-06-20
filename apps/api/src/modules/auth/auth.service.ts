@@ -3,12 +3,14 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import type { ResolvedAsset } from '@chamuco/shared-types';
 import { AuthProvider } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
+import { EmailService } from '@/modules/email/email.service';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { userNationalities } from '@/modules/users/schema/user-nationalities.schema';
@@ -27,9 +29,12 @@ const PROVIDER_MAP: Record<string, AuthProvider> = {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly firebaseAdminService: FirebaseAdminService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(
@@ -167,6 +172,12 @@ export class AuthService {
           url: insertedAsset.target,
         }
       : null;
+
+    this.emailService
+      .sendWelcome({ to: profileEmail, displayName: createdUser.displayName })
+      .catch((err: unknown) => {
+        this.logger.warn('Failed to send welcome email', err);
+      });
 
     return {
       id: createdUser.id,

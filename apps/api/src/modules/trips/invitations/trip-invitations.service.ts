@@ -139,7 +139,7 @@ export class TripInvitationsService {
           invitedUserIds,
           NotificationType.TRIP_INVITATION,
           { tripId, tripName: trip?.name ?? '' },
-          [NotificationChannel.PUSH],
+          [NotificationChannel.PUSH, NotificationChannel.EMAIL],
         )
         .catch((err: unknown) => {
           this.logger.error('Failed to send TRIP_INVITATION notifications', err);

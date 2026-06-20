@@ -77,9 +77,17 @@
     "description": "Choose which channels you receive each notification type on.",
     "types": {
       "GROUP_INVITATION": "Group invitation",
+      "GROUP_INVITATION_ACCEPTED": "Group invitation accepted",
       "GROUP_JOIN_ACCEPTED": "Join request accepted",
       "GROUP_ANNOUNCEMENT": "Group announcement",
+      "GROUP_MEMBER_REMOVED": "Removed from group",
+      "GROUP_MEMBER_PROMOTED": "Member promoted",
+      "GROUP_MEMBER_DEMOTED": "Role changed in group",
       "TRIP_INVITATION": "Trip invitation",
+      "TRIP_INVITATION_ACCEPTED": "Trip invitation accepted",
+      "TRIP_JOIN_ACCEPTED": "Trip join request accepted",
+      "TRIP_PARTICIPANT_REMOVED": "Removed from trip",
+      "TRIP_ROLE_CHANGED": "Role changed in trip",
       "TRIP_ANNOUNCEMENT": "Trip announcement",
       "TRIP_KEY_DATE_REMINDER": "Trip key date reminder",
       "TRIP_COMPLETED": "Trip completed",
@@ -92,6 +100,7 @@
       "EMAIL": "Email",
       "SMS": "SMS"
     },
+    "notAvailable": "Not available",
     "saveError": "Failed to save notification preferences"
   },
   "personalDetails": {
