@@ -1,0 +1,7 @@
+{
+  "displayName": "Manuel Núñez",
+  "verificationUrl": "http://localhost:3000/auth/verify-email?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example",
+  "expiresInMinutes": 30,
+  "frontendUrl": "http://localhost:3000",
+  "currentYear": 2026
+}

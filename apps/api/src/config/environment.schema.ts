@@ -67,6 +67,31 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   GOOGLE_CLOUD_STORAGE_BUCKET!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  SMTP_HOST!: string;
+
+  @IsNumber()
+  @Min(1)
+  @Max(65535)
+  SMTP_PORT: number = 587;
+
+  @IsString()
+  @IsNotEmpty()
+  SMTP_USER!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  SMTP_PASS!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  SMTP_FROM!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  FRONTEND_URL!: string;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {

@@ -148,7 +148,7 @@ describe('GroupInvitationsService', () => {
         [TARGET_ID],
         NotificationType.GROUP_INVITATION,
         { groupId: GROUP_ID, groupName: 'Mountain Crew' },
-        [NotificationChannel.PUSH],
+        [NotificationChannel.PUSH, NotificationChannel.EMAIL],
       );
     });
 

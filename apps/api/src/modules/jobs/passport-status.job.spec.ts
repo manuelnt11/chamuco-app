@@ -44,7 +44,7 @@ describe('PassportStatusJob', () => {
         'user-1',
         NotificationType.PASSPORT_EXPIRING_SOON,
         { countryCode: 'MX' },
-        [NotificationChannel.PUSH],
+        [NotificationChannel.PUSH, NotificationChannel.EMAIL],
       );
     });
 
@@ -59,7 +59,7 @@ describe('PassportStatusJob', () => {
         'user-2',
         NotificationType.PASSPORT_EXPIRED,
         { countryCode: 'US' },
-        [NotificationChannel.PUSH],
+        [NotificationChannel.PUSH, NotificationChannel.EMAIL],
       );
     });
 
@@ -116,13 +116,13 @@ describe('PassportStatusJob', () => {
         'user-1',
         NotificationType.PASSPORT_EXPIRING_SOON,
         { countryCode: 'MX' },
-        [NotificationChannel.PUSH],
+        [NotificationChannel.PUSH, NotificationChannel.EMAIL],
       );
       expect(notificationsService.notify).toHaveBeenCalledWith(
         'user-2',
         NotificationType.PASSPORT_EXPIRED,
         { countryCode: 'US' },
-        [NotificationChannel.PUSH],
+        [NotificationChannel.PUSH, NotificationChannel.EMAIL],
       );
     });
   });

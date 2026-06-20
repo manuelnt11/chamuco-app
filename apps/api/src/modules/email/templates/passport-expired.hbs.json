@@ -1,0 +1,8 @@
+{
+  "displayName": "Manuel Núñez",
+  "title": "Pasaporte Vencido",
+  "body": "Tu pasaporte de MX ha vencido.",
+  "ctaUrl": "http://localhost:3000/profile/travel-docs",
+  "frontendUrl": "http://localhost:3000",
+  "currentYear": 2026
+}

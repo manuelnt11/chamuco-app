@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, UnauthorizedException } from '@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
+import { EmailService } from '@/modules/email/email.service';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { AuthService } from '@/modules/auth/auth.service';
 import { FirebaseAdminService } from '@/modules/auth/firebase-admin.service';
@@ -99,6 +100,10 @@ describe('AuthService', () => {
             query: { users: { findFirst: mockFindFirst } },
             transaction: mockTransaction,
           },
+        },
+        {
+          provide: EmailService,
+          useValue: { sendWelcome: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();

@@ -57,7 +57,7 @@ export class PassportStatusJob {
               ? NotificationType.PASSPORT_EXPIRING_SOON
               : NotificationType.PASSPORT_EXPIRED,
             { countryCode: r.country_code },
-            [NotificationChannel.PUSH],
+            [NotificationChannel.PUSH, NotificationChannel.EMAIL],
           ),
         ),
     );

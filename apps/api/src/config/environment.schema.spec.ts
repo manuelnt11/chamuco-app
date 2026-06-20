@@ -6,6 +6,12 @@ const baseEnv = {
   FIREBASE_SERVICE_ACCOUNT_JSON: '{}',
   GEONAMES_USERNAME: 'testuser',
   GOOGLE_CLOUD_STORAGE_BUCKET: 'chamuco-uploads',
+  SMTP_HOST: 'smtp.example.com',
+  SMTP_PORT: 587,
+  SMTP_USER: 'no-reply@example.com',
+  SMTP_PASS: 'secret',
+  SMTP_FROM: '"Chamuco Travel" <no-reply@example.com>',
+  FRONTEND_URL: 'https://app.chamucotravel.com',
 };
 
 describe('environment.schema — validate()', () => {

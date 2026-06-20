@@ -168,7 +168,7 @@ describe('TripInvitationsService', () => {
         [TARGET_ID],
         NotificationType.TRIP_INVITATION,
         { tripId: TRIP_ID, tripName: 'Alps Adventure' },
-        [NotificationChannel.PUSH],
+        [NotificationChannel.PUSH, NotificationChannel.EMAIL],
       );
     });
 

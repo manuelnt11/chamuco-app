@@ -547,7 +547,7 @@ describe('TripsService', () => {
         ['member-uuid'],
         NotificationType.TRIP_INVITATION,
         { tripId: 'trip-uuid', tripName: 'Cancún 2026' },
-        [NotificationChannel.PUSH],
+        [NotificationChannel.PUSH, NotificationChannel.EMAIL],
       );
     });
 

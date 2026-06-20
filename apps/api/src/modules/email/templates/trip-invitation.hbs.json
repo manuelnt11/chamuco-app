@@ -1,0 +1,9 @@
+{
+  "displayName": "Manuel Núñez",
+  "title": "Invitación a Viaje",
+  "body": "Has sido invitado a unirte a un viaje.",
+  "tripName": "Cancún Verano 2026",
+  "ctaUrl": "http://localhost:3000/trips/5aa0e57f-5b9b-4741-9380-e6eb2b5a069e",
+  "frontendUrl": "http://localhost:3000",
+  "currentYear": 2026
+}
