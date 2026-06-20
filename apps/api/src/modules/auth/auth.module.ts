@@ -1,7 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '@/common/guards/roles.guard';
-import { EmailModule } from '@/modules/email/email.module';
 import { AuthController } from '@/modules/auth/auth.controller';
 import { AuthService } from '@/modules/auth/auth.service';
 import { FirebaseAuthGuard } from '@/modules/auth/firebase-auth.guard';
@@ -10,7 +9,7 @@ import { UsersModule } from '@/modules/users/users.module';
 
 @Global()
 @Module({
-  imports: [UsersModule, EmailModule],
+  imports: [UsersModule],
   controllers: [AuthController],
   providers: [
     AuthService,

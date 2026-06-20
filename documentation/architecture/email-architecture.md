@@ -64,7 +64,7 @@ Handlebars (`.hbs`) templates live in `src/modules/email/templates/`. Compiled t
 
 Template context is assembled in `EmailChannelStrategy` from:
 
-- `firstName` — fetched from `user_profiles`
+- `displayName` — fetched from `users` via join with `user_profiles`
 - `title`, `body` — already i18n-translated by `NotificationsService.renderContent()`
 - `ctaUrl` — absolute URL computed from `FRONTEND_URL` + type-specific path
 - Type-specific payload fields (e.g. `tripName`, `groupName`, `countryCode`)

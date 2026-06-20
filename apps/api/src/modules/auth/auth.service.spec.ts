@@ -66,6 +66,7 @@ describe('AuthService', () => {
   let mockFindFirst: jest.Mock;
   let mockTrxInsert: jest.Mock;
   let mockTransaction: jest.Mock;
+  let mockSendWelcome: jest.Mock;
 
   beforeEach(async () => {
     mockVerifyIdToken = jest.fn();
@@ -103,7 +104,7 @@ describe('AuthService', () => {
         },
         {
           provide: EmailService,
-          useValue: { sendWelcome: jest.fn().mockResolvedValue(undefined) },
+          useValue: { sendWelcome: (mockSendWelcome = jest.fn().mockResolvedValue(undefined)) },
         },
       ],
     }).compile();
@@ -315,6 +316,18 @@ describe('AuthService', () => {
       expect(mockTransaction).toHaveBeenCalledTimes(1);
       // Four inserts: users + user_preferences + user_profiles + user_nationalities
       expect(mockTrxInsert).toHaveBeenCalledTimes(4);
+    });
+
+    it('should fire welcome email with displayName after registration', async () => {
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockFindFirst.mockResolvedValue(undefined);
+
+      await service.register('Bearer valid-token', validRegisterDto);
+
+      expect(mockSendWelcome).toHaveBeenCalledWith({
+        to: mockDecodedToken.email,
+        displayName: mockCreatedUser.displayName,
+      });
     });
 
     it('should use dto.displayName in the insert', async () => {

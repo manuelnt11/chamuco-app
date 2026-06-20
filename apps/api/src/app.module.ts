@@ -3,6 +3,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@/config/config.module';
+import { EmailModule } from '@/modules/email/email.module';
 import { SupportAdminAuditInterceptor } from '@/common/interceptors';
 import { UserThrottlerGuard } from '@/common/guards';
 import { DatabaseModule } from '@/database/database.module';
@@ -26,6 +27,7 @@ import * as path from 'path';
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     ConfigModule,
+    EmailModule,
     DatabaseModule,
     AuthModule,
     UsersModule,
