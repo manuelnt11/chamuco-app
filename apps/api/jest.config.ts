@@ -23,7 +23,7 @@ const config: Config = {
       },
     ],
   },
-  transformIgnorePatterns: ['/node_modules/\\.pnpm/(?!(jose|jwks-rsa)@)'],
+  transformIgnorePatterns: ['/node_modules/\\.pnpm/(?!(jose|jwks-rsa|uuid)@)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@chamuco/shared-types$': '<rootDir>/../../packages/shared-types/src',

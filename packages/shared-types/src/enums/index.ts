@@ -7,6 +7,8 @@ export * from './delivery-status.enum';
 export * from './dietary-preference.enum';
 export * from './document-status.enum';
 export * from './eta-type.enum';
+export * from './export-field.enum';
+export * from './export-format.enum';
 export * from './food-allergen.enum';
 export * from './group-member-status.enum';
 export * from './group-member-tier.enum';

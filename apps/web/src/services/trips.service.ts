@@ -1,4 +1,4 @@
-import type { BulkInvitationResponse } from '@chamuco/shared-types';
+import type { BulkInvitationResponse, ExportField, ExportFormat } from '@chamuco/shared-types';
 
 import { apiClient } from '@/services/api-client';
 
@@ -138,6 +138,28 @@ export async function updateTripParticipantRole(
 
 export async function removeTripParticipant(id: string, userId: string): Promise<void> {
   await apiClient.delete(`/v1/trips/${id}/participants/${userId}`);
+}
+
+export async function exportTripParticipants(
+  tripId: string,
+  format: ExportFormat,
+  fields: ExportField[],
+): Promise<void> {
+  const params = new URLSearchParams({ format });
+  fields.forEach((f) => params.append('fields', f));
+
+  const response = await apiClient.get(`/v1/trips/${tripId}/participants/export?${params}`, {
+    responseType: 'blob',
+  });
+
+  const extensions: Record<string, string> = { csv: 'csv', xlsx: 'xlsx', ods: 'ods' };
+  const ext = extensions[format] ?? format;
+  const url = URL.createObjectURL(response.data as Blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `participants.${ext}`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ─── Global invitation methods ────────────────────────────────────────────────

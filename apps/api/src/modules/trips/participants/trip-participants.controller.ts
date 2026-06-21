@@ -8,7 +8,11 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Query,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -17,19 +21,35 @@ import {
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
+  ApiProduces,
+  ApiQuery,
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
+import { ExportField, ExportFormat } from '@chamuco/shared-types';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
-import { TripParticipantsService } from './trip-participants.service';
+import { ExportParticipantsQueryDto } from './dto/export-participants-query.dto';
+import { ALL_EXPORT_FIELDS, TripParticipantsService } from './trip-participants.service';
 import { UpdateParticipantRoleDto } from './dto/update-participant-role.dto';
 import { ParticipantResponseDto } from './dto/participant-response.dto';
 import { MyParticipationResponseDto } from './dto/my-participation-response.dto';
 import { PendingParticipantResponseDto } from './dto/pending-participant-response.dto';
 import { MyTripInvitationResponseDto } from './dto/my-trip-invitation-response.dto';
+
+const EXPORT_CONTENT_TYPES: Record<ExportFormat, string> = {
+  [ExportFormat.XLSX]: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  [ExportFormat.CSV]: 'text/csv; charset=utf-8',
+  [ExportFormat.ODS]: 'application/vnd.oasis.opendocument.spreadsheet',
+};
+
+const EXPORT_EXTENSIONS: Record<ExportFormat, string> = {
+  [ExportFormat.XLSX]: 'xlsx',
+  [ExportFormat.CSV]: 'csv',
+  [ExportFormat.ODS]: 'ods',
+};
 
 @ApiTags('trip-participants')
 @ApiBearerAuth()
@@ -172,5 +192,59 @@ export class TripParticipantsController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<PendingParticipantResponseDto[]> {
     return this.tripParticipantsService.listPendingParticipants(id, user.id);
+  }
+
+  @Get(':id/participants/export')
+  @ApiOperation({
+    summary: 'Export participant data',
+    description:
+      'Downloads a spreadsheet with profile data for all active (ACCEPTED/CONFIRMED) participants. ' +
+      'Organizer and co-organizer only. ' +
+      'Supported formats: csv (default), xlsx, ods. ' +
+      'Use the fields param to select specific columns; omit for all columns.',
+  })
+  @ApiProduces(
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/csv',
+    'application/vnd.oasis.opendocument.spreadsheet',
+  )
+  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
+  @ApiQuery({ name: 'format', enum: ExportFormat, required: false })
+  @ApiQuery({
+    name: 'fields',
+    enum: ExportField,
+    isArray: true,
+    required: false,
+    description: 'Comma-separated or repeated. Defaults to all fields.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Spreadsheet file with participant profile data.',
+    schema: { type: 'string', format: 'binary' },
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
+  @ApiForbiddenResponse({ description: 'Caller is not a trip organizer or co-organizer.' })
+  @ApiNotFoundResponse({ description: 'Trip not found.' })
+  async exportParticipants(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: ExportParticipantsQueryDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const format = query.format ?? ExportFormat.CSV;
+    const fields = query.fields ?? ALL_EXPORT_FIELDS;
+
+    const buffer = await this.tripParticipantsService.exportParticipants(
+      id,
+      user.id,
+      format,
+      fields,
+    );
+
+    res.set({
+      'Content-Type': EXPORT_CONTENT_TYPES[format],
+      'Content-Disposition': `attachment; filename="participants-${id}.${EXPORT_EXTENSIONS[format]}"`,
+    });
+    return new StreamableFile(buffer);
   }
 }

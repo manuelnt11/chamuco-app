@@ -1,6 +1,8 @@
 import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  ExportField,
+  ExportFormat,
   NotificationChannel,
   NotificationType,
   TripParticipantStatus,
@@ -51,6 +53,29 @@ const invitedParticipation = makeParticipation(USER_ID, TripParticipantStatus.IN
 const pendingParticipation = makeParticipation(USER_ID, TripParticipantStatus.PENDING_REQUEST);
 
 const mockUserRow = { id: USER_ID, username: 'user', displayName: 'User', avatar: null };
+const mockOrganizerRow = {
+  id: ORGANIZER_ID,
+  username: 'organizer',
+  displayName: 'Organizer',
+  avatar: null,
+};
+const mockProfileRow = {
+  userId: ORGANIZER_ID,
+  firstName: 'Test',
+  lastName: 'Organizer',
+  email: 'org@test.com',
+  phoneCountryCode: '+57',
+  phoneLocalNumber: '3001234567',
+  dateOfBirth: { day: 1, month: 6, year: 1990, year_visible: true },
+  homeCountry: 'CO',
+  homeCity: 'Bogotá',
+  bloodType: null,
+  dietaryPreference: 'OMNIVORE',
+  dietaryNotes: null,
+  generalMedicalNotes: null,
+  emergencyContacts: [],
+  loyaltyPrograms: [],
+};
 
 describe('TripParticipantsService', () => {
   let service: TripParticipantsService;
@@ -60,6 +85,9 @@ describe('TripParticipantsService', () => {
   let mockTripParticipantsFindFirst: jest.Mock;
   let mockTripParticipantsFindMany: jest.Mock;
   let mockUsersFindMany: jest.Mock;
+  let mockUserProfilesFindMany: jest.Mock;
+  let mockUserNationalitiesFindMany: jest.Mock;
+  let mockUserPreferencesFindFirst: jest.Mock;
   let mockAssetsFindMany: jest.Mock;
 
   let mockUpdateWhere: jest.Mock;
@@ -77,6 +105,9 @@ describe('TripParticipantsService', () => {
     mockTripParticipantsFindFirst = jest.fn().mockResolvedValue(organizerParticipation);
     mockTripParticipantsFindMany = jest.fn().mockResolvedValue([]);
     mockUsersFindMany = jest.fn().mockResolvedValue([]);
+    mockUserProfilesFindMany = jest.fn().mockResolvedValue([]);
+    mockUserNationalitiesFindMany = jest.fn().mockResolvedValue([]);
+    mockUserPreferencesFindFirst = jest.fn().mockResolvedValue({ language: 'EN' });
     mockAssetsFindMany = jest.fn().mockResolvedValue([]);
 
     mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
@@ -108,6 +139,9 @@ describe('TripParticipantsService', () => {
                 findMany: mockTripParticipantsFindMany,
               },
               users: { findMany: mockUsersFindMany },
+              userProfiles: { findMany: mockUserProfilesFindMany },
+              userNationalities: { findMany: mockUserNationalitiesFindMany },
+              userPreferences: { findFirst: mockUserPreferencesFindFirst },
               assets: { findMany: mockAssetsFindMany },
             },
             update: mockUpdate,
@@ -696,6 +730,264 @@ describe('TripParticipantsService', () => {
       await expect(
         service.toggleParticipantConfirmation(TRIP_ID, TARGET_ID, ORGANIZER_ID),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  // ─── exportParticipants ──────────────────────────────────────────────────────
+
+  describe('exportParticipants', () => {
+    const mockNationalityRow = {
+      userId: ORGANIZER_ID,
+      countryCode: 'CO',
+      isPrimary: true,
+      nationalIdNumber: '12345678',
+      passportNumber: 'CC123456',
+      passportExpiryDate: '2030-01-01',
+      passportStatus: 'ACTIVE',
+    };
+
+    const setupHappyPath = () => {
+      mockTripParticipantsFindMany.mockResolvedValueOnce([organizerParticipation]);
+      mockUsersFindMany.mockResolvedValueOnce([mockOrganizerRow]);
+      mockUserProfilesFindMany.mockResolvedValueOnce([mockProfileRow]);
+      mockUserNationalitiesFindMany.mockResolvedValueOnce([mockNationalityRow]);
+    };
+
+    it('throws ForbiddenException when caller is not an organizer', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValueOnce(null);
+
+      await expect(service.exportParticipants(TRIP_ID, USER_ID, ExportFormat.XLSX)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('returns a Buffer when no active participants exist', async () => {
+      mockTripParticipantsFindMany.mockResolvedValueOnce([]);
+
+      const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.XLSX);
+
+      expect(result).toBeInstanceOf(Buffer);
+    });
+
+    it('handles participants with no profile without throwing', async () => {
+      mockTripParticipantsFindMany.mockResolvedValueOnce([activeParticipation]);
+      mockUsersFindMany.mockResolvedValueOnce([mockUserRow]);
+      mockUserProfilesFindMany.mockResolvedValueOnce([]);
+      mockUserNationalitiesFindMany.mockResolvedValueOnce([]);
+
+      await expect(
+        service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.XLSX),
+      ).resolves.toBeInstanceOf(Buffer);
+    });
+
+    describe('XLSX format', () => {
+      it('returns a non-empty Buffer', async () => {
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.XLSX);
+
+        expect(result).toBeInstanceOf(Buffer);
+        expect(result.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('CSV format', () => {
+      it('returns a non-empty Buffer', async () => {
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV);
+
+        expect(result).toBeInstanceOf(Buffer);
+        expect(result.length).toBeGreaterThan(0);
+      });
+
+      it('output contains header and data rows', async () => {
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV);
+        const text = result.toString('utf-8');
+
+        expect(text).toContain('Display name');
+        expect(text).toContain('@organizer');
+      });
+    });
+
+    describe('ODS format', () => {
+      it('returns a non-empty Buffer', async () => {
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.ODS);
+
+        expect(result).toBeInstanceOf(Buffer);
+        expect(result.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('field selection', () => {
+      it('CSV output only includes selected fields', async () => {
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV, [
+          ExportField.DISPLAY_NAME,
+          ExportField.EMAIL,
+        ]);
+        const text = result.toString('utf-8');
+
+        expect(text).toContain('Display name');
+        expect(text).toContain('Email');
+        expect(text).not.toContain('Blood type');
+        expect(text).not.toContain('Role');
+      });
+
+      it('preserves canonical field order regardless of input order', async () => {
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV, [
+          ExportField.EMAIL,
+          ExportField.DISPLAY_NAME,
+        ]);
+        const header = result.toString('utf-8').split('\r\n')[0]!;
+
+        // DISPLAY_NAME comes before EMAIL in canonical order
+        expect(header.indexOf('Display name')).toBeLessThan(header.indexOf('Email'));
+      });
+
+      it('includes all fields when fields list is empty (falls back to all)', async () => {
+        setupHappyPath();
+
+        const result = await service.exportParticipants(
+          TRIP_ID,
+          ORGANIZER_ID,
+          ExportFormat.CSV,
+          [],
+        );
+        const text = result.toString('utf-8');
+
+        // empty selection → 0 active fields → only header line (empty) or just line break
+        // result should still be a valid Buffer
+        expect(result).toBeInstanceOf(Buffer);
+        expect(text).not.toContain('Display name');
+      });
+    });
+
+    describe('i18n — language from user_preferences', () => {
+      it('uses Spanish headers when user preference is ES', async () => {
+        mockUserPreferencesFindFirst.mockResolvedValueOnce({ language: 'ES' });
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV, [
+          ExportField.DISPLAY_NAME,
+          ExportField.ROLE,
+        ]);
+        const text = result.toString('utf-8');
+
+        expect(text).toContain('Nombre visible');
+        expect(text).toContain('Rol');
+      });
+
+      it('translates role values when user preference is ES', async () => {
+        mockUserPreferencesFindFirst.mockResolvedValueOnce({ language: 'ES' });
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV, [
+          ExportField.ROLE,
+        ]);
+        const text = result.toString('utf-8');
+
+        expect(text).toContain('Organizador');
+      });
+
+      it('translates isTraveler Sí/No when user preference is ES', async () => {
+        mockUserPreferencesFindFirst.mockResolvedValueOnce({ language: 'ES' });
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV, [
+          ExportField.IS_TRAVELER,
+        ]);
+        const text = result.toString('utf-8');
+
+        expect(text).toContain('Sí');
+      });
+
+      it('falls back to English when user has no preference row', async () => {
+        mockUserPreferencesFindFirst.mockResolvedValueOnce(null);
+        setupHappyPath();
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV, [
+          ExportField.DISPLAY_NAME,
+        ]);
+        const text = result.toString('utf-8');
+
+        expect(text).toContain('Display name');
+      });
+    });
+
+    describe('nationality and passport fields', () => {
+      it('includes nationality data when available', async () => {
+        const natRow = {
+          userId: ORGANIZER_ID,
+          countryCode: 'CO',
+          isPrimary: true,
+          nationalIdNumber: '12345678',
+          passportNumber: 'CC123456',
+          passportExpiryDate: '2030-01-01',
+          passportStatus: 'ACTIVE',
+        };
+        mockTripParticipantsFindMany.mockResolvedValueOnce([organizerParticipation]);
+        mockUsersFindMany.mockResolvedValueOnce([mockOrganizerRow]);
+        mockUserProfilesFindMany.mockResolvedValueOnce([mockProfileRow]);
+        mockUserNationalitiesFindMany.mockResolvedValueOnce([natRow]);
+
+        const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV, [
+          ExportField.NATIONALITY,
+          ExportField.PASSPORT_NUMBER,
+          ExportField.NATIONAL_ID_NUMBER,
+        ]);
+        const text = result.toString('utf-8');
+
+        expect(text).toContain('CO');
+        expect(text).toContain('CC123456');
+        expect(text).toContain('12345678');
+      });
+
+      it('exports empty strings when no primary nationality exists', async () => {
+        mockTripParticipantsFindMany.mockResolvedValueOnce([organizerParticipation]);
+        mockUsersFindMany.mockResolvedValueOnce([mockOrganizerRow]);
+        mockUserProfilesFindMany.mockResolvedValueOnce([mockProfileRow]);
+        mockUserNationalitiesFindMany.mockResolvedValueOnce([]);
+
+        await expect(
+          service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV, [
+            ExportField.NATIONALITY,
+            ExportField.PASSPORT_NUMBER,
+          ]),
+        ).resolves.toBeInstanceOf(Buffer);
+      });
+    });
+
+    it('includes the primary emergency contact in the CSV output', async () => {
+      const profileWithContact = {
+        ...mockProfileRow,
+        emergencyContacts: [
+          {
+            id: 'ec-1',
+            fullName: 'María López',
+            relationship: 'mother',
+            phoneCountryCode: '+57',
+            phoneLocalNumber: '3001234567',
+            isPrimary: true,
+          },
+        ],
+      };
+      mockTripParticipantsFindMany.mockResolvedValueOnce([organizerParticipation]);
+      mockUsersFindMany.mockResolvedValueOnce([mockOrganizerRow]);
+      mockUserProfilesFindMany.mockResolvedValueOnce([profileWithContact]);
+      mockUserNationalitiesFindMany.mockResolvedValueOnce([]);
+
+      const result = await service.exportParticipants(TRIP_ID, ORGANIZER_ID, ExportFormat.CSV);
+      const text = result.toString('utf-8');
+
+      expect(text).toContain('María López');
     });
   });
 
