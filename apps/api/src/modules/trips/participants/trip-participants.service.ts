@@ -7,8 +7,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { and, eq, inArray } from 'drizzle-orm';
-import * as XLSX from 'xlsx';
-import type { BookType } from 'xlsx';
+import ExcelJS from 'exceljs';
+import JSZip from 'jszip';
 
 import {
   ExportField,
@@ -691,33 +691,86 @@ export class TripParticipantsService {
       })
       .filter((r): r is ParticipantExportRow => r !== null);
 
-    return this.buildSpreadsheet(dataRows, columns, format);
+    switch (format) {
+      case ExportFormat.CSV:
+        return this.buildCsvBuffer(dataRows, columns);
+      case ExportFormat.ODS:
+        return this.buildOdsBuffer(dataRows, columns);
+      case ExportFormat.XLSX:
+        return this.buildXlsxBuffer(dataRows, columns);
+      default:
+        throw new Error(`Unsupported export format: ${format as string}`);
+    }
   }
 
-  private buildSpreadsheet(
+  private async buildXlsxBuffer(
     dataRows: ParticipantExportRow[],
     columns: Array<{ key: ExportField; header: string; width: number }>,
-    format: ExportFormat,
+  ): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Participants');
+    sheet.columns = columns.map((c) => ({ header: c.header, key: c.key, width: c.width }));
+    sheet.getRow(1).font = { bold: true };
+    for (const row of dataRows) {
+      sheet.addRow(row);
+    }
+    return Buffer.from(await workbook.xlsx.writeBuffer());
+  }
+
+  private buildCsvBuffer(
+    dataRows: ParticipantExportRow[],
+    columns: Array<{ key: ExportField; header: string }>,
   ): Buffer {
-    const aoa: string[][] = [
-      columns.map((c) => c.header),
-      ...dataRows.map((row) => columns.map((c) => row[c.key])),
-    ];
+    const escape = (v: string) => (/[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+    const headerLine = columns.map((c) => escape(c.header)).join(',');
+    const lines = dataRows.map((row) => columns.map((c) => escape(row[c.key])).join(','));
+    return Buffer.from([headerLine, ...lines].join('\r\n'), 'utf-8');
+  }
 
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = columns.map((c) => ({ wch: c.width }));
+  private async buildOdsBuffer(
+    dataRows: ParticipantExportRow[],
+    columns: Array<{ key: ExportField; header: string }>,
+  ): Promise<Buffer> {
+    const x = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Participants');
+    const cell = (v: string) =>
+      `<table:table-cell office:value-type="string"><text:p>${x(v)}</text:p></table:table-cell>`;
 
-    const bookTypeMap: Record<ExportFormat, BookType> = {
-      [ExportFormat.XLSX]: 'xlsx',
-      [ExportFormat.ODS]: 'ods',
-      [ExportFormat.CSV]: 'csv',
-    };
-    const bookType = bookTypeMap[format];
-    if (!bookType) throw new Error(`Unsupported export format: ${format as string}`);
-    return XLSX.write(wb, { bookType, type: 'buffer' }) as Buffer;
+    const headerRow = `<table:table-row>${columns.map((c) => cell(c.header)).join('')}</table:table-row>`;
+    const dataRowsXml = dataRows
+      .map(
+        (row) =>
+          `<table:table-row>${columns.map((c) => cell(row[c.key])).join('')}</table:table-row>`,
+      )
+      .join('');
+
+    const contentXml = `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  office:version="1.3">
+  <office:body><office:spreadsheet>
+    <table:table table:name="Participants">
+      ${headerRow}${dataRowsXml}
+    </table:table>
+  </office:spreadsheet></office:body>
+</office:document-content>`;
+
+    const manifestXml = `<?xml version="1.0" encoding="UTF-8"?>
+<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.3">
+  <manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.spreadsheet"/>
+  <manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>
+</manifest:manifest>`;
+
+    const zip = new JSZip();
+    zip.file('mimetype', 'application/vnd.oasis.opendocument.spreadsheet', {
+      compression: 'STORE',
+    });
+    zip.folder('META-INF')!.file('manifest.xml', manifestXml);
+    zip.file('content.xml', contentXml);
+
+    return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }) as Promise<Buffer>;
   }
 
   private async batchResolveAvatarUrls(
