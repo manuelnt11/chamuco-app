@@ -96,7 +96,47 @@
     },
     "empty": "No participants yet",
     "loading": "Loading participants...",
-    "loadError": "Failed to load participants"
+    "loadError": "Failed to load participants",
+    "export": {
+      "button": "Export participants",
+      "title": "Export participants",
+      "format": "Format",
+      "fields": "Fields",
+      "allFields": "All fields",
+      "requiredOnly": "Required only",
+      "download": "Download",
+      "downloading": "Downloading...",
+      "error": "Export failed. Please try again.",
+      "formats": {
+        "csv": "CSV",
+        "xlsx": "XLSX (Excel)",
+        "ods": "ODS (LibreOffice)"
+      },
+      "fieldLabels": {
+        "displayName": "Display name",
+        "username": "Username",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email",
+        "phone": "Phone",
+        "dateOfBirth": "Date of birth",
+        "homeCountry": "Home country",
+        "homeCity": "Home city",
+        "nationality": "Nationality",
+        "nationalIdNumber": "National ID",
+        "passportNumber": "Passport number",
+        "passportExpiry": "Passport expiry",
+        "bloodType": "Blood type",
+        "dietaryPreference": "Dietary preference",
+        "dietaryNotes": "Dietary notes",
+        "generalMedicalNotes": "Medical notes",
+        "emergencyContact": "Emergency contact",
+        "role": "Role",
+        "status": "Status",
+        "confirmedAt": "Confirmed at",
+        "isTraveler": "Traveler"
+      }
+    }
   },
   "itinerary": "Itinerary",
   "budget": "Budget",

@@ -1,11 +1,15 @@
+import { StreamableFile } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   AuthProvider,
+  ExportField,
+  ExportFormat,
   PlatformRole,
   ProfileVisibility,
   TripParticipantStatus,
   TripRole,
 } from '@chamuco/shared-types';
+import type { Response } from 'express';
 
 jest.mock('@google-cloud/storage', () => ({
   Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
@@ -65,14 +69,17 @@ describe('TripParticipantsController', () => {
   let controller: TripParticipantsController;
   let mockRemoveParticipant: jest.Mock;
   let mockUpdateParticipantRole: jest.Mock;
+  let mockToggleParticipantConfirmation: jest.Mock;
   let mockGetMyParticipation: jest.Mock;
   let mockListActiveParticipants: jest.Mock;
   let mockListPendingParticipants: jest.Mock;
   let mockListMyInvitations: jest.Mock;
+  let mockExportParticipants: jest.Mock;
 
   beforeEach(async () => {
     mockRemoveParticipant = jest.fn().mockResolvedValue(undefined);
     mockUpdateParticipantRole = jest.fn().mockResolvedValue(undefined);
+    mockToggleParticipantConfirmation = jest.fn().mockResolvedValue(undefined);
     mockGetMyParticipation = jest.fn().mockResolvedValue({
       status: TripParticipantStatus.CONFIRMED,
       role: TripRole.PARTICIPANT,
@@ -81,6 +88,7 @@ describe('TripParticipantsController', () => {
     mockListActiveParticipants = jest.fn().mockResolvedValue([mockParticipant]);
     mockListPendingParticipants = jest.fn().mockResolvedValue([mockPending]);
     mockListMyInvitations = jest.fn().mockResolvedValue([mockInvitation]);
+    mockExportParticipants = jest.fn().mockResolvedValue(Buffer.from('test'));
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TripParticipantsController],
@@ -90,10 +98,12 @@ describe('TripParticipantsController', () => {
           useValue: {
             removeParticipant: mockRemoveParticipant,
             updateParticipantRole: mockUpdateParticipantRole,
+            toggleParticipantConfirmation: mockToggleParticipantConfirmation,
             getMyParticipation: mockGetMyParticipation,
             listActiveParticipants: mockListActiveParticipants,
             listPendingParticipants: mockListPendingParticipants,
             listMyInvitations: mockListMyInvitations,
+            exportParticipants: mockExportParticipants,
           },
         },
       ],
@@ -158,6 +168,90 @@ describe('TripParticipantsController', () => {
 
       expect(mockListPendingParticipants).toHaveBeenCalledWith('trip-uuid', mockAuthUser.id);
       expect(result).toEqual([mockPending]);
+    });
+  });
+
+  describe('PATCH /v1/trips/:id/participants/:userId/confirmation', () => {
+    it('delegates to service.toggleParticipantConfirmation', async () => {
+      await controller.toggleParticipantConfirmation(mockAuthUser, 'trip-uuid', 'user-uuid');
+
+      expect(mockToggleParticipantConfirmation).toHaveBeenCalledWith(
+        'trip-uuid',
+        'user-uuid',
+        mockAuthUser.id,
+      );
+    });
+  });
+
+  describe('GET /v1/trips/:id/participants/export', () => {
+    const mockRes = () => ({ set: jest.fn() }) as unknown as Response;
+
+    it('delegates to service.exportParticipants with default CSV format', async () => {
+      const res = mockRes();
+      const result = await controller.exportParticipants(mockAuthUser, 'trip-uuid', {}, res);
+
+      expect(mockExportParticipants).toHaveBeenCalledWith(
+        'trip-uuid',
+        mockAuthUser.id,
+        ExportFormat.CSV,
+        expect.any(Array),
+      );
+      expect(res.set).toHaveBeenCalledWith(
+        expect.objectContaining({ 'Content-Type': expect.stringContaining('csv') }),
+      );
+      expect(result).toBeInstanceOf(StreamableFile);
+    });
+
+    it('uses XLSX content-type and extension when format is xlsx', async () => {
+      const res = mockRes();
+      await controller.exportParticipants(
+        mockAuthUser,
+        'trip-uuid',
+        { format: ExportFormat.XLSX },
+        res,
+      );
+
+      expect(res.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': expect.stringContaining('.xlsx'),
+        }),
+      );
+    });
+
+    it('uses ODS content-type and extension when format is ods', async () => {
+      const res = mockRes();
+      await controller.exportParticipants(
+        mockAuthUser,
+        'trip-uuid',
+        { format: ExportFormat.ODS },
+        res,
+      );
+
+      expect(res.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'Content-Type': 'application/vnd.oasis.opendocument.spreadsheet',
+          'Content-Disposition': expect.stringContaining('.ods'),
+        }),
+      );
+    });
+
+    it('passes selected fields to service', async () => {
+      const res = mockRes();
+      const fields = [ExportField.FIRST_NAME, ExportField.LAST_NAME, ExportField.EMAIL];
+      await controller.exportParticipants(
+        mockAuthUser,
+        'trip-uuid',
+        { format: ExportFormat.CSV, fields },
+        res,
+      );
+
+      expect(mockExportParticipants).toHaveBeenCalledWith(
+        'trip-uuid',
+        mockAuthUser.id,
+        ExportFormat.CSV,
+        fields,
+      );
     });
   });
 });

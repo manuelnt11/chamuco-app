@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { TripParticipantStatus, TripRole } from '@chamuco/shared-types';
 import { ParticipantListItem } from './ParticipantListItem';
 import { InviteParticipantModal } from './InviteParticipantModal';
+import { ExportParticipantsPopover } from './ExportParticipantsPopover';
 import type { TripParticipantResponse } from '@/services/trips.types';
 
 interface ParticipantListProps {
@@ -83,12 +84,15 @@ export function ParticipantList({
           {t('participants.capacity', { active: participants.length, total: capacity })}
         </p>
         {isOrganizer && (
-          <InviteParticipantModal
-            tripId={tripId}
-            onSuccess={onInviteSuccess}
-            excludedIds={excludedIds}
-            disabled={!canInvite}
-          />
+          <div className="flex items-center gap-1.5">
+            <InviteParticipantModal
+              tripId={tripId}
+              onSuccess={onInviteSuccess}
+              excludedIds={excludedIds}
+              disabled={!canInvite}
+            />
+            <ExportParticipantsPopover tripId={tripId} />
+          </div>
         )}
       </div>
 

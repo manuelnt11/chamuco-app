@@ -96,7 +96,47 @@
     },
     "empty": "Aún no hay participantes",
     "loading": "Cargando participantes...",
-    "loadError": "Error al cargar los participantes"
+    "loadError": "Error al cargar los participantes",
+    "export": {
+      "button": "Exportar participantes",
+      "title": "Exportar participantes",
+      "format": "Formato",
+      "fields": "Campos",
+      "allFields": "Todos los campos",
+      "requiredOnly": "Solo requeridos",
+      "download": "Descargar",
+      "downloading": "Descargando...",
+      "error": "Error al exportar. Inténtalo de nuevo.",
+      "formats": {
+        "csv": "CSV",
+        "xlsx": "XLSX (Excel)",
+        "ods": "ODS (LibreOffice)"
+      },
+      "fieldLabels": {
+        "displayName": "Nombre visible",
+        "username": "Usuario",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "email": "Correo electrónico",
+        "phone": "Teléfono",
+        "dateOfBirth": "Fecha de nacimiento",
+        "homeCountry": "País de origen",
+        "homeCity": "Ciudad de origen",
+        "nationality": "Nacionalidad",
+        "nationalIdNumber": "Número de documento",
+        "passportNumber": "Número de pasaporte",
+        "passportExpiry": "Vencimiento del pasaporte",
+        "bloodType": "Tipo de sangre",
+        "dietaryPreference": "Preferencia alimentaria",
+        "dietaryNotes": "Notas alimentarias",
+        "generalMedicalNotes": "Notas médicas",
+        "emergencyContact": "Contacto de emergencia",
+        "role": "Rol",
+        "status": "Estado",
+        "confirmedAt": "Confirmado el",
+        "isTraveler": "Viajero"
+      }
+    }
   },
   "itinerary": "Itinerario",
   "budget": "Presupuesto",
