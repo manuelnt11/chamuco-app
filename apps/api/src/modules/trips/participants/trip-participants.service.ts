@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { and, eq, inArray } from 'drizzle-orm';
 import * as XLSX from 'xlsx';
+import type { BookType } from 'xlsx';
 
 import {
   ExportField,
@@ -585,19 +586,20 @@ export class TripParticipantsService {
   ): Promise<Buffer> {
     await this.assertTripOrganizer(tripId, requestingUserId);
 
-    // Fetch the requester's language preference alongside the participant data.
-    const prefs = await this.db.query.userPreferences.findFirst({
-      where: eq(userPreferences.userId, requestingUserId),
-      columns: { language: true },
-    });
+    // Fetch language prefs and participation list in parallel — both are independent of each other.
+    const [prefs, participationRows] = await Promise.all([
+      this.db.query.userPreferences.findFirst({
+        where: eq(userPreferences.userId, requestingUserId),
+        columns: { language: true },
+      }),
+      this.db.query.tripParticipants.findMany({
+        where: and(
+          eq(tripParticipants.tripId, tripId),
+          inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+        ),
+      }),
+    ]);
     const lang = (prefs?.language ?? 'EN').toLowerCase();
-
-    const participationRows = await this.db.query.tripParticipants.findMany({
-      where: and(
-        eq(tripParticipants.tripId, tripId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
-      ),
-    });
 
     const userIds = participationRows.map((r) => r.userId);
 
@@ -708,16 +710,14 @@ export class TripParticipantsService {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Participants');
 
-    const bookType =
-      format === ExportFormat.XLSX ? 'xlsx' : format === ExportFormat.ODS ? 'ods' : 'csv';
-    switch (format) {
-      case ExportFormat.XLSX:
-      case ExportFormat.ODS:
-      case ExportFormat.CSV:
-        return XLSX.write(wb, { bookType, type: 'buffer' }) as Buffer;
-      default:
-        throw new Error(`Unsupported export format: ${format as string}`);
-    }
+    const bookTypeMap: Record<ExportFormat, BookType> = {
+      [ExportFormat.XLSX]: 'xlsx',
+      [ExportFormat.ODS]: 'ods',
+      [ExportFormat.CSV]: 'csv',
+    };
+    const bookType = bookTypeMap[format];
+    if (!bookType) throw new Error(`Unsupported export format: ${format as string}`);
+    return XLSX.write(wb, { bookType, type: 'buffer' }) as Buffer;
   }
 
   private async batchResolveAvatarUrls(

@@ -113,7 +113,7 @@
         "ods": "ODS (LibreOffice)"
       },
       "fieldLabels": {
-        "displayName": "Nombre de usuario",
+        "displayName": "Nombre visible",
         "username": "Usuario",
         "firstName": "Nombre",
         "lastName": "Apellido",
