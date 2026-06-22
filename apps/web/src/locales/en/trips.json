@@ -237,6 +237,18 @@
   },
   "announcements": "Announcements",
   "announcementsPublish": "Publish announcement",
+  "announcementsEmpty": "No announcements yet.",
+  "announcementsNew": "New Announcement",
+  "announcementsPlaceholder": "Write an announcement to all participants...",
+  "announcementsSubmit": "Publish",
+  "announcementsPostedBy": "Posted by {{name}}",
+  "announcementsLoadError": "Failed to load announcements.",
+  "announcementsCreateError": "Failed to send announcement.",
+  "announcementsViewAll": "View all",
+  "announcementsEdit": "Edit Announcement",
+  "announcementsEditSave": "Save",
+  "announcementsEditError": "Failed to update announcement.",
+  "announcementsDeleteError": "Failed to delete announcement.",
   "actions": {
     "editSettings": "Edit settings"
   },
@@ -303,5 +315,22 @@
     "deleteError": "Failed to delete destination.",
     "deleteLastError": "Trips must have at least one destination.",
     "reorderError": "Failed to reorder destinations."
+  },
+  "search": {
+    "pageTitle": "Discover Trips",
+    "placeholder": "Search trips...",
+    "empty": "Search for public trips to join",
+    "viewTrip": "View",
+    "loading": "Searching...",
+    "noResults": "No trips found for \"{{query}}\"",
+    "resultCount": "{{count}} trip found",
+    "resultCount_other": "{{count}} trips found",
+    "participants": "{{confirmed}} / {{capacity}} participants",
+    "joinRequest": {
+      "button": "Request to join",
+      "requesting": "Requesting...",
+      "withdraw": "Withdraw",
+      "withdrawing": "Withdrawing..."
+    }
   }
 }

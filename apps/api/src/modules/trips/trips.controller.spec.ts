@@ -9,6 +9,7 @@ import {
 } from '@chamuco/shared-types';
 import { TripsController } from './trips.controller';
 import { TripsService } from './trips.service';
+import { TripDiscoveryService } from './discovery/trip-discovery.service';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
@@ -118,6 +119,10 @@ describe('TripsController', () => {
             deleteTrip: mockDeleteTrip,
             transitionStatus: mockTransitionStatus,
           },
+        },
+        {
+          provide: TripDiscoveryService,
+          useValue: { searchTrips: jest.fn().mockResolvedValue({ data: [], total: 0 }) },
         },
       ],
     }).compile();

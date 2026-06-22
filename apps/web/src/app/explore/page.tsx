@@ -13,6 +13,13 @@ export default function ExplorePage() {
 
       <div className="flex flex-col gap-4 sm:flex-row">
         <Link
+          href="/explore/trips"
+          className="flex flex-col gap-1 rounded-xl border border-border bg-card p-6 transition-colors hover:bg-muted/50"
+        >
+          <span className="text-lg font-semibold">{t('discoverTrips')}</span>
+          <span className="text-sm text-muted-foreground">{t('discoverTripsSubtitle')}</span>
+        </Link>
+        <Link
           href="/explore/groups"
           className="flex flex-col gap-1 rounded-xl border border-border bg-card p-6 transition-colors hover:bg-muted/50"
         >

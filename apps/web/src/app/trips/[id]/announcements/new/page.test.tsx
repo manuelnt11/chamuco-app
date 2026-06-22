@@ -1,13 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type ReactNode, type FormEvent } from 'react';
-import { GroupRole } from '@chamuco/shared-types';
+import { TripRole, TripParticipantStatus } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
   mockApiPost: vi.fn(),
   mockUseAuth: vi.fn(),
-  mockUseUser: vi.fn(),
   mockRouterPush: vi.fn(),
   mockRouterReplace: vi.fn(),
 }));
@@ -16,7 +15,7 @@ vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>();
   return {
     ...actual,
-    use: vi.fn().mockReturnValue({ id: 'group-id' }),
+    use: vi.fn().mockReturnValue({ id: 'trip-id' }),
   };
 });
 
@@ -56,10 +55,6 @@ vi.mock('@/services/api-client', () => ({
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: mocks.mockUseAuth,
-}));
-
-vi.mock('@/hooks/useUser', () => ({
-  useUser: mocks.mockUseUser,
 }));
 
 vi.mock('@phosphor-icons/react', () => ({
@@ -116,50 +111,60 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-import NewAnnouncementPage from './page';
+import NewTripAnnouncementPage from './page';
 
-const mockGroup = {
-  id: 'group-id',
-  name: 'Mountain Crew',
-  description: null,
-  coverUrl: '',
+const mockTrip = {
+  id: 'trip-id',
+  name: 'Cancún 2026',
+  status: 'DRAFT',
   visibility: 'PUBLIC',
-  createdBy: 'admin-id',
+  startDate: '2026-12-01',
+  endDate: '2026-12-08',
+  participantCapacity: 10,
+  departureCountry: 'MX',
+  departureCity: 'CDMX',
+  landingCountry: 'MX',
+  landingCity: 'Cancun',
+  defaultTimezone: 'America/Cancun',
+  defaultCurrency: 'MXN',
+  requiresConfirmation: false,
+  createdBy: 'user-id',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
 const mockAnnouncement = {
   id: 'a1',
-  groupId: 'group-id',
-  createdByUsername: 'admin-user',
-  content: 'Trip departs Sunday at 6am.',
+  tripId: 'trip-id',
+  createdByUsername: 'organizer-user',
+  content: 'Departs Friday at 6am.',
   createdAt: '2026-01-01T00:00:00.000Z',
 };
 
-function setupMocks(role: GroupRole | null = GroupRole.OWNER) {
+function setupMocks(role: TripRole | null = TripRole.ORGANIZER) {
   mocks.mockUseAuth.mockReturnValue({ isLoading: false });
-  mocks.mockUseUser.mockReturnValue({ appUser: { id: 'admin-id' }, isLoading: false });
 
   mocks.mockApiGet.mockImplementation((url: string) => {
-    if (url.includes('/members/me')) {
-      if (role === null) return Promise.reject(new Error('Not member'));
-      return Promise.resolve({ data: { status: 'active', role } });
+    if (url.includes('/participants/me')) {
+      if (role === null) return Promise.reject(new Error('Not participant'));
+      return Promise.resolve({
+        data: { status: TripParticipantStatus.ACCEPTED, role, isTraveler: true },
+      });
     }
-    return Promise.resolve({ data: mockGroup });
+    return Promise.resolve({ data: mockTrip });
   });
 
   mocks.mockApiPost.mockResolvedValue({ data: mockAnnouncement });
 }
 
-describe('NewAnnouncementPage', () => {
+describe('NewTripAnnouncementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders editor for group owner', async () => {
-    setupMocks(GroupRole.OWNER);
-    render(<NewAnnouncementPage params={Promise.resolve({ id: 'group-id' })} />);
+  it('renders editor for organizer', async () => {
+    setupMocks(TripRole.ORGANIZER);
+    render(<NewTripAnnouncementPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText('announcementsPlaceholder')).toBeInTheDocument();
@@ -167,67 +172,67 @@ describe('NewAnnouncementPage', () => {
     });
   });
 
-  it('renders editor for group admin', async () => {
-    setupMocks(GroupRole.ADMIN);
-    render(<NewAnnouncementPage params={Promise.resolve({ id: 'group-id' })} />);
+  it('renders editor for co-organizer', async () => {
+    setupMocks(TripRole.CO_ORGANIZER);
+    render(<NewTripAnnouncementPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText('announcementsPlaceholder')).toBeInTheDocument();
     });
   });
 
-  it('redirects non-admin member to group announcements page', async () => {
-    setupMocks(GroupRole.MEMBER);
-    render(<NewAnnouncementPage params={Promise.resolve({ id: 'group-id' })} />);
+  it('redirects regular participant to trip page', async () => {
+    setupMocks(TripRole.PARTICIPANT);
+    render(<NewTripAnnouncementPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/groups/group-id');
+      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips/trip-id');
     });
   });
 
-  it('redirects non-member to group announcements page', async () => {
+  it('redirects non-participant to trip page', async () => {
     setupMocks(null);
-    render(<NewAnnouncementPage params={Promise.resolve({ id: 'group-id' })} />);
+    render(<NewTripAnnouncementPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/groups/group-id');
+      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips/trip-id');
     });
   });
 
-  it('shows group name in back link', async () => {
+  it('shows trip name in back link', async () => {
     setupMocks();
-    render(<NewAnnouncementPage params={Promise.resolve({ id: 'group-id' })} />);
+    render(<NewTripAnnouncementPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      const link = screen.getByRole('link', { name: /Mountain Crew/ });
-      expect(link).toHaveAttribute('href', '/groups/group-id');
+      const link = screen.getByRole('link', { name: /Cancún 2026/ });
+      expect(link).toHaveAttribute('href', '/trips/trip-id');
     });
   });
 
   it('submit button is disabled when editor is empty', async () => {
     setupMocks();
-    render(<NewAnnouncementPage params={Promise.resolve({ id: 'group-id' })} />);
+    render(<NewTripAnnouncementPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'announcementsSubmit' })).toBeDisabled();
     });
   });
 
-  it('submits announcement and redirects to group page', async () => {
+  it('submits announcement and redirects to trip announcements page', async () => {
     setupMocks();
     const user = userEvent.setup();
-    render(<NewAnnouncementPage params={Promise.resolve({ id: 'group-id' })} />);
+    render(<NewTripAnnouncementPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => screen.getByPlaceholderText('announcementsPlaceholder'));
 
-    await user.type(screen.getByPlaceholderText('announcementsPlaceholder'), 'Hello members!');
+    await user.type(screen.getByPlaceholderText('announcementsPlaceholder'), 'Hello participants!');
     await user.click(screen.getByRole('button', { name: 'announcementsSubmit' }));
 
     await waitFor(() => {
-      expect(mocks.mockApiPost).toHaveBeenCalledWith('/v1/groups/group-id/announcements', {
-        content: 'Hello members!',
+      expect(mocks.mockApiPost).toHaveBeenCalledWith('/v1/trips/trip-id/announcements', {
+        content: 'Hello participants!',
       });
-      expect(mocks.mockRouterPush).toHaveBeenCalledWith('/groups/group-id/announcements');
+      expect(mocks.mockRouterPush).toHaveBeenCalledWith('/trips/trip-id/announcements');
     });
   });
 
@@ -235,11 +240,11 @@ describe('NewAnnouncementPage', () => {
     setupMocks();
     mocks.mockApiPost.mockRejectedValue(new Error('Server error'));
     const user = userEvent.setup();
-    render(<NewAnnouncementPage params={Promise.resolve({ id: 'group-id' })} />);
+    render(<NewTripAnnouncementPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => screen.getByPlaceholderText('announcementsPlaceholder'));
 
-    await user.type(screen.getByPlaceholderText('announcementsPlaceholder'), 'Hello members!');
+    await user.type(screen.getByPlaceholderText('announcementsPlaceholder'), 'Hello participants!');
     await user.click(screen.getByRole('button', { name: 'announcementsSubmit' }));
 
     await waitFor(() => {

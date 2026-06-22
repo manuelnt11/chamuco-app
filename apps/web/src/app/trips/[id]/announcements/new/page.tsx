@@ -4,54 +4,54 @@ import { useEffect, useState, use, type SubmitEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { GroupRole } from '@chamuco/shared-types';
+import { TripRole } from '@chamuco/shared-types';
 import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
 
-import { getGroup, getGroupMembership, createAnnouncement } from '@/services/groups.service';
+import { getTrip, getTripParticipation, createTripAnnouncement } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
-import { useUser } from '@/hooks/useUser';
 import { AnnouncementForm } from '@/components/ui/announcement-form';
-import type { Group } from '@/types/group';
+import type { TripResponse } from '@/services/trips.types';
 
-interface NewAnnouncementPageProps {
+interface NewTripAnnouncementPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps) {
+const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
+
+export default function NewTripAnnouncementPage({ params }: NewTripAnnouncementPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { t } = useTranslation('groups');
+  const { t } = useTranslation('trips');
   const { isLoading: isAuthLoading } = useAuth();
-  const { appUser } = useUser();
 
-  const [group, setGroup] = useState<Group | null>(null);
+  const [trip, setTrip] = useState<TripResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
 
   useEffect(() => {
-    if (isAuthLoading || !appUser) return;
+    if (isAuthLoading) return;
 
     const load = async () => {
       setIsLoading(true);
       try {
-        const [group, membership] = await Promise.all([
-          getGroup(id),
-          getGroupMembership(id).catch(() => null),
+        const [tripData, participation] = await Promise.all([
+          getTrip(id),
+          getTripParticipation(id).catch(() => null),
         ]);
 
-        const role = membership?.role ?? null;
-        const isAdmin = role !== null && [GroupRole.OWNER, GroupRole.ADMIN].includes(role);
+        const role = participation?.role ?? null;
+        const isOrganizer = role !== null && ORGANIZER_ROLES.includes(role);
 
-        if (!isAdmin) {
-          router.replace(`/groups/${id}`);
+        if (!isOrganizer) {
+          router.replace(`/trips/${id}`);
           return;
         }
 
-        setGroup(group);
+        setTrip(tripData);
       } catch {
-        router.replace(`/groups/${id}`);
+        router.replace(`/trips/${id}`);
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +59,7 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
 
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isAuthLoading, appUser]); // router is stable in Next.js; omitting avoids mock instability in tests
+  }, [id, isAuthLoading]); // router is stable in Next.js; omitting avoids mock instability in tests
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -68,25 +68,25 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
     setIsSubmitting(true);
     setSubmitError(false);
     try {
-      await createAnnouncement(id, { content: content.trim() });
-      router.push(`/groups/${id}/announcements`);
+      await createTripAnnouncement(id, { content: content.trim() });
+      router.push(`/trips/${id}/announcements`);
     } catch {
       setSubmitError(true);
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading || !group) return null;
+  if (isLoading || !trip) return null;
 
   return (
     <div className="p-8 max-w-2xl">
       <div className="mb-6">
         <Link
-          href={`/groups/${id}`}
+          href={`/trips/${id}`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeftIcon className="size-4" aria-hidden="true" />
-          {group.name}
+          {trip.name}
         </Link>
       </div>
 

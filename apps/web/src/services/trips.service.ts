@@ -14,15 +14,33 @@ import type {
   MyTripParticipationResponse,
   PendingTripParticipantResponse,
   ReorderDestinationsPayload,
+  SearchTripsParams,
   TransitionTripStatusPayload,
+  TripAnnouncement,
+  TripAnnouncementPayload,
+  TripAnnouncementsResponse,
   TripGroupResponse,
   TripLinkedGroup,
   TripParticipantResponse,
   TripResponse,
+  TripSearchResponse,
   UpdateDestinationPayload,
   UpdateParticipantRolePayload,
   UpdateTripPayload,
 } from '@/services/trips.types';
+
+// ─── Discovery methods ────────────────────────────────────────────────────────
+
+export async function searchTrips(
+  params: SearchTripsParams,
+  signal?: AbortSignal,
+): Promise<TripSearchResponse> {
+  const { data } = await apiClient.get<TripSearchResponse>('/v1/trips/search', {
+    params,
+    signal,
+  });
+  return data;
+}
 
 // ─── List methods ─────────────────────────────────────────────────────────────
 
@@ -238,4 +256,58 @@ export async function addTripGroup(
 
 export async function removeTripGroup(id: string, groupId: string): Promise<void> {
   await apiClient.delete(`/v1/trips/${id}/groups/${groupId}`);
+}
+
+// ─── Announcement methods ─────────────────────────────────────────────────────
+
+export async function getTripAnnouncements(
+  tripId: string,
+  limit: number,
+  offset: number,
+): Promise<TripAnnouncementsResponse> {
+  const { data } = await apiClient.get<TripAnnouncementsResponse>(
+    `/v1/trips/${tripId}/announcements`,
+    { params: { limit, offset } },
+  );
+  return data;
+}
+
+export async function getTripAnnouncement(
+  tripId: string,
+  announcementId: string,
+): Promise<TripAnnouncement> {
+  const { data } = await apiClient.get<TripAnnouncement>(
+    `/v1/trips/${tripId}/announcements/${announcementId}`,
+  );
+  return data;
+}
+
+export async function createTripAnnouncement(
+  tripId: string,
+  payload: TripAnnouncementPayload,
+): Promise<TripAnnouncement> {
+  const { data } = await apiClient.post<TripAnnouncement>(
+    `/v1/trips/${tripId}/announcements`,
+    payload,
+  );
+  return data;
+}
+
+export async function updateTripAnnouncement(
+  tripId: string,
+  announcementId: string,
+  payload: TripAnnouncementPayload,
+): Promise<TripAnnouncement> {
+  const { data } = await apiClient.patch<TripAnnouncement>(
+    `/v1/trips/${tripId}/announcements/${announcementId}`,
+    payload,
+  );
+  return data;
+}
+
+export async function deleteTripAnnouncement(
+  tripId: string,
+  announcementId: string,
+): Promise<void> {
+  await apiClient.delete(`/v1/trips/${tripId}/announcements/${announcementId}`);
 }

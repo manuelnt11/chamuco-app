@@ -237,6 +237,18 @@
   },
   "announcements": "Anuncios",
   "announcementsPublish": "Publicar anuncio",
+  "announcementsEmpty": "Aún no hay anuncios.",
+  "announcementsNew": "Nuevo Anuncio",
+  "announcementsPlaceholder": "Escribe un anuncio para todos los participantes...",
+  "announcementsSubmit": "Publicar",
+  "announcementsPostedBy": "Publicado por {{name}}",
+  "announcementsLoadError": "Error al cargar los anuncios.",
+  "announcementsCreateError": "Error al enviar el anuncio.",
+  "announcementsViewAll": "Ver todos",
+  "announcementsEdit": "Editar Anuncio",
+  "announcementsEditSave": "Guardar",
+  "announcementsEditError": "Error al actualizar el anuncio.",
+  "announcementsDeleteError": "Error al eliminar el anuncio.",
   "actions": {
     "editSettings": "Editar configuración"
   },
@@ -303,5 +315,22 @@
     "deleteError": "Error al eliminar el destino.",
     "deleteLastError": "Los viajes deben tener al menos un destino.",
     "reorderError": "Error al reordenar los destinos."
+  },
+  "search": {
+    "pageTitle": "Descubrir Viajes",
+    "placeholder": "Buscar viajes...",
+    "empty": "Busca viajes públicos para unirte",
+    "viewTrip": "Ver",
+    "loading": "Buscando...",
+    "noResults": "No se encontraron viajes para \"{{query}}\"",
+    "resultCount": "{{count}} viaje encontrado",
+    "resultCount_other": "{{count}} viajes encontrados",
+    "participants": "{{confirmed}} / {{capacity}} participantes",
+    "joinRequest": {
+      "button": "Solicitar unirse",
+      "requesting": "Enviando...",
+      "withdraw": "Retirar solicitud",
+      "withdrawing": "Retirando..."
+    }
   }
 }

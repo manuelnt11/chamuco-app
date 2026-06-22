@@ -4,54 +4,56 @@ import { useEffect, useState, use, type SubmitEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { GroupRole } from '@chamuco/shared-types';
+import { TripRole } from '@chamuco/shared-types';
 import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
 
-import { getGroup, getGroupMembership, createAnnouncement } from '@/services/groups.service';
+import {
+  getTripParticipation,
+  getTripAnnouncement,
+  updateTripAnnouncement,
+} from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
-import { useUser } from '@/hooks/useUser';
 import { AnnouncementForm } from '@/components/ui/announcement-form';
-import type { Group } from '@/types/group';
 
-interface NewAnnouncementPageProps {
-  params: Promise<{ id: string }>;
+interface EditTripAnnouncementPageProps {
+  params: Promise<{ id: string; announcementId: string }>;
 }
 
-export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps) {
-  const { id } = use(params);
-  const router = useRouter();
-  const { t } = useTranslation('groups');
-  const { isLoading: isAuthLoading } = useAuth();
-  const { appUser } = useUser();
+const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 
-  const [group, setGroup] = useState<Group | null>(null);
+export default function EditTripAnnouncementPage({ params }: EditTripAnnouncementPageProps) {
+  const { id, announcementId } = use(params);
+  const router = useRouter();
+  const { t } = useTranslation('trips');
+  const { isLoading: isAuthLoading } = useAuth();
+
   const [isLoading, setIsLoading] = useState(true);
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
 
   useEffect(() => {
-    if (isAuthLoading || !appUser) return;
+    if (isAuthLoading) return;
 
     const load = async () => {
       setIsLoading(true);
       try {
-        const [group, membership] = await Promise.all([
-          getGroup(id),
-          getGroupMembership(id).catch(() => null),
+        const [participation, announcement] = await Promise.all([
+          getTripParticipation(id).catch(() => null),
+          getTripAnnouncement(id, announcementId),
         ]);
 
-        const role = membership?.role ?? null;
-        const isAdmin = role !== null && [GroupRole.OWNER, GroupRole.ADMIN].includes(role);
+        const role = participation?.role ?? null;
+        const isOrganizer = role !== null && ORGANIZER_ROLES.includes(role);
 
-        if (!isAdmin) {
-          router.replace(`/groups/${id}`);
+        if (!isOrganizer) {
+          router.replace(`/trips/${id}/announcements`);
           return;
         }
 
-        setGroup(group);
+        setContent(announcement.content);
       } catch {
-        router.replace(`/groups/${id}`);
+        router.replace(`/trips/${id}/announcements`);
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +61,7 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
 
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isAuthLoading, appUser]); // router is stable in Next.js; omitting avoids mock instability in tests
+  }, [id, announcementId, isAuthLoading]); // router is stable in Next.js; omitting avoids mock instability in tests
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -68,31 +70,31 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
     setIsSubmitting(true);
     setSubmitError(false);
     try {
-      await createAnnouncement(id, { content: content.trim() });
-      router.push(`/groups/${id}/announcements`);
+      await updateTripAnnouncement(id, announcementId, { content: content.trim() });
+      router.push(`/trips/${id}/announcements`);
     } catch {
       setSubmitError(true);
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading || !group) return null;
+  if (isLoading) return null;
 
   return (
     <div className="p-8 max-w-2xl">
       <div className="mb-6">
         <Link
-          href={`/groups/${id}`}
+          href={`/trips/${id}/announcements`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeftIcon className="size-4" aria-hidden="true" />
-          {group.name}
+          {t('announcements')}
         </Link>
       </div>
 
       <div className="flex items-center gap-2 mb-6">
         <MegaphoneIcon className="size-5" aria-hidden="true" />
-        <h1 className="text-2xl font-bold">{t('announcementsNew')}</h1>
+        <h1 className="text-2xl font-bold">{t('announcementsEdit')}</h1>
       </div>
 
       <AnnouncementForm
@@ -100,9 +102,9 @@ export default function NewAnnouncementPage({ params }: NewAnnouncementPageProps
         onChange={setContent}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        submitLabel={t('announcementsSubmit')}
+        submitLabel={t('announcementsEditSave')}
         placeholder={t('announcementsPlaceholder')}
-        errorMessage={submitError ? t('announcementsCreateError') : undefined}
+        errorMessage={submitError ? t('announcementsEditError') : undefined}
       />
     </div>
   );

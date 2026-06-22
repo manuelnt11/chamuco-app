@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -29,12 +30,18 @@ import { UpdateTripDto } from './dto/update-trip.dto';
 import { TripResponseDto } from './dto/trip-response.dto';
 import { MyTripListItemResponseDto } from './dto/my-trip-list-item-response.dto';
 import { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
+import { TripDiscoveryService } from './discovery/trip-discovery.service';
+import { SearchTripsQueryDto } from './discovery/dto/search-trips-query.dto';
+import { TripSearchResponseDto } from './discovery/dto/trip-search-result.dto';
 
 @ApiTags('trips')
 @ApiBearerAuth()
 @Controller('v1/trips')
 export class TripsController {
-  constructor(private readonly tripsService: TripsService) {}
+  constructor(
+    private readonly tripsService: TripsService,
+    private readonly tripDiscoveryService: TripDiscoveryService,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -63,6 +70,22 @@ export class TripsController {
     @Body() dto: CreateTripDto,
   ): Promise<TripResponseDto> {
     return this.tripsService.createTrip(user, dto);
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: 'Search public open trips',
+    description:
+      'Returns paginated PUBLIC + OPEN trips matching the optional name filter. ' +
+      "Includes destination list, confirmed participant count, and the caller's participation status.",
+  })
+  @ApiResponse({ status: 200, type: TripSearchResponseDto })
+  @ApiBadRequestResponse({ description: 'Invalid query parameters.' })
+  async searchTrips(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: SearchTripsQueryDto,
+  ): Promise<TripSearchResponseDto> {
+    return this.tripDiscoveryService.searchTrips(user.id, query);
   }
 
   @Get(':id')

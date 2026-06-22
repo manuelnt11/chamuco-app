@@ -14,6 +14,7 @@ import { TripAnnouncementsService } from './announcements/trip-announcements.ser
 import { TripParticipantsService } from './participants/trip-participants.service';
 import { TripInvitationsService } from './invitations/trip-invitations.service';
 import { TripJoinRequestsService } from './join-requests/trip-join-requests.service';
+import { TripDiscoveryService } from './discovery/trip-discovery.service';
 
 @Module({
   imports: [NotificationsModule],
@@ -37,6 +38,7 @@ import { TripJoinRequestsService } from './join-requests/trip-join-requests.serv
     TripParticipantsService,
     TripInvitationsService,
     TripJoinRequestsService,
+    TripDiscoveryService,
   ],
   exports: [TripsService],
 })

@@ -2,24 +2,33 @@ import {
   addTripDestination,
   addTripGroup,
   createTrip,
+  createTripAnnouncement,
   deleteTrip,
+  deleteTripAnnouncement,
   deleteTripDestination,
   getMyTrips,
   getTrip,
+  getTripAnnouncement,
+  getTripAnnouncements,
   getTripDestinations,
   getTripGroups,
   removeTripGroup,
   reorderTripDestinations,
+  searchTrips,
   transitionTripStatus,
   updateTrip,
+  updateTripAnnouncement,
   updateTripDestination,
 } from './trips.service';
 import type {
   DestinationResponse,
   DestinationWriteResponse,
   MyTripListItemResponse,
+  TripAnnouncement,
+  TripAnnouncementsResponse,
   TripGroupResponse,
   TripResponse,
+  TripSearchResponse,
 } from '@/services/trips.types';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 
@@ -416,6 +425,196 @@ describe('removeTripGroup', () => {
   it('propagates 404 errors', async () => {
     mockDelete.mockRejectedValueOnce({ response: { status: 404 } });
     await expect(removeTripGroup('trip-uuid-1', 'group-uuid-1')).rejects.toEqual({
+      response: { status: 404 },
+    });
+  });
+});
+
+// ─── Discovery methods ────────────────────────────────────────────────────────
+
+const tripSearchFixture: TripSearchResponse = {
+  data: [
+    {
+      id: 'trip-uuid-1',
+      name: 'Cancún 2026',
+      description: null,
+      startDate: '2026-12-01',
+      endDate: '2026-12-08',
+      participantCapacity: 10,
+      confirmedParticipantCount: 3,
+      destinations: [{ city: 'Cancún', countryCode: 'MX' }],
+      participationStatus: 'none',
+    },
+  ],
+  total: 1,
+};
+
+describe('searchTrips', () => {
+  it('gets /v1/trips/search with params and returns the response', async () => {
+    mockGet.mockResolvedValueOnce({ data: tripSearchFixture });
+    const result = await searchTrips({ q: 'cancun', limit: 20, offset: 0 });
+    expect(mockGet).toHaveBeenCalledWith('/v1/trips/search', {
+      params: { q: 'cancun', limit: 20, offset: 0 },
+      signal: undefined,
+    });
+    expect(result).toEqual(tripSearchFixture);
+  });
+
+  it('passes AbortSignal to the request', async () => {
+    mockGet.mockResolvedValueOnce({ data: tripSearchFixture });
+    const controller = new AbortController();
+    await searchTrips({ q: 'test' }, controller.signal);
+    expect(mockGet).toHaveBeenCalledWith('/v1/trips/search', {
+      params: { q: 'test' },
+      signal: controller.signal,
+    });
+  });
+
+  it('propagates 401 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(searchTrips({ q: 'cancun' })).rejects.toEqual({ response: { status: 401 } });
+  });
+
+  it('propagates 400 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 400 } });
+    await expect(searchTrips({})).rejects.toEqual({ response: { status: 400 } });
+  });
+});
+
+// ─── Announcement methods ─────────────────────────────────────────────────────
+
+const announcementFixture: TripAnnouncement = {
+  id: 'announcement-uuid-1',
+  tripId: 'trip-uuid-1',
+  createdByUsername: 'orguser',
+  content: 'Departs Friday at 6am sharp.',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const announcementsPageFixture: TripAnnouncementsResponse = {
+  items: [announcementFixture],
+  total: 1,
+};
+
+describe('getTripAnnouncements', () => {
+  it('gets /v1/trips/:tripId/announcements with pagination and returns the response', async () => {
+    mockGet.mockResolvedValueOnce({ data: announcementsPageFixture });
+    const result = await getTripAnnouncements('trip-uuid-1', 10, 0);
+    expect(mockGet).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/announcements', {
+      params: { limit: 10, offset: 0 },
+    });
+    expect(result).toEqual(announcementsPageFixture);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(getTripAnnouncements('trip-uuid-1', 10, 0)).rejects.toEqual({
+      response: { status: 401 },
+    });
+  });
+
+  it('propagates 404 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(getTripAnnouncements('trip-uuid-1', 10, 0)).rejects.toEqual({
+      response: { status: 404 },
+    });
+  });
+});
+
+describe('getTripAnnouncement', () => {
+  it('gets /v1/trips/:tripId/announcements/:announcementId and returns the announcement', async () => {
+    mockGet.mockResolvedValueOnce({ data: announcementFixture });
+    const result = await getTripAnnouncement('trip-uuid-1', 'announcement-uuid-1');
+    expect(mockGet).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/announcements/announcement-uuid-1');
+    expect(result).toEqual(announcementFixture);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(getTripAnnouncement('trip-uuid-1', 'announcement-uuid-1')).rejects.toEqual({
+      response: { status: 401 },
+    });
+  });
+
+  it('propagates 404 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(getTripAnnouncement('trip-uuid-1', 'announcement-uuid-1')).rejects.toEqual({
+      response: { status: 404 },
+    });
+  });
+});
+
+describe('createTripAnnouncement', () => {
+  it('posts to /v1/trips/:tripId/announcements and returns the announcement', async () => {
+    mockPost.mockResolvedValueOnce({ data: announcementFixture });
+    const dto = { content: 'Departs Friday at 6am sharp.' };
+    const result = await createTripAnnouncement('trip-uuid-1', dto);
+    expect(mockPost).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/announcements', dto);
+    expect(result).toEqual(announcementFixture);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockPost.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(createTripAnnouncement('trip-uuid-1', { content: 'Hello' })).rejects.toEqual({
+      response: { status: 401 },
+    });
+  });
+
+  it('propagates 403 errors', async () => {
+    mockPost.mockRejectedValueOnce({ response: { status: 403 } });
+    await expect(createTripAnnouncement('trip-uuid-1', { content: 'Hello' })).rejects.toEqual({
+      response: { status: 403 },
+    });
+  });
+});
+
+describe('updateTripAnnouncement', () => {
+  it('patches /v1/trips/:tripId/announcements/:announcementId and returns the announcement', async () => {
+    mockPatch.mockResolvedValueOnce({ data: announcementFixture });
+    const dto = { content: 'Updated content' };
+    const result = await updateTripAnnouncement('trip-uuid-1', 'announcement-uuid-1', dto);
+    expect(mockPatch).toHaveBeenCalledWith(
+      '/v1/trips/trip-uuid-1/announcements/announcement-uuid-1',
+      dto,
+    );
+    expect(result).toEqual(announcementFixture);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockPatch.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(
+      updateTripAnnouncement('trip-uuid-1', 'announcement-uuid-1', { content: 'x' }),
+    ).rejects.toEqual({ response: { status: 401 } });
+  });
+
+  it('propagates 404 errors', async () => {
+    mockPatch.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(
+      updateTripAnnouncement('trip-uuid-1', 'announcement-uuid-1', { content: 'x' }),
+    ).rejects.toEqual({ response: { status: 404 } });
+  });
+});
+
+describe('deleteTripAnnouncement', () => {
+  it('deletes /v1/trips/:tripId/announcements/:announcementId', async () => {
+    mockDelete.mockResolvedValueOnce({});
+    await deleteTripAnnouncement('trip-uuid-1', 'announcement-uuid-1');
+    expect(mockDelete).toHaveBeenCalledWith(
+      '/v1/trips/trip-uuid-1/announcements/announcement-uuid-1',
+    );
+  });
+
+  it('propagates 401 errors', async () => {
+    mockDelete.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(deleteTripAnnouncement('trip-uuid-1', 'announcement-uuid-1')).rejects.toEqual({
+      response: { status: 401 },
+    });
+  });
+
+  it('propagates 404 errors', async () => {
+    mockDelete.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(deleteTripAnnouncement('trip-uuid-1', 'announcement-uuid-1')).rejects.toEqual({
       response: { status: 404 },
     });
   });
