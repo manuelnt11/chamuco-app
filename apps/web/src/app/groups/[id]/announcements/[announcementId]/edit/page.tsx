@@ -14,7 +14,7 @@ import {
 } from '@/services/groups.service';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { AnnouncementForm } from '@/components/ui/announcement-form';
 
 interface EditAnnouncementPageProps {
   params: Promise<{ id: string; announcementId: string }>;
@@ -97,27 +97,15 @@ export default function EditAnnouncementPage({ params }: EditAnnouncementPagePro
         <h1 className="text-2xl font-bold">{t('announcementsEdit')}</h1>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <RichTextEditor
-          value={content}
-          onChange={setContent}
-          placeholder={t('announcementsPlaceholder')}
-          maxLength={2000}
-          disabled={isSubmitting}
-        />
-        {submitError && (
-          <p className="mt-1 text-sm text-destructive">{t('announcementsEditError')}</p>
-        )}
-        <div className="mt-4 flex justify-end">
-          <button
-            type="submit"
-            disabled={isSubmitting || !content.trim()}
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {t('announcementsEditSave')}
-          </button>
-        </div>
-      </form>
+      <AnnouncementForm
+        value={content}
+        onChange={setContent}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        submitLabel={t('announcementsEditSave')}
+        placeholder={t('announcementsPlaceholder')}
+        errorMessage={submitError ? t('announcementsEditError') : undefined}
+      />
     </div>
   );
 }

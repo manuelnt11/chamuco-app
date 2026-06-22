@@ -1,13 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type ReactNode, type FormEvent } from 'react';
-import { GroupRole } from '@chamuco/shared-types';
+import { TripRole, TripParticipantStatus } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
   mockApiPatch: vi.fn(),
   mockUseAuth: vi.fn(),
-  mockUseUser: vi.fn(),
   mockRouterPush: vi.fn(),
   mockRouterReplace: vi.fn(),
 }));
@@ -16,7 +15,7 @@ vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>();
   return {
     ...actual,
-    use: vi.fn().mockReturnValue({ id: 'group-id', announcementId: 'a1' }),
+    use: vi.fn().mockReturnValue({ id: 'trip-id', announcementId: 'a1' }),
   };
 });
 
@@ -56,10 +55,6 @@ vi.mock('@/services/api-client', () => ({
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: mocks.mockUseAuth,
-}));
-
-vi.mock('@/hooks/useUser', () => ({
-  useUser: mocks.mockUseUser,
 }));
 
 vi.mock('@phosphor-icons/react', () => ({
@@ -107,25 +102,26 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-import EditAnnouncementPage from './page';
+import EditTripAnnouncementPage from './page';
 
 const mockAnnouncement = {
   id: 'a1',
-  groupId: 'group-id',
-  createdByUsername: 'admin-user',
-  content: 'Trip departs Sunday at 6am.',
+  tripId: 'trip-id',
+  createdByUsername: 'organizer-user',
+  content: 'Departs Friday at 6am.',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
-function setupMocks(role: GroupRole | null = GroupRole.OWNER) {
+function setupMocks(role: TripRole | null = TripRole.ORGANIZER) {
   mocks.mockUseAuth.mockReturnValue({ isLoading: false });
-  mocks.mockUseUser.mockReturnValue({ appUser: { id: 'admin-id' }, isLoading: false });
 
   mocks.mockApiGet.mockImplementation((url: string) => {
-    if (url.includes('/members/me')) {
-      if (role === null) return Promise.reject(new Error('Not member'));
-      return Promise.resolve({ data: { status: 'active', role } });
+    if (url.includes('/participants/me')) {
+      if (role === null) return Promise.reject(new Error('Not participant'));
+      return Promise.resolve({
+        data: { status: TripParticipantStatus.ACCEPTED, role, isTraveler: true },
+      });
     }
     return Promise.resolve({ data: mockAnnouncement });
   });
@@ -133,15 +129,17 @@ function setupMocks(role: GroupRole | null = GroupRole.OWNER) {
   mocks.mockApiPatch.mockResolvedValue({ data: mockAnnouncement });
 }
 
-describe('EditAnnouncementPage', () => {
+describe('EditTripAnnouncementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders editor pre-filled with existing content for group owner', async () => {
-    setupMocks(GroupRole.OWNER);
+  it('renders editor pre-filled with existing content for organizer', async () => {
+    setupMocks(TripRole.ORGANIZER);
     render(
-      <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,
+      <EditTripAnnouncementPage
+        params={Promise.resolve({ id: 'trip-id', announcementId: 'a1' })}
+      />,
     );
 
     await waitFor(() => {
@@ -149,10 +147,12 @@ describe('EditAnnouncementPage', () => {
     });
   });
 
-  it('renders editor for group admin', async () => {
-    setupMocks(GroupRole.ADMIN);
+  it('renders editor for co-organizer', async () => {
+    setupMocks(TripRole.CO_ORGANIZER);
     render(
-      <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,
+      <EditTripAnnouncementPage
+        params={Promise.resolve({ id: 'trip-id', announcementId: 'a1' })}
+      />,
     );
 
     await waitFor(() => {
@@ -160,49 +160,63 @@ describe('EditAnnouncementPage', () => {
     });
   });
 
-  it('redirects non-admin member to announcements list', async () => {
-    setupMocks(GroupRole.MEMBER);
+  it('redirects regular participant to announcements list', async () => {
+    setupMocks(TripRole.PARTICIPANT);
     render(
-      <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,
+      <EditTripAnnouncementPage
+        params={Promise.resolve({ id: 'trip-id', announcementId: 'a1' })}
+      />,
     );
 
     await waitFor(() => {
-      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/groups/group-id/announcements');
+      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips/trip-id/announcements');
     });
   });
 
-  it('redirects non-member to announcements list', async () => {
+  it('redirects non-participant to announcements list', async () => {
     setupMocks(null);
     render(
-      <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,
+      <EditTripAnnouncementPage
+        params={Promise.resolve({ id: 'trip-id', announcementId: 'a1' })}
+      />,
     );
 
     await waitFor(() => {
-      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/groups/group-id/announcements');
+      expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips/trip-id/announcements');
     });
   });
 
   it('back link points to announcements list', async () => {
     setupMocks();
     render(
-      <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,
+      <EditTripAnnouncementPage
+        params={Promise.resolve({ id: 'trip-id', announcementId: 'a1' })}
+      />,
     );
 
     await waitFor(() => {
       const link = screen.getByRole('link', { name: /announcements/ });
-      expect(link).toHaveAttribute('href', '/groups/group-id/announcements');
+      expect(link).toHaveAttribute('href', '/trips/trip-id/announcements');
     });
   });
 
   it('submit button is disabled when content is empty', async () => {
     setupMocks();
     mocks.mockApiGet.mockImplementation((url: string) => {
-      if (url.includes('/members/me'))
-        return Promise.resolve({ data: { status: 'active', role: GroupRole.OWNER } });
+      if (url.includes('/participants/me'))
+        return Promise.resolve({
+          data: {
+            status: TripParticipantStatus.ACCEPTED,
+            role: TripRole.ORGANIZER,
+            isTraveler: true,
+          },
+        });
       return Promise.resolve({ data: { ...mockAnnouncement, content: '' } });
     });
     render(
-      <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,
+      <EditTripAnnouncementPage
+        params={Promise.resolve({ id: 'trip-id', announcementId: 'a1' })}
+      />,
     );
 
     await waitFor(() => {
@@ -214,7 +228,9 @@ describe('EditAnnouncementPage', () => {
     setupMocks();
     const user = userEvent.setup();
     render(
-      <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,
+      <EditTripAnnouncementPage
+        params={Promise.resolve({ id: 'trip-id', announcementId: 'a1' })}
+      />,
     );
 
     await waitFor(() => screen.getByDisplayValue(mockAnnouncement.content));
@@ -225,10 +241,10 @@ describe('EditAnnouncementPage', () => {
     await user.click(screen.getByRole('button', { name: 'announcementsEditSave' }));
 
     await waitFor(() => {
-      expect(mocks.mockApiPatch).toHaveBeenCalledWith('/v1/groups/group-id/announcements/a1', {
+      expect(mocks.mockApiPatch).toHaveBeenCalledWith('/v1/trips/trip-id/announcements/a1', {
         content: 'Updated announcement.',
       });
-      expect(mocks.mockRouterPush).toHaveBeenCalledWith('/groups/group-id/announcements');
+      expect(mocks.mockRouterPush).toHaveBeenCalledWith('/trips/trip-id/announcements');
     });
   });
 
@@ -237,7 +253,9 @@ describe('EditAnnouncementPage', () => {
     mocks.mockApiPatch.mockRejectedValue(new Error('Server error'));
     const user = userEvent.setup();
     render(
-      <EditAnnouncementPage params={Promise.resolve({ id: 'group-id', announcementId: 'a1' })} />,
+      <EditTripAnnouncementPage
+        params={Promise.resolve({ id: 'trip-id', announcementId: 'a1' })}
+      />,
     );
 
     await waitFor(() => screen.getByDisplayValue(mockAnnouncement.content));

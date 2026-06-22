@@ -1,4 +1,5 @@
 import type {
+  MembershipStatus,
   TripParticipantStatus,
   TripRole,
   TripStatus,
@@ -165,6 +166,56 @@ export interface UpdateParticipantRolePayload {
 
 export interface CreateTripInvitationPayload {
   usernames: string[];
+}
+
+// ─── Announcement types ───────────────────────────────────────────────────────
+
+export interface TripAnnouncement {
+  id: string;
+  tripId: string;
+  createdByUsername: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TripAnnouncementsResponse {
+  items: TripAnnouncement[];
+  total: number;
+}
+
+export interface TripAnnouncementPayload {
+  content: string;
+}
+
+// ─── Search / discovery types ─────────────────────────────────────────────────
+
+export interface TripSearchDestination {
+  city: string;
+  countryCode: string;
+}
+
+export interface TripSearchResult {
+  id: string;
+  name: string;
+  description: string | null;
+  startDate: string;
+  endDate: string;
+  participantCapacity: number;
+  confirmedParticipantCount: number;
+  destinations: TripSearchDestination[];
+  participationStatus: MembershipStatus;
+}
+
+export interface TripSearchResponse {
+  data: TripSearchResult[];
+  total: number;
+}
+
+export interface SearchTripsParams {
+  q?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface MyTripInvitationResponse {
