@@ -1,4 +1,5 @@
 import type {
+  MembershipStatus,
   TripParticipantStatus,
   TripRole,
   TripStatus,
@@ -203,7 +204,7 @@ export interface TripSearchResult {
   participantCapacity: number;
   confirmedParticipantCount: number;
   destinations: TripSearchDestination[];
-  participationStatus: 'none' | 'pending' | 'active';
+  participationStatus: MembershipStatus;
 }
 
 export interface TripSearchResponse {

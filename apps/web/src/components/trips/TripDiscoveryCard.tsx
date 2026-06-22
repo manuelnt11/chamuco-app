@@ -17,10 +17,11 @@ export function TripDiscoveryCard({ trip, onStatusChange }: TripDiscoveryCardPro
   const { t } = useTranslation('trips');
   const [isLoading, setIsLoading] = useState(false);
 
-  const destinationLabel = trip.destinations
-    .map((d) => d.city)
-    .slice(0, 3)
-    .join(' · ');
+  const visibleDestinations = trip.destinations.slice(0, 3);
+  const hiddenCount = trip.destinations.length - visibleDestinations.length;
+  const destinationLabel =
+    visibleDestinations.map((d) => d.city).join(' · ') +
+    (hiddenCount > 0 ? ` +${hiddenCount}` : '');
 
   const handleJoinRequest = async () => {
     setIsLoading(true);

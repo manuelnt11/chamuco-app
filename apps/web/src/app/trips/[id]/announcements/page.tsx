@@ -14,8 +14,7 @@ import {
   deleteTripAnnouncement,
 } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
-import type { TripResponse } from '@/services/trips.types';
-import type { TripAnnouncement } from '@/services/trips.types';
+import type { TripAnnouncement, TripResponse } from '@/services/trips.types';
 import { AnnouncementCard } from '@/components/ui/announcement-card';
 
 interface TripAnnouncementsPageProps {
@@ -92,7 +91,7 @@ export default function TripAnnouncementsPage({ params }: TripAnnouncementsPageP
           href={`/trips/${id}`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeftIcon className="size-4" />
+          <ArrowLeftIcon className="size-4" aria-hidden="true" />
           {trip.name}
         </Link>
       </div>

@@ -78,6 +78,24 @@ describe('TripDiscoveryCard', () => {
     expect(screen.getByText(/Cancún · Playa del Carmen/)).toBeInTheDocument();
   });
 
+  it('shows +N indicator when destinations exceed 3', () => {
+    render(
+      <TripDiscoveryCard
+        trip={{
+          ...baseTrip,
+          destinations: [
+            { city: 'Cancún', countryCode: 'MX' },
+            { city: 'Playa del Carmen', countryCode: 'MX' },
+            { city: 'Tulum', countryCode: 'MX' },
+            { city: 'Bacalar', countryCode: 'MX' },
+          ],
+        }}
+        onStatusChange={onStatusChange}
+      />,
+    );
+    expect(screen.getByText(/Cancún · Playa del Carmen · Tulum \+1/)).toBeInTheDocument();
+  });
+
   it('renders dates', () => {
     render(<TripDiscoveryCard trip={baseTrip} onStatusChange={onStatusChange} />);
     expect(screen.getByText('2026-12-01 – 2026-12-08')).toBeInTheDocument();
