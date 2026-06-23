@@ -35,30 +35,30 @@ export function TripCard({ trip }: TripCardProps) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{trip.name}</p>
-        <div className="mt-0.5 flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate font-semibold">{trip.name}</p>
+          <TripStatusBadge status={trip.status} />
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <AirplaneTakeoffIcon className="size-3.5 shrink-0" aria-hidden="true" />
             {trip.startDate}
           </span>
-          <span>–</span>
           <span className="flex items-center gap-1">
             <AirplaneLandingIcon className="size-3.5 shrink-0" aria-hidden="true" />
             {trip.endDate}
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">{trip.departureCity}</p>
-        <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
-          <UsersIcon className="size-3.5 shrink-0" aria-hidden="true" />
-          {trip.confirmedParticipantCount} {t('card.capacityOf')} {trip.participantCapacity}
-        </p>
-      </div>
-
-      <div className="flex shrink-0 flex-col items-end gap-1.5">
-        <TripStatusBadge status={trip.status} />
-        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-          {t(ROLE_I18N_KEYS[trip.userRole])}
-        </span>
+        <div className="mt-0.5 flex items-center justify-between gap-2">
+          <p className="flex items-center gap-1 text-sm text-muted-foreground">
+            <UsersIcon className="size-3.5 shrink-0" aria-hidden="true" />
+            {trip.confirmedParticipantCount} {t('card.capacityOf')} {trip.participantCapacity}
+          </p>
+          <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+            {t(ROLE_I18N_KEYS[trip.userRole])}
+          </span>
+        </div>
       </div>
     </Link>
   );

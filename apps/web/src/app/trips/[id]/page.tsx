@@ -172,7 +172,6 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
             <AirplaneTakeoffIcon className="size-3.5 shrink-0" aria-hidden="true" />
             <span>{trip.startDate}</span>
-            <span>–</span>
             <AirplaneLandingIcon className="size-3.5 shrink-0" aria-hidden="true" />
             <span>{trip.endDate}</span>
           </div>
