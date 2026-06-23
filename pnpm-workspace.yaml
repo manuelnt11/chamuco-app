@@ -46,6 +46,20 @@ minimumReleaseAgeExclude:
   - multer@2.2.0
   - piscina@4.9.3
   - nodemailer@9.0.1
+  - '@swc/core-darwin-arm64@1.15.43'
+  - '@swc/core-darwin-x64@1.15.43'
+  - '@swc/core-linux-arm-gnueabihf@1.15.43'
+  - '@swc/core-linux-arm64-gnu@1.15.43'
+  - '@swc/core-linux-arm64-musl@1.15.43'
+  - '@swc/core-linux-ppc64-gnu@1.15.43'
+  - '@swc/core-linux-s390x-gnu@1.15.43'
+  - '@swc/core-linux-x64-gnu@1.15.43'
+  - '@swc/core-linux-x64-musl@1.15.43'
+  - '@swc/core-win32-arm64-msvc@1.15.43'
+  - '@swc/core-win32-ia32-msvc@1.15.43'
+  - '@swc/core-win32-x64-msvc@1.15.43'
+  - '@swc/core@1.15.43'
+  - axios@1.18.1
 overrides:
   '@grpc/grpc-js': '>=1.14.4'
   ajv@>=7.0.0-alpha.0 <8.18.0: '>=8.18.0'
