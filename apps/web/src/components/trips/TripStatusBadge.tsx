@@ -9,9 +9,10 @@ import { InfoIcon } from '@phosphor-icons/react';
 
 interface TripStatusBadgeProps {
   status: TripStatus;
+  hideGuideLink?: boolean;
 }
 
-export function TripStatusBadge({ status }: TripStatusBadgeProps) {
+export function TripStatusBadge({ status, hideGuideLink }: TripStatusBadgeProps) {
   const { t } = useTranslation('trips');
   return (
     <span
@@ -19,14 +20,16 @@ export function TripStatusBadge({ status }: TripStatusBadgeProps) {
       className={`shrink-0 rounded-full pl-2.5 pr-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[status]}`}
     >
       {t(STATUS_I18N_KEYS[status])}
-      <Link
-        href="/trips/status-guide"
-        className="inline-flex pl-1 align-text-bottom transition-colors hover:text-foreground"
-        title={t('statusGuide.infoButtonLabel')}
-        aria-label={t('statusGuide.infoButtonLabel')}
-      >
-        <InfoIcon className="size-4" aria-hidden="true" />
-      </Link>
+      {!hideGuideLink && (
+        <Link
+          href="/trips/status-guide"
+          className="inline-flex pl-1 align-text-bottom transition-colors hover:text-foreground"
+          title={t('statusGuide.infoButtonLabel')}
+          aria-label={t('statusGuide.infoButtonLabel')}
+        >
+          <InfoIcon className="size-4" aria-hidden="true" />
+        </Link>
+      )}
     </span>
   );
 }
