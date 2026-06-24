@@ -37,7 +37,7 @@ export function TripCard({ trip }: TripCardProps) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate font-semibold">{trip.name}</p>
-          <TripStatusBadge status={trip.status} />
+          <TripStatusBadge status={trip.status} hideGuideLink />
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">

@@ -135,8 +135,9 @@ describe('TripCard', () => {
   describe('navigation', () => {
     it('links to the trip detail page', () => {
       render(<TripCard trip={baseTrip} />);
-      const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/trips/trip-1');
+      const links = screen.getAllByRole('link');
+      const tripLink = links.find((el) => el.getAttribute('href') === '/trips/trip-1');
+      expect(tripLink).toBeDefined();
     });
   });
 });

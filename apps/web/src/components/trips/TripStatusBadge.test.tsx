@@ -1,8 +1,25 @@
 import { render, screen } from '@testing-library/react';
+import { type ReactNode } from 'react';
 import { TripStatus } from '@chamuco/shared-types';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+vi.mock('next/link', () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 import { TripStatusBadge } from './TripStatusBadge';
@@ -50,6 +67,24 @@ describe('TripStatusBadge', () => {
       expect(screen.getByTestId('status-badge')).toHaveTextContent(
         STATUS_I18N_KEYS[TripStatus.CANCELLED],
       );
+    });
+  });
+
+  describe('guide link', () => {
+    it('renders info link to status guide by default', () => {
+      render(<TripStatusBadge status={TripStatus.OPEN} />);
+      const link = screen.getByRole('link');
+      expect(link).toHaveAttribute('href', '/trips/status-guide');
+    });
+
+    it('link carries aria-label from i18n key', () => {
+      render(<TripStatusBadge status={TripStatus.OPEN} />);
+      expect(screen.getByRole('link')).toHaveAttribute('aria-label', 'statusGuide.infoButtonLabel');
+    });
+
+    it('hides guide link when hideGuideLink is true', () => {
+      render(<TripStatusBadge status={TripStatus.OPEN} hideGuideLink />);
+      expect(screen.queryByRole('link')).toBeNull();
     });
   });
 
