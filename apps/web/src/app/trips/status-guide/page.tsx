@@ -62,7 +62,7 @@ const TERMINAL_STATUSES = new Set([TripStatus.COMPLETED, TripStatus.CANCELLED]);
 
 export default function TripStatusGuidePage() {
   const router = useRouter();
-  const { t } = useTranslation('trips');
+  const { t } = useTranslation(['trips', 'common']);
 
   return (
     <div className="min-h-screen bg-background">

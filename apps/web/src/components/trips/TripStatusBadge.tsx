@@ -17,7 +17,7 @@ export function TripStatusBadge({ status, hideGuideLink }: TripStatusBadgeProps)
   return (
     <span
       data-testid="status-badge"
-      className={`shrink-0 rounded-full pl-2.5 pr-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[status]}`}
+      className={`shrink-0 rounded-full py-0.5 text-xs font-medium ${hideGuideLink ? 'px-2.5' : 'pl-2.5 pr-2'} ${STATUS_CLASSES[status]}`}
     >
       {t(STATUS_I18N_KEYS[status])}
       {!hideGuideLink && (

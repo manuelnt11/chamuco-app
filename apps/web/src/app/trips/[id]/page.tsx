@@ -119,7 +119,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         <div className="flex shrink-0 gap-2">
           <Link
             href={!isDraft ? `/trips/${trip.id}/participants` : '#'}
-            className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
+            className={`inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted${isDraft ? ' pointer-events-none opacity-50' : ''}`}
             title={t('participants.title')}
             aria-label={t('participants.title')}
             aria-disabled={isDraft}
