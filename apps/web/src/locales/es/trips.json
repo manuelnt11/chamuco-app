@@ -316,6 +316,46 @@
     "deleteLastError": "Los viajes deben tener al menos un destino.",
     "reorderError": "Error al reordenar los destinos."
   },
+  "statusGuide": {
+    "title": "Guía de estados",
+    "subtitle": "Cómo avanzan los viajes por cada etapa",
+    "infoButtonLabel": "Guía de estados",
+    "intentLabel": "Qué significa",
+    "conditionsLabel": "Para avanzar",
+    "restrictionsLabel": "Restricciones",
+    "terminalLabel": "Estado terminal — no se puede revertir",
+    "cancelledNote": "Un viaje puede cancelarse desde Abierto, Confirmado o En Progreso.",
+    "draft": {
+      "intent": "El viaje está en planificación. Aún no está abierto para invitaciones ni solicitudes.",
+      "conditions": "Agrega al menos un destino y luego abre el viaje para inscripciones.",
+      "restrictions": "No se permiten invitaciones ni solicitudes aún. La capacidad se puede ajustar libremente."
+    },
+    "open": {
+      "intent": "El viaje está abierto. Los organizadores pueden invitar participantes y aceptar solicitudes.",
+      "conditions": "El organizador confirma el viaje manualmente cuando hay suficientes participantes listos.",
+      "restrictions": "La capacidad no puede reducirse por debajo del total de participantes confirmados."
+    },
+    "confirmed": {
+      "intent": "El viaje está confirmado y anunciado a todos los participantes confirmados.",
+      "conditions": "Pasa automáticamente a En Progreso cuando llega la fecha de inicio, o el organizador puede avanzarlo manualmente.",
+      "restrictions": "Todas las ediciones requieren re-confirmación del organizador antes de guardarse."
+    },
+    "inProgress": {
+      "intent": "El viaje está ocurriendo en este momento.",
+      "conditions": "Pasa automáticamente a Completado cuando pasa la fecha de fin, o el organizador lo marca manualmente.",
+      "restrictions": "Cada cambio debe ser confirmado explícitamente por el organizador y notifica a todos los participantes confirmados."
+    },
+    "completed": {
+      "intent": "El viaje ha terminado. Se procesan estadísticas y logros post-viaje.",
+      "conditions": "Es un estado terminal.",
+      "restrictions": "Hay una ventana de retroalimentación abierta por un período limitado después de completarlo."
+    },
+    "cancelled": {
+      "intent": "El viaje fue cancelado. Todos los participantes son notificados de inmediato.",
+      "conditions": "Es un estado terminal.",
+      "restrictions": "No se permiten más cambios."
+    }
+  },
   "search": {
     "pageTitle": "Descubrir Viajes",
     "placeholder": "Buscar viajes...",

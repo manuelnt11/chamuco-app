@@ -118,10 +118,11 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
 
         <div className="flex shrink-0 gap-2">
           <Link
-            href={`/trips/${trip.id}/participants`}
+            href={!isDraft ? `/trips/${trip.id}/participants` : '#'}
             className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted"
             title={t('participants.title')}
             aria-label={t('participants.title')}
+            aria-disabled={isDraft}
           >
             <UsersThreeIcon className="size-5" aria-hidden="true" />
           </Link>

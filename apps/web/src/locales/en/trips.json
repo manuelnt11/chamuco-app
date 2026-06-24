@@ -316,6 +316,46 @@
     "deleteLastError": "Trips must have at least one destination.",
     "reorderError": "Failed to reorder destinations."
   },
+  "statusGuide": {
+    "title": "Status Guide",
+    "subtitle": "How trips progress through each stage",
+    "infoButtonLabel": "Status guide",
+    "intentLabel": "What it means",
+    "conditionsLabel": "To advance",
+    "restrictionsLabel": "Restrictions",
+    "terminalLabel": "Terminal — cannot be reversed",
+    "cancelledNote": "A trip can be cancelled from Open, Confirmed, or In Progress.",
+    "draft": {
+      "intent": "Trip is being planned. Not yet open for invitations or join requests.",
+      "conditions": "Add at least one destination, then open the trip for registration.",
+      "restrictions": "No invitations or join requests allowed yet. Capacity can be adjusted freely."
+    },
+    "open": {
+      "intent": "Trip is open. Organizers can invite participants and accept join requests.",
+      "conditions": "Organizer manually confirms the trip when enough participants are ready.",
+      "restrictions": "Capacity cannot be reduced below the current confirmed participant count."
+    },
+    "confirmed": {
+      "intent": "Trip is confirmed and announced to all confirmed participants.",
+      "conditions": "Automatically transitions to In Progress when the start date is reached, or the organizer can advance it manually.",
+      "restrictions": "All edits require organizer re-confirmation before saving."
+    },
+    "inProgress": {
+      "intent": "The trip is currently happening.",
+      "conditions": "Automatically transitions to Completed when the end date passes, or the organizer marks it manually.",
+      "restrictions": "Every change must be explicitly confirmed by the organizer and notifies all confirmed participants."
+    },
+    "completed": {
+      "intent": "The trip has ended. Post-trip statistics and achievements are processed.",
+      "conditions": "This is a terminal state.",
+      "restrictions": "A feedback window is open for a limited period after completion."
+    },
+    "cancelled": {
+      "intent": "The trip was cancelled. All participants are notified immediately.",
+      "conditions": "This is a terminal state.",
+      "restrictions": "No further changes are allowed."
+    }
+  },
   "search": {
     "pageTitle": "Discover Trips",
     "placeholder": "Search trips...",
