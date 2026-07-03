@@ -10,6 +10,7 @@
  */
 
 export * from '@/modules/assets/schema/assets.schema';
+export * from '@/modules/invitation-tokens/schema/invitation-tokens.schema';
 export * from '@/modules/groups/schema/group-announcements.schema';
 export * from '@/modules/groups/schema/group-member-stats.schema';
 export * from '@/modules/groups/schema/group-members.schema';

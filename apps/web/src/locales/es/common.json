@@ -1,4 +1,14 @@
 {
+  "joinPage": {
+    "loading": "Cargando invitación...",
+    "notFound": "Este link de invitación no es válido.",
+    "inactive": "Este link de invitación fue desactivado por quien lo creó.",
+    "invitedBy": "{{name}} te invita a unirte",
+    "redeeming": "Procesando invitación...",
+    "signIn": "Iniciar sesión",
+    "createAccount": "Crear cuenta",
+    "redeemError": "No se pudo procesar la invitación. Puedes reintentar desde tu página de viajes o grupos."
+  },
   "actions": {
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -95,5 +105,42 @@
     "markAllRead": "Marcar todo como leído",
     "empty": "Aún no hay notificaciones",
     "unreadBadge": "{{count}} notificaciones sin leer"
+  },
+  "invitationLink": {
+    "heading": "Link de invitación",
+    "description": {
+      "referral": "Comparte tu link para invitar amigos a Chamuco. El referido queda atribuido a ti.",
+      "trip": "Comparte este link para que otros puedan unirse al viaje.",
+      "group": "Comparte este link para que otros puedan unirse al grupo."
+    },
+    "generate": "Generar link",
+    "generating": "Generando...",
+    "yourLink": "Tu link de invitación",
+    "copy": "Copiar",
+    "copied": "¡Copiado!",
+    "share": "Compartir",
+    "disable": "Deshabilitar link",
+    "enable": "Habilitar link",
+    "toggling": "Actualizando...",
+    "toggleError": "No se pudo actualizar el link. Por favor intenta de nuevo.",
+    "shareText": {
+      "referral": "¡Únete a mí en Chamuco Travel, la app para grupos que viajan juntos!",
+      "trip": "¡Te invito a unirte a mi viaje en Chamuco Travel!",
+      "group": "¡Te invito a unirte a mi grupo en Chamuco Travel!"
+    },
+    "generateError": "No se pudo generar el link. Por favor intenta de nuevo.",
+    "invite": {
+      "button": "Invitar por correo",
+      "title": "Invitar por correo",
+      "description": "Envía un link de invitación personal a un correo específico. El destinatario no debe tener cuenta aún.",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "amigo@ejemplo.com",
+      "send": "Enviar invitación",
+      "sending": "Enviando...",
+      "success": "¡Invitación enviada! El destinatario recibirá un correo con su link personal.",
+      "close": "Cerrar",
+      "errorAlreadyRegistered": "Este correo ya tiene una cuenta. Usa el flujo de invitación directa.",
+      "errorGeneric": "No se pudo enviar la invitación. Por favor intenta de nuevo."
+    }
   }
 }

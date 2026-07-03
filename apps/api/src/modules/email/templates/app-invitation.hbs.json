@@ -1,0 +1,9 @@
+{
+  "inviterDisplayName": "Manuel Núñez",
+  "title": "Te invitan a Chamuco",
+  "contextName": "Cancún Verano 2026",
+  "note": "¡Va a ser increíble!",
+  "ctaUrl": "http://localhost:3000/join?token=abc123",
+  "frontendUrl": "http://localhost:3000",
+  "currentYear": 2026
+}

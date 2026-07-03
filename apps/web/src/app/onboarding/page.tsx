@@ -2,7 +2,7 @@
 
 import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Trans, useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 import { DateOfBirthField } from '@/components/ui/date-of-birth-field';
@@ -180,6 +180,8 @@ export default function OnboardingPage() {
   const { t, i18n } = useTranslation('auth');
   const { theme } = useTheme();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('return');
   const { currentUser, isLoading, signOut } = useAuth();
   const { refresh: refreshUser } = useUser();
   // Stable ref so the pre-flight effect doesn't re-run when language changes
@@ -260,7 +262,7 @@ export default function OnboardingPage() {
       .then(() => {
         if (!cancelled) {
           document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
-          router.replace('/');
+          router.replace(returnTo ?? '/');
         }
       })
       .catch((err) => {
@@ -377,7 +379,7 @@ export default function OnboardingPage() {
       }).catch(() => {});
       // TODO: localStorage.setItem(PROFILE_INCOMPLETE_KEY, 'true'); // TODO: re-enable with banner
       void refreshUser();
-      router.replace('/');
+      router.replace(returnTo ?? '/');
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
         setStep(1);

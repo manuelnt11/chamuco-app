@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: mocks.mockRouterReplace }),
   usePathname: () => '/sign-in',
+  useSearchParams: () => ({ get: () => null }),
 }));
 
 vi.mock('@/hooks/useAuth', () => ({

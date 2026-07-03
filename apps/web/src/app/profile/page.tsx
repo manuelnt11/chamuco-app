@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { BasicInfoSection } from '@/components/profile/BasicInfoSection';
+import { InvitationLinkWidget } from '@/components/invitation-tokens/InvitationLinkWidget';
 import { PersonalDetailsSection } from '@/components/profile/PersonalDetailsSection';
 import { PreferencesSection } from '@/components/profile/PreferencesSection';
 import { NotificationPreferencesSection } from '@/components/profile/NotificationPreferencesSection';
@@ -43,7 +44,7 @@ import {
   getMyNotificationPreferences,
 } from '@/services/users.service';
 import { toast } from '@/components/ui/toast';
-import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
+import { AppLanguage, AppCurrency, AppTheme, InvitationTokenContext } from '@chamuco/shared-types';
 import { cn } from '@/lib/utils';
 
 const VALID_TABS = [
@@ -314,7 +315,13 @@ export default function ProfilePage() {
         hidden={activeTab !== 'basic'}
       >
         {appUser && (
-          <BasicInfoSection user={appUser} userProfile={data.userProfile} onRefresh={loadData} />
+          <div className="max-w-lg space-y-8">
+            <BasicInfoSection user={appUser} userProfile={data.userProfile} onRefresh={loadData} />
+            <InvitationLinkWidget
+              contextType={InvitationTokenContext.REFERRAL}
+              storageId={appUser.id}
+            />
+          </div>
         )}
       </div>
       <div

@@ -3,7 +3,12 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { GroupMemberStatus, GroupRole, GroupVisibility } from '@chamuco/shared-types';
+import {
+  GroupMemberStatus,
+  GroupRole,
+  GroupVisibility,
+  InvitationTokenContext,
+} from '@chamuco/shared-types';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 import {
   getGroup,
@@ -18,6 +23,7 @@ import { PendingRequestsPanel } from '@/components/groups/members/PendingRequest
 import { InvitationResponseButtons } from '@/components/groups/members/InvitationResponseButtons';
 import { JoinRequestButton } from '@/components/groups/members/JoinRequestButton';
 import { LeaveGroupButton } from '@/components/groups/members/LeaveGroupButton';
+import { InvitationLinkWidget } from '@/components/invitation-tokens/InvitationLinkWidget';
 import type { Group, GroupMember, PendingGroupMember } from '@/types/group';
 
 interface MembersPageProps {
@@ -150,6 +156,15 @@ export default function GroupMembersPage({ params }: MembersPageProps) {
             onMemberAction={() => void loadData()}
             excludedIds={[...members.map((m) => m.userId), ...pending.map((p) => p.userId)]}
           />
+
+          {isAdmin && (
+            <InvitationLinkWidget
+              contextType={InvitationTokenContext.GROUP}
+              contextId={id}
+              storageId={id}
+              showToggle
+            />
+          )}
         </>
       )}
     </div>
