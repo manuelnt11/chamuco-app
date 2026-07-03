@@ -280,7 +280,7 @@ export default function OnboardingPage() {
     return () => {
       cancelled = true;
     };
-  }, [currentUser, isLoading, router]);
+  }, [currentUser, isLoading, router, returnTo]);
 
   // Debounced username availability check
   useEffect(() => {
