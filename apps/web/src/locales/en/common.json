@@ -1,4 +1,14 @@
 {
+  "joinPage": {
+    "loading": "Loading invitation...",
+    "notFound": "This invitation link is not valid.",
+    "inactive": "This invitation link has been deactivated by the sender.",
+    "invitedBy": "{{name}} invites you to join",
+    "redeeming": "Processing invitation...",
+    "signIn": "Sign in",
+    "contextFallback": "Chamuco Travel",
+    "redeemError": "Failed to process invitation. You can try again from your trips or groups page."
+  },
   "actions": {
     "save": "Save",
     "cancel": "Cancel",
@@ -93,5 +103,45 @@
     "markAllRead": "Mark all as read",
     "empty": "No notifications yet",
     "unreadBadge": "{{count}} unread notifications"
+  },
+  "invitationLink": {
+    "heading": "Invitation link",
+    "description": {
+      "referral": "Share your link to invite friends to Chamuco. Referrals are attributed to you.",
+      "trip": "Share this link so others can join the trip.",
+      "group": "Share this link so others can join the group."
+    },
+    "generate": "Generate link",
+    "generating": "Generating...",
+    "yourLink": "Your invitation link",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "share": "Share",
+    "disable": "Disable link",
+    "enable": "Enable link",
+    "toggling": "Updating...",
+    "toggleError": "Failed to update link. Please try again.",
+    "shareText": {
+      "referral": "Join me on Chamuco Travel — the app for groups that travel together!",
+      "trip": "I'm inviting you to join my trip on Chamuco Travel!",
+      "group": "I'm inviting you to join my group on Chamuco Travel!"
+    },
+    "generateError": "Failed to generate link. Please try again.",
+    "shareError": "Failed to share link. Please try copying it instead.",
+    "invite": {
+      "button": "Invite by email",
+      "title": "Invite by email",
+      "description": "Send a personal invitation link to a specific email address. The recipient must not have an account yet.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "friend@example.com",
+      "noteLabel": "Personal note (optional)",
+      "notePlaceholder": "Add a personal message to include in the invitation email...",
+      "send": "Send invitation",
+      "sending": "Sending...",
+      "success": "Invitation sent! The recipient will receive an email with their personal link.",
+      "close": "Close",
+      "errorAlreadyRegistered": "This email already has an account. Use the direct invitation flow instead.",
+      "errorGeneric": "Failed to send invitation. Please try again."
+    }
   }
 }

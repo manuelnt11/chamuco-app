@@ -19,11 +19,10 @@ The rule is simple: **if a user can see the trip, they can submit a join request
 
 ### Visibility Levels
 
-| Visibility  | Who can discover the trip                                                                                                                                         | Join request available to                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `PUBLIC`    | Any registered user                                                                                                                                               | Any registered user                       |
-| `LINK_ONLY` | Anyone with the direct link                                                                                                                                       | Anyone with the link                      |
-| `PRIVATE`   | Not publicly searchable. Visible only to members of groups the organizer has explicitly shared it with (see below). If no groups are defined, no one can find it. | Members of the trip's visible groups only |
+| Visibility | Who can discover the trip                                                                                                                                         | Join request available to                 |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `PUBLIC`   | Any registered user                                                                                                                                               | Any registered user                       |
+| `PRIVATE`  | Not publicly searchable. Visible only to members of groups the organizer has explicitly shared it with (see below). If no groups are defined, no one can find it. | Members of the trip's visible groups only |
 
 ### Private Trip — Visible Groups
 
@@ -127,11 +126,11 @@ In both cases the deletion is permanent — no terminal status is set. Since nei
 
 ## Trip Roles (enum: `TripRole`)
 
-| Value          | Description                                                                                                                                                                                                                    |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ORGANIZER`    | Full administrative control over the trip. All permissions always granted. May or may not be a traveling participant — decided independently via `is_traveling_participant`. Multiple users may hold this role simultaneously. |
-| `CO_ORGANIZER` | Delegated administrative helper. Permissions are explicitly defined by an assigning `ORGANIZER` via `co_organizer_permissions`. May or may not be a traveling participant — independent of the role.                           |
-| `PARTICIPANT`  | A confirmed traveler with standard access. No administrative capabilities. Always a traveling participant (`is_traveling_participant = true`).                                                                                 |
+| Value          | Description                                                                                                                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ORGANIZER`    | Full administrative control over the trip. All permissions always granted. May or may not be a traveling participant — decided independently via `is_traveling_participant`. Exactly one user holds this role at any time — the trip's owner. |
+| `CO_ORGANIZER` | Delegated administrative helper. Permissions are explicitly defined by an assigning `ORGANIZER` via `co_organizer_permissions`. May or may not be a traveling participant — independent of the role.                                          |
+| `PARTICIPANT`  | A confirmed traveler with standard access. No administrative capabilities. Always a traveling participant (`is_traveling_participant = true`).                                                                                                |
 
 ### Role vs. Participation — Independent Axes
 
@@ -154,10 +153,9 @@ Non-traveling organizers and co-organizers (`is_traveling_participant = false`) 
 
 ### Organizer Constraints
 
-- A trip must always have **at least one** user with `role = ORGANIZER` and `status = CONFIRMED`.
-- The last remaining organizer cannot leave or be removed without first assigning the `ORGANIZER` role to another confirmed member.
-- Multiple users may hold the `ORGANIZER` role simultaneously. Organizer rights are assigned by any existing organizer.
-- A co-organizer may be promoted to full organizer by any existing organizer at any time.
+- A trip must always have **exactly one** user with `role = ORGANIZER` and `status = CONFIRMED`. The organizer is the trip's owner.
+- The organizer cannot leave or be removed without first transferring the `ORGANIZER` role to another confirmed member.
+- Role transfer is done via a role invitation. When the invitee accepts, they become `ORGANIZER` and the previous organizer is automatically downgraded to `CO_ORGANIZER`, preserving their participation in the trip.
 
 ---
 
@@ -184,16 +182,18 @@ An `ORGANIZER` always has all permissions implicitly and is never subject to thi
 ### Assignment Rules
 
 - **Permission management is exclusively an organizer action.** Only users with `role = ORGANIZER` may assign, modify, or revoke a co-organizer's permissions. A co-organizer has no authority over their own permission set or that of any other co-organizer.
-- Permissions are set at the time the co-organizer role is assigned and can be updated at any time by any `ORGANIZER`.
-- A co-organizer cannot assign the `ORGANIZER` role — only a full `ORGANIZER` can promote another member to organizer.
+- Permissions are set at the time the co-organizer role is assigned and can be updated at any time by the `ORGANIZER`.
+- A co-organizer cannot transfer the `ORGANIZER` role — only the current `ORGANIZER` can initiate a role transfer.
 - Removing all permissions from a co-organizer is allowed but effectively reduces them to a supervised helper with no administrative capabilities; consider demoting them to `PARTICIPANT` instead.
-- When a co-organizer is promoted to `ORGANIZER`, their `co_organizer_permissions` is cleared (all permissions are implicitly granted by the role).
+- When a co-organizer is promoted to `ORGANIZER` via role transfer, their `co_organizer_permissions` is cleared (all permissions are implicitly granted by the role). The previous organizer becomes `CO_ORGANIZER` with no initial permissions — the new organizer must explicitly grant them.
 
 ---
 
 ## Role Invitations
 
 Promoting a user to `ORGANIZER` or `CO_ORGANIZER` is done exclusively through a **role invitation** — a distinct flow from participant invitations, with its own rules and lifecycle.
+
+Sending an `ORGANIZER` role invitation is a **transfer of ownership**: only one user may hold the `ORGANIZER` role at a time. When the invitee accepts, they become the new organizer and the previous organizer is automatically downgraded to `CO_ORGANIZER` with no initial permissions. Only the current `ORGANIZER` may initiate this transfer.
 
 ### When the Invitee Is Already a Confirmed Participant
 

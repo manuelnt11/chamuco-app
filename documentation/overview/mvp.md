@@ -100,7 +100,7 @@ Core group functionality and announcements are built. Member tiers and group res
 
 The full trips module covers the complete lifecycle of a journey: creation, participant management, itinerary, expenses, reservations, pre-trip tasks, and post-trip gamification. For the MVP, a **simplified version** is shipped with the following scope:
 
-**Core lifecycle** — All statuses are supported: `DRAFT`, `OPEN`, `CONFIRMED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`. Roles (ORGANIZER, CO_ORGANIZER, PARTICIPANT) and visibility (PUBLIC, LINK_ONLY, PRIVATE) are fully implemented.
+**Core lifecycle** — All statuses are supported: `DRAFT`, `OPEN`, `CONFIRMED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`. Roles (ORGANIZER, CO_ORGANIZER, PARTICIPANT) and visibility (PUBLIC, PRIVATE) are fully implemented. Link-based invitation flow is handled by `invitation_tokens` (see `features/invitation-tokens.md`).
 
 **Departure & return locations** — Every trip declares a `departure_country` + `departure_city` and an optional `return_country` + `return_city` (null = same as departure). These define the trip route for distance calculation.
 

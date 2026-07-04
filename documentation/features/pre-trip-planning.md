@@ -211,7 +211,7 @@ This data is set by the organizer as a **recommendation** for participants, not 
 
 ### Budget Visibility
 
-The budget planner is visible to **anyone who can see the trip** — the same audience defined by the trip's visibility setting (`PUBLIC`, `LINK_ONLY`, or `PRIVATE` with its group list). There is no separate budget visibility toggle; it follows trip visibility directly. This allows prospective participants to evaluate the trip's financial scope before requesting to join.
+The budget planner is visible to **anyone who can see the trip** — the same audience defined by the trip's visibility setting (`PUBLIC` or `PRIVATE` with its group list). There is no separate budget visibility toggle; it follows trip visibility directly. This allows prospective participants to evaluate the trip's financial scope before requesting to join.
 
 Actual recorded expenses (the expense ledger) are restricted to **confirmed travelers and organizers** only. The distinction is: the budget planner is planning data (public within the trip's audience); expense records are financial data (private to the trip's members).
 

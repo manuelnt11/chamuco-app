@@ -311,3 +311,19 @@ export type { FeedbackResponse } from '@chamuco/shared-types';  // pointless ind
 - `api-client.ts` — configured Axios instance; all service files import from here
 - `gcs-upload.ts` — low-level XHR PUT for direct GCS uploads; used by `useFileUpload`
 - `places.service.ts` — city search, no `.types.ts` (response type `CityResult` is in shared-types)
+
+---
+
+## Standing Rule 9: Invitation redirect — never deep-link before acceptance
+
+Redeeming an invitation token creates an `INVITED` record. The user is **not yet a member** until they explicitly accept. Never redirect to a specific trip (`/trips/:id/*`) or group (`/groups/:id/*`) page after redemption — the server will return 403 because membership is not confirmed.
+
+After redeeming a token, always redirect to the **general list view** where pending invitations are visible:
+
+| Context    | Redirect after redeem |
+| ---------- | --------------------- |
+| `trip`     | `/trips`              |
+| `group`    | `/groups`             |
+| `referral` | `/`                   |
+
+This rule applies everywhere a token is redeemed: `/join` page, post-login hooks, and any future redemption entry point.

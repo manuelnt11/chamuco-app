@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 
 import { useAuth } from '@/hooks/useAuth';
+import { sanitizeReturnTo } from '@/lib/url-utils';
 import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
 import { checkMe } from '@/services/auth.service';
 import { Logo } from '@/components/header/Logo';
@@ -66,6 +67,8 @@ type SigningInProvider = 'google' | 'facebook' | null;
 export default function SignInPage() {
   const { t } = useTranslation('auth');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('return');
   const { currentUser, isLoading, signInWithGoogle, signInWithFacebook } = useAuth();
   const [signingIn, setSigningIn] = useState<SigningInProvider>(null);
   // Prevents the guard from overriding the router.replace called inside handleSignIn.
@@ -80,9 +83,9 @@ export default function SignInPage() {
   // send the user to /, bypassing onboarding for new users.
   useEffect(() => {
     if (!isLoading && currentUser && !signingIn && !hasNavigated.current) {
-      router.replace('/');
+      router.replace(sanitizeReturnTo(returnTo));
     }
-  }, [currentUser, isLoading, router, signingIn]);
+  }, [currentUser, isLoading, router, signingIn, returnTo]);
 
   async function handleSignIn(provider: 'google' | 'facebook') {
     setSigningIn(provider);
@@ -98,11 +101,16 @@ export default function SignInPage() {
         await checkMe();
         document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
         hasNavigated.current = true;
-        router.replace('/'); // 200 → returning user → home
+        router.replace(sanitizeReturnTo(returnTo)); // 200 → returning user
       } catch (apiErr) {
         if (isAxiosError(apiErr) && apiErr.response?.status === 404) {
           hasNavigated.current = true;
-          router.replace('/onboarding'); // 404 → new user → onboarding
+          const sanitized = sanitizeReturnTo(returnTo);
+          const onboardingUrl =
+            sanitized !== '/'
+              ? `/onboarding?return=${encodeURIComponent(sanitized)}`
+              : '/onboarding';
+          router.replace(onboardingUrl); // 404 → new user → onboarding
         } else {
           throw apiErr; // unexpected API error — surface to outer catch
         }

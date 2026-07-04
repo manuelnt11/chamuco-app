@@ -11,6 +11,7 @@ export * from './export-field.enum';
 export * from './export-format.enum';
 export * from './food-allergen.enum';
 export * from './group-member-status.enum';
+export * from './invitation-token-context.enum';
 export * from './group-member-tier.enum';
 export * from './group-role.enum';
 export * from './group-visibility.enum';

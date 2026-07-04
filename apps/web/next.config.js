@@ -14,6 +14,9 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['react-i18next'],
   },
+  turbopack: {
+    root: '../../',
+  },
   typescript: {
     ignoreBuildErrors: false,
   },

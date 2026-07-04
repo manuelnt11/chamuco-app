@@ -96,7 +96,7 @@ These are the rules that directly affect how code is written. Full domain specs 
 - Visibility controls discoverability only — an organizer can always invite any user regardless of visibility.
 - Route for LP distance: `departure_location → trip_destinations (by position) → return_location` (falls back to `departure_location` if `return_location` is null).
 - Once `IN_PROGRESS`: all edits require organizer confirmation; all confirmed participants are notified.
-- Last organizer cannot leave without transferring the role first.
+- Exactly one organizer per trip (the trip's owner). The organizer cannot leave without transferring the role first. On transfer, the previous organizer becomes CO_ORGANIZER with no initial permissions.
 
 ### Participants
 
@@ -135,6 +135,7 @@ Full specs live in `documentation/`. Key files:
 | `features/agencies.md`                 | Travel agencies, coordinators                           |
 | `features/trips.md`                    | Trip lifecycle, roles, destinations, completion flow    |
 | `features/participants.md`             | Membership flows, states, waitlist                      |
+| `features/invitation-tokens.md`        | Shareable invite links: referral, trip, group           |
 | `features/community.md`                | Groups, messaging (post-MVP), Firestore                 |
 | `features/expenses.md`                 | Expense model, splits, settlements, multi-currency      |
 | `features/gamification.md`             | Traveler Score, achievements, Chamuco Points            |

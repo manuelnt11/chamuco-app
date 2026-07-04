@@ -3,7 +3,13 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { TripParticipantStatus, TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
+import {
+  TripParticipantStatus,
+  TripRole,
+  TripStatus,
+  TripVisibility,
+  InvitationTokenContext,
+} from '@chamuco/shared-types';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 import {
   getTrip,
@@ -18,6 +24,7 @@ import { PendingParticipantsPanel } from '@/components/trips/participants/Pendin
 import { TripInvitationResponseButtons } from '@/components/trips/participants/TripInvitationResponseButtons';
 import { JoinTripButton } from '@/components/trips/participants/JoinTripButton';
 import { LeaveTripButton } from '@/components/trips/participants/LeaveTripButton';
+import { InvitationLinkWidget } from '@/components/invitation-tokens/InvitationLinkWidget';
 import type {
   TripResponse,
   TripParticipantResponse,
@@ -162,6 +169,15 @@ export default function TripParticipantsPage({ params }: ParticipantsPageProps) 
             onParticipantAction={() => void loadData()}
             excludedIds={excludedIds}
           />
+
+          {isOrganizer && (
+            <InvitationLinkWidget
+              contextType={InvitationTokenContext.TRIP}
+              contextId={id}
+              storageId={id}
+              showToggle
+            />
+          )}
         </>
       )}
     </div>
