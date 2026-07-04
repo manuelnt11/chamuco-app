@@ -6,7 +6,6 @@
     "invitedBy": "{{name}} invites you to join",
     "redeeming": "Processing invitation...",
     "signIn": "Sign in",
-    "createAccount": "Create account",
     "redeemError": "Failed to process invitation. You can try again from your trips or groups page."
   },
   "actions": {

@@ -138,14 +138,6 @@ export default function JoinPage() {
             <Button type="button" onClick={() => router.push(signInUrl)} className="w-full">
               {t('joinPage.signIn')}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push(signInUrl)}
-              className="w-full"
-            >
-              {t('joinPage.createAccount')}
-            </Button>
           </div>
         </div>
       </div>

@@ -6,7 +6,6 @@
     "invitedBy": "{{name}} te invita a unirte",
     "redeeming": "Procesando invitación...",
     "signIn": "Iniciar sesión",
-    "createAccount": "Crear cuenta",
     "redeemError": "No se pudo procesar la invitación. Puedes reintentar desde tu página de viajes o grupos."
   },
   "actions": {

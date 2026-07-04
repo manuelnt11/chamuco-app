@@ -177,7 +177,7 @@ export class InvitationTokensService {
     });
     if (!row) throw new NotFoundException('Invitation token not found');
 
-    if (!row.recipientEmail && !row.isActive) {
+    if (!row.isActive) {
       throw new ConflictException('This invitation link has been deactivated.');
     }
 
@@ -188,14 +188,18 @@ export class InvitationTokensService {
       }
     }
 
-    const outcome = await this.processRedemption(row, userId);
-
-    await this.db
-      .update(invitationTokens)
-      .set({
-        redeemers: sql`${invitationTokens.redeemers} || ${JSON.stringify([{ who: userId, at: new Date().toISOString() }])}::jsonb`,
-      })
-      .where(eq(invitationTokens.token, token));
+    // Drizzle PgTransaction is structurally compatible with DrizzleClient for DML operations
+    const outcome = await this.db.transaction(async (tx) => {
+      const db = tx as unknown as DrizzleClient;
+      const redemptionOutcome = await this.processRedemption(row, userId, db);
+      await db
+        .update(invitationTokens)
+        .set({
+          redeemers: sql`${invitationTokens.redeemers} || ${JSON.stringify([{ who: userId, at: new Date().toISOString() }])}::jsonb`,
+        })
+        .where(eq(invitationTokens.token, token));
+      return redemptionOutcome;
+    });
 
     return {
       outcome,
@@ -230,17 +234,18 @@ export class InvitationTokensService {
   private async processRedemption(
     row: typeof invitationTokens.$inferSelect,
     userId: string,
+    db: DrizzleClient,
   ): Promise<InvitationTokenRedeemResponseDto['outcome']> {
     if (row.contextType === InvitationTokenContext.REFERRAL) {
       return 'REFERRAL_RECORDED';
     }
 
     if (row.contextType === InvitationTokenContext.TRIP && row.contextId) {
-      return this.redeemTripToken(row.contextId, userId, row.createdBy);
+      return this.redeemTripToken(row.contextId, userId, row.createdBy, db);
     }
 
     if (row.contextType === InvitationTokenContext.GROUP && row.contextId) {
-      return this.redeemGroupToken(row.contextId, userId, row.createdBy);
+      return this.redeemGroupToken(row.contextId, userId, row.createdBy, db);
     }
 
     throw new BadRequestException('Invalid token context');
@@ -250,19 +255,25 @@ export class InvitationTokensService {
     tripId: string,
     userId: string,
     initiatedBy: string,
+    db: DrizzleClient,
   ): Promise<InvitationTokenRedeemResponseDto['outcome']> {
-    const existing = await this.db.query.tripParticipants.findFirst({
+    const existing = await db.query.tripParticipants.findFirst({
       where: and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, userId)),
     });
 
     if (existing?.status === TripParticipantStatus.CONFIRMED) return 'ALREADY_MEMBER';
-    if (existing?.status === TripParticipantStatus.INVITED) return 'ALREADY_INVITED';
+    if (
+      existing?.status === TripParticipantStatus.INVITED ||
+      existing?.status === TripParticipantStatus.ACCEPTED
+    ) {
+      return 'ALREADY_INVITED';
+    }
 
     if (existing?.status === TripParticipantStatus.PENDING_REQUEST) {
-      await this.db
+      await db
         .update(tripParticipants)
         .set({
-          status: TripParticipantStatus.CONFIRMED,
+          status: TripParticipantStatus.INVITED,
           decidedBy: initiatedBy,
           updatedAt: new Date(),
         })
@@ -270,7 +281,21 @@ export class InvitationTokensService {
       return 'REQUEST_ACCEPTED';
     }
 
-    await this.db.insert(tripParticipants).values({
+    if (existing) {
+      await db
+        .update(tripParticipants)
+        .set({
+          status: TripParticipantStatus.INVITED,
+          role: TripRole.PARTICIPANT,
+          initiatedBy,
+          decidedBy: null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, userId)));
+      return 'INVITED';
+    }
+
+    await db.insert(tripParticipants).values({
       tripId,
       userId,
       role: TripRole.PARTICIPANT,
@@ -285,8 +310,9 @@ export class InvitationTokensService {
     groupId: string,
     userId: string,
     initiatedBy: string,
+    db: DrizzleClient,
   ): Promise<InvitationTokenRedeemResponseDto['outcome']> {
-    const existing = await this.db.query.groupMembers.findFirst({
+    const existing = await db.query.groupMembers.findFirst({
       where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)),
     });
 
@@ -294,7 +320,7 @@ export class InvitationTokensService {
     if (existing?.status === GroupMemberStatus.INVITED) return 'ALREADY_INVITED';
 
     if (existing?.status === GroupMemberStatus.REQUEST) {
-      await this.db
+      await db
         .update(groupMembers)
         .set({
           status: GroupMemberStatus.ACTIVE,
@@ -306,7 +332,7 @@ export class InvitationTokensService {
     }
 
     if (existing) {
-      await this.db
+      await db
         .update(groupMembers)
         .set({
           status: GroupMemberStatus.INVITED,
@@ -318,7 +344,7 @@ export class InvitationTokensService {
         })
         .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)));
     } else {
-      await this.db.insert(groupMembers).values({
+      await db.insert(groupMembers).values({
         groupId,
         userId,
         status: GroupMemberStatus.INVITED,

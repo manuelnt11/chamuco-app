@@ -92,6 +92,9 @@ describe('InvitationTokensService', () => {
       },
       insert: mockInsert,
       update: mockUpdate,
+      transaction: jest
+        .fn()
+        .mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn(mockDb)),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -301,6 +304,13 @@ describe('InvitationTokensService', () => {
       await expect(service.redeemToken(TOKEN, USER_ID)).rejects.toThrow(ConflictException);
     });
 
+    it('throws ConflictException when targeted link is inactive', async () => {
+      mockInvitationTokensFindFirst.mockResolvedValue(
+        makeOpenTripToken({ recipientEmail: 'a@b.com', isActive: false }),
+      );
+      await expect(service.redeemToken(TOKEN, USER_ID)).rejects.toThrow(ConflictException);
+    });
+
     it('throws ConflictException when targeted link already redeemed', async () => {
       mockInvitationTokensFindFirst.mockResolvedValue(
         makeOpenTripToken({
@@ -333,7 +343,7 @@ describe('InvitationTokensService', () => {
       const result = await service.redeemToken(TOKEN, USER_ID);
       expect(result.outcome).toBe('REQUEST_ACCEPTED');
       expect(mockUpdateSet).toHaveBeenCalledWith(
-        expect.objectContaining({ status: TripParticipantStatus.CONFIRMED }),
+        expect.objectContaining({ status: TripParticipantStatus.INVITED }),
       );
     });
 
@@ -346,6 +356,23 @@ describe('InvitationTokensService', () => {
           status: TripParticipantStatus.INVITED,
           role: TripRole.PARTICIPANT,
         }),
+      );
+    });
+
+    it('returns ALREADY_INVITED when user is in ACCEPTED status', async () => {
+      mockInvitationTokensFindFirst.mockResolvedValue(makeOpenTripToken());
+      mockTripParticipantsFindFirst.mockResolvedValue({ status: TripParticipantStatus.ACCEPTED });
+      const result = await service.redeemToken(TOKEN, USER_ID);
+      expect(result.outcome).toBe('ALREADY_INVITED');
+    });
+
+    it('re-invites trip participant with DECLINED status', async () => {
+      mockInvitationTokensFindFirst.mockResolvedValue(makeOpenTripToken());
+      mockTripParticipantsFindFirst.mockResolvedValue({ status: TripParticipantStatus.DECLINED });
+      const result = await service.redeemToken(TOKEN, USER_ID);
+      expect(result.outcome).toBe('INVITED');
+      expect(mockUpdateSet).toHaveBeenCalledWith(
+        expect.objectContaining({ status: TripParticipantStatus.INVITED }),
       );
     });
 

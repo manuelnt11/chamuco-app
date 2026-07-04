@@ -61,6 +61,11 @@ function FacebookIcon() {
   );
 }
 
+function sanitizeReturnTo(value: string | null): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
+  return value;
+}
+
 type SigningInProvider = 'google' | 'facebook' | null;
 
 export default function SignInPage() {
@@ -82,7 +87,7 @@ export default function SignInPage() {
   // send the user to /, bypassing onboarding for new users.
   useEffect(() => {
     if (!isLoading && currentUser && !signingIn && !hasNavigated.current) {
-      router.replace(returnTo ?? '/');
+      router.replace(sanitizeReturnTo(returnTo));
     }
   }, [currentUser, isLoading, router, signingIn, returnTo]);
 
@@ -100,13 +105,15 @@ export default function SignInPage() {
         await checkMe();
         document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
         hasNavigated.current = true;
-        router.replace(returnTo ?? '/'); // 200 → returning user
+        router.replace(sanitizeReturnTo(returnTo)); // 200 → returning user
       } catch (apiErr) {
         if (isAxiosError(apiErr) && apiErr.response?.status === 404) {
           hasNavigated.current = true;
-          const onboardingUrl = returnTo
-            ? `/onboarding?return=${encodeURIComponent(returnTo)}`
-            : '/onboarding';
+          const sanitized = sanitizeReturnTo(returnTo);
+          const onboardingUrl =
+            sanitized !== '/'
+              ? `/onboarding?return=${encodeURIComponent(sanitized)}`
+              : '/onboarding';
           router.replace(onboardingUrl); // 404 → new user → onboarding
         } else {
           throw apiErr; // unexpected API error — surface to outer catch

@@ -98,6 +98,11 @@ function resolveLanguage(raw: string): string {
   return (['en', 'es'].includes(code) ? code : 'es').toUpperCase();
 }
 
+function sanitizeReturnTo(value: string | null): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
+  return value;
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -262,7 +267,7 @@ export default function OnboardingPage() {
       .then(() => {
         if (!cancelled) {
           document.cookie = COOKIE_CHAMUCO_REGISTERED_SET;
-          router.replace(returnTo ?? '/');
+          router.replace(sanitizeReturnTo(returnTo));
         }
       })
       .catch((err) => {
@@ -379,7 +384,7 @@ export default function OnboardingPage() {
       }).catch(() => {});
       // TODO: localStorage.setItem(PROFILE_INCOMPLETE_KEY, 'true'); // TODO: re-enable with banner
       void refreshUser();
-      router.replace(returnTo ?? '/');
+      router.replace(sanitizeReturnTo(returnTo));
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
         setStep(1);
