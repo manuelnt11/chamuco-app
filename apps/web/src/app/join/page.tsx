@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -38,6 +38,7 @@ export default function JoinPage() {
 
   const [pageState, setPageState] = useState<PageState>('loading');
   const [invitation, setInvitation] = useState<InvitationTokenResolveResponse | null>(null);
+  const redeemAttemptedRef = useRef(false);
 
   // Step 1: resolve the token (public)
   useEffect(() => {
@@ -57,9 +58,13 @@ export default function JoinPage() {
       .catch(() => setPageState('not-found'));
   }, [token]);
 
-  // Step 2: once preview is ready and user is already logged in, redeem immediately
+  // Step 2: once preview is ready and user is already logged in, redeem immediately.
+  // redeemAttemptedRef prevents an infinite loop: if redeem fails and pageState
+  // resets to 'preview', the effect would otherwise re-fire indefinitely.
   useEffect(() => {
     if (pageState !== 'preview' || isAuthLoading || !currentUser || !token) return;
+    if (redeemAttemptedRef.current) return;
+    redeemAttemptedRef.current = true;
     setPageState('redeeming');
     redeemInvitationToken(token)
       .then((result) => {
@@ -111,7 +116,7 @@ export default function JoinPage() {
   }
 
   // preview — user not logged in
-  const contextLabel = invitation?.contextName ?? 'Chamuco Travel';
+  const contextLabel = invitation?.contextName ?? t('joinPage.contextFallback');
 
   return (
     <div className="flex min-h-dvh flex-col">

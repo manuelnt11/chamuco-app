@@ -6,6 +6,7 @@
     "invitedBy": "{{name}} te invita a unirte",
     "redeeming": "Procesando invitación...",
     "signIn": "Iniciar sesión",
+    "contextFallback": "Chamuco Travel",
     "redeemError": "No se pudo procesar la invitación. Puedes reintentar desde tu página de viajes o grupos."
   },
   "actions": {
@@ -128,6 +129,7 @@
       "group": "¡Te invito a unirte a mi grupo en Chamuco Travel!"
     },
     "generateError": "No se pudo generar el link. Por favor intenta de nuevo.",
+    "shareError": "No se pudo compartir el link. Intenta copiarlo.",
     "invite": {
       "button": "Invitar por correo",
       "title": "Invitar por correo",

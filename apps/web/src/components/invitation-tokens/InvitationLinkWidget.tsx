@@ -153,7 +153,7 @@ export function InvitationLinkWidget({
     } catch (err: unknown) {
       // AbortError = user dismissed the share sheet — not an error worth surfacing
       if ((err as { name?: string })?.name === 'AbortError') return;
-      throw err;
+      toast.error(t('invitationLink.shareError'));
     }
   }
 

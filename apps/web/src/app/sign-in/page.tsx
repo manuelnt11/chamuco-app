@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 
 import { useAuth } from '@/hooks/useAuth';
+import { sanitizeReturnTo } from '@/lib/url-utils';
 import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
 import { checkMe } from '@/services/auth.service';
 import { Logo } from '@/components/header/Logo';
@@ -59,11 +60,6 @@ function FacebookIcon() {
       />
     </svg>
   );
-}
-
-function sanitizeReturnTo(value: string | null): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
-  return value;
 }
 
 type SigningInProvider = 'google' | 'facebook' | null;

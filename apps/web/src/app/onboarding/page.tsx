@@ -11,6 +11,7 @@ import type { TFunction } from 'i18next';
 import { useTheme } from 'next-themes';
 
 import { useAuth } from '@/hooks/useAuth';
+import { sanitizeReturnTo } from '@/lib/url-utils';
 import { useUser } from '@/hooks/useUser';
 import { COOKIE_CHAMUCO_REGISTERED_SET } from '@/lib/auth-cookies';
 import type { AppLanguage, AppTheme, AppCurrency } from '@chamuco/shared-types';
@@ -96,11 +97,6 @@ function resolveTheme(raw: string | undefined): string {
 function resolveLanguage(raw: string): string {
   const code = raw.slice(0, 2).toLowerCase();
   return (['en', 'es'].includes(code) ? code : 'es').toUpperCase();
-}
-
-function sanitizeReturnTo(value: string | null): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
-  return value;
 }
 
 // ---------------------------------------------------------------------------
