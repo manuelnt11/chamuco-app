@@ -63,28 +63,64 @@ export class InvitationTokensService {
       }
     }
 
-    const token = randomBytes(32).toString('base64url');
-    const url = `${this.frontendUrl}/join?token=${token}`;
+    const newToken = randomBytes(32).toString('base64url');
 
-    try {
-      await this.db.insert(invitationTokens).values({
-        token,
-        createdBy: callerId,
-        contextType: dto.contextType,
-        contextId: dto.contextId ?? null,
-        recipientEmail: dto.recipientEmail ?? null,
-        isActive: true,
-        note: dto.note ?? null,
-      });
-    } catch (err: unknown) {
-      const pg = err as { code?: string };
-      if (pg.code === '23505') {
-        throw new ConflictException(
-          'An open invitation link already exists for this context. Toggle it instead of creating a new one.',
-        );
-      }
-      throw err;
+    let row!: typeof invitationTokens.$inferSelect;
+
+    if (dto.recipientEmail) {
+      const rows = await this.db
+        .insert(invitationTokens)
+        .values({
+          token: newToken,
+          createdBy: callerId,
+          contextType: dto.contextType,
+          contextId: dto.contextId ?? null,
+          recipientEmail: dto.recipientEmail,
+          isActive: true,
+          note: dto.note ?? null,
+        })
+        .onConflictDoUpdate({
+          target: [
+            invitationTokens.contextType,
+            invitationTokens.contextId,
+            invitationTokens.recipientEmail,
+          ],
+          targetWhere: sql`${invitationTokens.recipientEmail} IS NOT NULL`,
+          set: {
+            isActive: true,
+            redeemers: sql`'[]'::jsonb`,
+            note: dto.note ?? null,
+            updatedAt: sql`now()`,
+          },
+        })
+        .returning();
+      row = rows[0]!;
+    } else {
+      const rows = await this.db
+        .insert(invitationTokens)
+        .values({
+          token: newToken,
+          createdBy: callerId,
+          contextType: dto.contextType,
+          contextId: dto.contextId ?? null,
+          recipientEmail: null,
+          isActive: true,
+          note: dto.note ?? null,
+        })
+        .onConflictDoUpdate({
+          target: [invitationTokens.contextType, invitationTokens.contextId],
+          targetWhere: sql`${invitationTokens.recipientEmail} IS NULL`,
+          set: {
+            isActive: true,
+            note: dto.note ?? null,
+            updatedAt: sql`now()`,
+          },
+        })
+        .returning();
+      row = rows[0]!;
     }
+
+    const url = `${this.frontendUrl}/join?token=${row.token}`;
 
     if (dto.recipientEmail) {
       const contextName = await this.resolveContextName(dto.contextType, dto.contextId ?? null);
@@ -112,7 +148,7 @@ export class InvitationTokensService {
         });
     }
 
-    return { token, url, isActive: true };
+    return { token: row.token, url, isActive: row.isActive };
   }
 
   async findOpenToken(

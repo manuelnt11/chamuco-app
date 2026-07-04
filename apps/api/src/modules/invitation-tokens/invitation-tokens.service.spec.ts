@@ -56,6 +56,8 @@ describe('InvitationTokensService', () => {
   let mockInvitationTokensFindFirst: jest.Mock;
 
   let mockInsertValues: jest.Mock;
+  let mockInsertOnConflict: jest.Mock;
+  let mockInsertReturning: jest.Mock;
   let mockInsert: jest.Mock;
   let mockUpdateWhere: jest.Mock;
   let mockUpdateSet: jest.Mock;
@@ -73,7 +75,9 @@ describe('InvitationTokensService', () => {
     mockGroupsFindFirst = jest.fn().mockResolvedValue({ name: 'Mountain Crew' });
     mockInvitationTokensFindFirst = jest.fn().mockResolvedValue(null);
 
-    mockInsertValues = jest.fn().mockResolvedValue(undefined);
+    mockInsertReturning = jest.fn().mockResolvedValue([makeOpenTripToken()]);
+    mockInsertOnConflict = jest.fn().mockReturnValue({ returning: mockInsertReturning });
+    mockInsertValues = jest.fn().mockReturnValue({ onConflictDoUpdate: mockInsertOnConflict });
     mockInsert = jest.fn().mockReturnValue({ values: mockInsertValues });
     mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
     mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
@@ -149,7 +153,7 @@ describe('InvitationTokensService', () => {
       await expect(service.createToken(dto, CALLER_ID)).rejects.toThrow(ConflictException);
     });
 
-    it('creates open trip token and returns token + url', async () => {
+    it('creates open trip token and returns token + url from db row', async () => {
       mockTripParticipantsFindFirst.mockResolvedValue({
         role: TripRole.ORGANIZER,
         status: TripParticipantStatus.CONFIRMED,
@@ -159,8 +163,8 @@ describe('InvitationTokensService', () => {
         contextId: TRIP_ID,
       };
       const result = await service.createToken(dto, CALLER_ID);
-      expect(result.token).toBeTruthy();
-      expect(result.url).toContain('/join?token=');
+      expect(result.token).toBe(TOKEN); // token comes from the returned DB row
+      expect(result.url).toContain(`/join?token=${TOKEN}`);
       expect(mockInsertValues).toHaveBeenCalledWith(
         expect.objectContaining({ contextType: InvitationTokenContext.TRIP, contextId: TRIP_ID }),
       );
@@ -185,25 +189,27 @@ describe('InvitationTokensService', () => {
       await expect(service.createToken(dto, CALLER_ID)).rejects.toThrow(ForbiddenException);
     });
 
-    it('throws ConflictException on duplicate open link (pg code 23505)', async () => {
+    it('returns existing token when open link already exists (upsert)', async () => {
       mockTripParticipantsFindFirst.mockResolvedValue({
         role: TripRole.ORGANIZER,
         status: TripParticipantStatus.CONFIRMED,
       });
-      mockInsertValues.mockRejectedValueOnce({ code: '23505' });
+      const existingToken = 'existing-token-abc';
+      mockInsertReturning.mockResolvedValueOnce([makeOpenTripToken({ token: existingToken })]);
       const dto: CreateInvitationTokenDto = {
         contextType: InvitationTokenContext.TRIP,
         contextId: TRIP_ID,
       };
-      await expect(service.createToken(dto, CALLER_ID)).rejects.toThrow(ConflictException);
+      const result = await service.createToken(dto, CALLER_ID);
+      expect(result.token).toBe(existingToken);
     });
 
-    it('rethrows non-23505 db errors', async () => {
+    it('rethrows db errors', async () => {
       mockTripParticipantsFindFirst.mockResolvedValue({
         role: TripRole.ORGANIZER,
         status: TripParticipantStatus.CONFIRMED,
       });
-      mockInsertValues.mockRejectedValueOnce(new Error('DB down'));
+      mockInsertReturning.mockRejectedValueOnce(new Error('DB down'));
       const dto: CreateInvitationTokenDto = {
         contextType: InvitationTokenContext.TRIP,
         contextId: TRIP_ID,

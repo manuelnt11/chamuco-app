@@ -134,6 +134,8 @@
       "description": "Envía un link de invitación personal a un correo específico. El destinatario no debe tener cuenta aún.",
       "emailLabel": "Correo electrónico",
       "emailPlaceholder": "amigo@ejemplo.com",
+      "noteLabel": "Nota personal (opcional)",
+      "notePlaceholder": "Agrega un mensaje personal para incluir en el correo de invitación...",
       "send": "Enviar invitación",
       "sending": "Enviando...",
       "success": "¡Invitación enviada! El destinatario recibirá un correo con su link personal.",

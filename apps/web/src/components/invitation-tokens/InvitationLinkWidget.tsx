@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
@@ -80,6 +81,7 @@ export function InvitationLinkWidget({
   // Targeted invite modal state
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteNote, setInviteNote] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSent, setInviteSent] = useState(false);
@@ -114,6 +116,7 @@ export function InvitationLinkWidget({
     setInviteOpen(open);
     if (!open) {
       setInviteEmail('');
+      setInviteNote('');
       setInviteError(null);
       setInviteSent(false);
     }
@@ -175,7 +178,12 @@ export function InvitationLinkWidget({
     setInviteError(null);
     setIsSendingInvite(true);
     try {
-      await createInvitationToken({ contextType, contextId, recipientEmail: inviteEmail.trim() });
+      await createInvitationToken({
+        contextType,
+        contextId,
+        recipientEmail: inviteEmail.trim(),
+        note: inviteNote.trim() || undefined,
+      });
       setInviteSent(true);
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
@@ -321,6 +329,18 @@ export function InvitationLinkWidget({
                   autoComplete="email"
                 />
                 <FieldMessage error={inviteError} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-note">{t('invitationLink.invite.noteLabel')}</Label>
+                <Textarea
+                  id="invite-note"
+                  value={inviteNote}
+                  onChange={(e) => setInviteNote(e.target.value)}
+                  placeholder={t('invitationLink.invite.notePlaceholder')}
+                  disabled={isSendingInvite}
+                  rows={3}
+                  maxLength={300}
+                />
               </div>
               <DialogFooter>
                 <Button

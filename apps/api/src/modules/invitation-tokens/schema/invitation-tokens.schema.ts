@@ -37,14 +37,19 @@ export const invitationTokens = pgTable(
       .default(sql`'[]'::jsonb`),
     note: text('note'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }),
   },
   (t) => [
-    // One open link per context (active or inactive) — referral tokens have null contextId
-    // so the partial unique index only enforces uniqueness for trip and group contexts
-    // (PostgreSQL does not consider NULL = NULL in unique constraints)
+    // One open link per context — PostgreSQL NULL ≠ NULL so referral links (contextId = NULL)
+    // are not constrained by this index, allowing each user to have their own open referral link.
     uniqueIndex('idx_invitation_tokens_one_open_per_context')
       .on(t.contextType, t.contextId)
       .where(sql`${t.recipientEmail} IS NULL`),
+    // One targeted link per (context, email) — all three columns are non-null for targeted links
+    // so the unique constraint is fully enforced.
+    uniqueIndex('idx_invitation_tokens_one_targeted_per_context')
+      .on(t.contextType, t.contextId, t.recipientEmail)
+      .where(sql`${t.recipientEmail} IS NOT NULL`),
     index('idx_invitation_tokens_created_by').on(t.createdBy),
   ],
 );

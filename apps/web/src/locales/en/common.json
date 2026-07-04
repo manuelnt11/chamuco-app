@@ -132,6 +132,8 @@
       "description": "Send a personal invitation link to a specific email address. The recipient must not have an account yet.",
       "emailLabel": "Email address",
       "emailPlaceholder": "friend@example.com",
+      "noteLabel": "Personal note (optional)",
+      "notePlaceholder": "Add a personal message to include in the invitation email...",
       "send": "Send invitation",
       "sending": "Sending...",
       "success": "Invitation sent! The recipient will receive an email with their personal link.",
