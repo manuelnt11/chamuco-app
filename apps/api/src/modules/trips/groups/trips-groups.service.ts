@@ -67,7 +67,7 @@ export class TripsGroupsService {
   async listTripGroups(user: AuthenticatedUser, tripId: string): Promise<TripGroupResponseDto[]> {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
     if (!trip) throw new NotFoundException('Trip not found');
-    await this.tripsService.assertOrganizerRole(tripId, user.id, false);
+    await this.tripsService.assertOrganizerRole(tripId, user.id, true);
 
     const rows = await this.db.select().from(groupTrips).where(eq(groupTrips.tripId, tripId));
     return rows.map((r) => this.mapTripGroup(r));
@@ -80,7 +80,7 @@ export class TripsGroupsService {
   ): Promise<TripGroupResponseDto> {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
     if (!trip) throw new NotFoundException('Trip not found');
-    await this.tripsService.assertOrganizerRole(tripId, user.id, false);
+    await this.tripsService.assertOrganizerRole(tripId, user.id, true);
 
     const group = await this.db.query.groups.findFirst({
       where: and(eq(groups.id, dto.groupId), isNull(groups.deletedAt)),
@@ -101,7 +101,7 @@ export class TripsGroupsService {
   async removeTripGroup(user: AuthenticatedUser, tripId: string, groupId: string): Promise<void> {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
     if (!trip) throw new NotFoundException('Trip not found');
-    await this.tripsService.assertOrganizerRole(tripId, user.id, false);
+    await this.tripsService.assertOrganizerRole(tripId, user.id, true);
 
     const link = await this.db.query.groupTrips.findFirst({
       where: and(eq(groupTrips.tripId, tripId), eq(groupTrips.groupId, groupId)),

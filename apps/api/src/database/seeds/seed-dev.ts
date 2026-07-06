@@ -32,28 +32,28 @@ import {
 // Fixed UUIDs — deterministic so the script is idempotent
 // ---------------------------------------------------------------------------
 
-// Avatar assets: a0-<index>
+// Avatar assets: a0-<index>  (version=4, variant=8 → valid RFC 4122)
 const AVATAR_ASSET_IDS = Array.from(
   { length: 10 },
-  (_, i) => `a0000000-0000-0000-0000-${String(i + 1).padStart(12, '0')}`,
+  (_, i) => `a0000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,
 );
 
 // Cover assets: c0-<index>
 const COVER_ASSET_IDS = Array.from(
   { length: 10 },
-  (_, i) => `c0000000-0000-0000-0000-${String(i + 1).padStart(12, '0')}`,
+  (_, i) => `c0000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,
 );
 
 // User IDs: b0-<index>
 const USER_IDS = Array.from(
   { length: 10 },
-  (_, i) => `b0000000-0000-0000-0000-${String(i + 1).padStart(12, '0')}`,
+  (_, i) => `b0000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,
 );
 
 // Group IDs: d0-<index>
 const GROUP_IDS = Array.from(
   { length: 10 },
-  (_, i) => `d0000000-0000-0000-0000-${String(i + 1).padStart(12, '0')}`,
+  (_, i) => `d0000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,
 );
 
 // ---------------------------------------------------------------------------

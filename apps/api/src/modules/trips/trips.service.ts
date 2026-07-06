@@ -446,7 +446,10 @@ export class TripsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, userId),
-        eq(tripParticipants.status, TripParticipantStatus.CONFIRMED),
+        inArray(tripParticipants.status, [
+          TripParticipantStatus.ACCEPTED,
+          TripParticipantStatus.CONFIRMED,
+        ]),
         inArray(tripParticipants.role, roles),
       ),
     });

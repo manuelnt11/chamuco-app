@@ -205,7 +205,7 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, requestingUserId),
-        eq(tripParticipants.status, TripParticipantStatus.CONFIRMED),
+        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
         inArray(tripParticipants.role, [...ORGANIZER_ROLES]),
       ),
     });
@@ -260,7 +260,7 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, requestingUserId),
-        eq(tripParticipants.status, TripParticipantStatus.CONFIRMED),
+        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
         eq(tripParticipants.role, TripRole.ORGANIZER),
       ),
     });
@@ -527,7 +527,7 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, userId),
-        eq(tripParticipants.status, TripParticipantStatus.CONFIRMED),
+        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
         inArray(tripParticipants.role, [...ORGANIZER_ROLES]),
       ),
     });
@@ -553,7 +553,7 @@ export class TripParticipantsService {
     const confirmedOrganizers = await this.db.query.tripParticipants.findMany({
       where: and(
         eq(tripParticipants.tripId, tripId),
-        eq(tripParticipants.status, TripParticipantStatus.CONFIRMED),
+        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
         eq(tripParticipants.role, TripRole.ORGANIZER),
       ),
       limit: 2,
