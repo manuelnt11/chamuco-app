@@ -37,6 +37,7 @@ import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TripResponseDto } from './dto/trip-response.dto';
 import type { MyTripListItemResponseDto } from './dto/my-trip-list-item-response.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
+import { ACTIVE_STATUSES } from './participants/trip-participants.constants';
 
 // TODO: migrate to system settings module when admin config is available
 const FEEDBACK_WINDOW_DAYS = parseInt(process.env['TRIP_FEEDBACK_WINDOW_DAYS'] ?? '7', 10) || 7;
@@ -63,10 +64,7 @@ export class TripsService {
     const memberships = await this.db.query.tripParticipants.findMany({
       where: and(
         eq(tripParticipants.userId, user.id),
-        inArray(tripParticipants.status, [
-          TripParticipantStatus.ACCEPTED,
-          TripParticipantStatus.CONFIRMED,
-        ]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
       ),
     });
 
@@ -438,6 +436,9 @@ export class TripsService {
     userId: string,
     allowCoOrganizer: boolean,
   ): Promise<void> {
+    const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
+    if (!trip) throw new NotFoundException('Trip not found');
+
     const roles = allowCoOrganizer
       ? [TripRole.ORGANIZER, TripRole.CO_ORGANIZER]
       : [TripRole.ORGANIZER];
@@ -446,10 +447,7 @@ export class TripsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, userId),
-        inArray(tripParticipants.status, [
-          TripParticipantStatus.ACCEPTED,
-          TripParticipantStatus.CONFIRMED,
-        ]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
         inArray(tripParticipants.role, roles),
       ),
     });

@@ -35,8 +35,7 @@ import type { ParticipantResponseDto } from './dto/participant-response.dto';
 import type { PendingParticipantResponseDto } from './dto/pending-participant-response.dto';
 import type { MyParticipationResponseDto } from './dto/my-participation-response.dto';
 import type { MyTripInvitationResponseDto } from './dto/my-trip-invitation-response.dto';
-const ORGANIZER_ROLES = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER] as const;
-const ACTIVE_STATUSES = [TripParticipantStatus.ACCEPTED, TripParticipantStatus.CONFIRMED] as const;
+import { ACTIVE_STATUSES, ORGANIZER_ROLES } from './trip-participants.constants';
 
 const EXPORT_COLUMN_META: Record<ExportField, { header: string; width: number }> = {
   [ExportField.DISPLAY_NAME]: { header: 'Display name', width: 22 },
@@ -205,8 +204,8 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, requestingUserId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
-        inArray(tripParticipants.role, [...ORGANIZER_ROLES]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
+        inArray(tripParticipants.role, ORGANIZER_ROLES),
       ),
     });
 
@@ -260,7 +259,7 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, requestingUserId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
         eq(tripParticipants.role, TripRole.ORGANIZER),
       ),
     });
@@ -273,7 +272,7 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, targetUserId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
       ),
     });
     if (!targetParticipation) throw new NotFoundException('Active participant not found');
@@ -340,7 +339,7 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, targetUserId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
       ),
     });
     if (!targetParticipation) throw new NotFoundException('Active participant not found');
@@ -429,7 +428,7 @@ export class TripParticipantsService {
     const rows = await this.db.query.tripParticipants.findMany({
       where: and(
         eq(tripParticipants.tripId, tripId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
       ),
     });
 
@@ -527,8 +526,8 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, userId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
-        inArray(tripParticipants.role, [...ORGANIZER_ROLES]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
+        inArray(tripParticipants.role, ORGANIZER_ROLES),
       ),
     });
     if (!participation)
@@ -542,7 +541,7 @@ export class TripParticipantsService {
       where: and(
         eq(tripParticipants.tripId, tripId),
         eq(tripParticipants.userId, userId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
       ),
     });
     if (!participation)
@@ -550,16 +549,16 @@ export class TripParticipantsService {
   }
 
   private async assertNotSoleOrganizer(tripId: string, userId: string): Promise<void> {
-    const confirmedOrganizers = await this.db.query.tripParticipants.findMany({
+    const activeOrganizers = await this.db.query.tripParticipants.findMany({
       where: and(
         eq(tripParticipants.tripId, tripId),
-        inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+        inArray(tripParticipants.status, ACTIVE_STATUSES),
         eq(tripParticipants.role, TripRole.ORGANIZER),
       ),
       limit: 2,
     });
 
-    if (confirmedOrganizers.length === 1 && confirmedOrganizers[0]?.userId === userId) {
+    if (activeOrganizers.length === 1 && activeOrganizers[0]?.userId === userId) {
       throw new ConflictException(
         'Cannot remove or demote the last organizer. Transfer the role first.',
       );
@@ -595,7 +594,7 @@ export class TripParticipantsService {
       this.db.query.tripParticipants.findMany({
         where: and(
           eq(tripParticipants.tripId, tripId),
-          inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+          inArray(tripParticipants.status, ACTIVE_STATUSES),
         ),
       }),
     ]);

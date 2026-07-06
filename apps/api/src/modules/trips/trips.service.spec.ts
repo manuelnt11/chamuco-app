@@ -526,12 +526,13 @@ describe('TripsService', () => {
 
     it('computes feedbackOpenUntil on IN_PROGRESS→COMPLETED', async () => {
       mockTripsFindFirst
-        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS })
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS }) // transitionStatus fetch
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS }) // assertOrganizerRole existence check
         .mockResolvedValueOnce({
           ...mockTripRow,
           status: TripStatus.COMPLETED,
           endDate: '2026-12-08',
-        });
+        }); // fetchAndMapTrip
       const dto: TransitionTripStatusDto = { status: TripStatus.COMPLETED };
 
       const result = await service.transitionStatus(mockUser, 'trip-uuid', dto);
