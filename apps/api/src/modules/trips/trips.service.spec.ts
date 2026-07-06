@@ -65,6 +65,20 @@ const mockTripRow = {
   coverAsset: null,
 };
 
+const mockCoOrganizerParticipantAccepted = {
+  tripId: 'trip-uuid',
+  userId: 'user-uuid',
+  role: TripRole.CO_ORGANIZER,
+  status: TripParticipantStatus.ACCEPTED,
+  isTraveler: true,
+  didTravel: null,
+  initiatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  confirmedAt: null,
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  initiatedBy: 'user-uuid',
+  decidedBy: 'other-uuid',
+};
+
 const mockOrganizerParticipant = {
   tripId: 'trip-uuid',
   userId: 'user-uuid',
@@ -351,6 +365,14 @@ describe('TripsService', () => {
       );
     });
 
+    it('allows CO_ORGANIZER with ACCEPTED status to update trip', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(mockCoOrganizerParticipantAccepted);
+
+      const result = await service.updateTrip(mockUser, 'trip-uuid', { name: 'Updated' });
+
+      expect(result.id).toBe('trip-uuid');
+    });
+
     it('skips update when dto is empty', async () => {
       await service.updateTrip(mockUser, 'trip-uuid', {});
 
@@ -504,12 +526,13 @@ describe('TripsService', () => {
 
     it('computes feedbackOpenUntil on IN_PROGRESS→COMPLETED', async () => {
       mockTripsFindFirst
-        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS })
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS }) // transitionStatus fetch
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS }) // assertOrganizerRole existence check
         .mockResolvedValueOnce({
           ...mockTripRow,
           status: TripStatus.COMPLETED,
           endDate: '2026-12-08',
-        });
+        }); // fetchAndMapTrip
       const dto: TransitionTripStatusDto = { status: TripStatus.COMPLETED };
 
       const result = await service.transitionStatus(mockUser, 'trip-uuid', dto);

@@ -54,6 +54,7 @@ export class UploadsController {
   @ApiForbiddenResponse({
     description:
       'USER_AVATAR: contextId must match the authenticated user. ' +
+      'TRIP_COVER: caller must be ORGANIZER or CO_ORGANIZER of the trip. ' +
       'GROUP_COVER, GROUP_RESOURCE_DOCUMENT, TRIP_RESOURCE: not yet available ' +
       '(membership validation is pending implementation).',
   })
@@ -103,11 +104,7 @@ export class UploadsController {
         break;
       }
       case UploadType.TRIP_COVER: {
-        const trip = await this.tripsService.getTrip(contextId);
-        if (trip.createdBy !== user.id) {
-          // TODO: expand to check trip organizer role
-          throw new ForbiddenException('Only the trip creator can upload a trip cover.');
-        }
+        await this.tripsService.assertOrganizerRole(contextId, user.id, true);
         break;
       }
       case UploadType.GROUP_RESOURCE_DOCUMENT:
