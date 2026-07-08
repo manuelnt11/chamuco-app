@@ -451,8 +451,7 @@ export class TripParticipantsService {
         role: participation.role as TripRole,
         isTraveler: participation.isTraveler,
         status: participation.status as
-          | TripParticipantStatus.ACCEPTED
-          | TripParticipantStatus.CONFIRMED,
+          TripParticipantStatus.ACCEPTED | TripParticipantStatus.CONFIRMED,
         confirmedAt: participation.confirmedAt?.toISOString() ?? null,
       };
     });
@@ -491,8 +490,7 @@ export class TripParticipantsService {
         displayName: user.displayName,
         avatarUrl: avatarUrlMap.get(user.id) ?? null,
         status: participation.status as
-          | TripParticipantStatus.INVITED
-          | TripParticipantStatus.PENDING_REQUEST,
+          TripParticipantStatus.INVITED | TripParticipantStatus.PENDING_REQUEST,
         initiatedAt: participation.initiatedAt.toISOString(),
       };
     });
@@ -647,9 +645,7 @@ export class TripParticipantsService {
         // DB stores JSONB with snake_case keys; DateOfBirth interface uses camelCase (yearVisible).
         // year_visible here is intentionally snake_case — matches the raw JSONB from the DB.
         const dob = profile?.dateOfBirth as
-          | { day: number; month: number; year: number; year_visible: boolean }
-          | null
-          | undefined;
+          { day: number; month: number; year: number; year_visible: boolean } | null | undefined;
         const dobStr = dob ? `${dob.day}/${dob.month}/${dob.year_visible ? dob.year : '----'}` : '';
         const contacts = (profile?.emergencyContacts ?? []) as EmergencyContactDto[];
         const primary = contacts.find((c) => c.isPrimary) ?? contacts[0];

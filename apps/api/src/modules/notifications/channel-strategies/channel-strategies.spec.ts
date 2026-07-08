@@ -53,8 +53,7 @@ function makeContext(tokens: string[], sendEachForMulticast: jest.Mock) {
 
   const getSetArgs = () =>
     updateSet.mock.calls[0]?.[0] as
-      | { status: DeliveryStatus; sentAt: Date | null; error: string | null }
-      | undefined;
+      { status: DeliveryStatus; sentAt: Date | null; error: string | null } | undefined;
 
   return { strategy, db, updateSet, updateSetWhere, deleteWhere, getSetArgs };
 }
@@ -286,8 +285,7 @@ function makeEmailContext(opts: {
 
   const getDeliveryUpdate = () =>
     updateSet.mock.calls[0]?.[0] as
-      | { status: DeliveryStatus; sentAt: Date | null; error: string | null }
-      | undefined;
+      { status: DeliveryStatus; sentAt: Date | null; error: string | null } | undefined;
 
   return { strategy, db, emailService, updateSet, updateSetWhere, getDeliveryUpdate };
 }
