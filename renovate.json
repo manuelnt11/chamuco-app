@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": ["config:best-practices"],
   "schedule": ["after 8am on monday"],
   "timezone": "America/Bogota",
   "labels": ["dependencies"],
@@ -8,6 +8,10 @@
   "branchConcurrentLimit": 1,
   "env": {
     "PNPM_MAX_WORKERS": "1"
+  },
+  "minimumReleaseAge": "5 days",
+  "toolSettings": {
+    "nodeMaxMemory": 1024
   },
   "ignoreDeps": [
     "@img/sharp-darwin-arm64",
