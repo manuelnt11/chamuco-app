@@ -30,7 +30,7 @@
     "db:restore": "./scripts/db/restore-from-prod.sh"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "10.0.1",
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",
@@ -38,10 +38,10 @@
     "eslint-config-prettier": "catalog:",
     "eslint-plugin-i18next": "catalog:",
     "eslint-plugin-prettier": "catalog:",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.0.8",
+    "husky": "9.1.7",
+    "lint-staged": "17.0.8",
     "prettier": "catalog:",
-    "turbo": "^2.10.3",
+    "turbo": "2.10.3",
     "typescript": "catalog:"
   },
   "engines": {
