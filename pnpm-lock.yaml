@@ -9,6 +9,12 @@ catalogs:
     '@types/node':
       specifier: ^25.9.4
       version: 25.9.4
+    '@typescript-eslint/eslint-plugin':
+      specifier: ^8.61.0
+      version: 8.62.1
+    '@typescript-eslint/parser':
+      specifier: ^8.61.0
+      version: 8.62.1
     '@vitest/coverage-v8':
       specifier: ^4.1.9
       version: 4.1.9
@@ -354,7 +360,7 @@ importers:
         version: 17.0.8(i18next@26.3.4(typescript@6.0.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       react-image-crop:
         specifier: ^11.0.10
-        version: 11.0.10(react@19.2.7)
+        version: 11.1.2(react@19.2.7)
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.17)(react@19.2.7)
@@ -8283,8 +8289,8 @@ packages:
       typescript:
         optional: true
 
-  react-image-crop@11.0.10:
-    resolution: {integrity: sha512-+5FfDXUgYLLqBh1Y/uQhIycpHCbXkI50a+nbfkB1C0xXXUTwkisHDo2QCB1SQJyHCqIuia4FeyReqXuMDKWQTQ==}
+  react-image-crop@11.1.2:
+    resolution: {integrity: sha512-+0Pc2fxpwKL4u4oLmdKBw8XSwUceFbXbKEHvFOlsl/MGB1OVNic4uBlAPmEHGXYgoJIq+b63xHbc/aJMG0AVkA==}
     peerDependencies:
       react: '>=16.13.1'
 
@@ -18924,7 +18930,7 @@ snapshots:
       react-dom: 19.2.7(react@19.2.7)
       typescript: 6.0.3
 
-  react-image-crop@11.0.10(react@19.2.7):
+  react-image-crop@11.1.2(react@19.2.7):
     dependencies:
       react: 19.2.7
 
