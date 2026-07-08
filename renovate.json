@@ -7,6 +7,6 @@
   "branchConcurrentLimit": 1,
   "minimumReleaseAge": "5 days",
   "toolSettings": {
-    "nodeMaxMemory": 1500
+    "nodeMaxMemory": 1300
   }
 }
