@@ -14,10 +14,6 @@ vi.mock('libphonenumber-js', () => ({
   },
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('@/components/ui/country-combobox', () => ({
   CountryCombobox: ({
     value,

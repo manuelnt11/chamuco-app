@@ -2,15 +2,16 @@
 
 ---
 
-## announcement-response.dto.ts
+## `announcement-response.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `@/common/dto/base-announcement-response.dto` — `BaseAnnouncementResponseDto` base class with shared announcement response fields
 
 ### Definitions
 
-- `AnnouncementResponseDto` (class) — Response shape for a single group announcement; exposes id, groupId, createdByUsername, content, createdAt, and updatedAt with Swagger metadata
+- `AnnouncementResponseDto` (class) — Response DTO for a group announcement, extending the base with a `groupId` field
 
 ### Exports
 
@@ -18,17 +19,17 @@
 
 ---
 
-## create-announcement.dto.ts
+## `create-announcement.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
-- `class-transformer` — `Transform` to trim whitespace from input strings
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `class-transformer` — `Transform` for trimming string input
 - `class-validator` — `IsNotEmpty`, `IsString`, `Matches`, `MaxLength` for input validation
 
 ### Definitions
 
-- `CreateAnnouncementDto` (class) — Validates the body for creating a group announcement; enforces `content` as a non-empty string up to 2000 chars with no HTML tags allowed
+- `CreateAnnouncementDto` (class) — Request DTO for creating a group announcement; validates `content` as a trimmed, non-empty string up to 2000 chars with no HTML tags
 
 ### Exports
 
@@ -36,17 +37,15 @@
 
 ---
 
-## list-announcements-query.dto.ts
+## `list-announcements-query.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiPropertyOptional` for optional OpenAPI field documentation
-- `class-transformer` — `Type` to coerce query string values to numbers
-- `class-validator` — `IsInt`, `IsOptional`, `Max`, `Min` for pagination validation
+- `@/common/dto/paginated-query.dto` — `PaginatedQueryDto` base class providing pagination query parameters
 
 ### Definitions
 
-- `ListAnnouncementsQueryDto` (class) — Validates pagination query params for listing group announcements; `limit` defaults to 20 (max 100), `offset` defaults to 0
+- `ListAnnouncementsQueryDto` (class) — Query DTO for listing group announcements; inherits pagination fields from `PaginatedQueryDto` with no additions
 
 ### Exports
 
@@ -54,17 +53,17 @@
 
 ---
 
-## update-announcement.dto.ts
+## `update-announcement.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
-- `class-transformer` — `Transform` to trim whitespace from input strings
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `class-transformer` — `Transform` for trimming string input
 - `class-validator` — `IsNotEmpty`, `IsString`, `Matches`, `MaxLength` for input validation
 
 ### Definitions
 
-- `UpdateAnnouncementDto` (class) — Validates the body for updating a group announcement; enforces `content` as a non-empty string up to 2000 chars with no HTML tags allowed
+- `UpdateAnnouncementDto` (class) — Request DTO for updating a group announcement; validates `content` as a trimmed, non-empty string up to 2000 chars with no HTML tags
 
 ### Exports
 

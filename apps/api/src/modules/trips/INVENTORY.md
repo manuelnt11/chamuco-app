@@ -2,28 +2,28 @@
 
 ---
 
-## trips.controller.spec.ts
+## `trips.controller.spec.ts`
 
 ### Imports
 
-- `@nestjs/testing` — `Test`, `TestingModule` (NestJS test harness)
-- `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility`, `TripRole`, `TripStatus`, `TripVisibility` (shared enums)
-- `./trips.controller` — `TripsController` (subject under test)
-- `./trips.service` — `TripsService` (mocked dependency)
-- `./discovery/trip-discovery.service` — `TripDiscoveryService` (mocked dependency)
-- `./dto/create-trip.dto` — `CreateTripDto` (type, request fixture)
-- `./dto/update-trip.dto` — `UpdateTripDto` (type, request fixture)
-- `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` (type, request fixture)
-- `./dto/trip-response.dto` — `TripResponseDto` (type, response fixture)
-- `./dto/my-trip-list-item-response.dto` — `MyTripListItemResponseDto` (type, response fixture)
-- `@/types/express` — `AuthenticatedUser` (type, user fixture)
+- `@nestjs/testing` — `Test`, `TestingModule` for building isolated test modules
+- `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility`, `TripRole`, `TripStatus`, `TripVisibility` enums used in mock data and DTOs
+- `./trips.controller` — `TripsController` (system under test)
+- `./trips.service` — `TripsService` (mocked provider)
+- `./discovery/trip-discovery.service` — `TripDiscoveryService` (mocked provider)
+- `./dto/create-trip.dto` — `CreateTripDto` type for test input
+- `./dto/update-trip.dto` — `UpdateTripDto` type for test input
+- `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` type for test input
+- `./dto/trip-response.dto` — `TripResponseDto` type for mock response
+- `./dto/my-trip-list-item-response.dto` — `MyTripListItemResponseDto` type for mock list response
+- `@/types/express` — `AuthenticatedUser` type for mock user
 
 ### Definitions
 
-- `mockUser` (const) — `AuthenticatedUser` fixture shared across all test cases
-- `mockListItemResponse` (const) — `MyTripListItemResponseDto` fixture for list endpoint tests
-- `mockResponse` (const) — `TripResponseDto` fixture for single-trip endpoint tests
-- `describe('TripsController')` — test suite verifying all six controller methods delegate correctly to `TripsService` and `TripDiscoveryService`
+- `mockUser` (const) — mock `AuthenticatedUser` fixture used across all controller tests
+- `mockListItemResponse` (const) — mock `MyTripListItemResponseDto` fixture for list endpoint tests
+- `mockResponse` (const) — mock `TripResponseDto` fixture for single-trip endpoint tests
+- `TripsController` (describe block) — test suite covering all six controller methods with mocked service delegates
 
 ### Exports
 
@@ -31,27 +31,27 @@
 
 ---
 
-## trips.controller.ts
+## `trips.controller.ts`
 
 ### Imports
 
-- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post`, `Query` (routing and HTTP decorators)
-- `@nestjs/swagger` — `ApiBadRequestResponse`, `ApiBearerAuth`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags` (OpenAPI decorators)
-- `@/common/decorators/current-user.decorator` — `CurrentUser` (custom param decorator for authenticated user)
-- `@/types/express` — `AuthenticatedUser` (type)
-- `./trips.service` — `TripsService`
-- `./dto/create-trip.dto` — `CreateTripDto`
-- `./dto/update-trip.dto` — `UpdateTripDto`
-- `./dto/trip-response.dto` — `TripResponseDto`
-- `./dto/my-trip-list-item-response.dto` — `MyTripListItemResponseDto`
-- `./dto/transition-trip-status.dto` — `TransitionTripStatusDto`
-- `./discovery/trip-discovery.service` — `TripDiscoveryService`
-- `./discovery/dto/search-trips-query.dto` — `SearchTripsQueryDto`
-- `./discovery/dto/trip-search-result.dto` — `TripSearchResponseDto`
+- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post`, `Query` decorators and utilities
+- `@nestjs/swagger` — `ApiBadRequestResponse`, `ApiBearerAuth`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags` for OpenAPI documentation
+- `@/common/decorators/current-user.decorator` — `CurrentUser` parameter decorator
+- `@/types/express` — `AuthenticatedUser` type for authenticated request context
+- `./trips.service` — `TripsService` for core CRUD and lifecycle operations
+- `./dto/create-trip.dto` — `CreateTripDto` request body type
+- `./dto/update-trip.dto` — `UpdateTripDto` request body type
+- `./dto/trip-response.dto` — `TripResponseDto` response shape
+- `./dto/my-trip-list-item-response.dto` — `MyTripListItemResponseDto` list response shape
+- `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` status transition body
+- `./discovery/trip-discovery.service` — `TripDiscoveryService` for public trip search
+- `./discovery/dto/search-trips-query.dto` — `SearchTripsQueryDto` query parameters for search
+- `./discovery/dto/trip-search-result.dto` — `TripSearchResponseDto` paginated search response
 
 ### Definitions
 
-- `TripsController` (controller) — REST controller at `v1/trips`; exposes `getMyTrips` (GET /), `createTrip` (POST /), `searchTrips` (GET /search), `getTrip` (GET /:id), `updateTrip` (PATCH /:id), `deleteTrip` (DELETE /:id), `transitionStatus` (PATCH /:id/status)
+- `TripsController` (controller) — REST controller at `v1/trips`; handles `GET /`, `POST /`, `GET /search`, `GET /:id`, `PATCH /:id`, `DELETE /:id`, `PATCH /:id/status`
 
 ### Exports
 
@@ -59,12 +59,12 @@
 
 ---
 
-## trips.module.ts
+## `trips.module.ts`
 
 ### Imports
 
-- `@nestjs/common` — `Module`
-- `@/modules/notifications/notifications.module` — `NotificationsModule`
+- `@nestjs/common` — `Module` decorator
+- `@/modules/notifications/notifications.module` — `NotificationsModule` for push/email notifications
 - `./trips.controller` — `TripsController`
 - `./destinations/trips-destinations.controller` — `TripsDestinationsController`
 - `./groups/trips-groups.controller` — `TripsGroupsController`
@@ -83,7 +83,7 @@
 
 ### Definitions
 
-- `TripsModule` (module) — NestJS module aggregating all trip controllers and services (core, destinations, groups, announcements, participants, invitations, join-requests, discovery); imports `NotificationsModule`; exports `TripsService`
+- `TripsModule` (module) — NestJS feature module bundling all trip-related controllers and services; exports `TripsService`
 
 ### Exports
 
@@ -91,31 +91,31 @@
 
 ---
 
-## trips.service.spec.ts
+## `trips.service.spec.ts`
 
 ### Imports
 
-- `@nestjs/common` — `BadRequestException`, `ForbiddenException`, `NotFoundException` (exception classes asserted in tests)
-- `@nestjs/testing` — `Test`, `TestingModule`
-- `@chamuco/shared-types` — `AuthProvider`, `NotificationChannel`, `NotificationType`, `PlatformRole`, `ProfileVisibility`, `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripVisibility`
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` (injection token for mocked DB)
+- `@nestjs/common` — `BadRequestException`, `ForbiddenException`, `NotFoundException` for assertion checks
+- `@nestjs/testing` — `Test`, `TestingModule` for building isolated test modules
+- `@chamuco/shared-types` — `AuthProvider`, `NotificationChannel`, `NotificationType`, `PlatformRole`, `ProfileVisibility`, `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripVisibility` enums
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token (mocked)
 - `@/modules/assets/asset-resolver.service` — `AssetResolverService` (mocked)
 - `@/modules/cloud-storage/cloud-storage.service` — `CloudStorageService` (mocked)
 - `@/modules/notifications/notifications.service` — `NotificationsService` (mocked)
-- `./trips.service` — `TripsService` (subject under test)
-- `./dto/create-trip.dto` — `CreateTripDto` (type)
-- `./dto/update-trip.dto` — `UpdateTripDto` (type)
-- `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` (type)
-- `@/types/express` — `AuthenticatedUser` (type)
+- `./trips.service` — `TripsService` (system under test)
+- `./dto/create-trip.dto` — `CreateTripDto` type for test inputs
+- `./dto/update-trip.dto` — `UpdateTripDto` type for test inputs
+- `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` type for test inputs
+- `@/types/express` — `AuthenticatedUser` type for mock user
 
 ### Definitions
 
-- `mockUser` (const) — `AuthenticatedUser` fixture
-- `mockTripRow` (const) — raw DB trip row fixture
-- `mockCoOrganizerParticipantAccepted` (const) — mock CO_ORGANIZER participant row with ACCEPTED status
-- `mockOrganizerParticipant` (const) — mock ORGANIZER participant row with CONFIRMED status
-- `createDto` (const) — `CreateTripDto` fixture used across createTrip tests
-- `describe('TripsService')` — test suite covering createTrip, getTrip, updateTrip, deleteTrip, transitionStatus (including DRAFT→OPEN group member invitation logic), and getMyTrips with cover URL and participant count enrichment
+- `mockUser` (const) — mock `AuthenticatedUser` fixture shared across all test suites
+- `mockTripRow` (const) — mock trip database row fixture
+- `mockCoOrganizerParticipantAccepted` (const) — mock participant row with CO_ORGANIZER role and ACCEPTED status
+- `mockOrganizerParticipant` (const) — mock participant row with ORGANIZER role and CONFIRMED status
+- `createDto` (const) — mock `CreateTripDto` input used in createTrip tests
+- `TripsService` (describe block) — comprehensive test suite covering `createTrip`, `getTrip`, `updateTrip`, `deleteTrip`, `transitionStatus`, and `getMyTrips`
 
 ### Exports
 
@@ -123,39 +123,48 @@
 
 ---
 
-## trips.service.ts
+## `trips.service.ts`
 
 ### Imports
 
 - `@nestjs/common` — `BadRequestException`, `ForbiddenException`, `Inject`, `Injectable`, `Logger`, `NotFoundException`
-- `drizzle-orm` — `and`, `count`, `eq`, `inArray` (query builder utilities)
-- `@chamuco/shared-types` — `GroupMemberStatus`, `NotificationChannel`, `NotificationType`, `PlatformRole`, `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripVisibility`
-- `@/modules/groups/schema/group-members.schema` — `groupMembers` (Drizzle table reference)
-- `@/modules/notifications/notifications.service` — `NotificationsService`
-- `@/modules/trips/schema/trip-announcements.schema` — `tripAnnouncements` (Drizzle table reference)
-- `@/modules/trips/schema/group-trips.schema` — `groupTrips` (Drizzle table reference)
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT`, `DrizzleClient`
-- `@/modules/assets/schema/assets.schema` — `assets` (Drizzle table reference)
-- `@/modules/assets/asset-resolver.service` — `AssetResolverService`
-- `@/modules/assets/asset.utils` — `assetRowToAsset` (converts DB row to asset domain object)
-- `@/modules/cloud-storage/cloud-storage.service` — `CloudStorageService`
-- `@/modules/cloud-storage/cloud-storage.constants` — `PUBLIC_OBJECT_PREFIXES` (set of GCS key prefixes requiring makePublic)
-- `@/types/express` — `AuthenticatedUser` (type)
-- `./schema/trips.schema` — `trips` (Drizzle table reference)
-- `./schema/trip-destinations.schema` — `tripDestinations` (Drizzle table reference)
-- `./schema/trip-participants.schema` — `tripParticipants` (Drizzle table reference)
-- `./dto/create-trip.dto` — `CreateTripDto` (type)
-- `./dto/update-trip.dto` — `UpdateTripDto` (type)
-- `./dto/trip-response.dto` — `TripResponseDto` (type)
-- `./dto/my-trip-list-item-response.dto` — `MyTripListItemResponseDto` (type)
-- `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` (type)
-- `./participants/trip-participants.constants` — `ACTIVE_STATUSES` (array of active participant statuses)
+- `drizzle-orm` — `and`, `count`, `eq`, `inArray` query helpers
+- `@chamuco/shared-types` — `GroupMemberStatus`, `NotificationChannel`, `NotificationType`, `PlatformRole`, `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripVisibility`, `VALID_TRANSITIONS`
+- `@/modules/groups/schema/group-members.schema` — `groupMembers` table reference
+- `@/modules/notifications/notifications.service` — `NotificationsService` for push/email notifications
+- `@/modules/trips/schema/trip-announcements.schema` — `tripAnnouncements` table reference
+- `@/modules/trips/schema/group-trips.schema` — `groupTrips` table reference
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token, `DrizzleClient` type
+- `@/modules/assets/schema/assets.schema` — `assets` table reference
+- `@/modules/assets/asset-resolver.service` — `AssetResolverService` for resolving signed/public URLs
+- `@/modules/assets/asset.utils` — `assetRowToAsset` conversion utility
+- `@/modules/cloud-storage/cloud-storage.service` — `CloudStorageService` for GCS operations
+- `@/modules/cloud-storage/cloud-storage.constants` — `PUBLIC_OBJECT_PREFIXES` set of public GCS prefixes
+- `@/types/express` — `AuthenticatedUser` type
+- `./schema/trips.schema` — `trips` table reference
+- `./schema/trip-destinations.schema` — `tripDestinations` table reference
+- `./schema/trip-participants.schema` — `tripParticipants` table reference
+- `./dto/create-trip.dto` — `CreateTripDto` type
+- `./dto/update-trip.dto` — `UpdateTripDto` type
+- `./dto/trip-response.dto` — `TripResponseDto` type
+- `./dto/my-trip-list-item-response.dto` — `MyTripListItemResponseDto` type
+- `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` type
+- `./participants/trip-participants.constants` — `ACTIVE_STATUSES` array of active participant statuses
 
 ### Definitions
 
-- `FEEDBACK_WINDOW_DAYS` (const) — feedback window duration in days, read from `TRIP_FEEDBACK_WINDOW_DAYS` env var (default 7)
-- `VALID_TRANSITIONS` (const) — state machine map of `TripStatus → TripStatus[]` defining all allowed status transitions
-- `TripsService` (service) — injectable service managing trip lifecycle; public methods: `getMyTrips` (list user's trips enriched with cover URL, participant count, and role), `createTrip` (transactional insert of asset + trip + organizer participant), `getTrip` (fetch single trip), `updateTrip` (patch trip fields with capacity/immutability/visibility guards and cover asset swap), `deleteTrip` (hard delete for DRAFT or SUPPORT_ADMIN), `transitionStatus` (enforces VALID_TRANSITIONS, checks destination count for DRAFT→OPEN, triggers group member invitations), `assertOrganizerRole` (shared ORGANIZER/CO_ORGANIZER guard used by other sub-resource services); private methods: `inviteLinkedGroupMembers`, `fetchAndMapTrip`, `mapTrip`
+- `FEEDBACK_WINDOW_DAYS` (const) — number of days after `endDate` that trip feedback remains open; reads from `TRIP_FEEDBACK_WINDOW_DAYS` env var, defaults to 7
+- `TripsService` (service) — injectable NestJS service providing all core trip operations
+- `TripsService.getMyTrips` (function) — returns all trips where the user is an active participant, enriched with cover URL, confirmed count, and role
+- `TripsService.createTrip` (function) — creates trip in DRAFT, inserts cover asset and organizer participant in a single transaction
+- `TripsService.getTrip` (function) — fetches a single trip by ID and returns the mapped response DTO
+- `TripsService.updateTrip` (function) — patches trip fields with organizer/co-organizer guard; handles cover asset replacement with GCS cleanup
+- `TripsService.deleteTrip` (function) — hard-deletes trip and announcements in a transaction; ORGANIZER restricted to DRAFT, SUPPORT_ADMIN unrestricted
+- `TripsService.transitionStatus` (function) — validates and applies trip status transitions; on DRAFT→OPEN auto-invites linked group members
+- `TripsService.assertOrganizerRole` (function) — shared guard asserting the user holds ORGANIZER (or optionally CO_ORGANIZER) role on the trip
+- `TripsService.inviteLinkedGroupMembers` (function) — private; queries linked groups, inserts INVITED participants, and fires TRIP_INVITATION notifications
+- `TripsService.fetchAndMapTrip` (function) — private; fetches trip with coverAsset relation and maps to `TripResponseDto`
+- `TripsService.mapTrip` (function) — private; converts a raw trip row to `TripResponseDto`, computing `requiresConfirmation` and `feedbackOpenUntil`
 
 ### Exports
 

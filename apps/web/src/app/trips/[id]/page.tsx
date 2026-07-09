@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
+import { ORGANIZER_ROLES, TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import {
   ArrowLeftIcon,
   GearSixIcon,
@@ -36,8 +36,6 @@ import type { TripResponse, DestinationResponse, TripLinkedGroup } from '@/servi
 interface TripDetailPageProps {
   params: Promise<{ id: string }>;
 }
-
-const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 
 export default function TripDetailPage({ params }: TripDetailPageProps) {
   const { id } = use(params);

@@ -6,10 +6,6 @@ const mocks = vi.hoisted(() => ({
   mockRouterPush: vi.fn(),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mocks.mockRouterPush }),
 }));

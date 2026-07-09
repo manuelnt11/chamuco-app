@@ -24,10 +24,6 @@ vi.mock('@/lib/i18n/client', () => ({
   changeLanguage: mocks.mockChangeLanguage,
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 import { PreferencesSection } from './PreferencesSection';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import type { PreferencesData } from '@/services/users.types';

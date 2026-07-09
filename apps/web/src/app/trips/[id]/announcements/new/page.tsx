@@ -4,7 +4,7 @@ import { useEffect, useState, use, type SubmitEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { TripRole } from '@chamuco/shared-types';
+import { ORGANIZER_ROLES } from '@chamuco/shared-types';
 import { ArrowLeftIcon, MegaphoneIcon } from '@phosphor-icons/react';
 
 import { getTrip, getTripParticipation, createTripAnnouncement } from '@/services/trips.service';
@@ -15,8 +15,6 @@ import type { TripResponse } from '@/services/trips.types';
 interface NewTripAnnouncementPageProps {
   params: Promise<{ id: string }>;
 }
-
-const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 
 export default function NewTripAnnouncementPage({ params }: NewTripAnnouncementPageProps) {
   const { id } = use(params);

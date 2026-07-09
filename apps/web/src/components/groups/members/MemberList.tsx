@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import { GroupRole } from '@chamuco/shared-types';
+import { GROUP_ADMIN_ROLES, GroupRole } from '@chamuco/shared-types';
 import { MemberListItem } from './MemberListItem';
 import { InviteMemberModal } from './InviteMemberModal';
 import type { GroupMember } from '@/types/group';
@@ -16,8 +16,6 @@ interface MemberListProps {
   excludedIds?: string[];
 }
 
-const ADMIN_ROLES: GroupRole[] = [GroupRole.OWNER, GroupRole.ADMIN];
-
 export function MemberList({
   groupId,
   members,
@@ -28,7 +26,7 @@ export function MemberList({
   excludedIds,
 }: MemberListProps) {
   const { t } = useTranslation('groups');
-  const isAdmin = currentUserRole !== null && ADMIN_ROLES.includes(currentUserRole);
+  const isAdmin = currentUserRole !== null && GROUP_ADMIN_ROLES.includes(currentUserRole);
 
   return (
     <div className="rounded-xl border border-border">

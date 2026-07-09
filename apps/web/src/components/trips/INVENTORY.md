@@ -2,35 +2,37 @@
 
 ---
 
-## trip-status.ts
+## `DestinationList.test.tsx`
 
 ### Imports
 
-- `@chamuco/shared-types` — `TripStatus` enum used as record keys
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `@/services/trips.types` — `DestinationResponse`, `DestinationWriteResponse`
+- `./DestinationList` — `DestinationList`
+- `react` — `React` (type, referenced in dnd-kit mock)
 
 ### Definitions
 
-- `STATUS_CLASSES` (const) — maps every `TripStatus` value to its Tailwind CSS badge class string
-- `STATUS_I18N_KEYS` (const) — maps every `TripStatus` value to its `trips` namespace i18n key
+- `makeDestination` (function) — test fixture factory producing a `DestinationResponse` with overridable fields
 
 ### Exports
 
-- `STATUS_CLASSES` — named
-- `STATUS_I18N_KEYS` — named
+- None
 
 ---
 
-## DestinationList.tsx
+## `DestinationList.tsx`
 
 ### Imports
 
-- `react` — `useEffect`, `useState`, `type SubmitEvent`
-- `react-i18next` — `useTranslation` for `trips` namespace
-- `@dnd-kit/core` — `DndContext`, `PointerSensor`, `KeyboardSensor`, `closestCenter`, `useSensor`, `useSensors`, `type DragEndEvent` (drag-and-drop context and sensors)
-- `@dnd-kit/sortable` — `SortableContext`, `sortableKeyboardCoordinates`, `useSortable`, `verticalListSortingStrategy`, `arrayMove` (sortable list primitives)
-- `@dnd-kit/utilities` — `CSS` (transform helper)
+- `react` — `useEffect`, `useState`, `SubmitEvent`
+- `react-i18next` — `useTranslation`
+- `@dnd-kit/core` — `DndContext`, `PointerSensor`, `KeyboardSensor`, `closestCenter`, `useSensor`, `useSensors`, `DragEndEvent`
+- `@dnd-kit/sortable` — `SortableContext`, `sortableKeyboardCoordinates`, `useSortable`, `verticalListSortingStrategy`, `arrayMove`
+- `@dnd-kit/utilities` — `CSS`
 - `@phosphor-icons/react` — `AirplaneLandingIcon`, `AirplaneTakeoffIcon`, `DotsSixVerticalIcon`, `PlusIcon`
-- `axios` — `axios.isAxiosError` for 422 error detection
+- `axios` — default import for `isAxiosError` check
 - `@/components/ui/button` — `Button`
 - `@/components/ui/input` — `Input`
 - `@/components/ui/label` — `Label`
@@ -40,13 +42,13 @@
 - `@/components/ui/toast` — `toast`
 - `@/components/ui/dialog` — `Dialog`, `DialogPopup`, `DialogHeader`, `DialogTitle`, `DialogClose`, `DialogFooter`
 - `@/services/trips.service` — `addTripDestination`, `updateTripDestination`, `deleteTripDestination`, `reorderTripDestinations`
-- `@/services/trips.types` — `type DestinationResponse`
+- `@/services/trips.types` — `DestinationResponse`
 
 ### Definitions
 
-- `SortableItem` (component) — renders a single draggable destination row with edit/delete actions; not exported
-- `DestinationFormDialog` (component) — modal dialog for adding or editing a destination (country + city + optional label); not exported
-- `DestinationList` (component) — sortable list of trip destinations; supports organizer drag-reorder, inline add/edit/delete, and read-only view for non-organizers
+- `SortableItem` (component) — drag-handle list row for a single destination with edit/delete actions; not exported
+- `DestinationFormDialog` (component) — modal dialog for adding or editing a destination with country, city, and optional label fields; not exported
+- `DestinationList` (component) — sortable trip destination list; organizers can drag-reorder, add, edit, and delete; non-organizers see a read-only ordered list
 
 ### Exports
 
@@ -54,21 +56,41 @@
 
 ---
 
-## TripCard.tsx
+## `TripCard.test.tsx`
 
 ### Imports
 
-- `next/link` — `Link` for client-side navigation
-- `react-i18next` — `useTranslation` for `trips` namespace
+- `@testing-library/react` — `render`, `screen`
+- `react` — `ReactNode`
+- `@chamuco/shared-types` — `TripRole`, `TripStatus`, `TripVisibility`
+- `@/services/trips.types` — `MyTripListItemResponse`
+- `./TripCard` — `TripCard`
+
+### Definitions
+
+- No substantial non-exported definitions
+
+### Exports
+
+- None
+
+---
+
+## `TripCard.tsx`
+
+### Imports
+
+- `next/link` — `Link`
+- `react-i18next` — `useTranslation`
 - `@phosphor-icons/react` — `AirplaneTakeoffIcon`, `AirplaneLandingIcon`, `UsersIcon`
-- `@chamuco/shared-types` — `TripRole` enum
-- `@/services/trips.types` — `type MyTripListItemResponse`
+- `@chamuco/shared-types` — `TripRole`
+- `@/services/trips.types` — `MyTripListItemResponse`
 - `@/components/trips/TripStatusBadge` — `TripStatusBadge`
 
 ### Definitions
 
-- `ROLE_I18N_KEYS` (const) — maps each `TripRole` to its i18n key; not exported
-- `TripCard` (component) — card linking to a trip detail page; shows cover image, name, status badge, dates, departure city, participant count, and user role pill
+- `ROLE_I18N_KEYS` (const) — maps each `TripRole` to its `trips` namespace i18n key; not exported
+- `TripCard` (component) — list item card linking to trip detail; shows cover image, name, status badge, dates, departure city, participant count, and user role pill
 
 ### Exports
 
@@ -76,25 +98,43 @@
 
 ---
 
-## TripCoverEditor.tsx
+## `TripCoverEditor.test.tsx`
 
 ### Imports
 
-- `react` — `useState`, `useRef`, `type ChangeEvent`
-- `react-i18next` — `useTranslation` for `trips` and `common` namespaces
-- `@chamuco/shared-utils` — `getTwemojiUrl` (Twemoji CDN URL builder)
-- `@chamuco/shared-types` — `UploadType` enum
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `./TripCoverEditor` — `TripCoverEditor`
+
+### Definitions
+
+- `setup` (function) — renders `TripCoverEditor` with optional trip overrides and returns a `userEvent` instance
+
+### Exports
+
+- None
+
+---
+
+## `TripCoverEditor.tsx`
+
+### Imports
+
+- `react` — `useState`, `useRef`, `ChangeEvent`
+- `react-i18next` — `useTranslation`
+- `@chamuco/shared-utils` — `getTwemojiUrl`
+- `@chamuco/shared-types` — `UploadType`
 - `@phosphor-icons/react` — `AirplaneTakeoffIcon`
 - `@/components/ui/dialog` — `Dialog`, `DialogTrigger`, `DialogPopup`, `DialogHeader`, `DialogTitle`, `DialogClose`
 - `@/components/ui/toast` — `toast`
 - `@/services/trips.service` — `updateTrip`
-- `@/hooks/useFileUpload` — `useFileUpload` (signed-URL upload hook)
+- `@/hooks/useFileUpload` — `useFileUpload`
 - `@/lib/avatar-emojis` — `AVATAR_EMOJIS`
 - `@/components/ui/crop-modal` — `CropModal`
 
 ### Definitions
 
-- `TripCoverEditor` (component) — inline editor for a trip cover; supports photo upload (with crop) and emoji selection via tabbed dialog; calls `updateTrip` after upload
+- `TripCoverEditor` (component) — shows current cover thumbnail and an edit trigger that opens a dialog with photo-upload (with crop) and emoji-picker tabs; calls `updateTrip` with the chosen cover
 
 ### Exports
 
@@ -102,20 +142,41 @@
 
 ---
 
-## TripDiscoveryCard.tsx
+## `TripDiscoveryCard.test.tsx`
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `react` — `ReactNode`
+- `@/services/api-client` — `apiClient` (via mock)
+- `./TripDiscoveryCard` — `TripDiscoveryCard`
+- `@/services/trips.types` — `TripSearchResult`
+
+### Definitions
+
+- No substantial non-exported definitions
+
+### Exports
+
+- None
+
+---
+
+## `TripDiscoveryCard.tsx`
 
 ### Imports
 
 - `react` — `useState`
 - `next/link` — `Link`
-- `react-i18next` — `useTranslation` for `trips` namespace
+- `react-i18next` — `useTranslation`
 - `@/services/trips.service` — `submitJoinRequest`, `withdrawJoinRequest`
 - `@/components/ui/button` — `Button`
-- `@/services/trips.types` — `type TripSearchResult`
+- `@/services/trips.types` — `TripSearchResult`
 
 ### Definitions
 
-- `TripDiscoveryCard` (component) — card used in the trip discovery/search results; shows trip name, description, destinations, dates, participant count, and a join-request or withdraw button depending on `participationStatus`
+- `TripDiscoveryCard` (component) — search result card showing trip info with a context-sensitive action button: join-request, withdraw, or view-trip link depending on `participationStatus`
 
 ### Exports
 
@@ -123,15 +184,39 @@
 
 ---
 
-## TripForm.tsx
+## `TripForm.test.tsx`
 
 ### Imports
 
-- `react` — `useState`, `useRef`, `useEffect`, `type ChangeEvent`, `type SubmitEvent`
-- `react-i18next` — `useTranslation` for `trips` and `common` namespaces
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `@chamuco/shared-types` — `TripVisibility`
+- `@/services/api-client` — `apiClient` (via mock)
+- `@/services/uploads.service` — `getSignedUrl` (via mock)
+- `@/services/gcs-upload` — `uploadToGcs` (via mock)
+- `./TripForm` — `TripForm`
+
+### Definitions
+
+- `fillRequiredFields` (function) — fills all required form fields via `userEvent`
+- `setupCreate` (function) — renders `TripForm` in create mode and returns a `userEvent` instance
+- `setupEdit` (function) — renders `TripForm` in edit mode with pre-filled values and returns a `userEvent` instance
+
+### Exports
+
+- None
+
+---
+
+## `TripForm.tsx`
+
+### Imports
+
+- `react` — `useState`, `useRef`, `useEffect`, `ChangeEvent`, `SubmitEvent`
+- `react-i18next` — `useTranslation`
 - `@chamuco/shared-utils` — `getTwemojiUrl`
 - `@chamuco/shared-types` — `TripVisibility`, `UploadType`
-- `axios` — `axios.isAxiosError` for structured error handling
+- `axios` — default import for `isAxiosError` checks
 - `@/components/ui/input` — `Input`
 - `@/components/ui/label` — `Label`
 - `@/components/ui/textarea` — `Textarea`
@@ -143,13 +228,13 @@
 - `@/services/trips.service` — `createTrip`, `updateTrip`, `addTripGroup`
 - `@/services/uploads.service` — `getSignedUrl`
 - `@/services/gcs-upload` — `uploadToGcs`
-- `@/components/ui/group-autocomplete` — `GroupAutocomplete`, `type GroupPickerItem`
+- `@/components/ui/group-autocomplete` — `GroupAutocomplete`, `GroupPickerItem`
 - `@/lib/avatar-emojis` — `AVATAR_EMOJIS`
-- `@/services/trips.types` — `type TripResponse`
+- `@/services/trips.types` — `TripResponse`
 
 ### Definitions
 
-- `TripForm` (component) — full create/edit form for a trip; handles name, description, dates, capacity, departure/landing locations, linked groups (create only), visibility, optional timezone/currency, and cover (emoji or cropped photo)
+- `TripForm` (component) — create/edit form for a trip covering name, description, dates, capacity, departure/landing locations, visibility, linked groups (create only), optional timezone and currency, and cover image (create only)
 
 ### Exports
 
@@ -157,17 +242,36 @@
 
 ---
 
-## TripInvitationsSection.tsx
+## `TripInvitationsSection.test.tsx`
 
 ### Imports
 
-- `react-i18next` — `useTranslation` for `trips` namespace
-- `@/store/trip-invitations` — `useTripInvitations` (store hook providing pending invitations list and count)
+- `@testing-library/react` — `render`, `screen`
+- `@/services/trips.types` — `MyTripInvitationResponse`
+- `@/store/trip-invitations` — `useTripInvitations` (via mock)
+- `./TripInvitationsSection` — `TripInvitationsSection`
+
+### Definitions
+
+- No substantial non-exported definitions
+
+### Exports
+
+- None
+
+---
+
+## `TripInvitationsSection.tsx`
+
+### Imports
+
+- `react-i18next` — `useTranslation`
+- `@/store/trip-invitations` — `useTripInvitations`
 - `@/components/trips/participants/TripInvitationResponseButtons` — `TripInvitationResponseButtons`
 
 ### Definitions
 
-- `TripInvitationsSection` (component) — renders a section listing all pending trip invitations for the current user; hidden when count is zero; each card shows cover, name, received date, and accept/decline buttons
+- `TripInvitationsSection` (component) — section listing all pending trip invitations for the current user; returns null when count is zero; each card shows cover, name, received date, and accept/decline buttons
 
 ### Exports
 
@@ -175,21 +279,40 @@
 
 ---
 
-## TripLinkedGroupsEditor.tsx
+## `TripLinkedGroupsEditor.test.tsx`
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `@/services/trips.service` — `getTripLinkedGroups`, `addTripGroup`, `removeTripGroup` (via mock)
+- `./TripLinkedGroupsEditor` — `TripLinkedGroupsEditor`
+
+### Definitions
+
+- No substantial non-exported definitions
+
+### Exports
+
+- None
+
+---
+
+## `TripLinkedGroupsEditor.tsx`
 
 ### Imports
 
 - `react` — `useEffect`, `useState`
-- `react-i18next` — `useTranslation` for `trips` namespace
+- `react-i18next` — `useTranslation`
 - `@phosphor-icons/react` — `XIcon`
 - `@/components/ui/toast` — `toast`
-- `@/components/ui/group-autocomplete` — `GroupAutocomplete`, `type GroupPickerItem`
+- `@/components/ui/group-autocomplete` — `GroupAutocomplete`, `GroupPickerItem`
 - `@/services/trips.service` — `getTripLinkedGroups`, `addTripGroup`, `removeTripGroup`
-- `@/services/trips.types` — `type TripLinkedGroup`
+- `@/services/trips.types` — `TripLinkedGroup`
 
 ### Definitions
 
-- `TripLinkedGroupsEditor` (component) — lists groups currently linked to a trip with a remove button per group, and an autocomplete input to link additional groups; fetches initial list on mount
+- `TripLinkedGroupsEditor` (component) — lists groups linked to a trip with a remove button per entry and an autocomplete to add new ones; hidden while the initial fetch is in flight
 
 ### Exports
 
@@ -197,19 +320,39 @@
 
 ---
 
-## TripStatusBadge.tsx
+## `TripStatusBadge.test.tsx`
 
 ### Imports
 
-- `react-i18next` — `useTranslation` for `trips` namespace
-- `@chamuco/shared-types` — `type TripStatus`
+- `@testing-library/react` — `render`, `screen`
+- `react` — `ReactNode`
+- `@chamuco/shared-types` — `TripStatus`
+- `./TripStatusBadge` — `TripStatusBadge`
+- `./trip-status` — `STATUS_CLASSES`, `STATUS_I18N_KEYS`
+
+### Definitions
+
+- No substantial non-exported definitions
+
+### Exports
+
+- None
+
+---
+
+## `TripStatusBadge.tsx`
+
+### Imports
+
+- `react-i18next` — `useTranslation`
+- `@chamuco/shared-types` — `TripStatus`
 - `@/components/trips/trip-status` — `STATUS_CLASSES`, `STATUS_I18N_KEYS`
 - `next/link` — `Link`
 - `@phosphor-icons/react` — `InfoIcon`
 
 ### Definitions
 
-- `TripStatusBadge` (component) — colored badge displaying a localized trip status label; optionally includes an info icon linking to `/trips/status-guide`
+- `TripStatusBadge` (component) — colored pill badge showing a localized trip status label; optionally includes an info icon linking to the `/trips/status-guide` page
 
 ### Exports
 
@@ -217,24 +360,62 @@
 
 ---
 
-## TripStatusTransition.tsx
+## `TripStatusTransition.test.tsx`
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `@chamuco/shared-types` — `TripStatus`, `TripVisibility`
+- `@/services/trips.types` — `TripResponse`
+- `@/services/trips.service` — `transitionTripStatus` (via mock)
+- `./TripStatusTransition` — `TripStatusTransition`
+
+### Definitions
+
+- No substantial non-exported definitions
+
+### Exports
+
+- None
+
+---
+
+## `TripStatusTransition.tsx`
 
 ### Imports
 
 - `react` — `useState`
-- `react-i18next` — `useTranslation` for `trips` namespace
-- `@chamuco/shared-types` — `TripStatus` enum
+- `react-i18next` — `useTranslation`
+- `@chamuco/shared-types` — `TripStatus`, `VALID_TRANSITIONS`
 - `@/components/ui/button` — `Button`
 - `@/components/ui/toast` — `toast`
 - `@/components/ui/dialog` — `Dialog`, `DialogPopup`, `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogFooter`, `DialogClose`
 - `@/services/trips.service` — `transitionTripStatus`
-- `@/services/trips.types` — `type TripResponse`
+- `@/services/trips.types` — `TripResponse`
 
 ### Definitions
 
-- `VALID_TRANSITIONS` (const) — static map of allowed next statuses for each current `TripStatus`; not exported
-- `TripStatusTransition` (component) — renders action buttons for each valid next status; clicking opens a confirmation dialog before calling `transitionTripStatus`; returns null when no transitions are available
+- `TripStatusTransition` (component) — renders a row of transition buttons derived from `VALID_TRANSITIONS`; clicking any button opens a confirmation dialog before calling `transitionTripStatus`; returns null for terminal statuses
 
 ### Exports
 
 - `TripStatusTransition` — named
+
+---
+
+## `trip-status.ts`
+
+### Imports
+
+- `@chamuco/shared-types` — `TripStatus`
+
+### Definitions
+
+- `STATUS_CLASSES` (const) — maps each `TripStatus` to its Tailwind CSS badge class string
+- `STATUS_I18N_KEYS` (const) — maps each `TripStatus` to its `trips` namespace i18n key
+
+### Exports
+
+- `STATUS_CLASSES` — named
+- `STATUS_I18N_KEYS` — named

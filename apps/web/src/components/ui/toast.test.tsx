@@ -1,12 +1,8 @@
 import { type ReactNode } from 'react';
 import { render, screen, act, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { ToastProvider, toast, toastManager } from './toast';
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
 
 function renderWithProvider(ui: ReactNode) {
   return render(<ToastProvider>{ui}</ToastProvider>);

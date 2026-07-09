@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import { TripParticipantStatus, TripRole } from '@chamuco/shared-types';
+import { ORGANIZER_ROLES, TripParticipantStatus, TripRole } from '@chamuco/shared-types';
 import { ParticipantListItem } from './ParticipantListItem';
 import { InviteParticipantModal } from './InviteParticipantModal';
 import { ExportParticipantsPopover } from './ExportParticipantsPopover';
@@ -18,8 +18,6 @@ interface ParticipantListProps {
   onParticipantAction: () => void;
   excludedIds?: string[];
 }
-
-const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 
 function Section({
   label,

@@ -3,10 +3,6 @@ import { type ReactNode } from 'react';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import type { MyTripListItemResponse } from '@/services/trips.types';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('next/link', () => ({
   default: ({
     href,

@@ -2,14 +2,14 @@
 
 ---
 
-## page.tsx
+## `page.tsx`
 
 ### Imports
 
 - `react` — `useEffect`, `useState`, `use` (React hooks and promise unwrapper for async params)
 - `next/link` — `Link` (client-side navigation component)
 - `react-i18next` — `useTranslation` (i18n hook for trips and common namespaces)
-- `@chamuco/shared-types` — `TripRole`, `TripStatus`, `TripVisibility` (shared enums for roles, lifecycle states, and visibility)
+- `@chamuco/shared-types` — `ORGANIZER_ROLES`, `TripRole`, `TripStatus`, `TripVisibility` (shared constant and enums for roles, lifecycle states, and visibility)
 - `@phosphor-icons/react` — `ArrowLeftIcon`, `GearSixIcon`, `MegaphoneIcon`, `UsersThreeIcon`, `AirplaneTakeoffIcon`, `AirplaneLandingIcon`, `UsersIcon`, `NavigationArrowIcon`, `PencilSimpleIcon`, `LinkIcon` (icon components for nav and UI)
 - `@/components/ui/toast` — `toast` (toast notification utility)
 - `@/services/trips.service` — `getTrip`, `getTripDestinations`, `getTripLinkedGroups`, `getTripParticipation`, `updateTrip` (API call functions for trip data)
@@ -24,8 +24,7 @@
 ### Definitions
 
 - `TripDetailPageProps` (interface) — Props type with `params` as a `Promise<{ id: string }>` for Next.js dynamic segment
-- `ORGANIZER_ROLES` (const) — Array of roles with organizer-level access (`ORGANIZER` and `CO_ORGANIZER`)
-- `TripDetailPage` (component) — Default export; fetches trip, destinations, participation, and linked groups; renders trip header, status transitions, destination list, quick stats, linked groups, and inline-editable itinerary notes
+- `TripDetailPage` (component) — Default export; fetches trip, destinations, participation, and linked groups in parallel; renders trip header, status transitions, destination list, quick stats, linked groups, and inline-editable itinerary notes
 - `handleSaveNotes` (function) — Async handler inside `TripDetailPage` that calls `updateTrip` to persist itinerary notes and exits edit mode on success
 
 ### Exports
@@ -34,20 +33,21 @@
 
 ---
 
-## page.test.tsx
+## `page.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — `render`, `screen`, `waitFor`, `fireEvent` (RTL utilities for rendering and querying)
 - `react` — `type ReactNode` (type for mock component children)
 - `@chamuco/shared-types` — `TripRole`, `TripStatus`, `TripVisibility` (enums used to build test fixtures)
-- `@/services/trips.types` — `TripResponse`, `DestinationResponse` (types for mock data)
+- `@/services/trips.types` — `type TripResponse`, `type DestinationResponse` (types for mock data)
+- `./page` — `TripDetailPage` (default import, after all vi.mock declarations)
 
 ### Definitions
 
 - `mocks` (const) — Hoisted Vitest mock collection with `mockApiGet`, `mockApiPatch`, `mockUseAuth` vi.fn() stubs
-- `mockTrip` (const) — Baseline `TripResponse` fixture for test scenarios (OPEN trip, no cover/notes/currency)
-- `mockDestination` (const) — Baseline `DestinationResponse` fixture (Cancún, MX, position 1)
+- `mockTrip` (const) — Baseline `TripResponse` fixture for test scenarios (OPEN status, Cancún 2026, no cover/notes/currency)
+- `mockDestination` (const) — Baseline `DestinationResponse` fixture (dest-1, Cancún MX, position 1)
 - `setupMocks` (function) — Helper that wires `mockUseAuth` and `mockApiGet` responses; accepts optional overrides for participation, destinations, and trip data
 
 ### Exports

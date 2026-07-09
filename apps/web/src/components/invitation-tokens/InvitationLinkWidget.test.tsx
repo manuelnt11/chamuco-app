@@ -34,10 +34,6 @@ vi.mock('@/components/ui/toast', () => ({
   toast: { error: mocks.mockToastError },
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 const STORAGE_ID = 'test-id';
 const TOKEN = 'abc123';
 const TOKEN_URL = `http://localhost:3000/join?token=${TOKEN}`;

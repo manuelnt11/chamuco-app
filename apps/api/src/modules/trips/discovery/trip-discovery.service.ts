@@ -10,13 +10,9 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
 import { tripDestinations } from '@/modules/trips/schema/trip-destinations.schema';
+import { ACTIVE_STATUSES } from '@/modules/trips/participants/trip-participants.constants';
 import type { SearchTripsQueryDto } from './dto/search-trips-query.dto';
 import type { TripSearchResponseDto } from './dto/trip-search-result.dto';
-
-const ACTIVE_STATUSES: TripParticipantStatus[] = [
-  TripParticipantStatus.ACCEPTED,
-  TripParticipantStatus.CONFIRMED,
-];
 
 const PENDING_STATUSES: TripParticipantStatus[] = [
   TripParticipantStatus.PENDING_REQUEST,

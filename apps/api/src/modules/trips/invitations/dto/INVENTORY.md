@@ -2,35 +2,35 @@
 
 ---
 
-## bulk-trip-invitation-response.dto.ts
+## `bulk-trip-invitation-response.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` decorator for OpenAPI field documentation
-- `@chamuco/shared-types` — `INVITATION_RESULT_STATUSES` (enum values array), `InvitationResult` (interface), `InvitationResultStatus` (type), `BulkInvitationResponse` (interface)
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `@chamuco/shared-types` — `BulkInvitationResponse` interface implemented by the response DTO
+- `@/common/dto/invitation-result.dto` — `InvitationResultDto` re-exported and used as array element type
 
 ### Definitions
 
-- `TripInvitationResultDto` (class) — DTO for a single invitation result item; holds `username` and `status` fields; implements `InvitationResult`
-- `BulkTripInvitationResponseDto` (class) — DTO for the bulk invitation response envelope; holds an array of `TripInvitationResultDto`; implements `BulkInvitationResponse`
+- `BulkTripInvitationResponseDto` (class) — response DTO for bulk trip invitation operations; contains a `results` array of `InvitationResultDto`
 
 ### Exports
 
-- `TripInvitationResultDto` — named
+- `TripInvitationResultDto` — barrel re-export (re-exports `InvitationResultDto` as `TripInvitationResultDto`)
 - `BulkTripInvitationResponseDto` — named
 
 ---
 
-## create-trip-invitation.dto.ts
+## `create-trip-invitation.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` decorator for OpenAPI field documentation
-- `class-validator` — `ArrayMaxSize`, `ArrayMinSize`, `IsArray`, `IsString`, `Matches`, `MaxLength`, `MinLength` validation decorators
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `class-validator` — `ArrayMaxSize`, `ArrayMinSize`, `IsArray`, `IsString`, `Matches`, `MaxLength`, `MinLength` for request validation
 
 ### Definitions
 
-- `CreateTripInvitationDto` (class) — Request DTO for bulk trip invitations; validates `usernames` as a non-empty array (1–20 items) of lowercase alphanumeric strings (3–30 chars, matching `^[a-z0-9_-]+$`)
+- `CreateTripInvitationDto` (class) — request DTO for creating trip invitations; accepts an array of 1–20 usernames (lowercase, 3–30 chars, matching `^[a-z0-9_-]+$`)
 
 ### Exports
 

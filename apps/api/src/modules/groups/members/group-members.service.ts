@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { and, count, eq, inArray, isNull } from 'drizzle-orm';
 import {
+  GROUP_ADMIN_ROLES,
   GroupMemberStatus,
   GroupMemberTier,
   GroupRole,
@@ -28,8 +29,6 @@ import type { MemberResponseDto } from './dto/member-response.dto';
 import type { PendingItemResponseDto } from './dto/pending-item-response.dto';
 import type { MyMembershipResponseDto } from './dto/my-membership-response.dto';
 import type { MyInvitationResponseDto } from '@/modules/groups/dto/my-invitation-response.dto';
-
-const ADMIN_ROLES = [GroupRole.OWNER, GroupRole.ADMIN] as const;
 
 @Injectable()
 export class GroupMembersService {
@@ -102,10 +101,7 @@ export class GroupMembersService {
       ),
     });
 
-    if (
-      !requesterMembership ||
-      !ADMIN_ROLES.includes(requesterMembership.role as (typeof ADMIN_ROLES)[number])
-    ) {
+    if (!requesterMembership || !GROUP_ADMIN_ROLES.includes(requesterMembership.role)) {
       throw new ForbiddenException('Only group admins can remove members');
     }
 
@@ -161,10 +157,7 @@ export class GroupMembersService {
       ),
     });
 
-    if (
-      !requesterMembership ||
-      !ADMIN_ROLES.includes(requesterMembership.role as (typeof ADMIN_ROLES)[number])
-    ) {
+    if (!requesterMembership || !GROUP_ADMIN_ROLES.includes(requesterMembership.role)) {
       throw new ForbiddenException('Only group admins can update member roles');
     }
 
@@ -388,7 +381,7 @@ export class GroupMembersService {
         eq(groupMembers.groupId, groupId),
         eq(groupMembers.userId, userId),
         eq(groupMembers.status, GroupMemberStatus.ACTIVE),
-        inArray(groupMembers.role, [...ADMIN_ROLES]),
+        inArray(groupMembers.role, GROUP_ADMIN_ROLES),
       ),
     });
     if (!membership) throw new ForbiddenException('Only group admins can perform this action');
@@ -413,7 +406,7 @@ export class GroupMembersService {
       where: and(
         eq(groupMembers.groupId, groupId),
         eq(groupMembers.status, GroupMemberStatus.ACTIVE),
-        inArray(groupMembers.role, [...ADMIN_ROLES]),
+        inArray(groupMembers.role, GROUP_ADMIN_ROLES),
       ),
       limit: 2,
     });

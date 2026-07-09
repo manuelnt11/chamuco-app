@@ -2,17 +2,17 @@
 
 ---
 
-## create-trip-announcement.dto.ts
+## `create-trip-announcement.dto.ts`
 
 ### Imports
 
 - `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
-- `class-transformer` — `Transform` for trimming string input before validation
+- `class-transformer` — `Transform` for trimming input strings
 - `class-validator` — `IsNotEmpty`, `IsString`, `Matches`, `MaxLength` for request validation
 
 ### Definitions
 
-- `CreateTripAnnouncementDto` (class) — Request body for creating a trip announcement; validates `content` as a non-empty string up to 2000 chars with no HTML tags allowed
+- `CreateTripAnnouncementDto` (class) — Request body DTO for creating a trip announcement; validates a single `content` string (max 2000 chars, no HTML tags)
 
 ### Exports
 
@@ -20,17 +20,15 @@
 
 ---
 
-## list-trip-announcements-query.dto.ts
+## `list-trip-announcements-query.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiPropertyOptional` for optional OpenAPI field documentation
-- `class-transformer` — `Type` for coercing query string values to numbers
-- `class-validator` — `IsInt`, `IsOptional`, `Max`, `Min` for pagination query validation
+- `@/common/dto/paginated-query.dto` — `PaginatedQueryDto` base class providing pagination query parameters
 
 ### Definitions
 
-- `ListTripAnnouncementsQueryDto` (class) — Query params DTO for paginating trip announcements; exposes `limit` (1–100, default 20) and `offset` (≥0, default 0)
+- `ListTripAnnouncementsQueryDto` (class) — Query params DTO for listing trip announcements; extends `PaginatedQueryDto` with no additional fields
 
 ### Exports
 
@@ -38,15 +36,16 @@
 
 ---
 
-## trip-announcement-response.dto.ts
+## `trip-announcement-response.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` for OpenAPI response field documentation
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
+- `@/common/dto/base-announcement-response.dto` — `BaseAnnouncementResponseDto` base class providing common announcement response fields
 
 ### Definitions
 
-- `TripAnnouncementResponseDto` (class) — Response shape for a single trip announcement; exposes `id`, `tripId`, `createdByUsername`, `content`, `createdAt`, and `updatedAt`
+- `TripAnnouncementResponseDto` (class) — Response DTO for a trip announcement; extends `BaseAnnouncementResponseDto` and adds a `tripId` UUID field
 
 ### Exports
 
@@ -54,17 +53,17 @@
 
 ---
 
-## update-trip-announcement.dto.ts
+## `update-trip-announcement.dto.ts`
 
 ### Imports
 
 - `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
-- `class-transformer` — `Transform` for trimming string input before validation
+- `class-transformer` — `Transform` for trimming input strings
 - `class-validator` — `IsNotEmpty`, `IsString`, `Matches`, `MaxLength` for request validation
 
 ### Definitions
 
-- `UpdateTripAnnouncementDto` (class) — Request body for updating a trip announcement; validates `content` as a non-empty string up to 2000 chars with no HTML tags allowed
+- `UpdateTripAnnouncementDto` (class) — Request body DTO for updating a trip announcement; validates a single `content` string (max 2000 chars, no HTML tags)
 
 ### Exports
 

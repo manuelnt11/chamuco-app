@@ -2,35 +2,35 @@
 
 ---
 
-## public-profile-response.dto.spec.ts
+## `public-profile-response.dto.spec.ts`
 
 ### Imports
 
-- `./public-profile-response.dto` — `KeyStatsDto`, `PublicProfileResponseDto` (DTOs under test)
+- `./public-profile-response.dto` — `KeyStatsDto`, `PublicProfileResponseDto` (classes under test)
 
 ### Definitions
 
-- `KeyStatsDto` instantiation test (describe block) — verifies all numeric stat fields can be assigned
-- `PublicProfileResponseDto` instantiation test (describe block) — verifies all profile fields including nullable ones can be assigned
+- `KeyStatsDto instantiation test` (const) — verifies all numeric stat fields can be assigned
+- `PublicProfileResponseDto instantiation test` (const) — verifies all profile fields including nullable ones can be assigned
 
 ### Exports
 
-- _(none — test file only)_
+- none
 
 ---
 
-## public-profile-response.dto.ts
+## `public-profile-response.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` (OpenAPI field decoration)
-- `@chamuco/shared-types` — `ProfileVisibility` (enum), `KeyStats` (interface implemented by `KeyStatsDto`), `ResolvedAsset` (type for avatar field)
-- `./user-response.dto` — `ResolvedAssetDto` (used as nested type for `avatar`)
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `@chamuco/shared-types` — `ProfileVisibility` (enum), `KeyStats` (type), `ResolvedAsset` (type)
+- `./user-response.dto` — `ResolvedAssetDto` (re-used asset response shape)
 
 ### Definitions
 
-- `KeyStatsDto` (class) — OpenAPI-annotated DTO implementing `KeyStats`; exposes `tripsCompleted`, `countriesVisited`, `citiesVisited`, `kmTraveled`, `tripsAsOrganizer`
-- `PublicProfileResponseDto` (class) — OpenAPI-annotated response shape for a user's public profile; includes `username`, `displayName`, `avatar`, `bio`, `profileVisibility`, `travelerScore` (null in MVP), `achievements`, `recognitions`, `keyStats` (null in MVP), `discoveryMap`
+- `KeyStatsDto` (class) — implements `KeyStats`; five numeric fields: `tripsCompleted`, `countriesVisited`, `citiesVisited`, `kmTraveled`, `tripsAsOrganizer`
+- `PublicProfileResponseDto` (class) — publicly visible profile shape: `username`, `displayName`, `avatar`, `bio`, `profileVisibility`, `travelerScore`, `achievements`, `recognitions`, `keyStats`, `discoveryMap`
 
 ### Exports
 
@@ -39,17 +39,17 @@
 
 ---
 
-## search-users-query.dto.ts
+## `search-users-query.dto.ts`
 
 ### Imports
 
-- `class-transformer` — `Type` (coerces query-string number to `Number`)
-- `class-validator` — `IsInt`, `IsOptional`, `IsString`, `Max`, `MaxLength`, `Min`, `MinLength` (field validation decorators)
-- `@nestjs/swagger` — `ApiPropertyOptional` (OpenAPI optional field decoration)
+- `class-transformer` — `Type` for query-param coercion
+- `class-validator` — `IsInt`, `IsOptional`, `IsString`, `Max`, `MaxLength`, `Min`, `MinLength` for validation decorators
+- `@nestjs/swagger` — `ApiPropertyOptional` for OpenAPI decoration
 
 ### Definitions
 
-- `SearchUsersQueryDto` (class) — Query-parameter DTO for `GET /users/search`; `q` (optional string, 1–100 chars; `@`-prefix triggers username-only search) and `limit` (optional int 1–20, default 10)
+- `SearchUsersQueryDto` (class) — query params for user search: optional `q` string (1–100 chars; `@` prefix targets username-only match) and optional `limit` integer (1–20, default 10)
 
 ### Exports
 
@@ -57,17 +57,17 @@
 
 ---
 
-## update-avatar.dto.ts
+## `update-avatar.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` (OpenAPI field decoration)
-- `class-validator` — `IsIn`, `IsNotEmpty`, `IsNumber`, `IsOptional`, `IsString`, `Max`, `MaxLength`, `Min`, `ValidateIf` (field validation decorators)
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `class-validator` — `IsIn`, `IsNotEmpty`, `IsNumber`, `IsOptional`, `IsString`, `Max`, `MaxLength`, `Min`, `ValidateIf` for validation decorators
 
 ### Definitions
 
-- `TWO_MB` (const) — File-size ceiling constant (2 × 1024 × 1024 bytes); used in `@Max` and `@ApiProperty`
-- `UpdateAvatarDto` (class) — Request body for `PATCH /users/:id/avatar`; `source` discriminates `'gcs'` vs `'emoji'`; `target` is the GCS object key or emoji character; `fileSize` is required only when `source === 'gcs'` via `@ValidateIf`
+- `TWO_MB` (const) — local constant `2 * 1024 * 1024` used as the file-size ceiling
+- `UpdateAvatarDto` (class) — request body for avatar update: `source` (`'gcs' | 'emoji'`), `target` (objectKey or emoji character, max 8 chars when emoji), optional `fileSize` (required for GCS, 1–2 MB)
 
 ### Exports
 
@@ -75,17 +75,17 @@
 
 ---
 
-## update-user.dto.ts
+## `update-user.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` (OpenAPI field decoration)
-- `class-validator` — `IsEnum`, `IsNotEmpty`, `IsOptional`, `IsString`, `IsTimeZone`, `MaxLength` (field validation decorators)
-- `@chamuco/shared-types` — `ProfileVisibility` (enum for `profileVisibility` field)
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `class-validator` — `IsEnum`, `IsNotEmpty`, `IsOptional`, `IsString`, `IsTimeZone`, `MaxLength` for validation decorators
+- `@chamuco/shared-types` — `ProfileVisibility` (enum)
 
 ### Definitions
 
-- `UpdateUserDto` (class) — Partial request body for `PATCH /users/:id`; optional fields `displayName` (string, max 100), `timezone` (IANA time zone string), `profileVisibility` (`ProfileVisibility` enum)
+- `UpdateUserDto` (class) — PATCH body for user profile: optional `displayName` (max 100 chars), optional `timezone` (IANA timezone string), optional `profileVisibility` (enum)
 
 ### Exports
 
@@ -93,37 +93,37 @@
 
 ---
 
-## user-response.dto.ts
+## `user-response.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` (OpenAPI field decoration)
-- `@chamuco/shared-types` — `ResolvedAsset` (type), `AuthProvider`, `PlatformRole`, `ProfileVisibility` (enums)
-- `@/modules/assets/dto/resolved-asset.dto` — `ResolvedAssetDto` (nested DTO for avatar; re-exported from this file)
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `@chamuco/shared-types` — `ResolvedAsset` (type), `AuthProvider` (enum), `PlatformRole` (enum), `ProfileVisibility` (enum)
+- `@/modules/assets/dto/resolved-asset.dto` — `ResolvedAssetDto` (re-exported from this file)
 
 ### Definitions
 
-- `UserResponseDto` (class) — Full authenticated-user response shape; fields: `id`, `username`, `displayName`, `avatar`, `authProvider`, `timezone`, `profileVisibility`, `platformRole`, `agencyId`, `createdAt`, `updatedAt`, `lastActiveAt`
+- `UserResponseDto` (class) — full authenticated-user response shape: `id`, `username`, `displayName`, `avatar`, `authProvider`, `timezone`, `profileVisibility`, `platformRole`, `agencyId`, `createdAt`, `updatedAt`, `lastActiveAt`
 
 ### Exports
 
-- `ResolvedAssetDto` — named (re-export from `@/modules/assets/dto/resolved-asset.dto`)
+- `ResolvedAssetDto` — barrel re-export (re-exported from `@/modules/assets/dto/resolved-asset.dto`)
 - `UserResponseDto` — named
 
 ---
 
-## user-search-result.dto.ts
+## `user-search-result.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` (OpenAPI field decoration)
-- `@chamuco/shared-types` — `ResolvedAsset` (type for avatar field)
-- `@/modules/assets/dto/resolved-asset.dto` — `ResolvedAssetDto` (nested DTO for avatar)
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
+- `@chamuco/shared-types` — `ResolvedAsset` (type), `UserSearchResult` (interface), `UserSearchResponse` (interface)
+- `@/modules/assets/dto/resolved-asset.dto` — `ResolvedAssetDto` for avatar typing
 
 ### Definitions
 
-- `UserSearchResultDto` (class) — Minimal user projection returned in search results; fields: `id`, `username`, `displayName`, `avatar`
-- `UserSearchResponseDto` (class) — Paginated wrapper for search results; fields: `data` (array of `UserSearchResultDto`), `total` (pre-pagination count)
+- `UserSearchResultDto` (class) — implements `UserSearchResult`; single search hit: `id`, `username`, `displayName`, `avatar`
+- `UserSearchResponseDto` (class) — implements `UserSearchResponse`; paginated search envelope: `data` (array of `UserSearchResultDto`), `total` (count before pagination)
 
 ### Exports
 
@@ -132,15 +132,15 @@
 
 ---
 
-## username-availability.dto.ts
+## `username-availability.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` (OpenAPI field decoration)
+- `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
 
 ### Definitions
 
-- `UsernameAvailabilityDto` (class) — Response DTO for `GET /users/username-availability`; fields: `available` (boolean), `username` (normalized/lowercased form)
+- `UsernameAvailabilityDto` (class) — response for username availability check: `available` (boolean), `username` (normalized/lowercased form)
 
 ### Exports
 

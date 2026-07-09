@@ -4,8 +4,8 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import {
+  ORGANIZER_ROLES,
   TripParticipantStatus,
-  TripRole,
   TripStatus,
   TripVisibility,
   InvitationTokenContext,
@@ -37,8 +37,6 @@ interface ParticipantsPageProps {
 }
 
 type PageState = 'loading' | 'not-found' | 'not-participant' | 'ready';
-
-const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 
 export default function TripParticipantsPage({ params }: ParticipantsPageProps) {
   const { id } = use(params);

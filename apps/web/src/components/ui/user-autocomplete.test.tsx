@@ -18,10 +18,6 @@ vi.mock('@/hooks/useUserSearch', () => ({
   useUserSearch: mocks.mockUseUserSearch,
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 import { UserAutocomplete } from './user-autocomplete';
 import type { UserSearchResult } from '@/types/user';
 

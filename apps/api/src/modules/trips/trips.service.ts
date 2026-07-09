@@ -37,17 +37,11 @@ import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TripResponseDto } from './dto/trip-response.dto';
 import type { MyTripListItemResponseDto } from './dto/my-trip-list-item-response.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
+import { VALID_TRANSITIONS } from '@chamuco/shared-types';
 import { ACTIVE_STATUSES } from './participants/trip-participants.constants';
 
 // TODO: migrate to system settings module when admin config is available
 const FEEDBACK_WINDOW_DAYS = parseInt(process.env['TRIP_FEEDBACK_WINDOW_DAYS'] ?? '7', 10) || 7;
-
-const VALID_TRANSITIONS: Partial<Record<TripStatus, TripStatus[]>> = {
-  [TripStatus.DRAFT]: [TripStatus.OPEN, TripStatus.CANCELLED],
-  [TripStatus.OPEN]: [TripStatus.CONFIRMED, TripStatus.CANCELLED],
-  [TripStatus.CONFIRMED]: [TripStatus.IN_PROGRESS, TripStatus.CANCELLED],
-  [TripStatus.IN_PROGRESS]: [TripStatus.COMPLETED, TripStatus.CANCELLED],
-};
 
 @Injectable()
 export class TripsService {

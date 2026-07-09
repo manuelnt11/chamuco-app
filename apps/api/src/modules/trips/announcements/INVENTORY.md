@@ -2,38 +2,12 @@
 
 ---
 
-## trip-announcements.controller.spec.ts
+## `trip-announcements.controller.ts`
 
 ### Imports
 
-- `class-transformer` — `plainToInstance` for DTO transformation in tests
-- `class-validator` — `validate` for DTO validation assertions
-- `@nestjs/testing` — `Test`, `TestingModule` for NestJS test module bootstrapping
-- `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility` for mock user construction
-- `@/types/express` — `AuthenticatedUser` type for mock authenticated user shape
-- `./trip-announcements.controller` — `TripAnnouncementsController` (subject under test)
-- `./trip-announcements.service` — `TripAnnouncementsService` (mocked dependency)
-- `./dto/create-trip-announcement.dto` — `CreateTripAnnouncementDto` for request body tests
-- `./dto/trip-announcement-response.dto` — `TripAnnouncementResponseDto` type for response shape assertions
-- `./dto/update-trip-announcement.dto` — `UpdateTripAnnouncementDto` for DTO validation tests
-- `./dto/list-trip-announcements-query.dto` — `ListTripAnnouncementsQueryDto` for default value tests
-
-### Definitions
-
-- (no exported or substantial non-exported declarations — file is a test suite only)
-
-### Exports
-
-- (none)
-
----
-
-## trip-announcements.controller.ts
-
-### Imports
-
-- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post`, `Query` for HTTP routing and parameter binding
-- `@nestjs/swagger` — `ApiBearerAuth`, `ApiBody`, `ApiBadRequestResponse`, `ApiForbiddenResponse`, `ApiNoContentResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags`, `ApiUnauthorizedResponse` for OpenAPI documentation
+- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post`, `Query`
+- `@nestjs/swagger` — `ApiBearerAuth`, `ApiBody`, `ApiBadRequestResponse`, `ApiForbiddenResponse`, `ApiNoContentResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags`, `ApiUnauthorizedResponse`
 - `@/common/decorators/current-user.decorator` — `CurrentUser` parameter decorator to extract authenticated user
 - `@/types/express` — `AuthenticatedUser` type for typed current-user parameter
 - `./trip-announcements.service` — `TripAnnouncementsService` injected dependency
@@ -44,7 +18,7 @@
 
 ### Definitions
 
-- `TripAnnouncementsController` (controller) — NestJS REST controller under `v1/trips/:id/announcements` exposing create, findAll, findOne, update, and remove endpoints for trip announcements; organizer/co-organizer write access, accepted/confirmed participant read access
+- `TripAnnouncementsController` (controller) — NestJS REST controller at `v1/trips/:id/announcements` with create, findAll, findOne, update, and remove endpoints; organizer/co-organizer write access, accepted/confirmed participant read access
 
 ### Exports
 
@@ -52,23 +26,25 @@
 
 ---
 
-## trip-announcements.service.spec.ts
+## `trip-announcements.controller.spec.ts`
 
 ### Imports
 
-- `@nestjs/common` — `BadRequestException`, `ForbiddenException`, `NotFoundException` for exception assertion tests
+- `class-transformer` — `plainToInstance` for DTO transformation in DTO-level tests
+- `class-validator` — `validate` for constraint validation in DTO-level tests
 - `@nestjs/testing` — `Test`, `TestingModule` for NestJS test module bootstrapping
-- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripVisibility` for mock data construction
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token for mock DB provider
-- `@/modules/notifications/notifications.service` — `NotificationsService` (mocked dependency)
-- `./trip-announcements.service` — `TripAnnouncementsService` (subject under test)
-- `./dto/create-trip-announcement.dto` — `CreateTripAnnouncementDto` type for test payloads
-- `./dto/update-trip-announcement.dto` — `UpdateTripAnnouncementDto` type for test payloads
+- `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility` for mock user construction
+- `@/types/express` — `AuthenticatedUser` type for typed mock user
+- `./trip-announcements.controller` — `TripAnnouncementsController` subject under test
+- `./trip-announcements.service` — `TripAnnouncementsService` mocked provider
+- `./dto/create-trip-announcement.dto` — `CreateTripAnnouncementDto` for controller and DTO tests
+- `./dto/trip-announcement-response.dto` — `TripAnnouncementResponseDto` type for mock return value
+- `./dto/update-trip-announcement.dto` — `UpdateTripAnnouncementDto` for controller and DTO tests
+- `./dto/list-trip-announcements-query.dto` — `ListTripAnnouncementsQueryDto` for defaults test
 
 ### Definitions
 
-- `makeParticipant` (function) — factory helper that builds a mock `tripParticipants` row given userId, role, and status
-- `makeChain` (function) — factory helper that builds a chainable Drizzle query builder mock (from/innerJoin/where/orderBy/limit/offset/then) resolving to a given value
+- (no exported or substantial non-exported declarations — test suite only)
 
 ### Exports
 
@@ -76,19 +52,20 @@
 
 ---
 
-## trip-announcements.service.ts
+## `trip-announcements.service.ts`
 
 ### Imports
 
-- `@nestjs/common` — `BadRequestException`, `ForbiddenException`, `Inject`, `Injectable`, `Logger`, `NotFoundException` for DI, logging, and HTTP exceptions
+- `@nestjs/common` — `BadRequestException`, `ForbiddenException`, `Inject`, `Injectable`, `Logger`, `NotFoundException`
 - `drizzle-orm` — `and`, `count`, `desc`, `eq`, `inArray` for query building
-- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripRole`, `TripStatus` for domain enums
+- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripStatus`
 - `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token, `DrizzleClient` type
 - `@/modules/users/schema/users.schema` — `users` table reference
 - `@/modules/trips/schema/trips.schema` — `trips` table reference
 - `@/modules/trips/schema/trip-participants.schema` — `tripParticipants` table reference
-- `@/modules/notifications/notifications.service` — `NotificationsService` for dispatching push notifications
+- `@/modules/notifications/notifications.service` — `NotificationsService` for push notification dispatch
 - `@/modules/trips/schema/trip-announcements.schema` — `tripAnnouncements` table reference
+- `@/modules/trips/participants/trip-participants.constants` — `ORGANIZER_ROLES` constant
 - `./dto/create-trip-announcement.dto` — `CreateTripAnnouncementDto` type
 - `./dto/update-trip-announcement.dto` — `UpdateTripAnnouncementDto` type
 - `./dto/trip-announcement-response.dto` — `TripAnnouncementResponseDto` type
@@ -96,10 +73,33 @@
 
 ### Definitions
 
-- `ORGANIZER_ROLES` (const) — readonly tuple `[TripRole.ORGANIZER, TripRole.CO_ORGANIZER]` used in DB queries for organizer authorization checks
-- `READER_STATUSES` (const) — readonly tuple `[TripParticipantStatus.ACCEPTED, TripParticipantStatus.CONFIRMED]` used in DB queries for read access checks
-- `TripAnnouncementsService` (service) — injectable NestJS service providing create, findOne, findAll, update, and remove operations for trip announcements; enforces organizer-only writes, accepted/confirmed participant reads, blocks announcements on DRAFT trips, and fire-and-forget dispatches push notifications to all accepted/confirmed participants (excluding the caller) on create
+- `READER_STATUSES` (const) — module-level tuple of `ACCEPTED` and `CONFIRMED` statuses used to gate read access
+- `TripAnnouncementsService` (service) — manages trip announcements CRUD; enforces organizer-only writes, accepted/confirmed participant reads, blocks creates on DRAFT trips, and fire-and-forget dispatches push notifications to all eligible participants (excluding the caller) on create
 
 ### Exports
 
 - `TripAnnouncementsService` — named
+
+---
+
+## `trip-announcements.service.spec.ts`
+
+### Imports
+
+- `@nestjs/common` — `BadRequestException`, `ForbiddenException`, `NotFoundException` for exception assertions
+- `@nestjs/testing` — `Test`, `TestingModule` for NestJS test module bootstrapping
+- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripVisibility` for mock data construction
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token for mocked DB provider
+- `@/modules/notifications/notifications.service` — `NotificationsService` mocked provider
+- `./trip-announcements.service` — `TripAnnouncementsService` subject under test
+- `./dto/create-trip-announcement.dto` — `CreateTripAnnouncementDto` type for test payloads
+- `./dto/update-trip-announcement.dto` — `UpdateTripAnnouncementDto` type for test payloads
+
+### Definitions
+
+- `makeParticipant` (function) — factory helper that builds a mock `tripParticipants` row given userId, role, and status
+- `makeChain` (function) — factory helper that returns a chainable Drizzle query builder mock (from/innerJoin/where/orderBy/limit/offset/then) resolving to a given value
+
+### Exports
+
+- (none)

@@ -7,10 +7,6 @@ const mocks = vi.hoisted(() => ({
   mockOnCancel: vi.fn(),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('react-image-crop', () => ({
   default: ({
     children,

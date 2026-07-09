@@ -2,23 +2,28 @@
 
 ---
 
-## group-invitations.controller.ts
+## `group-invitations.controller.ts`
 
 ### Imports
 
-- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post` (routing and HTTP decorators)
-- `@nestjs/swagger` — `ApiBearerAuth`, `ApiBody`, `ApiConflictResponse`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags`, `ApiUnauthorizedResponse` (OpenAPI documentation decorators)
-- `@/common/decorators/current-user.decorator` — `CurrentUser` (parameter decorator to extract authenticated user from request)
-- `@/types/express` — `AuthenticatedUser` (type for the authenticated user object)
-- `@/modules/groups/members/group-members.service` — `GroupMembersService` (provides `listMyInvitations`)
-- `./group-invitations.service` — `GroupInvitationsService` (provides send/accept/decline/revoke invitation methods)
-- `./dto/create-invitation.dto` — `CreateInvitationDto` (request body for sending invitations)
-- `./dto/bulk-invitation-response.dto` — `BulkInvitationResponseDto` (response shape for bulk invitation results)
-- `@/modules/groups/dto/my-invitation-response.dto` — `MyInvitationResponseDto` (response shape for listing caller's invitations)
+- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post`
+- `@nestjs/swagger` — `ApiBearerAuth`, `ApiBody`, `ApiConflictResponse`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags`, `ApiUnauthorizedResponse`
+- `@/common/decorators/current-user.decorator` — `CurrentUser` parameter decorator
+- `@/types/express` — `AuthenticatedUser` type
+- `@/modules/groups/members/group-members.service` — `GroupMembersService`
+- `./group-invitations.service` — `GroupInvitationsService`
+- `./dto/create-invitation.dto` — `CreateInvitationDto`
+- `./dto/bulk-invitation-response.dto` — `BulkInvitationResponseDto`
+- `@/modules/groups/dto/my-invitation-response.dto` — `MyInvitationResponseDto`
 
 ### Definitions
 
-- `GroupInvitationsController` (controller) — NestJS controller under `v1/groups` that exposes five endpoints: list my invitations, send invitations (bulk, admin-only), accept an invitation, decline an invitation, and revoke an invitation (admin-only)
+- `GroupInvitationsController` (controller) — NestJS controller mounted at `v1/groups` handling the full group invitation lifecycle
+- `listMyInvitations` (function) — GET `/v1/groups/invitations`; returns all pending invitations for the authenticated user
+- `sendInvitations` (function) — POST `/v1/groups/:id/invitations`; sends bulk invitations by username; admin only; returns per-user results
+- `acceptInvitation` (function) — PATCH `/v1/groups/:id/invitations/accept`; transitions caller's INVITED record to ACTIVE
+- `declineInvitation` (function) — PATCH `/v1/groups/:id/invitations/decline`; transitions caller's INVITED record to REJECTED
+- `revokeInvitation` (function) — DELETE `/v1/groups/:id/invitations/:userId`; deletes an invitee's INVITED record; admin only
 
 ### Exports
 
@@ -26,52 +31,56 @@
 
 ---
 
-## group-invitations.controller.spec.ts
+## `group-invitations.controller.spec.ts`
 
 ### Imports
 
-- `@nestjs/testing` — `Test`, `TestingModule` (NestJS test harness)
-- `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility` (enums for constructing the mock authenticated user)
-- `./group-invitations.controller` — `GroupInvitationsController` (subject under test)
-- `@/modules/groups/members/group-members.service` — `GroupMembersService` (mocked provider)
-- `./group-invitations.service` — `GroupInvitationsService` (mocked provider)
-- `./dto/create-invitation.dto` — `CreateInvitationDto` (type for test DTOs)
-- `./dto/bulk-invitation-response.dto` — `BulkInvitationResponseDto` (type for mock return values)
-- `@/modules/groups/dto/my-invitation-response.dto` — `MyInvitationResponseDto` (type for mock return values)
-- `@/types/express` — `AuthenticatedUser` (type for the mock authenticated user)
+- `@nestjs/testing` — `Test`, `TestingModule`
+- `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility`
+- `./group-invitations.controller` — `GroupInvitationsController`
+- `@/modules/groups/members/group-members.service` — `GroupMembersService`
+- `./group-invitations.service` — `GroupInvitationsService`
+- `./dto/create-invitation.dto` — `CreateInvitationDto` type
+- `./dto/bulk-invitation-response.dto` — `BulkInvitationResponseDto` type
+- `@/modules/groups/dto/my-invitation-response.dto` — `MyInvitationResponseDto` type
+- `@/types/express` — `AuthenticatedUser` type
 
 ### Definitions
 
-- `mockAuthUser` (const) — stub `AuthenticatedUser` used across all tests
-- `mockInvitationResponse` (const) — stub `MyInvitationResponseDto` used across all tests
+- `mockAuthUser` (const) — shared `AuthenticatedUser` fixture for all test cases
+- `mockInvitationResponse` (const) — shared `MyInvitationResponseDto` fixture
+- `GroupInvitationsController` describe block — unit tests for all five controller methods using mocked service providers
 
 ### Exports
 
-- none (test file)
+- _(none)_
 
 ---
 
-## group-invitations.service.ts
+## `group-invitations.service.ts`
 
 ### Imports
 
-- `@nestjs/common` — `ConflictException`, `Inject`, `Injectable`, `Logger` (DI decorators and HTTP exception)
-- `drizzle-orm` — `and`, `eq`, `inArray` (Drizzle query condition helpers)
-- `@chamuco/shared-types` — `GroupMemberStatus`, `GroupRole`, `NotificationChannel`, `NotificationType` (domain enums)
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT`, `DrizzleClient` (injection token and type for the Drizzle DB client)
-- `@/modules/users/schema/users.schema` — `users` (Drizzle table reference)
-- `@/modules/groups/schema/group-members.schema` — `groupMembers` (Drizzle table reference)
-- `@/modules/groups/schema/group-member-stats.schema` — `groupMemberStats` (Drizzle table reference)
-- `@/modules/groups/schema/groups.schema` — `groups` (Drizzle table reference)
-- `@/modules/notifications/notifications.service` — `NotificationsService` (sends push/email notifications)
-- `@/modules/groups/members/group-members.service` — `GroupMembersService` (provides `assertGroupAdmin` and `findMemberOrThrow`)
-- `./dto/create-invitation.dto` — `CreateInvitationDto` (input type for `sendInvitations`)
-- `./dto/bulk-invitation-response.dto` — `BulkInvitationResponseDto`, `InvitationResultDto` (output types for `sendInvitations`)
+- `@nestjs/common` — `ConflictException`, `Inject`, `Injectable`, `Logger`
+- `drizzle-orm` — `and`, `eq`, `inArray`
+- `@chamuco/shared-types` — `GROUP_ADMIN_ROLES`, `GroupMemberStatus`, `GroupRole`, `NotificationChannel`, `NotificationType`
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT`, `DrizzleClient`
+- `@/modules/users/schema/users.schema` — `users` table reference
+- `@/modules/groups/schema/group-members.schema` — `groupMembers` table reference
+- `@/modules/groups/schema/group-member-stats.schema` — `groupMemberStats` table reference
+- `@/modules/groups/schema/groups.schema` — `groups` table reference
+- `@/modules/notifications/notifications.service` — `NotificationsService`
+- `@/modules/groups/members/group-members.service` — `GroupMembersService`
+- `./dto/create-invitation.dto` — `CreateInvitationDto` type
+- `./dto/bulk-invitation-response.dto` — `BulkInvitationResponseDto`, `InvitationResultDto` types
 
 ### Definitions
 
-- `ADMIN_ROLES` (const) — tuple of `[GroupRole.OWNER, GroupRole.ADMIN]` used to filter admin members when notifying
-- `GroupInvitationsService` (service) — injectable NestJS service that implements all invitation lifecycle operations: `sendInvitations` (bulk, with per-user status results and notification), `acceptInvitation` (INVITED → ACTIVE with stats upsert and admin notification), `declineInvitation` (INVITED → REJECTED), and `revokeInvitation` (admin deletes an INVITED row)
+- `GroupInvitationsService` (service) — Injectable NestJS service managing the full group invitation lifecycle
+- `sendInvitations` (function) — admin-only; resolves each username to a per-user result (INVITED, ALREADY_MEMBER, ALREADY_INVITED, HAS_PENDING_REQUEST, NOT_FOUND); re-invites REJECTED/REMOVED/LEFT members; fires push + email notifications
+- `acceptInvitation` (function) — transitions INVITED → ACTIVE in a DB transaction, upserts `groupMemberStats`, notifies group admins via push
+- `declineInvitation` (function) — transitions INVITED → REJECTED; throws `ConflictException` if no pending invitation exists
+- `revokeInvitation` (function) — admin-only; deletes the INVITED membership row; throws `ConflictException` if target is not INVITED
 
 ### Exports
 
@@ -79,23 +88,24 @@
 
 ---
 
-## group-invitations.service.spec.ts
+## `group-invitations.service.spec.ts`
 
 ### Imports
 
-- `@nestjs/common` — `ConflictException`, `ForbiddenException`, `NotFoundException` (exception classes asserted in tests)
-- `@nestjs/testing` — `Test`, `TestingModule` (NestJS test harness)
-- `@chamuco/shared-types` — `GroupMemberStatus`, `GroupRole`, `NotificationChannel`, `NotificationType` (enums for constructing stubs and asserting calls)
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` (injection token for mock DB)
-- `./group-invitations.service` — `GroupInvitationsService` (subject under test)
-- `@/modules/groups/members/group-members.service` — `GroupMembersService` (mocked provider)
-- `@/modules/notifications/notifications.service` — `NotificationsService` (mocked provider)
-- `./dto/create-invitation.dto` — `CreateInvitationDto` (type for test DTOs)
+- `@nestjs/common` — `ConflictException`, `ForbiddenException`, `NotFoundException`
+- `@nestjs/testing` — `Test`, `TestingModule`
+- `@chamuco/shared-types` — `GroupMemberStatus`, `GroupRole`, `NotificationChannel`, `NotificationType`
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT`
+- `./group-invitations.service` — `GroupInvitationsService`
+- `@/modules/groups/members/group-members.service` — `GroupMembersService`
+- `@/modules/notifications/notifications.service` — `NotificationsService`
+- `./dto/create-invitation.dto` — `CreateInvitationDto` type
 
 ### Definitions
 
-- `makeMembership` (function) — factory that constructs a partial group membership object for a given userId, status, and role
+- `makeMembership` (function) — non-exported factory helper that builds a `groupMembers`-shaped fixture given userId, status, and optional role
+- `GroupInvitationsService` describe block — unit tests covering `sendInvitations`, `acceptInvitation`, `declineInvitation`, and `revokeInvitation` with mocked Drizzle client and service dependencies
 
 ### Exports
 
-- none (test file)
+- _(none)_

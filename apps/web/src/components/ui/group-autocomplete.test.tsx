@@ -9,10 +9,6 @@ vi.mock('@/hooks/useGroupPickerSearch', () => ({
   useGroupPickerSearch: mocks.mockUseGroupPickerSearch,
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 import { GroupAutocomplete } from './group-autocomplete';
 import type { Group, GroupSearchResult } from '@/types/group';
 import { GroupVisibility, MembershipStatus } from '@chamuco/shared-types';

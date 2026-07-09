@@ -7,10 +7,6 @@ const mocks = vi.hoisted(() => ({
   mockOnSuccess: vi.fn(),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('@/services/api-client', () => ({
   apiClient: {
     post: mocks.mockPost,

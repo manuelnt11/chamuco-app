@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GroupMemberTier, GroupRole } from '@chamuco/shared-types';
+import { GROUP_ADMIN_ROLES, GroupMemberTier, GroupRole } from '@chamuco/shared-types';
 import { ShieldStarIcon, UserMinusIcon } from '@phosphor-icons/react';
 import { getInitials } from '@/lib/name-utils';
 import { Avatar } from '@/components/ui/avatar';
@@ -34,8 +34,6 @@ const TIER_VARIANT: Record<GroupMemberTier, 'default' | 'secondary' | 'outline'>
   [GroupMemberTier.NEWCOMER]: 'outline',
 };
 
-const ADMIN_ROLES: GroupRole[] = [GroupRole.OWNER, GroupRole.ADMIN];
-
 export function MemberListItem({
   member,
   groupId,
@@ -48,7 +46,7 @@ export function MemberListItem({
   const [isPromoting, setIsPromoting] = useState(false);
   const [isDemoting, setIsDemoting] = useState(false);
 
-  const isAdmin = currentUserRole !== null && ADMIN_ROLES.includes(currentUserRole);
+  const isAdmin = currentUserRole !== null && GROUP_ADMIN_ROLES.includes(currentUserRole);
   const isSelf = member.userId === currentUserId;
   const isTargetOwner = member.role === GroupRole.OWNER;
   const callerIsOwner = currentUserRole === GroupRole.OWNER;

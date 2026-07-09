@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, count, eq, inArray } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import JSZip from 'jszip';
 
@@ -800,5 +800,28 @@ export class TripParticipantsService {
     );
 
     return new Map(entries);
+  }
+
+  async assertCapacityAvailable(tripId: string): Promise<void> {
+    const trip = await this.db.query.trips.findFirst({
+      where: eq(trips.id, tripId),
+      columns: { participantCapacity: true },
+    });
+    if (!trip) return;
+
+    const [row] = await this.db
+      .select({ total: count() })
+      .from(tripParticipants)
+      .where(
+        and(
+          eq(tripParticipants.tripId, tripId),
+          inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
+          eq(tripParticipants.isTraveler, true),
+        ),
+      );
+
+    if ((row?.total ?? 0) >= trip.participantCapacity) {
+      throw new ConflictException('Trip has reached maximum participant capacity');
+    }
   }
 }

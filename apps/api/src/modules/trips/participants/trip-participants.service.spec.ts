@@ -95,6 +95,9 @@ describe('TripParticipantsService', () => {
   let mockUpdate: jest.Mock;
   let mockDeleteWhere: jest.Mock;
   let mockDelete: jest.Mock;
+  let mockSelectWhere: jest.Mock;
+  let mockSelectFrom: jest.Mock;
+  let mockSelect: jest.Mock;
   let mockTransaction: jest.Mock;
   let mockAssetResolverResolve: jest.Mock;
   let mockNotificationsNotify: jest.Mock;
@@ -116,6 +119,10 @@ describe('TripParticipantsService', () => {
 
     mockDeleteWhere = jest.fn().mockResolvedValue(undefined);
     mockDelete = jest.fn().mockReturnValue({ where: mockDeleteWhere });
+
+    mockSelectWhere = jest.fn().mockResolvedValue([{ total: 0 }]);
+    mockSelectFrom = jest.fn().mockReturnValue({ where: mockSelectWhere });
+    mockSelect = jest.fn().mockReturnValue({ from: mockSelectFrom });
 
     mockTransaction = jest
       .fn()
@@ -146,6 +153,7 @@ describe('TripParticipantsService', () => {
             },
             update: mockUpdate,
             delete: mockDelete,
+            select: mockSelect,
             transaction: mockTransaction,
           },
         },
@@ -1009,6 +1017,25 @@ describe('TripParticipantsService', () => {
         service.removeParticipant(TRIP_ID, USER_ID, ORGANIZER_ID),
       ).resolves.toBeUndefined();
       expect(logSpy).toHaveBeenCalled();
+    });
+
+    describe('assertCapacityAvailable', () => {
+      it('resolves when trip does not exist', async () => {
+        mockTripsFindFirst.mockResolvedValueOnce(undefined);
+        await expect(service.assertCapacityAvailable(TRIP_ID)).resolves.toBeUndefined();
+      });
+
+      it('resolves when active traveler count is below capacity', async () => {
+        mockTripsFindFirst.mockResolvedValueOnce({ participantCapacity: 10 });
+        mockSelectWhere.mockResolvedValueOnce([{ total: 5 }]);
+        await expect(service.assertCapacityAvailable(TRIP_ID)).resolves.toBeUndefined();
+      });
+
+      it('throws ConflictException when active traveler count meets capacity', async () => {
+        mockTripsFindFirst.mockResolvedValueOnce({ participantCapacity: 5 });
+        mockSelectWhere.mockResolvedValueOnce([{ total: 5 }]);
+        await expect(service.assertCapacityAvailable(TRIP_ID)).rejects.toThrow(ConflictException);
+      });
     });
 
     it('updateParticipantRole resolves even if notify throws', async () => {

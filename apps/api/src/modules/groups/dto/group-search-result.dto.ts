@@ -1,8 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { GroupVisibility, MembershipStatus } from '@chamuco/shared-types';
+import {
+  GroupVisibility,
+  MembershipStatus,
+  type GroupSearchResult,
+  type GroupSearchResponse,
+} from '@chamuco/shared-types';
 
-export class GroupSearchResultDto {
+export class GroupSearchResultDto implements GroupSearchResult {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
   id!: string;
 
@@ -44,7 +49,7 @@ export class GroupSearchResultDto {
   membershipStatus!: MembershipStatus;
 }
 
-export class GroupSearchResponseDto {
+export class GroupSearchResponseDto implements GroupSearchResponse {
   @ApiProperty({ type: [GroupSearchResultDto] })
   data!: GroupSearchResultDto[];
 

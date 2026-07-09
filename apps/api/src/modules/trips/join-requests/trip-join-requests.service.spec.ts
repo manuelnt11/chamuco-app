@@ -69,6 +69,7 @@ describe('TripJoinRequestsService', () => {
   let mockAssertTripExists: jest.Mock;
   let mockAssertTripOrganizer: jest.Mock;
   let mockFindParticipantOrThrow: jest.Mock;
+  let mockAssertCapacityAvailable: jest.Mock;
 
   beforeEach(async () => {
     mockTripParticipantsFindFirst = jest.fn().mockResolvedValue(undefined);
@@ -93,6 +94,7 @@ describe('TripJoinRequestsService', () => {
     mockAssertTripExists = jest.fn().mockResolvedValue(mockPublicTrip);
     mockAssertTripOrganizer = jest.fn().mockResolvedValue(undefined);
     mockFindParticipantOrThrow = jest.fn().mockResolvedValue(requestParticipation);
+    mockAssertCapacityAvailable = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -116,6 +118,7 @@ describe('TripJoinRequestsService', () => {
             assertTripExists: mockAssertTripExists,
             assertTripOrganizer: mockAssertTripOrganizer,
             findParticipantOrThrow: mockFindParticipantOrThrow,
+            assertCapacityAvailable: mockAssertCapacityAvailable,
           },
         },
         {
@@ -252,8 +255,9 @@ describe('TripJoinRequestsService', () => {
     });
 
     it('throws ConflictException when trip is at capacity', async () => {
-      mockTripsFindFirst.mockResolvedValue({ ...mockPublicTrip, participantCapacity: 1 });
-      mockSelectWhere.mockResolvedValueOnce([{ total: 1 }]);
+      mockAssertCapacityAvailable.mockRejectedValueOnce(
+        new ConflictException('Trip has reached maximum participant capacity'),
+      );
 
       await expect(service.acceptJoinRequest(TRIP_ID, USER_ID, ORGANIZER_ID)).rejects.toThrow(
         ConflictException,

@@ -2,25 +2,25 @@
 
 ---
 
-## ExportParticipantsPopover.tsx
+## `ExportParticipantsPopover.tsx`
 
 ### Imports
 
-- `react` — `useState` for local format, field selection, loading, and error state
-- `react-i18next` — `useTranslation` for i18n (`trips` namespace)
-- `@phosphor-icons/react` — `DownloadSimpleIcon` for the trigger button icon
-- `@chamuco/shared-types` — `ExportField`, `ExportFormat` enums for field/format selection
-- `@/components/ui/button` — `Button` primitive
-- `@/components/ui/checkbox` — `Checkbox` for field toggles
-- `@/components/ui/select` — `Select` for format picker
-- `@/components/ui/popover` — `Popover`, `PopoverContent`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger` for the dropdown panel
-- `@/services/trips.service` — `exportTripParticipants` to trigger the file download
+- `react` — `useState`
+- `react-i18next` — `useTranslation`
+- `@phosphor-icons/react` — `DownloadSimpleIcon`
+- `@chamuco/shared-types` — `ExportField`, `ExportFormat`
+- `@/components/ui/button` — `Button`
+- `@/components/ui/checkbox` — `Checkbox`
+- `@/components/ui/select` — `Select`
+- `@/components/ui/popover` — `Popover`, `PopoverContent`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`
+- `@/services/trips.service` — `exportTripParticipants`
 
 ### Definitions
 
+- `ALL_FIELDS` (const) — all `ExportField` enum values derived via `Object.values`
+- `REQUIRED_FIELDS` (const) — `Set<ExportField>` locked from deselection (`FIRST_NAME`, `LAST_NAME`)
 - `ExportParticipantsPopoverProps` (interface) — props: `tripId: string`
-- `ALL_FIELDS` (const) — array of all `ExportField` values derived from the enum
-- `REQUIRED_FIELDS` (const) — `Set<ExportField>` of fields that cannot be deselected (first name, last name)
 - `ExportParticipantsPopover` (component) — popover with format selector and per-field checkboxes that calls `exportTripParticipants` on submit
 
 ### Exports
@@ -29,47 +29,49 @@
 
 ---
 
-## InviteParticipantModal.test.tsx
+## `InviteParticipantModal.test.tsx`
 
 ### Imports
 
-- `@testing-library/react` — `render`, `screen`, `waitFor` for DOM assertions
-- `@testing-library/user-event` — `userEvent` for simulated interactions
-- `@chamuco/shared-types` — `InvitationResult` type used in mock return values
-- `@/types/user` — `UserSearchResult` type used in the `UserAutocomplete` mock
-- `./InviteParticipantModal` — `InviteParticipantModal` component under test
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `@chamuco/shared-types` — `InvitationResult` (type)
+- `@/types/user` — `UserSearchResult` (type)
+- `@/services/trips.service` — `inviteTripParticipants` (mocked)
+- `@/components/ui/user-autocomplete` — `UserAutocomplete` (mocked)
+- `./InviteParticipantModal` — `InviteParticipantModal`
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock object holding `mockInvite` and `mockOnSuccess`
+- `mocks` (const) — hoisted vi factories: `mockInvite`, `mockOnSuccess`
 - `setup` (function) — renders `InviteParticipantModal` with optional `excludedIds` and returns `userEvent` instance
-- `openDialog` (function) — clicks the trigger button to open the modal
-- `selectUser` (function) — clicks the mock autocomplete's "select-user" button
-- `makeResults` (function) — builds a `{ results: InvitationResult[] }` payload from a list of statuses
+- `openDialog` (function) — clicks the trigger button to open the dialog
+- `selectUser` (function) — clicks the mocked autocomplete select-user button
+- `makeResults` (function) — factory producing `{ results: InvitationResult[] }` from a status array
 
 ### Exports
 
-- _(none — test file)_
+- none (test file)
 
 ---
 
-## InviteParticipantModal.tsx
+## `InviteParticipantModal.tsx`
 
 ### Imports
 
-- `react` — `useState`, `SubmitEvent` for form state and React 19 event type
-- `react-i18next` — `useTranslation` for i18n (`trips` namespace)
-- `@phosphor-icons/react` — `UserPlusIcon` for the trigger button
-- `@chamuco/shared-types` — `InvitationResult` type for API response
-- `@/services/trips.service` — `inviteTripParticipants` API call
-- `@/components/ui/button` — `Button` primitive
+- `react` — `useState`, `SubmitEvent` (type)
+- `react-i18next` — `useTranslation`
+- `@phosphor-icons/react` — `UserPlusIcon`
+- `@chamuco/shared-types` — `InvitationResult` (type)
+- `@/services/trips.service` — `inviteTripParticipants`
+- `@/components/ui/button` — `Button`
 - `@/components/ui/dialog` — `Dialog`, `DialogTrigger`, `DialogPopup`, `DialogTitle`, `DialogDescription`, `DialogClose`
-- `@/components/ui/user-autocomplete` — `UserAutocomplete` for username search
-- `@/types/user` — `UserSearchResult` for selected user shape
+- `@/components/ui/user-autocomplete` — `UserAutocomplete`
+- `@/types/user` — `UserSearchResult` (type)
 
 ### Definitions
 
-- `InviteParticipantModalProps` (interface) — props: `tripId`, `onSuccess`, optional `excludedIds`, optional `disabled`
+- `InviteParticipantModalProps` (interface) — props: `tripId`, `onSuccess`, `excludedIds?`, `disabled?`
 - `InviteParticipantModal` (component) — dialog with user autocomplete and chip list that invites up to 20 users; shows per-result status after submission
 
 ### Exports
@@ -78,41 +80,41 @@
 
 ---
 
-## JoinTripButton.test.tsx
+## `JoinTripButton.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — `render`, `screen`, `waitFor`
 - `@testing-library/user-event` — `userEvent`
-- `@/services/api-client` — `apiClient` (mocked with `post` and `delete`)
-- `./JoinTripButton` — `JoinTripButton` component under test
+- `@/services/api-client` — `apiClient` (mocked)
+- `./JoinTripButton` — `JoinTripButton`
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock object holding `mockPost`, `mockDelete`, `mockOnSuccess`
-- `makeAxios409` (function) — creates a fake 409 Axios error for capacity-full scenarios
-- `makeAxios500` (function) — creates a fake 500 Axios error for generic failure scenarios
+- `mocks` (const) — hoisted vi factories: `mockPost`, `mockDelete`, `mockOnSuccess`
+- `makeAxios409` (function) — constructs a fake 409 Axios error
+- `makeAxios500` (function) — constructs a fake 500 Axios error
 
 ### Exports
 
-- _(none — test file)_
+- none (test file)
 
 ---
 
-## JoinTripButton.tsx
+## `JoinTripButton.tsx`
 
 ### Imports
 
-- `react` — `useState` for loading and error state
-- `react-i18next` — `useTranslation` for i18n (`trips` namespace)
-- `axios` — `isAxiosError` to detect 409 capacity-full errors
-- `@/services/trips.service` — `submitJoinRequest`, `withdrawJoinRequest` API calls
-- `@/components/ui/button` — `Button` primitive
+- `react` — `useState`
+- `react-i18next` — `useTranslation`
+- `axios` — default import for `isAxiosError` check
+- `@/services/trips.service` — `submitJoinRequest`, `withdrawJoinRequest`
+- `@/components/ui/button` — `Button`
 
 ### Definitions
 
-- `JoinTripButtonProps` (interface) — props: `tripId`, `hasPendingRequest: boolean`, `onSuccess`
-- `JoinTripButton` (component) — toggles between "Request to join" and "Withdraw request" modes; shows capacity-full vs generic error messages
+- `JoinTripButtonProps` (interface) — props: `tripId`, `hasPendingRequest`, `onSuccess`
+- `JoinTripButton` (component) — toggles between "Request to join" and "Withdraw request" modes; shows capacity-full error on 409
 
 ### Exports
 
@@ -120,36 +122,36 @@
 
 ---
 
-## LeaveTripButton.test.tsx
+## `LeaveTripButton.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — `render`, `screen`, `waitFor`
 - `@testing-library/user-event` — `userEvent`
 - `next/navigation` — `useRouter` (mocked)
-- `@/services/api-client` — `apiClient` (mocked with `delete`)
-- `./LeaveTripButton` — `LeaveTripButton` component under test
+- `@/services/api-client` — `apiClient` (mocked)
+- `./LeaveTripButton` — `LeaveTripButton`
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock object holding `mockDelete` and `mockRouterPush`
+- `mocks` (const) — hoisted vi factories: `mockDelete`, `mockRouterPush`
 
 ### Exports
 
-- _(none — test file)_
+- none (test file)
 
 ---
 
-## LeaveTripButton.tsx
+## `LeaveTripButton.tsx`
 
 ### Imports
 
-- `react` — `useState` for open, leaving, and error state
-- `react-i18next` — `useTranslation` for i18n (`trips` namespace)
-- `next/navigation` — `useRouter` to redirect to `/trips` after leaving
-- `axios` — `isAxiosError` to detect 409 last-organizer errors
-- `@/services/trips.service` — `removeTripParticipant` API call
-- `@/components/ui/button` — `Button` primitive
+- `react` — `useState`
+- `react-i18next` — `useTranslation`
+- `next/navigation` — `useRouter`
+- `axios` — default import for `isAxiosError` check
+- `@/services/trips.service` — `removeTripParticipant`
+- `@/components/ui/button` — `Button`
 - `@/components/ui/dialog` — `Dialog`, `DialogClose`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogPopup`, `DialogTitle`, `DialogTrigger`
 
 ### Definitions
@@ -163,23 +165,22 @@
 
 ---
 
-## ParticipantList.tsx
+## `ParticipantList.tsx`
 
 ### Imports
 
-- `react-i18next` — `useTranslation` for i18n (`trips` namespace)
-- `@chamuco/shared-types` — `TripParticipantStatus`, `TripRole` for filtering and role checks
-- `./ParticipantListItem` — `ParticipantListItem` for rendering individual rows
-- `./InviteParticipantModal` — `InviteParticipantModal` shown to organizers
-- `./ExportParticipantsPopover` — `ExportParticipantsPopover` shown to organizers
-- `@/services/trips.types` — `TripParticipantResponse` for the participant list item shape
+- `react-i18next` — `useTranslation`
+- `@chamuco/shared-types` — `ORGANIZER_ROLES`, `TripParticipantStatus`, `TripRole`
+- `./ParticipantListItem` — `ParticipantListItem`
+- `./InviteParticipantModal` — `InviteParticipantModal`
+- `./ExportParticipantsPopover` — `ExportParticipantsPopover`
+- `@/services/trips.types` — `TripParticipantResponse` (type)
 
 ### Definitions
 
-- `ParticipantListProps` (interface) — props: `tripId`, `participants`, `capacity`, `currentUserId`, `callerRole`, optional `canInvite`, `onInviteSuccess`, `onParticipantAction`, optional `excludedIds`
-- `ORGANIZER_ROLES` (const) — array of roles considered organizer-level (`ORGANIZER`, `CO_ORGANIZER`)
-- `Section` (component) — non-exported helper that renders a labeled group of participant rows; returns null when empty
-- `ParticipantList` (component) — full participant panel with capacity header, invite/export controls for organizers, and sections for confirmed vs pending-confirmation participants
+- `ParticipantListProps` (interface) — props: `tripId`, `participants`, `capacity`, `currentUserId`, `callerRole`, `canInvite?`, `onInviteSuccess`, `onParticipantAction`, `excludedIds?`
+- `Section` (component) — internal helper that renders a labeled group of participant rows; returns null when empty
+- `ParticipantList` (component) — full participant panel with capacity header, invite/export controls for organizers, and CONFIRMED / ACCEPTED sub-sections
 
 ### Exports
 
@@ -187,54 +188,53 @@
 
 ---
 
-## ParticipantListItem.test.tsx
+## `ParticipantListItem.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — `render`, `screen`
 - `@testing-library/user-event` — `userEvent`
-- `@chamuco/shared-types` — `TripParticipantStatus`, `TripRole` for test data
-- `@/services/trips.types` — `TripParticipantResponse` type for the base participant fixture
-- `@/services/api-client` — `apiClient` (mocked with `delete` and `patch`)
-- `@/components/ui/toast` — `toast` (mocked with `error`)
-- `./ParticipantListItem` — `ParticipantListItem` component under test
+- `@chamuco/shared-types` — `TripParticipantStatus`, `TripRole`
+- `@/services/trips.types` — `TripParticipantResponse` (type)
+- `@/services/api-client` — `apiClient` (mocked)
+- `@/components/ui/toast` — `toast` (mocked)
+- `./ParticipantListItem` — `ParticipantListItem`
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock object holding `mockDelete`, `mockPatch`, `mockToastError`
-- `baseParticipant` (const) — default `TripParticipantResponse` fixture used across tests
-- `renderItem` (function) — helper that renders `ParticipantListItem` with overridable props and role/user context
+- `mocks` (const) — hoisted vi factories: `mockDelete`, `mockPatch`, `mockToastError`
+- `baseParticipant` (const) — default `TripParticipantResponse` fixture (PARTICIPANT role, ACCEPTED status)
+- `renderItem` (function) — renders `ParticipantListItem` with optional overrides, callerRole, currentUserId, and onActionSuccess
 
 ### Exports
 
-- _(none — test file)_
+- none (test file)
 
 ---
 
-## ParticipantListItem.tsx
+## `ParticipantListItem.tsx`
 
 ### Imports
 
-- `react` — `useState` for per-action loading flags
-- `react-i18next` — `useTranslation` for i18n (`trips` namespace)
-- `@chamuco/shared-types` — `TripParticipantStatus`, `TripRole` for status/role logic
-- `@phosphor-icons/react` — `AirplaneIcon`, `CheckFatIcon`, `QuestionMarkIcon`, `ShieldStarIcon`, `UserMinusIcon` for action and badge icons
-- `@/lib/utils` — `cn` for conditional class merging
-- `@/lib/name-utils` — `getInitials` for avatar fallback text
-- `@/components/ui/avatar` — `Avatar` for user photo/initials display
-- `@/components/ui/badge` — `Badge` for role and traveler badges
-- `@/components/ui/button` — `Button` primitive
-- `@/components/ui/delete-confirm-button` — `DeleteConfirmButton` for safe removal with inline confirmation
-- `@/components/ui/toast` — `toast` for error notifications
-- `@/services/trips.service` — `removeTripParticipant`, `toggleTripParticipantConfirmation`, `updateTripParticipantRole` API calls
-- `@/services/trips.types` — `TripParticipantResponse` for the participant data shape
+- `react` — `useState`
+- `react-i18next` — `useTranslation`
+- `@chamuco/shared-types` — `ORGANIZER_ROLES`, `TripParticipantStatus`, `TripRole`
+- `@phosphor-icons/react` — `AirplaneIcon`, `CheckFatIcon`, `QuestionMarkIcon`, `ShieldStarIcon`, `UserMinusIcon`
+- `@/lib/utils` — `cn`
+- `@/lib/name-utils` — `getInitials`
+- `@/components/ui/avatar` — `Avatar`
+- `@/components/ui/badge` — `Badge`
+- `@/components/ui/button` — `Button`
+- `@/components/ui/delete-confirm-button` — `DeleteConfirmButton`
+- `@/components/ui/toast` — `toast`
+- `@/services/trips.service` — `removeTripParticipant`, `toggleTripParticipantConfirmation`, `updateTripParticipantRole`
+- `@/services/trips.types` — `TripParticipantResponse` (type)
 
 ### Definitions
 
 - `ParticipantListItemProps` (interface) — props: `participant`, `tripId`, `currentUserId`, `callerRole`, `onActionSuccess`
-- `ROLE_VARIANT` (const) — maps `TripRole` to Badge variant strings
-- `ORGANIZER_ROLES` (const) — array of roles considered organizer-level
-- `ParticipantListItem` (component) — list row with avatar, display name, username, role/traveler badges, confirmation toggle, and promote/demote/remove action buttons gated by caller role
+- `ROLE_VARIANT` (const) — maps `TripRole` to Badge variant string
+- `ParticipantListItem` (component) — single `<li>` row with avatar, display name, @username, role/traveler badges, confirmation toggle, and promote/demote/remove action buttons gated by caller role
 
 ### Exports
 
@@ -242,50 +242,51 @@
 
 ---
 
-## PendingParticipantsPanel.test.tsx
+## `PendingParticipantsPanel.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — `render`, `screen`, `waitFor`
 - `@testing-library/user-event` — `userEvent`
-- `@chamuco/shared-types` — `TripParticipantStatus` for test fixture statuses
-- `@/services/trips.types` — `PendingTripParticipantResponse` for join-request and invited fixtures
-- `@/services/api-client` — `apiClient` (mocked with `patch` and `delete`)
-- `@/components/ui/toast` — `toast` (mocked with `error`)
-- `./PendingParticipantsPanel` — `PendingParticipantsPanel` component under test
+- `@chamuco/shared-types` — `TripParticipantStatus`
+- `@/services/trips.types` — `PendingTripParticipantResponse` (type)
+- `react-i18next` — `useTranslation` (mocked)
+- `@/services/api-client` — `apiClient` (mocked)
+- `@/components/ui/toast` — `toast` (mocked)
+- `./PendingParticipantsPanel` — `PendingParticipantsPanel`
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock object holding `mockPatch`, `mockDelete`, `mockOnUpdate`, `mockToastError`
-- `makeAxios409` (function) — creates a fake 409 Axios error for capacity-full scenarios
+- `mocks` (const) — hoisted vi factories: `mockPatch`, `mockDelete`, `mockOnUpdate`, `mockToastError`
+- `makeAxios409` (function) — constructs a fake 409 Axios error
 - `joinRequest` (const) — `PendingTripParticipantResponse` fixture with `PENDING_REQUEST` status
 - `invited` (const) — `PendingTripParticipantResponse` fixture with `INVITED` status
 
 ### Exports
 
-- _(none — test file)_
+- none (test file)
 
 ---
 
-## PendingParticipantsPanel.tsx
+## `PendingParticipantsPanel.tsx`
 
 ### Imports
 
-- `react-i18next` — `useTranslation` for i18n (`trips` namespace)
-- `axios` — `isAxiosError` to detect 409 capacity-full errors on accept
-- `@chamuco/shared-types` — `TripParticipantStatus` for conditional rendering
-- `@/components/ui/avatar` — `Avatar` for user photo/initials display
-- `@/components/ui/badge` — `Badge` for status label (request vs invited)
-- `@/components/ui/button` — `Button` primitive
-- `@/components/ui/toast` — `toast` for error notifications
-- `@/lib/name-utils` — `getInitials` for avatar fallback text
-- `@/services/trips.service` — `acceptJoinRequest`, `rejectJoinRequest`, `revokeTripInvitation` API calls
-- `@/services/trips.types` — `PendingTripParticipantResponse` for the item shape
+- `react-i18next` — `useTranslation`
+- `axios` — default import for `isAxiosError` check
+- `@chamuco/shared-types` — `TripParticipantStatus`
+- `@/components/ui/avatar` — `Avatar`
+- `@/components/ui/badge` — `Badge`
+- `@/components/ui/button` — `Button`
+- `@/components/ui/toast` — `toast`
+- `@/lib/name-utils` — `getInitials`
+- `@/services/trips.service` — `acceptJoinRequest`, `rejectJoinRequest`, `revokeTripInvitation`
+- `@/services/trips.types` — `PendingTripParticipantResponse` (type)
 
 ### Definitions
 
 - `PendingParticipantsPanelProps` (interface) — props: `tripId`, `items: PendingTripParticipantResponse[]`, `onUpdate`
-- `PendingParticipantsPanel` (component) — organizer panel listing pending join requests (accept/reject) and outstanding invitations (revoke); shows empty state when no items
+- `PendingParticipantsPanel` (component) — organizer panel listing pending join requests (accept/reject) and outstanding invitations (revoke); shows empty state when no items; maps 409 accept failure to capacity-full error
 
 ### Exports
 
@@ -293,39 +294,39 @@
 
 ---
 
-## TripInvitationResponseButtons.test.tsx
+## `TripInvitationResponseButtons.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — `render`, `screen`, `waitFor`
 - `@testing-library/user-event` — `userEvent`
-- `@/services/api-client` — `apiClient` (mocked with `patch`)
-- `./TripInvitationResponseButtons` — `TripInvitationResponseButtons` component under test
+- `@/services/api-client` — `apiClient` (mocked)
+- `./TripInvitationResponseButtons` — `TripInvitationResponseButtons`
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock object holding `mockPatch` and `mockOnSuccess`
+- `mocks` (const) — hoisted vi factories: `mockPatch`, `mockOnSuccess`
 
 ### Exports
 
-- _(none — test file)_
+- none (test file)
 
 ---
 
-## TripInvitationResponseButtons.tsx
+## `TripInvitationResponseButtons.tsx`
 
 ### Imports
 
-- `react` — `useState` for accepting, declining, and error state
-- `react-i18next` — `useTranslation` for i18n (`trips` and `common` namespaces)
-- `@phosphor-icons/react` — `CheckIcon`, `XIcon` for accept/decline button icons
-- `@/services/trips.service` — `acceptTripInvitation`, `declineTripInvitation` API calls
-- `@/components/ui/button` — `Button` primitive
+- `react` — `useState`
+- `react-i18next` — `useTranslation`
+- `@phosphor-icons/react` — `CheckIcon`, `XIcon`
+- `@/services/trips.service` — `acceptTripInvitation`, `declineTripInvitation`
+- `@/components/ui/button` — `Button`
 
 ### Definitions
 
-- `TripInvitationResponseButtonsProps` (interface) — props: `tripId`, `onSuccess`, optional `showMessage: boolean`
-- `TripInvitationResponseButtons` (component) — icon-only accept/decline button pair for a pending trip invitation; optionally shows a "you've been invited" message above the buttons
+- `TripInvitationResponseButtonsProps` (interface) — props: `tripId`, `onSuccess`, `showMessage?: boolean`
+- `TripInvitationResponseButtons` (component) — icon-only accept/decline button pair for a pending trip invitation; optionally shows a received message; both buttons disable during any in-flight request
 
 ### Exports
 

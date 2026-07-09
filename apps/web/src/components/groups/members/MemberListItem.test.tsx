@@ -9,10 +9,6 @@ const mocks = vi.hoisted(() => ({
   mockToastError: vi.fn(),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('@/services/api-client', () => ({
   apiClient: { delete: mocks.mockDelete, patch: mocks.mockPatch },
 }));

@@ -2,23 +2,23 @@
 
 ---
 
-## group-members.controller.ts
+## `group-members.controller.ts`
 
 ### Imports
 
-- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch` (routing and HTTP utilities)
-- `@nestjs/swagger` — `ApiBearerAuth`, `ApiConflictResponse`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags`, `ApiUnauthorizedResponse` (OpenAPI documentation decorators)
-- `@/common/decorators/current-user.decorator` — `CurrentUser` (extracts authenticated user from request)
-- `@/types/express` — `AuthenticatedUser` (type for the authenticated user object)
-- `./group-members.service` — `GroupMembersService` (business logic delegate)
-- `./dto/update-member-role.dto` — `UpdateMemberRoleDto` (request body for role update)
-- `./dto/member-response.dto` — `MemberResponseDto` (response shape for active members)
-- `./dto/my-membership-response.dto` — `MyMembershipResponseDto` (response shape for own membership)
-- `./dto/pending-item-response.dto` — `PendingItemResponseDto` (response shape for pending items)
+- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`
+- `@nestjs/swagger` — `ApiBearerAuth`, `ApiConflictResponse`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags`, `ApiUnauthorizedResponse`
+- `@/common/decorators/current-user.decorator` — `CurrentUser` decorator for extracting authenticated user
+- `@/types/express` — `AuthenticatedUser` type
+- `./group-members.service` — `GroupMembersService`
+- `./dto/update-member-role.dto` — `UpdateMemberRoleDto`
+- `./dto/member-response.dto` — `MemberResponseDto`
+- `./dto/my-membership-response.dto` — `MyMembershipResponseDto`
+- `./dto/pending-item-response.dto` — `PendingItemResponseDto`
 
 ### Definitions
 
-- `GroupMembersController` (controller) — REST controller at `v1/groups/:id` handling member removal, role updates, and member listing endpoints
+- `GroupMembersController` (controller) — NestJS controller at `v1/groups/:id` handling member removal/leave, role updates, active member listing, pending member listing, and own membership query
 
 ### Exports
 
@@ -26,32 +26,68 @@
 
 ---
 
-## group-members.service.ts
+## `group-members.controller.spec.ts`
 
 ### Imports
 
-- `@nestjs/common` — `ConflictException`, `ForbiddenException`, `Inject`, `Injectable`, `Logger`, `NotFoundException` (NestJS DI and HTTP exception utilities)
-- `drizzle-orm` — `and`, `count`, `eq`, `inArray`, `isNull` (query builder operators)
-- `@chamuco/shared-types` — `GroupMemberStatus`, `GroupMemberTier`, `GroupRole`, `NotificationChannel`, `NotificationType` (shared domain enums)
-- `@/modules/assets/asset.utils` — `assetRowToAsset` (converts DB asset row to domain Asset object)
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT`, `DrizzleClient` (injection token and type for the Drizzle DB client)
-- `@/modules/users/schema/users.schema` — `users` (Drizzle table reference)
-- `@/modules/assets/schema/assets.schema` — `assets` (Drizzle table reference)
-- `@/modules/assets/asset-resolver.service` — `AssetResolverService` (resolves asset to a signed or public URL)
-- `@/modules/notifications/notifications.service` — `NotificationsService` (sends push/in-app notifications)
-- `@/modules/groups/schema/groups.schema` — `groups` (Drizzle table reference)
-- `@/modules/groups/schema/group-members.schema` — `groupMembers` (Drizzle table reference)
-- `@/modules/groups/schema/group-member-stats.schema` — `groupMemberStats` (Drizzle table reference)
-- `./dto/update-member-role.dto` — `UpdateMemberRoleDto` (type for role update input)
-- `./dto/member-response.dto` — `MemberResponseDto` (type for active member response)
-- `./dto/pending-item-response.dto` — `PendingItemResponseDto` (type for pending item response)
-- `./dto/my-membership-response.dto` — `MyMembershipResponseDto` (type for own membership response)
-- `@/modules/groups/dto/my-invitation-response.dto` — `MyInvitationResponseDto` (type for invitation listing response)
+- `@nestjs/testing` — `Test`, `TestingModule`
+- `@chamuco/shared-types` — `AuthProvider`, `GroupMemberStatus`, `GroupMemberTier`, `GroupRole`, `PlatformRole`, `ProfileVisibility`
+- `./group-members.controller` — `GroupMembersController`
+- `./group-members.service` — `GroupMembersService`
+- `./dto/update-member-role.dto` — `UpdateMemberRoleDto` (type)
+- `./dto/member-response.dto` — `MemberResponseDto` (type)
+- `./dto/pending-item-response.dto` — `PendingItemResponseDto` (type)
+- `@/types/express` — `AuthenticatedUser` (type)
 
 ### Definitions
 
-- `ADMIN_ROLES` (const) — tuple `[GroupRole.OWNER, GroupRole.ADMIN]` used for admin-level permission checks
-- `GroupMembersService` (service) — handles member removal/leave, role promotion/demotion, active member listing, pending member listing, own membership query, and invitation listing; also exposes shared helper methods used by join-request and invitation services
+- `mockAuthUser` (const) — fixture for an authenticated admin user
+- `mockMemberResponse` (const) — fixture for a `MemberResponseDto`
+- `mockPendingResponse` (const) — fixture for a `PendingItemResponseDto`
+
+### Exports
+
+- none
+
+---
+
+## `group-members.service.ts`
+
+### Imports
+
+- `@nestjs/common` — `ConflictException`, `ForbiddenException`, `Inject`, `Injectable`, `Logger`, `NotFoundException`
+- `drizzle-orm` — `and`, `count`, `eq`, `inArray`, `isNull`
+- `@chamuco/shared-types` — `GROUP_ADMIN_ROLES`, `GroupMemberStatus`, `GroupMemberTier`, `GroupRole`, `NotificationChannel`, `NotificationType`
+- `@/modules/assets/asset.utils` — `assetRowToAsset` conversion utility
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` token, `DrizzleClient` type
+- `@/modules/users/schema/users.schema` — `users` Drizzle table
+- `@/modules/assets/schema/assets.schema` — `assets` Drizzle table
+- `@/modules/assets/asset-resolver.service` — `AssetResolverService` for resolving asset URLs
+- `@/modules/notifications/notifications.service` — `NotificationsService` for sending push notifications
+- `@/modules/groups/schema/groups.schema` — `groups` Drizzle table
+- `@/modules/groups/schema/group-members.schema` — `groupMembers` Drizzle table
+- `@/modules/groups/schema/group-member-stats.schema` — `groupMemberStats` Drizzle table
+- `./dto/update-member-role.dto` — `UpdateMemberRoleDto` (type)
+- `./dto/member-response.dto` — `MemberResponseDto` (type)
+- `./dto/pending-item-response.dto` — `PendingItemResponseDto` (type)
+- `./dto/my-membership-response.dto` — `MyMembershipResponseDto` (type)
+- `@/modules/groups/dto/my-invitation-response.dto` — `MyInvitationResponseDto` (type)
+
+### Definitions
+
+- `GroupMembersService` (service) — injectable service for group member management; exposes public helpers reused by `GroupJoinRequestsService` and `GroupInvitationsService`
+- `removeMember` (function) — removes/kicks a member (REMOVED), lets a user leave (LEFT), or cancels a pending request/invitation (DELETE row); dissolves the group when the last active member leaves
+- `updateMemberRole` (function) — promotes or demotes a member between MEMBER and ADMIN; handles OWNER transfer atomically in a transaction
+- `getMyMembership` (function) — returns the caller's current membership status and role for a group
+- `listMyInvitations` (function) — returns all INVITED memberships for the caller enriched with group info and resolved cover URL
+- `listActiveMembers` (function) — returns all ACTIVE members with role, tier, and resolved avatar URL; requires caller to be an active member
+- `listPendingMembers` (function) — returns all REQUEST and INVITED records with user info; requires caller to be a group admin
+- `findMemberOrThrow` (function) — public helper: fetches any membership record or throws NotFoundException
+- `assertGroupExists` (function) — public helper: fetches a non-deleted group or throws NotFoundException
+- `assertGroupAdmin` (function) — public helper: throws ForbiddenException if caller lacks an active admin role
+- `assertActiveMember` (function) — private helper: throws ForbiddenException if caller is not an active member
+- `assertNotSoleAdmin` (function) — private helper: throws ConflictException if the target is the last admin in the group
+- `batchResolveAvatarUrls` (function) — private helper: resolves avatar URLs for a list of user rows in parallel, returns a userId-to-URL map
 
 ### Exports
 
@@ -59,46 +95,23 @@
 
 ---
 
-## group-members.controller.spec.ts
+## `group-members.service.spec.ts`
 
 ### Imports
 
-- `@nestjs/testing` — `Test`, `TestingModule` (NestJS unit test utilities)
-- `@chamuco/shared-types` — `AuthProvider`, `GroupMemberStatus`, `GroupMemberTier`, `GroupRole`, `PlatformRole`, `ProfileVisibility` (shared enums for fixture data)
-- `./group-members.controller` — `GroupMembersController` (class under test)
-- `./group-members.service` — `GroupMembersService` (mocked dependency)
-- `./dto/update-member-role.dto` — `UpdateMemberRoleDto` (type for test DTO)
-- `./dto/member-response.dto` — `MemberResponseDto` (type for expected response fixture)
-- `./dto/pending-item-response.dto` — `PendingItemResponseDto` (type for expected response fixture)
-- `@/types/express` — `AuthenticatedUser` (type for mock authenticated user)
+- `@nestjs/common` — `ConflictException`, `ForbiddenException`, `NotFoundException`
+- `@nestjs/testing` — `Test`, `TestingModule`
+- `@chamuco/shared-types` — `GroupMemberStatus`, `GroupMemberTier`, `GroupRole`, `GroupVisibility`, `NotificationChannel`, `NotificationType`
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token
+- `@/modules/assets/asset-resolver.service` — `AssetResolverService`
+- `@/modules/notifications/notifications.service` — `NotificationsService`
+- `./group-members.service` — `GroupMembersService`
+- `./dto/update-member-role.dto` — `UpdateMemberRoleDto` (type)
 
 ### Definitions
 
-- `GroupMembersController` test suite — verifies that each controller method delegates to the correct `GroupMembersService` method with the correct arguments; also verifies that `NotFoundException` propagates from `getMyMembership`
+- `makeMembership` (function) — factory helper that builds a mock `groupMembers` row for a given userId, status, and role
 
 ### Exports
 
-- _(none — test file)_
-
----
-
-## group-members.service.spec.ts
-
-### Imports
-
-- `@nestjs/common` — `ConflictException`, `ForbiddenException`, `NotFoundException` (assertion targets in tests)
-- `@nestjs/testing` — `Test`, `TestingModule` (NestJS unit test utilities)
-- `@chamuco/shared-types` — `GroupMemberStatus`, `GroupMemberTier`, `GroupRole`, `GroupVisibility`, `NotificationChannel`, `NotificationType` (shared enums for fixture data and assertions)
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` (injection token for mocked Drizzle client)
-- `@/modules/assets/asset-resolver.service` — `AssetResolverService` (mocked dependency)
-- `@/modules/notifications/notifications.service` — `NotificationsService` (mocked dependency)
-- `./group-members.service` — `GroupMembersService` (class under test)
-- `./dto/update-member-role.dto` — `UpdateMemberRoleDto` (type for test DTOs)
-
-### Definitions
-
-- `GroupMembersService` test suite — comprehensive unit tests covering `removeMember` (self-leave, admin remove, withdrawal, sole-admin guard, group dissolution, notification), `updateMemberRole` (promote, demote, ownership transfer, sole-admin guard, notification), `listActiveMembers` (auth guard, avatar resolution, tier fallback), `listPendingMembers` (auth guard, mixed-status listing), `listMyInvitations` (empty, cover resolution, soft-delete filter), and `getMyMembership` (happy path and 404 cases)
-
-### Exports
-
-- _(none — test file)_
+- none

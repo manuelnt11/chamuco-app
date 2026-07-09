@@ -2,26 +2,25 @@
 
 ---
 
-## page.tsx
+## `page.tsx`
 
 ### Imports
 
-- `react` — `useEffect`, `useState`, `use` (React hooks for state, side effects, and unwrapping async params)
-- `next/link` — `Link` (client-side navigation link component)
-- `next/navigation` — `useRouter` (programmatic navigation)
-- `react-i18next` — `useTranslation` (i18n hook for the `trips` namespace)
-- `@chamuco/shared-types` — `TripRole` (enum for organizer/participant roles)
-- `@phosphor-icons/react` — `ArrowLeftIcon`, `MegaphoneIcon`, `PlusIcon` (icons for back navigation, heading, and new-announcement button)
-- `@/services/trips.service` — `getTrip`, `getTripParticipation`, `getTripAnnouncements`, `deleteTripAnnouncement` (API call functions)
-- `@/hooks/useAuth` — `useAuth` (auth loading state)
-- `@/services/trips.types` — `TripAnnouncement`, `TripResponse` (type-only imports for trip and announcement shapes)
-- `@/components/ui/announcement-card` — `AnnouncementCard` (UI card component for rendering a single announcement)
+- `react` — `useEffect`, `useState`, `use`
+- `next/link` — `Link` for client-side navigation
+- `next/navigation` — `useRouter` for programmatic routing
+- `react-i18next` — `useTranslation` for i18n
+- `@chamuco/shared-types` — `ORGANIZER_ROLES`, `TripRole`
+- `@phosphor-icons/react` — `ArrowLeftIcon`, `MegaphoneIcon`, `PlusIcon`
+- `@/services/trips.service` — `getTrip`, `getTripParticipation`, `getTripAnnouncements`, `deleteTripAnnouncement`
+- `@/hooks/useAuth` — `useAuth`
+- `@/services/trips.types` — `TripAnnouncement`, `TripResponse` (type-only)
+- `@/components/ui/announcement-card` — `AnnouncementCard`
 
 ### Definitions
 
-- `TripAnnouncementsPageProps` (interface) — Props shape for the page component; contains `params` as a Promise resolving to `{ id: string }`.
-- `ORGANIZER_ROLES` (const) — Array of `TripRole` values (`ORGANIZER`, `CO_ORGANIZER`) used to gate organizer-only actions.
-- `TripAnnouncementsPage` (component) — Default page component; fetches trip metadata, caller participation role, and announcements list; renders the feed with edit/delete actions for organizers.
+- `TripAnnouncementsPageProps` (interface) — props shape with `params: Promise<{ id: string }>`
+- `TripAnnouncementsPage` (component) — page that fetches and displays trip announcements; supports organizer-only create/edit/delete actions
 
 ### Exports
 
@@ -29,24 +28,25 @@
 
 ---
 
-## page.test.tsx
+## `page.test.tsx`
 
 ### Imports
 
-- `@testing-library/react` — `render`, `screen`, `waitFor`, `fireEvent` (DOM rendering and assertion utilities)
-- `react` — `type ReactNode` (type-only import used in the `Link` mock)
-- `@chamuco/shared-types` — `TripRole`, `TripParticipantStatus` (enums used to construct mock participation objects)
+- `@testing-library/react` — `render`, `screen`, `waitFor`, `fireEvent`
+- `react` — `type ReactNode`
+- `@chamuco/shared-types` — `TripRole`, `TripParticipantStatus`
 
 ### Definitions
 
-- `mocks` (const) — Hoisted vi mock registry holding `mockApiGet`, `mockApiDelete`, `mockUseAuth`, `mockRouterPush` vi functions.
-- `mockTrip` (const) — Static fixture representing a minimal `TripResponse` object used across test cases.
-- `mockAnnouncement` (const) — Static fixture representing a single `TripAnnouncement` object.
-- `organizerParticipation` (const) — Participation fixture with `TripRole.ORGANIZER`.
-- `participantParticipation` (const) — Participation fixture with `TripRole.PARTICIPANT`.
-- `makeAnnouncementsResponse` (function) — Helper that wraps an array of announcements into the paginated API response shape.
-- `setupDefaultMocks` (function) — Configures all vi mocks before each test; accepts optional overrides for `participation` and `announcements`.
+- `mocks` (const) — hoisted vi mock object with `mockApiGet`, `mockApiDelete`, `mockUseAuth`, `mockRouterPush`
+- `mockTrip` (const) — fixture for a trip API response
+- `mockAnnouncement` (const) — fixture for a single announcement
+- `organizerParticipation` (const) — fixture for an organizer participation record
+- `participantParticipation` (const) — fixture for a regular participant participation record
+- `makeAnnouncementsResponse` (function) — builds a paginated announcements API response from an items array
+- `setupDefaultMocks` (function) — configures vi mocks for the standard happy-path render; accepts optional participation and announcements overrides
+- `describe('TripAnnouncementsPage', ...)` (const) — test suite covering load, empty state, role-based UI, back link, error handling, edit/delete interactions
 
 ### Exports
 
-- none (test file; no exports)
+- none (test file)

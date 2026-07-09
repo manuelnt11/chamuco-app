@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Trans, useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
+import { computeAge, isValidCalendarDay } from '@chamuco/shared-utils';
 import { DateOfBirthField } from '@/components/ui/date-of-birth-field';
 import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import type { TFunction } from 'i18next';
@@ -52,16 +53,6 @@ function toUsernameSlug(name: string): string {
 }
 
 // Mirrors the logic in apps/api/src/modules/users/dto/minimum-age.validator.ts.
-// Intentionally duplicated — the frontend needs a client-side gate before the API call,
-// and importing backend code across packages is not possible here.
-function computeAge(day: number, month: number, year: number): number {
-  const today = new Date();
-  let age = today.getFullYear() - year;
-  const m = today.getMonth() + 1 - month;
-  if (m < 0 || (m === 0 && today.getDate() < day)) age--;
-  return age;
-}
-
 // Countries whose primary currency is USD (not Colombia-focused, but needed for detection).
 const USD_COUNTRIES = new Set([
   'US',
@@ -119,11 +110,6 @@ function validateStep1(
     errors.username = t('onboarding.validation.usernameUnavailable');
   if (!displayName.trim()) errors.displayName = t('onboarding.validation.required');
   return errors;
-}
-
-function isValidCalendarDay(day: number, month: number, year: number): boolean {
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 function validateStep2(
