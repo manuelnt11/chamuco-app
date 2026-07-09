@@ -1,26 +1,11 @@
-import type {
-  GroupMemberStatus,
-  GroupMemberTier,
-  GroupRole,
-  GroupVisibility,
-} from '@chamuco/shared-types';
+import type { GroupMemberStatus, GroupMemberTier, GroupRole } from '@chamuco/shared-types';
 
 export type {
+  Group,
   GroupSearchResult,
   GroupSearchResponse,
   MembershipStatus,
 } from '@chamuco/shared-types';
-
-export interface Group {
-  id: string;
-  name: string;
-  description: string | null;
-  coverUrl: string;
-  visibility: GroupVisibility;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface GroupMember {
   userId: string;

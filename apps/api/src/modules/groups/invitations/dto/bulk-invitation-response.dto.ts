@@ -3,8 +3,6 @@ import { type BulkInvitationResponse } from '@chamuco/shared-types';
 
 import { InvitationResultDto } from '@/common/dto/invitation-result.dto';
 
-export { InvitationResultDto };
-
 export class BulkInvitationResponseDto implements BulkInvitationResponse {
   @ApiProperty({ type: [InvitationResultDto] })
   results!: InvitationResultDto[];

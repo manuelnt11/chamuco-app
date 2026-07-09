@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { GroupVisibility } from '@chamuco/shared-types';
+import { GroupVisibility, type Group } from '@chamuco/shared-types';
 
-export class GroupResponseDto {
+export class GroupResponseDto implements Group {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
   id!: string;
 

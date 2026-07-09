@@ -14,11 +14,9 @@ import { groupMemberStats } from '@/modules/groups/schema/group-member-stats.sch
 import { groups } from '@/modules/groups/schema/groups.schema';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { GroupMembersService } from '@/modules/groups/members/group-members.service';
+import type { InvitationResultDto } from '@/common/dto/invitation-result.dto';
 import type { CreateInvitationDto } from './dto/create-invitation.dto';
-import type {
-  BulkInvitationResponseDto,
-  InvitationResultDto,
-} from './dto/bulk-invitation-response.dto';
+import type { BulkInvitationResponseDto } from './dto/bulk-invitation-response.dto';
 
 @Injectable()
 export class GroupInvitationsService {

@@ -19,11 +19,9 @@ import {
   ACTIVE_STATUSES,
   ORGANIZER_ROLES,
 } from '@/modules/trips/participants/trip-participants.constants';
+import type { InvitationResultDto } from '@/common/dto/invitation-result.dto';
 import type { CreateTripInvitationDto } from './dto/create-trip-invitation.dto';
-import type {
-  BulkTripInvitationResponseDto,
-  TripInvitationResultDto,
-} from './dto/bulk-trip-invitation-response.dto';
+import type { BulkTripInvitationResponseDto } from './dto/bulk-trip-invitation-response.dto';
 
 @Injectable()
 export class TripInvitationsService {
@@ -70,7 +68,7 @@ export class TripInvitationsService {
         : [];
     const participationByUserId = new Map(existingParticipations.map((p) => [p.userId, p]));
 
-    const results: TripInvitationResultDto[] = [];
+    const results: InvitationResultDto[] = [];
     const invitedUserIds: string[] = [];
 
     for (const username of dto.usernames) {

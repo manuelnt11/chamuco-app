@@ -1,15 +1,7 @@
-import type { GroupVisibility } from '../enums/group-visibility.enum';
 import type { MembershipStatus } from './membership-status';
+import type { Group } from './group';
 
-export interface GroupSearchResult {
-  id: string;
-  name: string;
-  description: string | null;
-  coverUrl: string;
-  visibility: GroupVisibility;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
+export interface GroupSearchResult extends Group {
   memberCount: number;
   membershipStatus: MembershipStatus;
 }
