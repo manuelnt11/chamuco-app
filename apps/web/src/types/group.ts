@@ -3,6 +3,11 @@ import type {
   GroupMemberTier,
   GroupRole,
   GroupVisibility,
+} from '@chamuco/shared-types';
+
+export type {
+  GroupSearchResult,
+  GroupSearchResponse,
   MembershipStatus,
 } from '@chamuco/shared-types';
 
@@ -43,18 +48,6 @@ export interface GroupInvitation {
     coverUrl: string;
   };
   initiatedAt: string;
-}
-
-export type { MembershipStatus };
-
-export interface GroupSearchResult extends Group {
-  memberCount: number;
-  membershipStatus: MembershipStatus;
-}
-
-export interface GroupSearchResponse {
-  data: GroupSearchResult[];
-  total: number;
 }
 
 export interface GroupAnnouncement {

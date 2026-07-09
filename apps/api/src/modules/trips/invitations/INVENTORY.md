@@ -2,21 +2,21 @@
 
 ---
 
-## trip-invitations.controller.ts
+## `trip-invitations.controller.ts`
 
 ### Imports
 
-- `@nestjs/common` — `Body`, `Controller`, `Delete`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post` (HTTP method decorators, param parsing, status codes)
-- `@nestjs/swagger` — `ApiBearerAuth`, `ApiBody`, `ApiConflictResponse`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags`, `ApiUnauthorizedResponse` (OpenAPI documentation decorators)
-- `@/common/decorators/current-user.decorator` — `CurrentUser` (extracts authenticated user from request)
-- `@/types/express` — `AuthenticatedUser` (type for the authenticated user object)
-- `./trip-invitations.service` — `TripInvitationsService` (service handling invitation business logic)
-- `./dto/create-trip-invitation.dto` — `CreateTripInvitationDto` (DTO for bulk invitation request body)
-- `./dto/bulk-trip-invitation-response.dto` — `BulkTripInvitationResponseDto` (DTO for bulk invitation response)
+- `@nestjs/common` — `Body`, `Controller`, `Delete`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post`; HTTP method decorators, param parsing, and status codes
+- `@nestjs/swagger` — `ApiBearerAuth`, `ApiBody`, `ApiConflictResponse`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags`, `ApiUnauthorizedResponse`; OpenAPI documentation decorators
+- `@/common/decorators/current-user.decorator` — `CurrentUser`; extracts the authenticated user from the request
+- `@/types/express` — `AuthenticatedUser`; type for the authenticated user object
+- `./trip-invitations.service` — `TripInvitationsService`; service that handles invitation business logic
+- `./dto/create-trip-invitation.dto` — `CreateTripInvitationDto`; DTO for the bulk invitation request body
+- `./dto/bulk-trip-invitation-response.dto` — `BulkTripInvitationResponseDto`; DTO for the bulk invitation response
 
 ### Definitions
 
-- `TripInvitationsController` (controller) — REST controller for `v1/trips` routes handling send, accept, decline, and revoke invitation operations
+- `TripInvitationsController` (controller) — REST controller mounted at `v1/trips` exposing send, accept, decline, and revoke invitation endpoints
 
 ### Exports
 
@@ -24,22 +24,21 @@
 
 ---
 
-## trip-invitations.controller.spec.ts
+## `trip-invitations.controller.spec.ts`
 
 ### Imports
 
-- `@nestjs/testing` — `Test`, `TestingModule` (NestJS test utilities)
-- `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility` (enums for constructing mock auth user)
-- `@google-cloud/storage` — mocked via `jest.mock` to prevent GCS initialization in tests
-- `./trip-invitations.controller` — `TripInvitationsController` (unit under test)
-- `./trip-invitations.service` — `TripInvitationsService` (mocked dependency)
-- `./dto/create-trip-invitation.dto` — `CreateTripInvitationDto` (type import for test payloads)
-- `./dto/bulk-trip-invitation-response.dto` — `BulkTripInvitationResponseDto` (type import for test payloads)
-- `@/types/express` — `AuthenticatedUser` (type for mock auth user fixture)
+- `@nestjs/testing` — `Test`, `TestingModule`; NestJS test module utilities
+- `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility`; enums used to build the mock auth user fixture
+- `./trip-invitations.controller` — `TripInvitationsController`; unit under test
+- `./trip-invitations.service` — `TripInvitationsService`; mocked dependency
+- `./dto/create-trip-invitation.dto` — `CreateTripInvitationDto`; type import for test payloads
+- `./dto/bulk-trip-invitation-response.dto` — `BulkTripInvitationResponseDto`; type import for test payloads
+- `@/types/express` — `AuthenticatedUser`; type for the mock auth user fixture
 
 ### Definitions
 
-- `mockAuthUser` (const) — fixture representing an authenticated organizer user for controller tests
+- `mockAuthUser` (const) — fixture representing an authenticated organizer user for all controller tests
 
 ### Exports
 
@@ -47,29 +46,27 @@
 
 ---
 
-## trip-invitations.service.ts
+## `trip-invitations.service.ts`
 
 ### Imports
 
-- `@nestjs/common` — `BadRequestException`, `ConflictException`, `Inject`, `Injectable`, `Logger` (NestJS DI, exceptions, logging)
-- `drizzle-orm` — `and`, `count`, `eq`, `inArray` (query builders for Drizzle ORM)
-- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripRole`, `TripStatus` (shared domain enums)
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT`, `DrizzleClient` (injection token and type for the database client)
-- `@/database/db-errors` — `isUniqueViolation` (helper to detect PostgreSQL unique constraint violations)
-- `@/modules/users/schema/users.schema` — `users` (Drizzle schema for users table)
-- `@/modules/trips/schema/trips.schema` — `trips` (Drizzle schema for trips table)
-- `@/modules/trips/schema/trip-participants.schema` — `tripParticipants` (Drizzle schema for trip_participants table)
-- `@/modules/notifications/notifications.service` — `NotificationsService` (sends push/email notifications)
-- `@/modules/trips/participants/trip-participants.service` — `TripParticipantsService` (checks organizer role and looks up participant records)
-- `./dto/create-trip-invitation.dto` — `CreateTripInvitationDto` (input type for sendInvitations)
-- `./dto/bulk-trip-invitation-response.dto` — `BulkTripInvitationResponseDto`, `TripInvitationResultDto` (output types for sendInvitations)
+- `@nestjs/common` — `BadRequestException`, `ConflictException`, `Inject`, `Injectable`, `Logger`; NestJS DI, exception classes, and logger
+- `drizzle-orm` — `and`, `eq`, `inArray`; Drizzle ORM query builder helpers
+- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripRole`, `TripStatus`; shared domain enums
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT`, `DrizzleClient`; injection token and type for the database client
+- `@/database/db-errors` — `isUniqueViolation`; detects PostgreSQL unique constraint violations
+- `@/modules/users/schema/users.schema` — `users`; Drizzle table reference for users
+- `@/modules/trips/schema/trips.schema` — `trips`; Drizzle table reference for trips
+- `@/modules/trips/schema/trip-participants.schema` — `tripParticipants`; Drizzle table reference for trip_participants
+- `@/modules/notifications/notifications.service` — `NotificationsService`; sends push and email notifications
+- `@/modules/trips/participants/trip-participants.service` — `TripParticipantsService`; asserts organizer role and looks up participant records
+- `@/modules/trips/participants/trip-participants.constants` — `ACTIVE_STATUSES`, `ORGANIZER_ROLES`; sets of statuses/roles used for membership checks
+- `./dto/create-trip-invitation.dto` — `CreateTripInvitationDto`; input type for `sendInvitations`
+- `./dto/bulk-trip-invitation-response.dto` — `BulkTripInvitationResponseDto`, `TripInvitationResultDto`; output types for `sendInvitations`
 
 ### Definitions
 
-- `ORGANIZER_ROLES` (const) — tuple of `[ORGANIZER, CO_ORGANIZER]` used to query organizer participants
-- `ACTIVE_STATUSES` (const) — tuple of `[ACCEPTED, CONFIRMED]` used for capacity checks and member-status checks
-- `TripInvitationsService` (service) — handles bulk invite dispatch, per-user status resolution, accept/decline/revoke flows, capacity enforcement, and notification fire-and-forget
-- `assertCapacityAvailable` (function, private) — queries current confirmed/accepted traveler count and throws `ConflictException` if trip is at capacity
+- `TripInvitationsService` (service) — handles bulk invite dispatch with per-user status resolution, accept/decline/revoke flows, capacity enforcement, and fire-and-forget notification delivery
 
 ### Exports
 
@@ -77,23 +74,22 @@
 
 ---
 
-## trip-invitations.service.spec.ts
+## `trip-invitations.service.spec.ts`
 
 ### Imports
 
-- `@nestjs/common` — `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException` (NestJS exceptions used in assertions)
-- `@nestjs/testing` — `Test`, `TestingModule` (NestJS test utilities)
-- `@google-cloud/storage` — mocked via `jest.mock` to prevent GCS initialization in tests
-- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripRole`, `TripStatus` (domain enums used in fixtures and assertions)
-- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` (injection token for the mock DB client)
-- `./trip-invitations.service` — `TripInvitationsService` (unit under test)
-- `@/modules/trips/participants/trip-participants.service` — `TripParticipantsService` (mocked dependency)
-- `@/modules/notifications/notifications.service` — `NotificationsService` (mocked dependency)
-- `./dto/create-trip-invitation.dto` — `CreateTripInvitationDto` (type import for test payloads)
+- `@nestjs/common` — `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`; NestJS exceptions used in test assertions
+- `@nestjs/testing` — `Test`, `TestingModule`; NestJS test module utilities
+- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripRole`, `TripStatus`; domain enums used in fixtures and assertions
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT`; injection token for the mock DB client
+- `./trip-invitations.service` — `TripInvitationsService`; unit under test
+- `@/modules/trips/participants/trip-participants.service` — `TripParticipantsService`; mocked dependency
+- `@/modules/notifications/notifications.service` — `NotificationsService`; mocked dependency
+- `./dto/create-trip-invitation.dto` — `CreateTripInvitationDto`; type import for test payloads
 
 ### Definitions
 
-- `makeParticipation` (function) — factory helper producing a `tripParticipants` row fixture with a given userId, status, and optional role
+- `makeParticipation` (function) — factory helper that produces a `tripParticipants` row fixture with a given `userId`, `status`, and optional `role`
 
 ### Exports
 

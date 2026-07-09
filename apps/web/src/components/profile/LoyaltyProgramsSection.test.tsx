@@ -25,10 +25,6 @@ vi.mock('@/components/ui/toast', () => ({
   },
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('@/components/ui/loyalty-program-combobox', () => ({
   LoyaltyProgramCombobox: ({
     id,

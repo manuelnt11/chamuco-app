@@ -1,24 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AnnouncementResponseDto {
-  @ApiProperty({ description: 'Announcement UUID.' })
-  id!: string;
+import { BaseAnnouncementResponseDto } from '@/common/dto/base-announcement-response.dto';
 
+export class AnnouncementResponseDto extends BaseAnnouncementResponseDto {
   @ApiProperty({ description: 'Group UUID.' })
   groupId!: string;
-
-  @ApiProperty({
-    description: 'Username of the user who created the announcement.',
-    example: 'jsmith',
-  })
-  createdByUsername!: string;
-
-  @ApiProperty({ description: 'Announcement content.' })
-  content!: string;
-
-  @ApiProperty({ description: 'ISO 8601 creation timestamp.' })
-  createdAt!: Date;
-
-  @ApiProperty({ description: 'ISO 8601 last-updated timestamp.' })
-  updatedAt!: Date;
 }

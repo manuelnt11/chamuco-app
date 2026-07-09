@@ -2,10 +2,6 @@ import { type ComponentProps } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('@/components/ui/input', () => ({
   Input: (props: ComponentProps<'input'>) => <input {...props} />,
 }));

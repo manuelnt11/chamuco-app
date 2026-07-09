@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
-import { and, count, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 
 import {
   NotificationChannel,
@@ -15,14 +15,15 @@ import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { TripParticipantsService } from '@/modules/trips/participants/trip-participants.service';
+import {
+  ACTIVE_STATUSES,
+  ORGANIZER_ROLES,
+} from '@/modules/trips/participants/trip-participants.constants';
 import type { CreateTripInvitationDto } from './dto/create-trip-invitation.dto';
 import type {
   BulkTripInvitationResponseDto,
   TripInvitationResultDto,
 } from './dto/bulk-trip-invitation-response.dto';
-
-const ORGANIZER_ROLES = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER] as const;
-const ACTIVE_STATUSES = [TripParticipantStatus.ACCEPTED, TripParticipantStatus.CONFIRMED] as const;
 
 @Injectable()
 export class TripInvitationsService {
@@ -159,7 +160,7 @@ export class TripInvitationsService {
       throw new ConflictException('No pending invitation found');
     }
 
-    await this.assertCapacityAvailable(tripId);
+    await this.tripParticipantsService.assertCapacityAvailable(tripId);
 
     const now = new Date();
     await this.db
@@ -244,28 +245,5 @@ export class TripInvitationsService {
     await this.db
       .delete(tripParticipants)
       .where(and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, targetUserId)));
-  }
-
-  private async assertCapacityAvailable(tripId: string): Promise<void> {
-    const trip = await this.db.query.trips.findFirst({
-      where: eq(trips.id, tripId),
-      columns: { participantCapacity: true },
-    });
-    if (!trip) return;
-
-    const [row] = await this.db
-      .select({ total: count() })
-      .from(tripParticipants)
-      .where(
-        and(
-          eq(tripParticipants.tripId, tripId),
-          inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
-          eq(tripParticipants.isTraveler, true),
-        ),
-      );
-
-    if ((row?.total ?? 0) >= trip.participantCapacity) {
-      throw new ConflictException('Trip has reached maximum participant capacity');
-    }
   }
 }

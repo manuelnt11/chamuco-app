@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TripParticipantStatus, TripRole } from '@chamuco/shared-types';
+import { ORGANIZER_ROLES, TripParticipantStatus, TripRole } from '@chamuco/shared-types';
 import {
   AirplaneIcon,
   CheckFatIcon,
@@ -37,8 +37,6 @@ const ROLE_VARIANT: Record<TripRole, 'default' | 'secondary' | 'outline'> = {
   [TripRole.CO_ORGANIZER]: 'secondary',
   [TripRole.PARTICIPANT]: 'outline',
 };
-
-const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 
 export function ParticipantListItem({
   participant,

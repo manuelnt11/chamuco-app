@@ -96,7 +96,7 @@ describe('TripStatusTransition', () => {
       expect(screen.getByTestId('transition-btn-CANCELLED')).toBeInTheDocument();
     });
 
-    it('renders only COMPLETED button for IN_PROGRESS', () => {
+    it('renders COMPLETED and CANCELLED buttons for IN_PROGRESS', () => {
       render(
         <TripStatusTransition
           tripId="trip-1"
@@ -105,7 +105,7 @@ describe('TripStatusTransition', () => {
         />,
       );
       expect(screen.getByTestId('transition-btn-COMPLETED')).toBeInTheDocument();
-      expect(screen.queryByTestId('transition-btn-CANCELLED')).not.toBeInTheDocument();
+      expect(screen.getByTestId('transition-btn-CANCELLED')).toBeInTheDocument();
     });
 
     it('renders nothing for COMPLETED (terminal)', () => {

@@ -23,10 +23,6 @@ vi.mock('@/components/ui/toast', () => ({
   },
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('./AvatarEditor', () => ({
   AvatarEditor: () => <div data-testid="avatar-editor" />,
 }));

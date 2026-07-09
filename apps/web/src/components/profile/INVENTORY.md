@@ -2,13 +2,13 @@
 
 ---
 
-## AvatarEditor.tsx
+## `AvatarEditor.tsx`
 
 ### Imports
 
-- `react` — useState, useRef, ChangeEvent (type)
+- `react` — useState, useRef, ChangeEvent
 - `react-i18next` — useTranslation
-- `@chamuco/shared-utils` — getTwemojiUrl (builds Twemoji CDN URL from emoji string)
+- `@chamuco/shared-utils` — getTwemojiUrl
 - `@chamuco/shared-types` — UploadType
 - `@/components/ui/avatar` — Avatar
 - `@/components/ui/dialog` — Dialog, DialogTrigger, DialogPopup, DialogHeader, DialogTitle, DialogClose
@@ -23,9 +23,9 @@
 
 ### Definitions
 
-- `Tab` (type) — Union `'photo' | 'emoji'` for dialog tab state
-- `AvatarEditorProps` (interface) — Props: `user: AppUser`
-- `AvatarEditor` (component) — Dialog with photo-upload-and-crop tab and emoji-picker tab; calls `updateMyAvatar` and refreshes user on success
+- `Tab` (type) — union of `'photo' | 'emoji'` for dialog tab state
+- `AvatarEditorProps` (interface) — props for AvatarEditor
+- `AvatarEditor` (component) — dialog with photo-upload (crop) and emoji-picker tabs for updating user avatar
 
 ### Exports
 
@@ -33,7 +33,7 @@
 
 ---
 
-## AvatarEditor.test.tsx
+## `AvatarEditor.test.tsx`
 
 ### Imports
 
@@ -45,17 +45,16 @@
 
 ### Definitions
 
-- `mocks` (const) — Hoisted vi mock factories: mockPatch, mockToastSuccess, mockToastError, mockRefresh, mockUpload
-- `baseUser` (const) — Shared AppUser fixture used across test cases
-- `setup` (function) — Renders AvatarEditor with optional user overrides, returns userEvent instance
+- `baseUser` (const) — fixture AppUser used across tests
+- `setup` (function) — renders AvatarEditor with optional user overrides and returns userEvent instance
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## BasicInfoSection.tsx
+## `BasicInfoSection.tsx`
 
 ### Imports
 
@@ -79,8 +78,8 @@
 
 ### Definitions
 
-- `BasicInfoSectionProps` (interface) — Props: `user`, `userProfile`, `onRefresh`
-- `BasicInfoSection` (component) — Form for display name, bio, timezone (auto-suggested from homeCountry when UTC), and profile visibility; embeds AvatarEditor; patches `/v1/users/me` and `/v1/users/me/profile` in parallel
+- `BasicInfoSectionProps` (interface) — props for BasicInfoSection
+- `BasicInfoSection` (component) — form for display name, bio, timezone, profile visibility, and avatar editing
 
 ### Exports
 
@@ -88,7 +87,7 @@
 
 ---
 
-## BasicInfoSection.test.tsx
+## `BasicInfoSection.test.tsx`
 
 ### Imports
 
@@ -101,18 +100,17 @@
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockPatch, mockToastSuccess, mockToastError, mockRefresh
-- `baseUser` (const) — Shared AppUser fixture
-- `baseProfile` (const) — Shared BasicInfoProfile fixture
-- `setup` (function) — Renders BasicInfoSection with optional overrides, returns userEvent instance and onRefresh spy
+- `baseUser` (const) — fixture AppUser used across tests
+- `baseProfile` (const) — fixture BasicInfoProfile used across tests
+- `setup` (function) — renders BasicInfoSection with optional overrides and returns userEvent and onRefresh mock
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## EmergencyContactsSection.tsx
+## `EmergencyContactsSection.tsx`
 
 ### Imports
 
@@ -135,16 +133,16 @@
 
 ### Definitions
 
-- `RELATIONSHIP_KEYS` (const) — Read-only tuple of relationship i18n keys used to populate the datalist
-- `FormState` (interface) — Internal form fields: fullName, phoneCountryIso, phoneCountryCode, phoneLocalNumber, relationship, isPrimary
-- `FormErrors` (interface) — Per-field validation error strings
-- `EMPTY_ERRORS` (const) — Zero-error FormErrors constant
-- `makeEmptyForm` (function) — Returns blank FormState with optional isPrimary default
-- `getIsoFromCallingCode` (function) — Maps `+XX` calling code to ISO2, falls back to `'CO'`
-- `ContactFormProps` (interface) — Props for the internal ContactForm sub-component
-- `ContactForm` (component) — Internal reusable form (add or edit) with fullName, PhoneInput, relationship datalist, and isPrimary checkbox
-- `EmergencyContactsSectionProps` (interface) — Props: `contacts`, `onRefresh`
-- `EmergencyContactsSection` (component) — List + inline add/edit/delete of emergency contacts with name/phone/relationship validation
+- `RELATIONSHIP_KEYS` (const) — predefined relationship key list for datalist suggestions
+- `FormState` (interface) — local form state shape for a single contact
+- `FormErrors` (interface) — field-level error state for a single contact form
+- `EMPTY_ERRORS` (const) — zeroed-out FormErrors sentinel
+- `makeEmptyForm` (function) — factory returning a blank FormState with optional isPrimary default
+- `getIsoFromCallingCode` (function) — converts calling code string to ISO-2 country code
+- `ContactFormProps` (interface) — props for ContactForm
+- `ContactForm` (component) — reusable inline form for create/edit of a single emergency contact
+- `EmergencyContactsSectionProps` (interface) — props for EmergencyContactsSection
+- `EmergencyContactsSection` (component) — list + inline add/edit/delete UI for user emergency contacts
 
 ### Exports
 
@@ -152,7 +150,7 @@
 
 ---
 
-## EmergencyContactsSection.test.tsx
+## `EmergencyContactsSection.test.tsx`
 
 ### Imports
 
@@ -163,17 +161,16 @@
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockPost, mockPatch, mockDelete, mockToastSuccess, mockToastError, mockRandomUUID, mockIsValidPhoneNumber
-- `sampleContacts` (const) — Fixture array of two EmergencyContactDto entries
-- `setup` (function) — Renders EmergencyContactsSection with optional contacts override, returns userEvent instance and onRefresh spy
+- `sampleContacts` (const) — fixture array of EmergencyContactDto used across tests
+- `setup` (function) — renders EmergencyContactsSection with optional contacts and returns userEvent and onRefresh mock
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## EtasSubsection.tsx
+## `EtasSubsection.tsx`
 
 ### Imports
 
@@ -199,15 +196,15 @@
 
 ### Definitions
 
-- `FormState` (interface) — Internal form fields: destinationCountry, authorizationNumber, etaType, entries, expiryDate, notes
-- `FormErrors` (interface) — Per-field validation error strings
-- `EMPTY_ERRORS` (const) — Zero-error FormErrors constant
-- `makeEmptyForm` (function) — Returns blank FormState
-- `documentStatusBadgeClass` (function) — Returns Tailwind class string for a DocumentStatus badge (ACTIVE/EXPIRING_SOON/EXPIRED)
-- `EtaFormProps` (interface) — Props for the internal EtaForm sub-component
-- `EtaForm` (component) — Internal form for add/edit of an ETA; destination country is read-only on edit; auto-uppercases authorization number
-- `EtasSubsectionProps` (interface) — Props: `nationalityId`, `passportNumber`
-- `EtasSubsection` (component) — Fetches ETAs on mount via `getMyEtas`; manages add/edit/delete inline; disables Add when no passportNumber; shows spinner while loading
+- `FormState` (interface) — local ETA form state shape
+- `FormErrors` (interface) — ETA field-level error state
+- `EMPTY_ERRORS` (const) — zeroed-out FormErrors sentinel
+- `makeEmptyForm` (function) — factory returning blank ETA FormState
+- `documentStatusBadgeClass` (function) — maps DocumentStatus to Tailwind badge class string
+- `EtaFormProps` (interface) — props for EtaForm
+- `EtaForm` (component) — inline form for create/edit of a single ETA record; destination is read-only in edit mode
+- `EtasSubsectionProps` (interface) — props for EtasSubsection
+- `EtasSubsection` (component) — lazy-loaded list + inline CRUD for ETAs belonging to a nationality
 
 ### Exports
 
@@ -215,29 +212,25 @@
 
 ---
 
-## EtasSubsection.test.tsx
+## `EtasSubsection.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — render, screen, waitFor
 - `@testing-library/user-event` — userEvent
 - `@chamuco/shared-types` — DocumentStatus, EtaType, VisaEntries
-- `./EtasSubsection` — EtasSubsection
-- `@/services/users.types` — EtaDto (type)
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockGet, mockPost, mockPatch, mockDelete, mockToastSuccess, mockToastError
-- `sampleEtas` (const) — Fixture array of two EtaDto entries (ACTIVE + EXPIRED)
-- `setup` (function) — Renders EtasSubsection with optional passportNumber, returns userEvent instance
+_(no substantial non-test definitions)_
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## HealthSection.tsx
+## `HealthSection.tsx`
 
 ### Imports
 
@@ -256,12 +249,12 @@
 
 ### Definitions
 
-- `HealthSectionProps` (interface) — Props: `health`, `onRefresh`
-- `HealthArrayFieldProps` (interface) — Props for the internal HealthArrayField pill-picker
-- `HealthArrayField` (component) — Generic pill-toggle field for health arrays; shows a free-text description input when `OTHER` is selected
-- `normalizeItems` (function) — Converts typed health sub-item arrays (allergens, phobias, etc.) to `HealthArrayItem[]`
-- `sortedItems` (function) — Returns a sorted copy of `HealthArrayItem[]` by code, used for dirty comparison
-- `HealthSection` (component) — Form with pill pickers for blood type, dietary preference, food allergies, phobias, physical limitations, and medical conditions; validates that OTHER entries have a description before saving
+- `HealthSectionProps` (interface) — props for HealthSection
+- `HealthArrayFieldProps` (interface) — props for HealthArrayField
+- `HealthArrayField` (component) — pill-toggle fieldset for multi-select health array categories with optional OTHER description input
+- `normalizeItems` (function) — converts raw health DTO array items to HealthArrayItem format
+- `sortedItems` (function) — returns a sorted copy of HealthArrayItem array for stable dirty comparison
+- `HealthSection` (component) — form for blood type, dietary preference, food allergies, phobias, physical limitations, and medical conditions
 
 ### Exports
 
@@ -269,30 +262,25 @@
 
 ---
 
-## HealthSection.test.tsx
+## `HealthSection.test.tsx`
 
 ### Imports
 
 - `react` — ComponentProps (type)
 - `@testing-library/react` — render, screen, waitFor
 - `@testing-library/user-event` — userEvent
-- `./HealthSection` — HealthSection
-- `@/services/users.types` — HealthData (type)
-- `@chamuco/shared-types` — BloodType, DietaryPreference
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockPatch, mockToastSuccess, mockToastError
-- `baseHealth` (const) — Fixture HealthData with all fields null or empty arrays
-- `setup` (function) — Renders HealthSection with optional health overrides, returns userEvent instance and onRefresh spy
+_(no substantial non-test definitions)_
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## LoyaltyProgramsSection.tsx
+## `LoyaltyProgramsSection.tsx`
 
 ### Imports
 
@@ -312,12 +300,12 @@
 
 ### Definitions
 
-- `FormState` (interface) — Internal form fields: programName, memberId, notes
-- `EMPTY_FORM` (const) — Zero-value FormState constant
-- `LoyaltyProgramsSectionProps` (interface) — Props: `programs`, `onRefresh`
-- `ProgramFormProps` (interface) — Props for the internal ProgramForm sub-component
-- `ProgramForm` (component) — Internal add/edit form with LoyaltyProgramCombobox, memberId input, and optional notes textarea
-- `LoyaltyProgramsSection` (component) — List + inline add/edit/delete of loyalty programs; blocks duplicates (same programName + memberId, case-insensitive) on add
+- `FormState` (interface) — local form state shape for a loyalty program entry
+- `EMPTY_FORM` (const) — empty FormState sentinel
+- `LoyaltyProgramsSectionProps` (interface) — props for LoyaltyProgramsSection
+- `ProgramFormProps` (interface) — props for ProgramForm
+- `ProgramForm` (component) — inline form for create/edit of a single loyalty program record
+- `LoyaltyProgramsSection` (component) — list + inline add/edit/delete UI for travel loyalty programs; duplicate detection before POST
 
 ### Exports
 
@@ -325,33 +313,29 @@
 
 ---
 
-## LoyaltyProgramsSection.test.tsx
+## `LoyaltyProgramsSection.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — render, screen, waitFor
 - `@testing-library/user-event` — userEvent
-- `@/services/users.types` — LoyaltyProgramDto (type)
-- `./LoyaltyProgramsSection` — LoyaltyProgramsSection
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockPost, mockPatch, mockDelete, mockToastSuccess, mockToastError, mockRandomUUID
-- `samplePrograms` (const) — Fixture array of two LoyaltyProgramDto entries
-- `setup` (function) — Renders LoyaltyProgramsSection with optional programs override, returns userEvent instance and onRefresh spy
+_(no substantial non-test definitions)_
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## NationalitiesSection.tsx
+## `NationalitiesSection.tsx`
 
 ### Imports
 
 - `react` — useState, SubmitEvent (type)
-- `axios` — axios (used for `axios.isAxiosError` to detect 409 conflict on add)
+- `axios` — axios (for isAxiosError)
 - `react-i18next` — useTranslation
 - `@/lib/countries` — getCountryName, getEmojiFlag
 - `@phosphor-icons/react` — CaretDownIcon, GlobeIcon, IdentificationCardIcon, PlusIcon
@@ -373,15 +357,15 @@
 
 ### Definitions
 
-- `FormState` (interface) — Internal form fields: countryCode, nationalIdNumber, passportNumber, passportIssueDate, passportExpiryDate, isPrimary
-- `FormErrors` (interface) — Per-field validation error strings for nationalId, passport, passportNumber, passportDates
-- `EMPTY_ERRORS` (const) — Zero-error FormErrors constant
-- `makeEmptyForm` (function) — Returns blank FormState with optional isPrimary
-- `passportStatusBadgeClass` (function) — Returns Tailwind class string for a PassportStatus badge
-- `NationalityFormProps` (interface) — Props for the internal NationalityForm sub-component
-- `NationalityForm` (component) — Internal add/edit form; country is read-only on edit; auto-fills passport expiry +10 years from issue date; validates passport fields are all-or-none
-- `NationalitiesSectionProps` (interface) — Props: `data`, `onRefresh`
-- `NationalitiesSection` (component) — List + inline add/edit/delete of nationalities; expandable per-row disclosure reveals VisasSubsection and EtasSubsection; handles 409 (duplicate) and 400 (delete primary) error codes
+- `FormState` (interface) — local nationality form state shape including passport fields
+- `FormErrors` (interface) — nationality field-level error state
+- `EMPTY_ERRORS` (const) — zeroed-out FormErrors sentinel
+- `makeEmptyForm` (function) — factory returning blank nationality FormState with optional isPrimary default
+- `passportStatusBadgeClass` (function) — maps PassportStatus to Tailwind badge class string
+- `NationalityFormProps` (interface) — props for NationalityForm
+- `NationalityForm` (component) — inline form for create/edit of a nationality record with optional national ID and passport fields
+- `NationalitiesSectionProps` (interface) — props for NationalitiesSection
+- `NationalitiesSection` (component) — list + inline CRUD for nationalities; expands per-row to show VisasSubsection and EtasSubsection
 
 ### Exports
 
@@ -389,29 +373,25 @@
 
 ---
 
-## NationalitiesSection.test.tsx
+## `NationalitiesSection.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — render, screen, waitFor
 - `@testing-library/user-event` — userEvent
 - `@chamuco/shared-types` — PassportStatus
-- `@/services/users.types` — NationalityDto (type)
-- `./NationalitiesSection` — NationalitiesSection
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockPost, mockPatch, mockDelete, mockToastSuccess, mockToastError
-- `sampleNationalities` (const) — Fixture array of two NationalityDto entries (one with passport, one OMITTED)
-- `setup` (function) — Renders NationalitiesSection with optional nationalities override, returns userEvent instance and onRefresh spy
+_(no substantial non-test definitions)_
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## NotificationPreferencesSection.tsx
+## `NotificationPreferencesSection.tsx`
 
 ### Imports
 
@@ -425,12 +405,12 @@
 
 ### Definitions
 
-- `NotificationPreferencesSectionProps` (interface) — Props: `preferences`
-- `CONFIGURABLE_CHANNELS` (const) — Tuple of `[PUSH, EMAIL]` channels shown in the matrix
-- `ConfigurableChannel` (type) — Extracted element type of `CONFIGURABLE_CHANNELS`
-- `EMAIL_SUPPORTED` (const) — Set of NotificationTypes that support email channel
-- `supportsChannel` (function) — Returns whether a given NotificationType supports a ConfigurableChannel
-- `NotificationPreferencesSection` (component) — Table matrix of notification types × channels; each cell is a Checkbox; auto-saves on toggle via PATCH; optimistic update rolled back on error
+- `NotificationPreferencesSectionProps` (interface) — props for NotificationPreferencesSection
+- `CONFIGURABLE_CHANNELS` (const) — const tuple of user-configurable channels (PUSH, EMAIL)
+- `ConfigurableChannel` (type) — derived union type from CONFIGURABLE_CHANNELS
+- `EMAIL_SUPPORTED` (const) — set of NotificationTypes that support the EMAIL channel
+- `supportsChannel` (function) — returns whether a notification type supports a given configurable channel
+- `NotificationPreferencesSection` (component) — matrix table of notification types vs channels with per-cell checkbox toggles; auto-saves on each toggle
 
 ### Exports
 
@@ -438,7 +418,7 @@
 
 ---
 
-## PersonalDetailsSection.tsx
+## `PersonalDetailsSection.tsx`
 
 ### Imports
 
@@ -456,15 +436,15 @@
 - `@/components/ui/field-message` — FieldMessage
 - `@/services/users.types` — PersonalDetailsProfile (type)
 - `@/services/users.service` — updateMyProfile
+- `@chamuco/shared-utils` — isValidCalendarDay
 - `@/lib/name-utils` — NAME_REGEX, normalizeName
 
 ### Definitions
 
-- `PersonalDetailsSectionProps` (interface) — Props: `profile`, `onRefresh`
-- `callingCodeToIso2` (function) — Converts `+XX` calling code to ISO2, falls back to `'CO'`
-- `isValidCalendarDay` (function) — Validates that a day/month/year combination is a real calendar date
-- `CURRENT_YEAR` (const) — Captured `new Date().getFullYear()` for DOB max-year validation
-- `PersonalDetailsSection` (component) — Form for first name, last name, DOB (with year-visibility toggle), email, phone, birth location, and home location; validates all fields before patching `/v1/users/me/profile`
+- `PersonalDetailsSectionProps` (interface) — props for PersonalDetailsSection
+- `callingCodeToIso2` (function) — converts a calling code string (e.g. `+57`) to ISO-2 country code
+- `CURRENT_YEAR` (const) — current calendar year used as DOB validation upper bound
+- `PersonalDetailsSection` (component) — form for first/last name (uppercase), date of birth, email, phone, birth location, and home location
 
 ### Exports
 
@@ -472,28 +452,25 @@
 
 ---
 
-## PersonalDetailsSection.test.tsx
+## `PersonalDetailsSection.test.tsx`
 
 ### Imports
 
 - `react` — ComponentProps (type)
 - `@testing-library/react` — render, screen, waitFor, fireEvent
 - `@testing-library/user-event` — userEvent
-- `@/services/users.types` — PersonalDetailsProfile (type)
-- `./PersonalDetailsSection` — PersonalDetailsSection
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockPatch, mockToastSuccess, mockToastError, mockIsValidPhoneNumber, mockGetCallingCode
-- `setup` (function) — Renders PersonalDetailsSection with a profile fixture, returns userEvent instance and onRefresh spy
+_(no substantial non-test definitions)_
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## PreferencesSection.tsx
+## `PreferencesSection.tsx`
 
 ### Imports
 
@@ -509,10 +486,10 @@
 
 ### Definitions
 
-- `PreferencesSectionProps` (interface) — Props: `preferences`, `onRefresh`
-- `OptionButtonProps` (interface) — Generic props for OptionButton: value, current, label, saving, onClick
-- `OptionButton` (component) — Generic pill toggle button for single-select preference fields; highlighted when active
-- `PreferencesSection` (component) — Auto-save pill pickers for language, currency, and theme; calls `changeLanguage` after language save and `setTheme` after theme save
+- `PreferencesSectionProps` (interface) — props for PreferencesSection
+- `OptionButtonProps` (interface) — generic props for the OptionButton pill component
+- `OptionButton` (component) — generic togglable pill button used for preference value selection
+- `PreferencesSection` (component) — pill-button selectors for app language, currency, and theme; auto-saves each preference individually
 
 ### Exports
 
@@ -520,7 +497,7 @@
 
 ---
 
-## PreferencesSection.test.tsx
+## `PreferencesSection.test.tsx`
 
 ### Imports
 
@@ -532,17 +509,15 @@
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockPatch, mockToastError, mockSetTheme, mockChangeLanguage
-- `basePreferences` (const) — Fixture PreferencesData (EN, COP, SYSTEM)
-- `setup` (function) — Renders PreferencesSection with optional overrides, returns userEvent instance and onRefresh spy
+_(no substantial non-test definitions)_
 
 ### Exports
 
-- none
+_(none)_
 
 ---
 
-## VisasSubsection.tsx
+## `VisasSubsection.tsx`
 
 ### Imports
 
@@ -567,15 +542,15 @@
 
 ### Definitions
 
-- `FormState` (interface) — Internal form fields: coverageType, countryCode, visaZone, visaType, entries, expiryDate, notes
-- `FormErrors` (interface) — Per-field validation error strings
-- `EMPTY_ERRORS` (const) — Zero-error FormErrors constant
-- `makeEmptyForm` (function) — Returns blank FormState
-- `documentStatusBadgeClass` (function) — Returns Tailwind class string for a DocumentStatus badge
-- `VisaFormProps` (interface) — Props for the internal VisaForm sub-component
-- `VisaForm` (component) — Internal add/edit form; coverage type, country, and zone are read-only on edit; conditionally shows country or zone selector based on coverageType
-- `VisasSubsectionProps` (interface) — Props: `nationalityId`
-- `VisasSubsection` (component) — Fetches visas on mount via `getMyVisas`; manages add/edit/delete inline; separate `validate`/`validateEdit` functions (edit skips immutable coverage/country/zone fields); shows spinner while loading
+- `FormState` (interface) — local visa form state shape (supports country or zone coverage)
+- `FormErrors` (interface) — visa field-level error state
+- `EMPTY_ERRORS` (const) — zeroed-out FormErrors sentinel
+- `makeEmptyForm` (function) — factory returning blank visa FormState
+- `documentStatusBadgeClass` (function) — maps DocumentStatus to Tailwind badge class string
+- `VisaFormProps` (interface) — props for VisaForm
+- `VisaForm` (component) — inline form for create/edit of a visa; coverage type and destination are read-only in edit mode
+- `VisasSubsectionProps` (interface) — props for VisasSubsection
+- `VisasSubsection` (component) — lazy-loaded list + inline CRUD for visas belonging to a nationality
 
 ### Exports
 
@@ -583,21 +558,18 @@
 
 ---
 
-## VisasSubsection.test.tsx
+## `VisasSubsection.test.tsx`
 
 ### Imports
 
 - `@testing-library/react` — render, screen, waitFor
 - `@testing-library/user-event` — userEvent
 - `@chamuco/shared-types` — DocumentStatus, VisaCoverageType, VisaEntries, VisaType, VisaZone
-- `./VisasSubsection` — VisasSubsection
-- `@/services/users.types` — VisaDto (type)
 
 ### Definitions
 
-- `mocks` (const) — Hoisted mock factories: mockGet, mockPost, mockPatch, mockDelete, mockToastSuccess, mockToastError
-- `setup` (function) — Renders VisasSubsection for a given nationalityId, returns userEvent instance
+_(no substantial non-test definitions)_
 
 ### Exports
 
-- none
+_(none)_

@@ -3,10 +3,6 @@ import { type ReactNode } from 'react';
 import { GroupVisibility } from '@chamuco/shared-types';
 import type { Group } from '@/types/group';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('next/link', () => ({
   default: ({
     href,

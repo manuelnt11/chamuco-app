@@ -6,10 +6,6 @@ const mocks = vi.hoisted(() => ({
   mockFeedbackModal: vi.fn(),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('@/components/feedback/FeedbackModal', () => ({
   FeedbackModal: mocks.mockFeedbackModal,
 }));

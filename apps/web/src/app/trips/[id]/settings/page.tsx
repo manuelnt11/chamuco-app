@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { TripRole, TripStatus } from '@chamuco/shared-types';
+import { ORGANIZER_ROLES, TripStatus } from '@chamuco/shared-types';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 
 import {
@@ -34,7 +34,6 @@ interface TripSettingsPageProps {
   params: Promise<{ id: string }>;
 }
 
-const ORGANIZER_ROLES: TripRole[] = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER];
 const CANCELLABLE_STATUSES: TripStatus[] = [
   TripStatus.DRAFT,
   TripStatus.OPEN,

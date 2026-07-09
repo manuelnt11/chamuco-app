@@ -2,35 +2,35 @@
 
 ---
 
-## bulk-invitation-response.dto.ts
+## `bulk-invitation-response.dto.ts`
 
 ### Imports
 
 - `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
-- `@chamuco/shared-types` — `INVITATION_RESULT_STATUSES` (enum array), `InvitationResult`, `InvitationResultStatus`, `BulkInvitationResponse` (shared type contracts)
+- `@chamuco/shared-types` — `BulkInvitationResponse` interface implemented by the response DTO
+- `@/common/dto/invitation-result.dto` — `InvitationResultDto` re-exported and used as array item type
 
 ### Definitions
 
-- `InvitationResultDto` (class) — Response DTO for a single invitation result; implements `InvitationResult`; holds `username` and `status` (one of `INVITATION_RESULT_STATUSES`)
-- `BulkInvitationResponseDto` (class) — Response DTO for a bulk invitation operation; implements `BulkInvitationResponse`; holds an array of `InvitationResultDto`
+- `BulkInvitationResponseDto` (class) — response DTO for bulk group invitation operations; holds an array of per-username results
 
 ### Exports
 
-- `InvitationResultDto` — named
 - `BulkInvitationResponseDto` — named
+- `InvitationResultDto` — barrel re-export
 
 ---
 
-## create-invitation.dto.ts
+## `create-invitation.dto.ts`
 
 ### Imports
 
 - `@nestjs/swagger` — `ApiProperty` for OpenAPI field decoration
-- `class-validator` — `ArrayMaxSize`, `ArrayMinSize`, `IsArray`, `IsString`, `Matches`, `MaxLength`, `MinLength` for request validation decorators
+- `class-validator` — `ArrayMaxSize`, `ArrayMinSize`, `IsArray`, `IsString`, `Matches`, `MaxLength`, `MinLength` for request validation
 
 ### Definitions
 
-- `CreateInvitationDto` (class) — Request DTO for bulk group invitations; validates `usernames` as an array of 1–20 lowercase username strings (3–30 chars, matching `^[a-z0-9_-]+$`)
+- `CreateInvitationDto` (class) — request DTO for bulk group invitations; validates an array of 1–20 lowercase usernames (3–30 chars, `a-z0-9_-` pattern)
 
 ### Exports
 

@@ -1,6 +1,7 @@
 import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import { and, eq, inArray } from 'drizzle-orm';
 import {
+  GROUP_ADMIN_ROLES,
   GroupMemberStatus,
   GroupRole,
   NotificationChannel,
@@ -18,8 +19,6 @@ import type {
   BulkInvitationResponseDto,
   InvitationResultDto,
 } from './dto/bulk-invitation-response.dto';
-
-const ADMIN_ROLES = [GroupRole.OWNER, GroupRole.ADMIN] as const;
 
 @Injectable()
 export class GroupInvitationsService {
@@ -160,7 +159,7 @@ export class GroupInvitationsService {
         where: and(
           eq(groupMembers.groupId, groupId),
           eq(groupMembers.status, GroupMemberStatus.ACTIVE),
-          inArray(groupMembers.role, [...ADMIN_ROLES]),
+          inArray(groupMembers.role, GROUP_ADMIN_ROLES),
         ),
         columns: { userId: true },
       }),

@@ -15,6 +15,7 @@ import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
 import type { PersonalDetailsProfile } from '@/services/users.types';
 import { updateMyProfile } from '@/services/users.service';
+import { isValidCalendarDay } from '@chamuco/shared-utils';
 import { NAME_REGEX, normalizeName } from '@/lib/name-utils';
 
 interface PersonalDetailsSectionProps {
@@ -24,11 +25,6 @@ interface PersonalDetailsSectionProps {
 
 function callingCodeToIso2(callingCode: string): string {
   return isoByCallingCode(callingCode.replace('+', '')) ?? 'CO';
-}
-
-function isValidCalendarDay(day: number, month: number, year: number): boolean {
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 const CURRENT_YEAR = new Date().getFullYear();

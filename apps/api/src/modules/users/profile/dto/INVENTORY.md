@@ -2,17 +2,17 @@
 
 ---
 
-## calendar-date.validator.ts
+## `calendar-date.validator.ts`
 
 ### Imports
 
-- `class-validator` — `registerDecorator`, `ValidationArguments`, `ValidationOptions`, `ValidatorConstraint`, `ValidatorConstraintInterface` for building custom constraint classes and decorator factories
+- `class-validator` — `registerDecorator`, `ValidationArguments`, `ValidationOptions`, `ValidatorConstraint`, `ValidatorConstraintInterface`
 
 ### Definitions
 
-- `DateFields` (interface) — Internal shape describing optional `month` and `year` used inside `ValidationArguments.object`
-- `IsRealCalendarDayConstraint` (class) — `ValidatorConstraint` that verifies a numeric day value actually exists on the calendar for the sibling `month`/`year` fields; uses `Date` round-trip to detect invalid dates like Feb 30
-- `IsRealCalendarDay` (function) — Property decorator factory that registers `IsRealCalendarDayConstraint` via `registerDecorator`
+- `DateFields` (interface) — local shape describing optional `month` and `year` fields read from the validation object
+- `IsRealCalendarDayConstraint` (class) — `ValidatorConstraint` implementation; validates that a day value actually exists in the given month/year (e.g. rejects Feb 31)
+- `IsRealCalendarDay` (function) — property decorator factory that registers `IsRealCalendarDayConstraint` on the target field
 
 ### Exports
 
@@ -21,38 +21,38 @@
 
 ---
 
-## calendar-date.validator.spec.ts
+## `calendar-date.validator.spec.ts`
 
 ### Imports
 
-- `class-transformer` — `plainToInstance` for DTO instantiation in tests
-- `class-validator` — `validate`, `ValidationArguments` for running validation and constructing argument stubs
-- `./calendar-date.validator` — `IsRealCalendarDayConstraint` (class under test)
-- `./date-of-birth.dto` — `DateOfBirthDto` (integration fixture)
+- `class-transformer` — `plainToInstance`
+- `class-validator` — `validate`, `ValidationArguments`
+- `./calendar-date.validator` — `IsRealCalendarDayConstraint`
+- `./date-of-birth.dto` — `DateOfBirthDto`
 
 ### Definitions
 
-- `validateDob` (function) — Test helper that instantiates `DateOfBirthDto` and returns flattened constraint error messages
-- `makeArgs` (function) — Test helper that builds a minimal `ValidationArguments` stub for unit-testing the constraint directly
+- `validateDob` (function) — helper that constructs a `DateOfBirthDto` and returns flattened constraint error messages
+- `makeArgs` (function) — helper that builds a minimal `ValidationArguments` stub for unit-testing the constraint directly
 
 ### Exports
 
-- _(none — test file)_
+- None
 
 ---
 
-## date-of-birth.dto.ts
+## `date-of-birth.dto.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
-- `class-validator` — `IsBoolean`, `IsInt`, `Max`, `Min` for field-level validation decorators
-- `@chamuco/shared-types` — `DateOfBirth` interface that this DTO implements
-- `./calendar-date.validator` — `IsRealCalendarDay` custom validator applied to `day`
+- `@nestjs/swagger` — `ApiProperty`
+- `class-validator` — `IsBoolean`, `IsInt`, `Max`, `Min`
+- `@chamuco/shared-types` — `DateOfBirth` (type)
+- `./calendar-date.validator` — `IsRealCalendarDay`
 
 ### Definitions
 
-- `DateOfBirthDto` (class) — Validated DTO for a date of birth split into `day`, `month`, `year`, and `yearVisible` fields; `day` is additionally constrained by the calendar validator
+- `DateOfBirthDto` (class) — validated DTO for a structured date of birth with `day`, `month`, `year`, and `yearVisible`; implements `DateOfBirth`; `day` is additionally constrained by the calendar validator
 
 ### Exports
 
@@ -60,37 +60,38 @@
 
 ---
 
-## minimum-age.validator.spec.ts
+## `minimum-age.validator.spec.ts`
 
 ### Imports
 
-- `class-transformer` — `plainToInstance`, `Type` for DTO instantiation and nested type resolution
-- `class-validator` — `IsObject`, `validate`, `ValidateNested` for building the `TestDto` fixture and running validation
-- `./minimum-age.validator` — `computeAge`, `IsMinimumAge` (functions under test)
-- `./date-of-birth.dto` — `DateOfBirthDto` as nested property type in `TestDto`
+- `class-transformer` — `plainToInstance`, `Type`
+- `class-validator` — `IsObject`, `validate`, `ValidateNested`
+- `./minimum-age.validator` — `computeAge`, `IsMinimumAge`
+- `./date-of-birth.dto` — `DateOfBirthDto`
 
 ### Definitions
 
-- `TestDto` (class) — Local fixture class that applies `@IsMinimumAge(16)` to a nested `DateOfBirthDto` field
-- `dobOf` (function) — Test helper that builds a `DateOfBirth`-shaped object offset by the given number of years (and optional day offset) relative to today
+- `TestDto` (class) — local fixture DTO applying `@IsMinimumAge(16)` to a nested `DateOfBirthDto` field
+- `dobOf` (function) — helper that builds a `DateOfBirth`-shaped object offset by a given number of years (plus optional day offset) relative to today
 
 ### Exports
 
-- _(none — test file)_
+- None
 
 ---
 
-## minimum-age.validator.ts
+## `minimum-age.validator.ts`
 
 ### Imports
 
-- `class-validator` — `registerDecorator`, `ValidationArguments`, `ValidationOptions` for building the inline validator and decorator factory
+- `class-validator` — `registerDecorator`, `ValidationArguments`, `ValidationOptions`
+- `@chamuco/shared-utils` — `computeAge` (aliased as `computeAgeFromDob`)
 
 ### Definitions
 
-- `DateLike` (interface) — Internal shape describing `{ day, month, year }` used for age computation
-- `computeAge` (function) — Computes integer age from a `DateLike`-shaped value; returns `-1` for null, non-object, or non-finite fields
-- `IsMinimumAge` (function) — Property decorator factory that registers an inline validator enforcing a configurable minimum age against a nested `DateOfBirthDto`-shaped value
+- `DateLike` (interface) — local shape with `day`, `month`, `year` number fields
+- `computeAge` (function) — wraps `computeAgeFromDob`; returns `-1` for null, non-object, or non-finite input; otherwise returns age in whole years
+- `IsMinimumAge` (function) — property decorator factory that registers an inline validator enforcing a configurable minimum age against a nested date-of-birth value
 
 ### Exports
 
@@ -99,19 +100,38 @@
 
 ---
 
-## update-user-profile.dto.ts
+## `update-user-profile.dto.spec.ts`
 
 ### Imports
 
-- `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
-- `class-transformer` — `Transform`, `Type` for sanitizing and transforming field values
-- `class-validator` — `IsEmail`, `IsOptional`, `IsString`, `Matches`, `MaxLength`, `MinLength`, `ValidateNested` for field validation
-- `./date-of-birth.dto` — `DateOfBirthDto` for the nested `dateOfBirth` field
-- `@/common/transforms/name.transform` — `sanitizeProperNoun` transform (trim, collapse spaces, uppercase)
+- `reflect-metadata` — side-effect import for decorator metadata
+- `class-transformer` — `plainToInstance`
+- `class-validator` — `validate`
+- `./update-user-profile.dto` — `UpdateUserProfileDto`
 
 ### Definitions
 
-- `UpdateUserProfileDto` (class) — Partial-update DTO for user profile; all fields optional; covers `firstName`, `lastName`, `dateOfBirth`, `birthCountry`, `birthCity`, `homeCountry`, `homeCity`, `email`, `phoneCountryCode`, `phoneLocalNumber`, and `bio`
+- None (all logic is inside `describe`/`it` blocks)
+
+### Exports
+
+- None
+
+---
+
+## `update-user-profile.dto.ts`
+
+### Imports
+
+- `@nestjs/swagger` — `ApiProperty`
+- `class-transformer` — `Transform`, `Type`
+- `class-validator` — `IsEmail`, `IsOptional`, `IsString`, `Matches`, `MaxLength`, `MinLength`, `ValidateNested`
+- `./date-of-birth.dto` — `DateOfBirthDto`
+- `@/common/transforms/name.transform` — `sanitizeProperNoun`
+
+### Definitions
+
+- `UpdateUserProfileDto` (class) — PATCH request body for updating a user's profile; all fields optional; covers `firstName`, `lastName`, `dateOfBirth`, `birthCountry`, `birthCity`, `homeCountry`, `homeCity`, `email`, `phoneCountryCode`, `phoneLocalNumber`, and `bio`; name and city fields are uppercased via `sanitizeProperNoun`
 
 ### Exports
 
@@ -119,35 +139,16 @@
 
 ---
 
-## update-user-profile.dto.spec.ts
+## `user-profile-response.dto.ts`
 
 ### Imports
 
-- `reflect-metadata` — side-effect import required for decorator metadata
-- `class-transformer` — `plainToInstance` for DTO instantiation
-- `class-validator` — `validate` for running validation
-- `./update-user-profile.dto` — `UpdateUserProfileDto` (class under test)
+- `@nestjs/swagger` — `ApiProperty`
+- `./date-of-birth.dto` — `DateOfBirthDto`
 
 ### Definitions
 
-- _(no standalone declarations — all logic is inside `describe`/`it` blocks)_
-
-### Exports
-
-- _(none — test file)_
-
----
-
-## user-profile-response.dto.ts
-
-### Imports
-
-- `@nestjs/swagger` — `ApiProperty` for OpenAPI field documentation
-- `./date-of-birth.dto` — `DateOfBirthDto` for the nested `dateOfBirth` field
-
-### Definitions
-
-- `UserProfileResponseDto` (class) — Response DTO for the user profile endpoint; exposes `firstName`, `lastName`, `dateOfBirth`, `birthCountry`, `birthCity`, `homeCountry`, `homeCity`, `email`, `emailVerified`, `phoneCountryCode`, `phoneLocalNumber`, `phoneVerified`, and `bio`
+- `UserProfileResponseDto` (class) — response DTO for the user profile endpoint; exposes `firstName`, `lastName`, `dateOfBirth`, `birthCountry`, `birthCity`, `homeCountry`, `homeCity`, `email`, `emailVerified`, `phoneCountryCode`, `phoneLocalNumber`, `phoneVerified`, and `bio`
 
 ### Exports
 

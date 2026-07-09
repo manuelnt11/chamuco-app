@@ -1,6 +1,6 @@
-import { TripParticipantStatus, TripRole } from '@chamuco/shared-types';
+import { TripParticipantStatus } from '@chamuco/shared-types';
 
-export const ORGANIZER_ROLES = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER] as const;
+export { ORGANIZER_ROLES } from '@chamuco/shared-types';
 export const ACTIVE_STATUSES = [
   TripParticipantStatus.ACCEPTED,
   TripParticipantStatus.CONFIRMED,

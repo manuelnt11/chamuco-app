@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { GroupRole, GroupVisibility } from '@chamuco/shared-types';
+import { GROUP_ADMIN_ROLES, GroupRole, GroupVisibility } from '@chamuco/shared-types';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -21,8 +21,6 @@ import type { Group, GroupAnnouncement } from '@/types/group';
 interface GroupDetailPageProps {
   params: Promise<{ id: string }>;
 }
-
-const ADMIN_ROLES: GroupRole[] = [GroupRole.OWNER, GroupRole.ADMIN];
 
 export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { id } = use(params);
@@ -63,7 +61,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   }
 
   const isOwner = appUser?.id === group.createdBy;
-  const isAdmin = callerRole !== null && ADMIN_ROLES.includes(callerRole);
+  const isAdmin = callerRole !== null && GROUP_ADMIN_ROLES.includes(callerRole);
 
   return (
     <div className="p-8 max-w-2xl">

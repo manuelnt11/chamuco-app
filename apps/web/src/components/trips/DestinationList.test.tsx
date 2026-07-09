@@ -25,10 +25,6 @@ vi.mock('@/components/ui/toast', () => ({
   toast: { error: mocks.toastError },
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('@/components/ui/country-combobox', () => ({
   CountryCombobox: ({ value, onChange }: { value: string; onChange: (iso2: string) => void }) => (
     <select data-testid="country-combobox" value={value} onChange={(e) => onChange(e.target.value)}>

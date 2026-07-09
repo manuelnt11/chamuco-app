@@ -2,15 +2,15 @@
 
 ---
 
-## city-result.ts
+## `city-result.ts`
 
 ### Imports
 
-_None._
+_None_
 
 ### Definitions
 
-- `CityResult` (interface) — Represents a city search result with name and region fields.
+- `CityResult` (interface) — represents a city with its name and region
 
 ### Exports
 
@@ -18,15 +18,15 @@ _None._
 
 ---
 
-## date-of-birth.ts
+## `date-of-birth.ts`
 
 ### Imports
 
-_None._
+_None_
 
 ### Definitions
 
-- `DateOfBirth` (interface) — Structured date-of-birth with separate day/month/year fields and a visibility flag.
+- `DateOfBirth` (interface) — structured date of birth with day, month, year, and yearVisible flag
 
 ### Exports
 
@@ -34,15 +34,15 @@ _None._
 
 ---
 
-## feedback-response.ts
+## `feedback-response.ts`
 
 ### Imports
 
-_None._
+_None_
 
 ### Definitions
 
-- `FeedbackResponse` (interface) — API response for user feedback submission; contains the created GitHub issue URL.
+- `FeedbackResponse` (interface) — response containing the URL of a created feedback issue
 
 ### Exports
 
@@ -50,15 +50,34 @@ _None._
 
 ---
 
-## index.ts
+## `group-search.ts`
 
 ### Imports
 
-_None (barrel only)._
+- `../enums/group-visibility.enum` — `GroupVisibility` enum for group discoverability level
+- `./membership-status` — `MembershipStatus` type for the viewer's current membership state
 
 ### Definitions
 
-_None._
+- `GroupSearchResult` (interface) — single group record returned in a search result set
+- `GroupSearchResponse` (interface) — paginated wrapper with data array and total count for group searches
+
+### Exports
+
+- `GroupSearchResult` — named
+- `GroupSearchResponse` — named
+
+---
+
+## `index.ts`
+
+### Imports
+
+_None_
+
+### Definitions
+
+_None_
 
 ### Exports
 
@@ -72,21 +91,25 @@ _None._
 - `./invitation-token` — barrel re-export
 - `./notification-item` — barrel re-export
 - `./notification-preferences` — barrel re-export
+- `./role-sets` — barrel re-export
+- `./trip-transitions` — barrel re-export
+- `./group-search` — barrel re-export
+- `./user-search` — barrel re-export
 
 ---
 
-## invitation-result.ts
+## `invitation-result.ts`
 
 ### Imports
 
-_None._
+_None_
 
 ### Definitions
 
-- `INVITATION_RESULT_STATUSES` (const) — `as const` tuple of all possible per-user invitation outcome strings.
-- `InvitationResultStatus` (type) — Union type derived from `INVITATION_RESULT_STATUSES`.
-- `InvitationResult` (interface) — Single-user invitation outcome containing username and status.
-- `BulkInvitationResponse` (interface) — API response wrapping an array of `InvitationResult` records.
+- `INVITATION_RESULT_STATUSES` (const) — readonly tuple of valid invitation result status strings
+- `InvitationResultStatus` (type) — union type derived from `INVITATION_RESULT_STATUSES`
+- `InvitationResult` (interface) — per-user outcome of a single invitation attempt with username and status
+- `BulkInvitationResponse` (interface) — response wrapping an array of `InvitationResult` records
 
 ### Exports
 
@@ -97,20 +120,20 @@ _None._
 
 ---
 
-## invitation-token.ts
+## `invitation-token.ts`
 
 ### Imports
 
-- `../enums/invitation-token-context.enum` — `InvitationTokenContext` (enum used to type the token's context kind)
+- `../enums/invitation-token-context.enum` — `InvitationTokenContext` enum identifying what kind of entity the token targets
 
 ### Definitions
 
-- `InvitationTokenRedeemer` (interface) — Records who redeemed a token and when.
-- `InvitationTokenCreateResponse` (interface) — API response for creating a new invitation token (token string, shareable URL, active flag).
-- `InvitationTokenResolveResponse` (interface) — API response for resolving a token to its context and creator metadata.
-- `INVITATION_TOKEN_REDEMPTION_OUTCOMES` (const) — `as const` tuple of all possible redemption outcome strings.
-- `InvitationTokenRedemptionOutcome` (type) — Union type derived from `INVITATION_TOKEN_REDEMPTION_OUTCOMES`.
-- `InvitationTokenRedeemResponse` (interface) — API response after redeeming a token; contains outcome, context type, and context ID.
+- `InvitationTokenRedeemer` (interface) — who redeemed a token and when
+- `InvitationTokenCreateResponse` (interface) — response returned when a new invitation token is created
+- `InvitationTokenResolveResponse` (interface) — full token metadata returned when resolving a token string
+- `INVITATION_TOKEN_REDEMPTION_OUTCOMES` (const) — readonly tuple of valid redemption outcome strings
+- `InvitationTokenRedemptionOutcome` (type) — union type derived from `INVITATION_TOKEN_REDEMPTION_OUTCOMES`
+- `InvitationTokenRedeemResponse` (interface) — result returned after a token is redeemed
 
 ### Exports
 
@@ -123,15 +146,15 @@ _None._
 
 ---
 
-## key-stats.ts
+## `key-stats.ts`
 
 ### Imports
 
-_None._
+_None_
 
 ### Definitions
 
-- `KeyStats` (interface) — Aggregated travel statistics for a user profile (trips, countries, cities, km, organizer trips).
+- `KeyStats` (interface) — aggregate travel statistics for a user (trips, countries, cities, km, organizer trips)
 
 ### Exports
 
@@ -139,15 +162,15 @@ _None._
 
 ---
 
-## membership-status.ts
+## `membership-status.ts`
 
 ### Imports
 
-_None._
+_None_
 
 ### Definitions
 
-- `MembershipStatus` (type) — Three-value union (`'none' | 'pending' | 'active'`) representing a user's relationship to a group or trip.
+- `MembershipStatus` (type) — union of `'none' | 'pending' | 'active'` representing a viewer's membership state
 
 ### Exports
 
@@ -155,16 +178,16 @@ _None._
 
 ---
 
-## notification-item.ts
+## `notification-item.ts`
 
 ### Imports
 
-- `../enums/notification-type.enum` — `NotificationType` (enum used to type the notification category)
+- `../enums/notification-type.enum` — `NotificationType` enum for the category of notification
 
 ### Definitions
 
-- `NotificationItem` (interface) — Single notification record with id, type, title, body, optional URL, read timestamp, arbitrary data payload, and creation timestamp.
-- `NotificationsPage` (interface) — Paginated response for the notification feed; includes items, next cursor for keyset pagination, and total unread count.
+- `NotificationItem` (interface) — a single in-app notification record with type, title, body, url, read state, and metadata
+- `NotificationsPage` (interface) — cursor-paginated response containing notification items and unread count
 
 ### Exports
 
@@ -173,16 +196,16 @@ _None._
 
 ---
 
-## notification-preferences.ts
+## `notification-preferences.ts`
 
 ### Imports
 
-- `../enums/notification-channel.enum` — `NotificationChannel` (enum for delivery channels)
-- `../enums/notification-type.enum` — `NotificationType` (enum for notification categories)
+- `../enums/notification-channel.enum` — `NotificationChannel` enum for delivery channels (e.g. push, email)
+- `../enums/notification-type.enum` — `NotificationType` enum for notification categories
 
 ### Definitions
 
-- `DisabledNotificationChannels` (type) — Partial record mapping each `NotificationType` to the channels the user has opted out of for that type.
+- `DisabledNotificationChannels` (type) — partial map from `NotificationType` to disabled `NotificationChannel[]` for a user
 
 ### Exports
 
@@ -190,16 +213,69 @@ _None._
 
 ---
 
-## signed-url-response.ts
+## `role-sets.ts`
 
 ### Imports
 
-_None._
+- `../enums/group-role.enum` — `GroupRole` enum for group-level roles
+- `../enums/trip-role.enum` — `TripRole` enum for trip-level roles
 
 ### Definitions
 
-- `SignedUrlResponse` (interface) — API response for a pre-signed GCS upload URL; contains the upload URL, object key, and expiry timestamp.
+- `ORGANIZER_ROLES` (const) — readonly array of trip roles that have organizer-level authority
+- `GROUP_ADMIN_ROLES` (const) — readonly array of group roles that have admin-level authority
+
+### Exports
+
+- `ORGANIZER_ROLES` — named
+- `GROUP_ADMIN_ROLES` — named
+
+---
+
+## `signed-url-response.ts`
+
+### Imports
+
+_None_
+
+### Definitions
+
+- `SignedUrlResponse` (interface) — GCS signed upload URL with object key and expiry timestamp
 
 ### Exports
 
 - `SignedUrlResponse` — named
+
+---
+
+## `trip-transitions.ts`
+
+### Imports
+
+- `../enums/trip-status.enum` — `TripStatus` enum for all possible trip lifecycle states
+
+### Definitions
+
+- `VALID_TRANSITIONS` (const) — partial map of allowed `TripStatus` to `TripStatus[]` state machine transitions
+
+### Exports
+
+- `VALID_TRANSITIONS` — named
+
+---
+
+## `user-search.ts`
+
+### Imports
+
+- `../data/asset` — `ResolvedAsset` type representing a resolved asset URL with metadata
+
+### Definitions
+
+- `UserSearchResult` (interface) — single user record returned in a search result set
+- `UserSearchResponse` (interface) — paginated wrapper with data array and total count for user searches
+
+### Exports
+
+- `UserSearchResult` — named
+- `UserSearchResponse` — named

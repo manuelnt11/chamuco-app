@@ -12,7 +12,6 @@ import {
   NotificationChannel,
   NotificationType,
   TripParticipantStatus,
-  TripRole,
   TripStatus,
 } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -21,12 +20,11 @@ import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { tripAnnouncements } from '@/modules/trips/schema/trip-announcements.schema';
+import { ORGANIZER_ROLES } from '@/modules/trips/participants/trip-participants.constants';
 import type { CreateTripAnnouncementDto } from './dto/create-trip-announcement.dto';
 import type { UpdateTripAnnouncementDto } from './dto/update-trip-announcement.dto';
 import type { TripAnnouncementResponseDto } from './dto/trip-announcement-response.dto';
 import type { ListTripAnnouncementsQueryDto } from './dto/list-trip-announcements-query.dto';
-
-const ORGANIZER_ROLES = [TripRole.ORGANIZER, TripRole.CO_ORGANIZER] as const;
 const READER_STATUSES = [TripParticipantStatus.ACCEPTED, TripParticipantStatus.CONFIRMED] as const;
 
 @Injectable()

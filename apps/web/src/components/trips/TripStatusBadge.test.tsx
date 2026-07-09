@@ -2,10 +2,6 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { TripStatus } from '@chamuco/shared-types';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
-
 vi.mock('next/link', () => ({
   default: ({
     href,

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TripStatus } from '@chamuco/shared-types';
+import { TripStatus, VALID_TRANSITIONS } from '@chamuco/shared-types';
 
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
@@ -17,13 +17,6 @@ import {
 } from '@/components/ui/dialog';
 import { transitionTripStatus } from '@/services/trips.service';
 import type { TripResponse } from '@/services/trips.types';
-
-const VALID_TRANSITIONS: Partial<Record<TripStatus, TripStatus[]>> = {
-  [TripStatus.DRAFT]: [TripStatus.OPEN, TripStatus.CANCELLED],
-  [TripStatus.OPEN]: [TripStatus.CONFIRMED, TripStatus.CANCELLED],
-  [TripStatus.CONFIRMED]: [TripStatus.IN_PROGRESS, TripStatus.CANCELLED],
-  [TripStatus.IN_PROGRESS]: [TripStatus.COMPLETED],
-};
 
 interface TripStatusTransitionProps {
   tripId: string;

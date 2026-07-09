@@ -1,4 +1,5 @@
 import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
+import { computeAge as computeAgeFromDob } from '@chamuco/shared-utils';
 
 interface DateLike {
   day: number;
@@ -10,13 +11,7 @@ function computeAge(value: unknown): number {
   if (!value || typeof value !== 'object') return -1;
   const { day, month, year } = value as DateLike;
   if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) return -1;
-  const birth = new Date(year, month - 1, day);
-  if (isNaN(birth.getTime())) return -1;
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
+  return computeAgeFromDob(day, month, year);
 }
 
 export function IsMinimumAge(

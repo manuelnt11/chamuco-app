@@ -8,3 +8,7 @@ export * from './invitation-result';
 export * from './invitation-token';
 export * from './notification-item';
 export * from './notification-preferences';
+export * from './role-sets';
+export * from './trip-transitions';
+export * from './group-search';
+export * from './user-search';

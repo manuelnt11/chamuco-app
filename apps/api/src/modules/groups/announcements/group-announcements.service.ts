@@ -2,8 +2,8 @@ import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } fro
 import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm';
 
 import {
+  GROUP_ADMIN_ROLES,
   GroupMemberStatus,
-  GroupRole,
   NotificationChannel,
   NotificationType,
 } from '@chamuco/shared-types';
@@ -17,8 +17,6 @@ import type { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import type { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import type { AnnouncementResponseDto } from './dto/announcement-response.dto';
 import type { ListAnnouncementsQueryDto } from './dto/list-announcements-query.dto';
-
-const ADMIN_ROLES = [GroupRole.OWNER, GroupRole.ADMIN] as const;
 
 @Injectable()
 export class GroupAnnouncementsService {
@@ -205,7 +203,7 @@ export class GroupAnnouncementsService {
         eq(groupMembers.groupId, groupId),
         eq(groupMembers.userId, userId),
         eq(groupMembers.status, GroupMemberStatus.ACTIVE),
-        inArray(groupMembers.role, [...ADMIN_ROLES]),
+        inArray(groupMembers.role, GROUP_ADMIN_ROLES),
       ),
     });
     if (!membership) throw new ForbiddenException('Only group admins can perform this action');
