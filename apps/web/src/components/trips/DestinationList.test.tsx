@@ -11,8 +11,7 @@ const mocks = vi.hoisted(() => ({
   reorderTripDestinations: vi.fn(),
   toastError: vi.fn(),
   onDragEnd: null as
-    | ((event: { active: { id: string }; over: { id: string } | null }) => void)
-    | null,
+    ((event: { active: { id: string }; over: { id: string } | null }) => void) | null,
 }));
 
 vi.mock('@/services/trips.service', () => ({
