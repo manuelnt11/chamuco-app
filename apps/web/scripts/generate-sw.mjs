@@ -1,9 +1,13 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
+
+// Load .env.local when running outside Next.js (e.g. prebuild)
+const envLocal = join(ROOT, '.env.local');
+if (existsSync(envLocal)) process.loadEnvFile(envLocal);
 
 const TOKENS = [
   'NEXT_PUBLIC_FIREBASE_API_KEY',
