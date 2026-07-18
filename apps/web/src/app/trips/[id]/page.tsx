@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ORGANIZER_ROLES, TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import {
   ArrowLeftIcon,
+  ArrowRightIcon,
   GearSixIcon,
   MegaphoneIcon,
   UsersThreeIcon,
@@ -20,18 +21,25 @@ import {
 import { toast } from '@/components/ui/toast';
 import {
   getTrip,
+  getTripAnnouncements,
   getTripDestinations,
   getTripLinkedGroups,
   getTripParticipation,
   updateTrip,
 } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
+import { AnnouncementCard } from '@/components/ui/announcement-card';
 import { TripStatusBadge } from '@/components/trips/TripStatusBadge';
 import { TripStatusTransition } from '@/components/trips/TripStatusTransition';
 import { DestinationList } from '@/components/trips/DestinationList';
 import { MarkdownContent } from '@/components/ui/markdown-content';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import type { TripResponse, DestinationResponse, TripLinkedGroup } from '@/services/trips.types';
+import type {
+  TripAnnouncement,
+  TripResponse,
+  DestinationResponse,
+  TripLinkedGroup,
+} from '@/services/trips.types';
 
 interface TripDetailPageProps {
   params: Promise<{ id: string }>;
@@ -44,6 +52,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
   const [trip, setTrip] = useState<TripResponse | null>(null);
   const [destinations, setDestinations] = useState<DestinationResponse[]>([]);
   const [destinationCount, setDestinationCount] = useState(0);
+  const [announcements, setAnnouncements] = useState<TripAnnouncement[]>([]);
   const [linkedGroups, setLinkedGroups] = useState<TripLinkedGroup[]>([]);
   const [callerRole, setCallerRole] = useState<TripRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,13 +69,15 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       getTripDestinations(id).catch(() => []),
       getTripParticipation(id).catch(() => null),
       getTripLinkedGroups(id).catch(() => []),
+      getTripAnnouncements(id, 1, 0).catch(() => null),
     ])
-      .then(([tripData, destinationsData, participation, linkedGroupsData]) => {
+      .then(([tripData, destinationsData, participation, linkedGroupsData, announcementsRes]) => {
         setTrip(tripData);
         setDestinations(destinationsData);
         setDestinationCount(destinationsData.length);
         setCallerRole(participation?.role ?? null);
         setLinkedGroups(linkedGroupsData);
+        setAnnouncements(announcementsRes?.items ?? []);
       })
       .catch(() => setNotFound(true))
       .finally(() => setIsLoading(false));
@@ -202,6 +213,38 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           />
         </section>
       )}
+
+      {/* Announcements */}
+      <section className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <MegaphoneIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+            <h2 className="text-sm font-semibold">{t('announcements')}</h2>
+          </div>
+          <Link
+            href={`/trips/${trip.id}/announcements`}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t('announcementsViewAll')}
+            <ArrowRightIcon className="size-3" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {announcements.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('announcementsEmpty')}</p>
+        ) : (
+          <ul className="space-y-3">
+            {announcements.map((a) => (
+              <AnnouncementCard
+                key={a.id}
+                content={a.content}
+                postedByLabel={t('announcementsPostedBy', { name: `@${a.createdByUsername}` })}
+                createdAt={a.createdAt}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* Destinations section */}
       <section className="mb-6">

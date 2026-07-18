@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
-import type { TripResponse, DestinationResponse } from '@/services/trips.types';
+import type { TripAnnouncement, TripResponse, DestinationResponse } from '@/services/trips.types';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
@@ -47,7 +47,9 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('@phosphor-icons/react', () => ({
   ArrowLeftIcon: () => null,
+  ArrowRightIcon: () => null,
   GearSixIcon: () => null,
+  LinkIcon: () => null,
   MegaphoneIcon: () => null,
   UsersThreeIcon: () => null,
   AirplaneTakeoffIcon: () => null,
@@ -56,6 +58,22 @@ vi.mock('@phosphor-icons/react', () => ({
   UsersIcon: () => null,
   NavigationArrowIcon: () => null,
   PencilSimpleIcon: () => null,
+}));
+
+vi.mock('@/components/ui/announcement-card', () => ({
+  AnnouncementCard: ({
+    content,
+    postedByLabel,
+  }: {
+    content: string;
+    postedByLabel: string;
+    createdAt: string;
+  }) => (
+    <div data-testid="announcement-card">
+      <span>{content}</span>
+      <span>{postedByLabel}</span>
+    </div>
+  ),
 }));
 
 vi.mock('@/components/ui/markdown-content', () => ({
@@ -184,10 +202,12 @@ function setupMocks({
   } | null,
   destinations = [mockDestination],
   trip = mockTrip,
+  announcements = [] as TripAnnouncement[],
 }: {
   participation?: { role: TripRole; userId: string } | null;
   destinations?: (typeof mockDestination)[];
   trip?: TripResponse;
+  announcements?: TripAnnouncement[];
 } = {}) {
   mocks.mockUseAuth.mockReturnValue({ isLoading: false });
 
@@ -206,6 +226,9 @@ function setupMocks({
           })
         : Promise.reject(new Error('Not a participant'));
     if (url.includes('/destinations')) return Promise.resolve({ data: destinations });
+    if (url.includes('/announcements'))
+      return Promise.resolve({ data: { items: announcements, total: announcements.length } });
+    if (url.includes('/linked-groups')) return Promise.resolve({ data: [] });
     return Promise.resolve({ data: trip });
   });
 }
@@ -480,6 +503,45 @@ describe('TripDetailPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('errors.notFound')).toBeInTheDocument();
+    });
+  });
+
+  it('shows announcements empty state when no announcements', async () => {
+    setupMocks({ announcements: [] });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('announcementsEmpty')).toBeInTheDocument();
+    });
+  });
+
+  it('renders announcement cards when announcements exist', async () => {
+    const mockAnnouncements: TripAnnouncement[] = [
+      {
+        id: 'ann-1',
+        tripId: 'trip-id',
+        content: 'Meet at the airport at 6am.',
+        createdByUsername: 'organizer1',
+        createdAt: '2026-07-01T00:00:00.000Z',
+        updatedAt: '2026-07-01T00:00:00.000Z',
+      },
+    ];
+    setupMocks({ announcements: mockAnnouncements });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('announcement-card')).toBeInTheDocument();
+      expect(screen.getByText('Meet at the airport at 6am.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows view all link to announcements page', async () => {
+    setupMocks();
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      const link = screen.getByRole('link', { name: 'announcementsViewAll' });
+      expect(link).toHaveAttribute('href', '/trips/trip-id/announcements');
     });
   });
 });
