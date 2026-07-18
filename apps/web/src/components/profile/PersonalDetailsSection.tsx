@@ -289,10 +289,6 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
                 setBirthCountry(iso2);
                 setBirthCity('');
               }}
-              displayMode="name"
-              placeholder={t('personalDetails.birthCountryPlaceholder')}
-              searchPlaceholder={t('personalDetails.birthCountrySearch')}
-              noResultsText={t('personalDetails.birthCountryNoResults')}
               aria-labelledby="birth-location-label"
               data-testid="birth-country"
             />
@@ -305,7 +301,6 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
               value={birthCity}
               onChange={setBirthCity}
               country={birthCountry}
-              placeholder={t('personalDetails.birthCityPlaceholder')}
               data-testid="birth-city"
             />
           </div>
@@ -325,10 +320,6 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
                 setHomeCountry(iso2);
                 setHomeCity('');
               }}
-              displayMode="name"
-              placeholder={t('personalDetails.homeCountryPlaceholder')}
-              searchPlaceholder={t('personalDetails.homeCountrySearch')}
-              noResultsText={t('personalDetails.homeCountryNoResults')}
               aria-labelledby="home-location-label"
               aria-invalid={homeCountryError !== null}
               data-testid="home-country"
@@ -342,7 +333,6 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
               value={homeCity}
               onChange={setHomeCity}
               country={homeCountry}
-              placeholder={t('personalDetails.homeCityPlaceholder')}
               data-testid="home-city"
             />
           </div>

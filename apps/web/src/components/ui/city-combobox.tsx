@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,6 @@ interface CityComboboxProps {
   value: string;
   onChange: (city: string) => void;
   country: string;
-  placeholder?: string;
   className?: string;
   'aria-invalid'?: boolean;
   'data-testid'?: string;
@@ -21,11 +21,14 @@ function CityCombobox({
   value,
   onChange,
   country,
-  placeholder,
   className,
   'aria-invalid': ariaInvalid,
   'data-testid': testId,
 }: CityComboboxProps) {
+  const { t } = useTranslation();
+  const placeholder = country
+    ? t('cityCombobox.placeholder')
+    : t('cityCombobox.selectCountryFirst');
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
   const [userHasTyped, setUserHasTyped] = useState(false);

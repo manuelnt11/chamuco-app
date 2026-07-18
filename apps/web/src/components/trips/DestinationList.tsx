@@ -214,20 +214,12 @@ function DestinationFormDialog({
                 setCountryCode(iso2);
                 setCity('');
               }}
-              placeholder="—"
-              searchPlaceholder={t('common:actions.search')}
-              noResultsText={t('common:validation.invalidFormat')}
             />
           </div>
 
           <div className="space-y-1.5">
             <Label>{t('destinations.city')}</Label>
-            <CityCombobox
-              value={city}
-              onChange={setCity}
-              country={countryCode}
-              placeholder={countryCode ? '—' : t('form.cityDisabled')}
-            />
+            <CityCombobox value={city} onChange={setCity} country={countryCode} />
           </div>
 
           <div className="space-y-1.5">

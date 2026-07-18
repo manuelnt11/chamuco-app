@@ -328,9 +328,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                 setDepartureCountry(iso2);
                 setDepartureCity('');
               }}
-              placeholder="—"
-              searchPlaceholder={t('common:actions.search')}
-              noResultsText={t('common:validation.invalidFormat')}
             />
           </div>
           <div className="space-y-1.5">
@@ -339,7 +336,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
               value={departureCity}
               onChange={setDepartureCity}
               country={departureCountry}
-              placeholder={departureCountry ? '—' : t('form.cityDisabled')}
             />
           </div>
         </div>
@@ -376,9 +372,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                   setLandingCountry(iso2);
                   setLandingCity('');
                 }}
-                placeholder="—"
-                searchPlaceholder={t('common:actions.search')}
-                noResultsText={t('common:validation.invalidFormat')}
               />
             </div>
             <div className="space-y-1.5">
@@ -387,7 +380,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                 value={landingCity}
                 onChange={setLandingCity}
                 country={landingCountry}
-                placeholder={landingCountry ? '—' : t('form.cityDisabled')}
               />
             </div>
           </div>

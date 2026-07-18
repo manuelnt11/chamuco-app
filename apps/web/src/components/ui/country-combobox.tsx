@@ -38,9 +38,6 @@ interface CountryComboboxProps {
   value: string; // ISO alpha-2 code, e.g. "CO"
   onChange: (iso2: string) => void;
   displayMode?: 'name' | 'phone';
-  placeholder?: string;
-  searchPlaceholder?: string;
-  noResultsText?: string;
   className?: string;
   'aria-invalid'?: boolean;
   'aria-labelledby'?: string;
@@ -51,17 +48,18 @@ function CountryCombobox({
   value,
   onChange,
   displayMode = 'name',
-  placeholder = '—',
-  searchPlaceholder = 'Search...',
-  noResultsText = 'No results.',
   className,
   'aria-invalid': ariaInvalid,
   'aria-labelledby': ariaLabelledBy,
   'data-testid': testId,
 }: CountryComboboxProps) {
   const [open, setOpen] = useState(false);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const countries = useMemo<CountryEntry[]>(() => buildCountryList(i18n.language), [i18n.language]);
+
+  const placeholder = t('countryCombobox.placeholder');
+  const searchPlaceholder = t('countryCombobox.searchPlaceholder');
+  const noResultsText = t('countryCombobox.noResults');
 
   const selected = value ? countries.find((c) => c.iso2 === value) : undefined;
 
@@ -74,7 +72,7 @@ function CountryCombobox({
             aria-invalid={ariaInvalid}
             aria-labelledby={ariaLabelledBy}
             data-testid={testId}
-            className={cn('justify-between font-normal', className)}
+            className={cn('w-full justify-between font-normal', className)}
           />
         }
       >

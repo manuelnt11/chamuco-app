@@ -191,7 +191,6 @@
     "landingLocation": "Return",
     "country": "Country",
     "city": "City",
-    "cityDisabled": "Select a country first",
     "differentReturn": "Return location is different",
     "optionalSection": "More details",
     "defaultTimezone": "Timezone",

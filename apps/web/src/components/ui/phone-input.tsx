@@ -1,7 +1,6 @@
 'use client';
 
 import { useId, type ClipboardEvent } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   isValidPhoneNumber,
   getCountries,
@@ -78,7 +77,6 @@ export function PhoneInput({
   inputTestId,
   placeholder,
 }: PhoneInputProps) {
-  const { t } = useTranslation();
   const inputId = useId();
 
   function handlePaste(e: ClipboardEvent<HTMLInputElement>) {
@@ -97,8 +95,6 @@ export function PhoneInput({
           value={countryIso}
           onChange={onCountryChange}
           displayMode="phone"
-          searchPlaceholder={t('phoneInput.searchCountry')}
-          noResultsText={t('phoneInput.noCountries')}
           aria-labelledby={labelId}
           aria-invalid={error != null}
           data-testid={countryTestId}

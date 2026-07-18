@@ -56,6 +56,15 @@
     "minLength": "La longitud mínima es {{count}} caracteres",
     "maxLength": "La longitud máxima es {{count}} caracteres"
   },
+  "countryCombobox": {
+    "placeholder": "Selecciona un país",
+    "searchPlaceholder": "Buscar países...",
+    "noResults": "No se encontraron países"
+  },
+  "cityCombobox": {
+    "placeholder": "Ingresa una ciudad",
+    "selectCountryFirst": "Selecciona un país primero"
+  },
   "time": {
     "days": "{{count}} día",
     "days_other": "{{count}} días",

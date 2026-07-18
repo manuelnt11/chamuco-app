@@ -156,10 +156,6 @@ function VisaForm({
               <CountryCombobox
                 value={form.countryCode}
                 onChange={(iso2) => onChange({ countryCode: iso2 })}
-                displayMode="name"
-                placeholder={t('nationalities.visas.countryPlaceholder')}
-                searchPlaceholder={t('nationalities.visas.countrySearch')}
-                noResultsText={t('nationalities.visas.countryNoResults')}
                 aria-labelledby={`${idPrefix}-country-label`}
               />
             )}

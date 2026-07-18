@@ -124,10 +124,6 @@ function EtaForm({
           <CountryCombobox
             value={form.destinationCountry}
             onChange={(iso2) => onChange({ destinationCountry: iso2 })}
-            displayMode="name"
-            placeholder={t('nationalities.etas.destinationPlaceholder')}
-            searchPlaceholder={t('nationalities.etas.destinationSearch')}
-            noResultsText={t('nationalities.etas.destinationNoResults')}
             aria-labelledby={`${idPrefix}-destination-label`}
           />
         )}
