@@ -89,10 +89,6 @@
     "errorDefault": "Upload failed. Please try again.",
     "progressLabel": "Upload progress: {{progress}}%"
   },
-  "phoneInput": {
-    "searchCountry": "Search country...",
-    "noCountries": "No countries found."
-  },
   "profileIncomplete": {
     "title": "Complete your profile",
     "description": "Add your nationalities and emergency contacts to access all features.",

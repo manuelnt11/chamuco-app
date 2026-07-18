@@ -91,10 +91,6 @@
     "errorDefault": "Error al subir. Inténtalo de nuevo.",
     "progressLabel": "Progreso de subida: {{progress}}%"
   },
-  "phoneInput": {
-    "searchCountry": "Buscar país...",
-    "noCountries": "No se encontraron países."
-  },
   "profileIncomplete": {
     "title": "Completa tu perfil",
     "description": "Agrega tus nacionalidades y contactos de emergencia para acceder a todas las funciones.",
