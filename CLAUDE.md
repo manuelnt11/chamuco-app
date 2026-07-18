@@ -259,6 +259,17 @@ When modifying `.github/workflows/api.yml`, `.github/workflows/web.yml`, or any 
 
 **Cloud SQL IAM auth scope:** always use `sqlservice.login`, not `sqlservice.admin`.
 
+### 9. INVENTORY.md files must stay current
+
+Every directory that contains source files has an `INVENTORY.md` cataloguing its contents. These files are updated automatically as part of the `/to-review` skill (Step 3). When making changes outside of that flow — for example, a hotfix or a direct commit — manually update the `INVENTORY.md` in every affected directory:
+
+- **New file added** — add its entry (imports, definitions, exports).
+- **File deleted** — remove its entry.
+- **File renamed** — rename the entry header; update any cross-references.
+- **Substantial change to a file's public surface** — update its definitions/exports section.
+
+Never create a new `INVENTORY.md`; only update existing ones. Do not modify entries for files that were not touched in the current change.
+
 ---
 
 ## Open Decisions
