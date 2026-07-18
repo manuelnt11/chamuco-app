@@ -56,6 +56,15 @@
     "minLength": "La longitud mínima es {{count}} caracteres",
     "maxLength": "La longitud máxima es {{count}} caracteres"
   },
+  "countryCombobox": {
+    "placeholder": "Selecciona un país",
+    "searchPlaceholder": "Buscar países...",
+    "noResults": "No se encontraron países"
+  },
+  "cityCombobox": {
+    "placeholder": "Ingresa una ciudad",
+    "selectCountryFirst": "Selecciona un país primero"
+  },
   "time": {
     "days": "{{count}} día",
     "days_other": "{{count}} días",
@@ -81,10 +90,6 @@
     "retry": "Reintentar",
     "errorDefault": "Error al subir. Inténtalo de nuevo.",
     "progressLabel": "Progreso de subida: {{progress}}%"
-  },
-  "phoneInput": {
-    "searchCountry": "Buscar país...",
-    "noCountries": "No se encontraron países."
   },
   "profileIncomplete": {
     "title": "Completa tu perfil",

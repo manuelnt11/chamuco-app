@@ -820,10 +820,6 @@ function Step3({
         <CountryCombobox
           value={homeCountry}
           onChange={onHomeCountryChange}
-          displayMode="name"
-          placeholder={t('onboarding.homeCountry.placeholder')}
-          searchPlaceholder={t('onboarding.homeCountry.search')}
-          noResultsText={t('onboarding.homeCountry.noResults')}
           aria-invalid={!!stepErrors.homeCountry}
           aria-labelledby="home-country-label"
           data-testid="home-country-input"
@@ -838,7 +834,6 @@ function Step3({
           value={homeCity}
           onChange={onHomeCityChange}
           country={homeCountry}
-          placeholder={t('onboarding.homeCity.placeholder')}
           data-testid="home-city-input"
         />
       </div>

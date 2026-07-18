@@ -115,10 +115,6 @@ function NationalityForm({
             <CountryCombobox
               value={form.countryCode}
               onChange={(iso2) => onChange({ countryCode: iso2 })}
-              displayMode="name"
-              placeholder={t('nationalities.countryPlaceholder')}
-              searchPlaceholder={t('nationalities.countrySearch')}
-              noResultsText={t('nationalities.countryNoResults')}
               aria-labelledby={`${idPrefix}-country-label`}
               data-testid={`${idPrefix}-country`}
             />

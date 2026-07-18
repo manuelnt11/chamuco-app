@@ -224,6 +224,7 @@ None
 ### Imports
 
 - `react` — `useEffect`, `useState` hooks
+- `react-i18next` — `useTranslation` for i18n default placeholder text
 - `@/lib/utils` — `cn` class merging helper
 - `@/components/ui/input` — `Input` text field
 - `@/components/ui/spinner` — `Spinner` loading indicator
@@ -231,8 +232,8 @@ None
 
 ### Definitions
 
-- `CityComboboxProps` (interface) — prop types for `CityCombobox`
-- `CityCombobox` (component) — text input with dropdown autocomplete for city search; forces uppercase values
+- `CityComboboxProps` (interface) — prop types for `CityCombobox`; no `placeholder` prop — derived internally from `country` prop via i18n
+- `CityCombobox` (component) — text input with dropdown autocomplete for city search; forces uppercase values; shows "Select a country first" hint when `country` is empty
 
 ### Exports
 
@@ -279,8 +280,8 @@ None
 
 ### Definitions
 
-- `CountryComboboxProps` (interface) — prop types for `CountryCombobox`; supports `name` or `phone` display modes
-- `CountryCombobox` (component) — country picker with emoji flag, name or dial-code display, and searchable popover command palette
+- `CountryComboboxProps` (interface) — prop types for `CountryCombobox`; supports `name` or `phone` display modes; no text override props — all default text resolved from i18n
+- `CountryCombobox` (component) — country picker with emoji flag, name or dial-code display, and searchable popover command palette; full-width button; defaults resolved from `common:countryCombobox.*` i18n keys
 
 ### Exports
 
@@ -778,7 +779,6 @@ None
 ### Imports
 
 - `react` — `useId`, `ClipboardEvent` hooks and types
-- `react-i18next` — `useTranslation` for i18n `t()` accessor
 - `libphonenumber-js` — `isValidPhoneNumber`, `getCountries`, `getCountryCallingCode`, `CountryCode` phone validation and metadata
 - `@/components/ui/input` — `Input` text field
 - `@/components/ui/label` — `Label` sr-only number label

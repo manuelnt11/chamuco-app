@@ -191,7 +191,6 @@
     "landingLocation": "Regreso",
     "country": "País",
     "city": "Ciudad",
-    "cityDisabled": "Selecciona un país primero",
     "differentReturn": "El lugar de regreso es diferente",
     "optionalSection": "Más detalles",
     "defaultTimezone": "Zona horaria",
