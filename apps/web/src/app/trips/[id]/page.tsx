@@ -161,36 +161,38 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       </div>
 
       {/* Trip header */}
-      <div className="flex items-start gap-6 mb-6">
-        <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted flex items-center justify-center">
-          {trip.coverUrl && (
-            <img src={trip.coverUrl} alt="" className="size-full object-cover" loading="lazy" />
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold truncate">{trip.name}</h1>
-            <TripStatusBadge status={trip.status} />
-            <span className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
-              {trip.visibility === TripVisibility.PUBLIC
-                ? t('visibility.public')
-                : t('visibility.private')}
-            </span>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold wrap-break-word mb-3">{trip.name}</h1>
+        <div className="flex items-start gap-4">
+          <div className="size-20 shrink-0 overflow-hidden rounded-xl bg-muted flex items-center justify-center">
+            {trip.coverUrl && (
+              <img src={trip.coverUrl} alt="" className="size-full object-cover" loading="lazy" />
+            )}
           </div>
 
-          <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-            <AirplaneTakeoffIcon className="size-3.5 shrink-0" aria-hidden="true" />
-            <span>{trip.startDate}</span>
-            <AirplaneLandingIcon className="size-3.5 shrink-0" aria-hidden="true" />
-            <span>{trip.endDate}</span>
-          </div>
+          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <TripStatusBadge status={trip.status} />
+              <span className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                {trip.visibility === TripVisibility.PUBLIC
+                  ? t('visibility.public')
+                  : t('visibility.private')}
+              </span>
+            </div>
 
-          <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-            <UsersIcon className="size-3.5 shrink-0" aria-hidden="true" />
-            <span>
-              {t('detail.capacity')}: {trip.participantCapacity}
-            </span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <AirplaneTakeoffIcon className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>{trip.startDate}</span>
+              <AirplaneLandingIcon className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>{trip.endDate}</span>
+            </div>
+
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <UsersIcon className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>
+                {t('detail.capacity')}: {trip.participantCapacity}
+              </span>
+            </div>
           </div>
         </div>
       </div>
