@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { User } from 'firebase/auth';
 import type { AuthContextValue } from '@/store/auth';
@@ -159,22 +159,66 @@ async function renderForm(authOverrides: Partial<AuthContextValue> = {}) {
 }
 
 /**
- * Renders the page and navigates to step 3 (location + terms).
- * Uses real timers — relies on waitFor timeout to absorb the 300 ms username debounce.
+ * Renders the page and navigates to step 2 (personal details).
+ * Requires fake timers to be active — call vi.useFakeTimers before or use the
+ * form submission describe block which sets them up in beforeEach.
  */
-async function renderFormAtStep3() {
-  const user = await renderForm({ currentUser: makeUser({ displayName: 'Test User' }) });
+async function renderFormAtStep2(authOverrides: Partial<AuthContextValue> = {}) {
+  vi.mocked(useAuth).mockReturnValue(
+    makeAuth({
+      currentUser: makeUser({ displayName: 'Test User' }),
+      signOut: mocks.mockSignOut,
+      ...authOverrides,
+    }),
+  );
+  mockGetByUrl();
+  const user = userEvent.setup({
+    advanceTimers: vi.advanceTimersByTime.bind(vi),
+    delay: null,
+  });
+  render(<OnboardingPage />);
+  await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(300);
+  });
   await waitFor(() =>
     expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
   );
   await user.click(screen.getByTestId('next-btn'));
   await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
-  await user.type(screen.getByTestId('firstname-input'), 'JOHN');
-  await user.type(screen.getByTestId('lastname-input'), 'DOE');
-  await user.type(screen.getByTestId('dob-day-input'), '15');
-  await user.type(screen.getByTestId('dob-month-input'), '6');
-  await user.type(screen.getByTestId('dob-year-input'), '1990');
-  await user.type(screen.getByTestId('phone-number-input'), '3001234567');
+  return user;
+}
+
+/**
+ * Renders the page and navigates to step 3 (location + terms).
+ * Uses fake timers internally — caller must restore with vi.useRealTimers() in afterEach.
+ */
+async function renderFormAtStep3() {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.mocked(useAuth).mockReturnValue(
+    makeAuth({ currentUser: makeUser({ displayName: 'Test User' }), signOut: mocks.mockSignOut }),
+  );
+  mockGetByUrl();
+  const user = userEvent.setup({
+    advanceTimers: vi.advanceTimersByTime.bind(vi),
+    delay: null,
+  });
+  render(<OnboardingPage />);
+  await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(300);
+  });
+  await waitFor(() =>
+    expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
+  );
+  await user.click(screen.getByTestId('next-btn'));
+  await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+  fireEvent.change(screen.getByTestId('firstname-input'), { target: { value: 'JOHN' } });
+  fireEvent.change(screen.getByTestId('lastname-input'), { target: { value: 'DOE' } });
+  fireEvent.change(screen.getByTestId('dob-day-input'), { target: { value: '15' } });
+  fireEvent.change(screen.getByTestId('dob-month-input'), { target: { value: '6' } });
+  fireEvent.change(screen.getByTestId('dob-year-input'), { target: { value: '1990' } });
+  fireEvent.change(screen.getByTestId('phone-number-input'), { target: { value: '3001234567' } });
   await user.click(screen.getByTestId('next-btn'));
   await waitFor(() => expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument());
   return user;
@@ -240,6 +284,10 @@ describe('OnboardingPage', () => {
   });
 
   describe('form rendering', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('renders the logo', async () => {
       await renderForm();
       expect(screen.getByTestId('logo')).toBeInTheDocument();
@@ -311,38 +359,9 @@ describe('OnboardingPage', () => {
     });
 
     it('back button is disabled while isSubmitting', async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: true });
-      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
-      mockGetByUrl();
       mocks.mockApiPost.mockReturnValue(new Promise(() => undefined));
-      const user = userEvent.setup({
-        advanceTimers: vi.advanceTimersByTime.bind(vi),
-        delay: null,
-      });
-      render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
-      await user.clear(screen.getByTestId('username-input'));
-      await user.type(screen.getByTestId('username-input'), 'newuser');
-      await user.type(screen.getByTestId('displayname-input'), 'Test');
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
-      });
-      await waitFor(() =>
-        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
-      );
-      // Navigate to step 2
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
-      await user.type(screen.getByTestId('firstname-input'), 'JOHN');
-      await user.type(screen.getByTestId('lastname-input'), 'DOE');
-      await user.type(screen.getByTestId('dob-day-input'), '15');
-      await user.type(screen.getByTestId('dob-month-input'), '6');
-      await user.type(screen.getByTestId('dob-year-input'), '1990');
-      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
-      // Navigate to step 3
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument());
-      await user.type(screen.getByTestId('home-country-input'), 'CO');
+      const user = await renderFormAtStep3();
+      fireEvent.change(screen.getByTestId('home-country-input'), { target: { value: 'CO' } });
       await user.click(screen.getByTestId('terms-checkbox'));
       await act(async () => {
         await user.click(screen.getByTestId('submit-btn'));
@@ -456,7 +475,7 @@ describe('OnboardingPage', () => {
     async function renderFormWithAvailableUsername(
       authOverrides: Partial<AuthContextValue> = {},
       username = 'newuser',
-      step2: { firstName?: string; lastName?: string; phone?: string } = {},
+      step2: { firstName?: string; lastName?: string; phone?: string; yearVisible?: boolean } = {},
     ) {
       vi.mocked(useAuth).mockReturnValue(makeAuth(authOverrides));
       mockGetByUrl(); // /username-available → { available: true }
@@ -480,27 +499,36 @@ describe('OnboardingPage', () => {
       // Ensure displayName is filled (some tests pass displayName: null)
       const displayInput = screen.getByTestId<HTMLInputElement>('displayname-input');
       if (!displayInput.value) {
-        await user.type(displayInput, 'Test User');
+        fireEvent.change(displayInput, { target: { value: 'Test User' } });
       }
 
       // Step 1 → Step 2
       await user.click(screen.getByTestId('next-btn'));
       await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
 
-      // Fill required step 2 fields
-      await user.type(screen.getByTestId('firstname-input'), step2.firstName ?? 'JOHN');
-      await user.type(screen.getByTestId('lastname-input'), step2.lastName ?? 'DOE');
-      await user.type(screen.getByTestId('dob-day-input'), '15');
-      await user.type(screen.getByTestId('dob-month-input'), '6');
-      await user.type(screen.getByTestId('dob-year-input'), '1990');
-      await user.type(screen.getByTestId('phone-number-input'), step2.phone ?? '3001234567');
+      // Fill required step 2 fields — fireEvent.change bypasses per-keystroke DOM overhead
+      fireEvent.change(screen.getByTestId('firstname-input'), {
+        target: { value: step2.firstName ?? 'JOHN' },
+      });
+      fireEvent.change(screen.getByTestId('lastname-input'), {
+        target: { value: step2.lastName ?? 'DOE' },
+      });
+      fireEvent.change(screen.getByTestId('dob-day-input'), { target: { value: '15' } });
+      fireEvent.change(screen.getByTestId('dob-month-input'), { target: { value: '6' } });
+      fireEvent.change(screen.getByTestId('dob-year-input'), { target: { value: '1990' } });
+      if (step2.yearVisible) {
+        await user.click(screen.getByTestId('year-visible-checkbox'));
+      }
+      fireEvent.change(screen.getByTestId('phone-number-input'), {
+        target: { value: step2.phone ?? '3001234567' },
+      });
 
       // Step 2 → Step 3
       await user.click(screen.getByTestId('next-btn'));
       await waitFor(() => expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument());
 
       // Set home country and accept terms
-      await user.type(screen.getByTestId('home-country-input'), 'CO');
+      fireEvent.change(screen.getByTestId('home-country-input'), { target: { value: 'CO' } });
       await user.click(screen.getByTestId('terms-checkbox'));
 
       return user;
@@ -552,25 +580,7 @@ describe('OnboardingPage', () => {
     });
 
     it('shows firstName, lastName, and DOB errors simultaneously when all step 2 fields are empty', async () => {
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
-      );
-      mockGetByUrl();
-      const user = userEvent.setup({
-        advanceTimers: vi.advanceTimersByTime.bind(vi),
-        delay: null,
-      });
-      render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
-      await user.type(screen.getByTestId('username-input'), 'newuser');
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
-      });
-      await waitFor(() =>
-        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
-      );
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+      const user = await renderFormAtStep2();
       // Click Next without filling any fields — all three groups should be invalid at once
       await user.click(screen.getByTestId('next-btn'));
       expect(screen.getByTestId('firstname-input')).toHaveAttribute('aria-invalid', 'true');
@@ -580,25 +590,7 @@ describe('OnboardingPage', () => {
     });
 
     it('blocks navigation and shows invalidName error when firstName has numbers', async () => {
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
-      );
-      mockGetByUrl();
-      const user = userEvent.setup({
-        advanceTimers: vi.advanceTimersByTime.bind(vi),
-        delay: null,
-      });
-      render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
-      await user.type(screen.getByTestId('username-input'), 'newuser');
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
-      });
-      await waitFor(() =>
-        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
-      );
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+      const user = await renderFormAtStep2();
       await user.type(screen.getByTestId('firstname-input'), 'JOHN123');
       await user.type(screen.getByTestId('lastname-input'), 'DOE');
       await user.type(screen.getByTestId('dob-day-input'), '15');
@@ -611,25 +603,7 @@ describe('OnboardingPage', () => {
     });
 
     it('blocks navigation and shows invalidName error when lastName has special characters', async () => {
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
-      );
-      mockGetByUrl();
-      const user = userEvent.setup({
-        advanceTimers: vi.advanceTimersByTime.bind(vi),
-        delay: null,
-      });
-      render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
-      await user.type(screen.getByTestId('username-input'), 'newuser');
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
-      });
-      await waitFor(() =>
-        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
-      );
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
+      const user = await renderFormAtStep2();
       await user.type(screen.getByTestId('firstname-input'), 'JOHN');
       await user.type(screen.getByTestId('lastname-input'), 'DOE@#$');
       await user.type(screen.getByTestId('dob-day-input'), '15');
@@ -786,44 +760,12 @@ describe('OnboardingPage', () => {
 
     it('sends yearVisible: true when the checkbox is checked before submit', async () => {
       mocks.mockApiPost.mockResolvedValue({ status: 201 });
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
+      const user = await renderFormWithAvailableUsername(
+        { currentUser: makeUser({ displayName: 'Test User' }) },
+        'newuser',
+        { yearVisible: true },
       );
-      mockGetByUrl();
-      const user = userEvent.setup({
-        advanceTimers: vi.advanceTimersByTime.bind(vi),
-        delay: null,
-      });
-      render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('username-input')).toBeInTheDocument());
-
-      await user.clear(screen.getByTestId('username-input'));
-      await user.type(screen.getByTestId('username-input'), 'newuser');
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
-      });
-      await waitFor(() =>
-        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
-      );
-
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
-
-      await user.type(screen.getByTestId('firstname-input'), 'JOHN');
-      await user.type(screen.getByTestId('lastname-input'), 'DOE');
-      await user.type(screen.getByTestId('dob-day-input'), '15');
-      await user.type(screen.getByTestId('dob-month-input'), '6');
-      await user.type(screen.getByTestId('dob-year-input'), '1990');
-      await user.click(screen.getByTestId('year-visible-checkbox'));
-      await user.type(screen.getByTestId('phone-number-input'), '3001234567');
-
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('terms-checkbox')).toBeInTheDocument());
-
-      await user.type(screen.getByTestId('home-country-input'), 'CO');
-      await user.click(screen.getByTestId('terms-checkbox'));
       await user.click(screen.getByTestId('submit-btn'));
-
       await waitFor(() =>
         expect(mocks.mockApiPost).toHaveBeenCalledWith(
           '/v1/auth/register',
@@ -886,48 +828,16 @@ describe('OnboardingPage', () => {
     });
 
     it('pre-fills notification email from Firebase auth email', async () => {
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({
-          currentUser: makeUser({ email: 'firebase@example.com', displayName: 'Test User' }),
-        }),
-      );
-      mockGetByUrl();
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi), delay: null });
-      render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('next-btn')).toBeInTheDocument());
-      // Wait for the debounced username availability check (300ms)
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
+      await renderFormAtStep2({
+        currentUser: makeUser({ email: 'firebase@example.com', displayName: 'Test User' }),
       });
-      await waitFor(() =>
-        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
-      );
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('email-input')).toBeInTheDocument());
       expect(screen.getByTestId<HTMLInputElement>('email-input').value).toBe(
         'firebase@example.com',
       );
     });
 
     it('blocks step 2 advance when notification email is malformed', async () => {
-      vi.mocked(useAuth).mockReturnValue(
-        makeAuth({ currentUser: makeUser({ displayName: 'Test User' }) }),
-      );
-      mockGetByUrl();
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi), delay: null });
-      render(<OnboardingPage />);
-      await waitFor(() => expect(screen.getByTestId('next-btn')).toBeInTheDocument());
-      // Wait for the debounced username availability check (300ms)
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
-      });
-      await waitFor(() =>
-        expect(screen.getByText('onboarding.username.available')).toBeInTheDocument(),
-      );
-
-      await user.click(screen.getByTestId('next-btn'));
-      await waitFor(() => expect(screen.getByTestId('firstname-input')).toBeInTheDocument());
-
+      const user = await renderFormAtStep2();
       await user.type(screen.getByTestId('firstname-input'), 'JOHN');
       await user.type(screen.getByTestId('lastname-input'), 'DOE');
       await user.type(screen.getByTestId('dob-day-input'), '15');
@@ -937,9 +847,7 @@ describe('OnboardingPage', () => {
       const emailInput = screen.getByTestId('email-input');
       await user.clear(emailInput);
       await user.type(emailInput, 'not-an-email');
-
       await user.click(screen.getByTestId('next-btn'));
-
       expect(screen.queryByTestId('terms-checkbox')).not.toBeInTheDocument();
       expect(screen.getByText('onboarding.validation.invalidEmail')).toBeInTheDocument();
     });
