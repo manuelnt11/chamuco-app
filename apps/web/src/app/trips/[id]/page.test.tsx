@@ -1,5 +1,4 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { type ReactNode } from 'react';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import type { TripAnnouncement, TripResponse, DestinationResponse } from '@/services/trips.types';
 
@@ -17,47 +16,12 @@ vi.mock('react', async (importOriginal) => {
   };
 });
 
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
 vi.mock('@/services/api-client', () => ({
   apiClient: { get: mocks.mockApiGet, patch: mocks.mockApiPatch },
 }));
 
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: vi.fn(), success: vi.fn() },
-}));
-
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: mocks.mockUseAuth,
-}));
-
-vi.mock('@phosphor-icons/react', () => ({
-  ArrowLeftIcon: () => null,
-  ArrowRightIcon: () => null,
-  GearSixIcon: () => null,
-  LinkIcon: () => null,
-  MegaphoneIcon: () => null,
-  UsersThreeIcon: () => null,
-  AirplaneTakeoffIcon: () => null,
-  AirplaneLandingIcon: () => null,
-  MapPinIcon: () => null,
-  UsersIcon: () => null,
-  NavigationArrowIcon: () => null,
-  PencilSimpleIcon: () => null,
 }));
 
 vi.mock('@/components/ui/announcement-card', () => ({

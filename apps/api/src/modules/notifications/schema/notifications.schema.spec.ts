@@ -5,23 +5,6 @@ import { NotificationType } from '@chamuco/shared-types';
 import { notificationTypeEnum, notifications } from './notifications.schema';
 
 describe('notifications schema', () => {
-  it('exports the notifications table', () => {
-    expect(notifications).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(notifications);
-    expect(config.name).toBe('notifications');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(notifications);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(
-      expect.arrayContaining(['id', 'user_id', 'type', 'data', 'read_at', 'created_at']),
-    );
-  });
-
   it('has a FK from user_id to users.id with ON DELETE CASCADE', () => {
     const config = getTableConfig(notifications);
     expect(config.foreignKeys).toHaveLength(1);

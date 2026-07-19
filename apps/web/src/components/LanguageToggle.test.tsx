@@ -22,12 +22,6 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: mocks.mockUseAuth,
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    i18n: { language: 'en' },
-  }),
-}));
-
 import { LanguageToggle } from './LanguageToggle';
 
 const fakeUser = { uid: 'uid-123' } as User;

@@ -1,7 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import type { User } from 'firebase/auth';
 import { ProfileVisibility } from '@chamuco/shared-types';
-import type { AuthContextValue } from '@/store/auth';
 
 // --- hoisted mocks ---
 
@@ -20,31 +18,9 @@ vi.mock('@/services/api-client', () => ({
 import { useContext, type ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserContext, UserProvider } from './user';
+import { makeAuth, makeFirebaseUser } from '@test/mocks/auth';
 
 // --- helpers ---
-
-function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
-  return {
-    currentUser: null,
-    idToken: null,
-    isLoading: false,
-    getIdToken: vi.fn().mockResolvedValue(null),
-    signInWithGoogle: vi.fn(),
-    signInWithFacebook: vi.fn(),
-    signOut: vi.fn(),
-    ...overrides,
-  };
-}
-
-function makeFirebaseUser(overrides: Partial<User> = {}): User {
-  return {
-    uid: 'uid-123',
-    displayName: 'Firebase Name',
-    email: 'user@example.com',
-    photoURL: null,
-    ...overrides,
-  } as User;
-}
 
 function wrapper({ children }: { children: ReactNode }) {
   return <UserProvider>{children}</UserProvider>;

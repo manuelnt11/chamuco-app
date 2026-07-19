@@ -8,10 +8,6 @@ import { FirebaseAuthGuard } from '@/modules/auth/firebase-auth.guard';
 import { UsersService } from '@/modules/users/users.service';
 import type { AuthenticatedUser } from '@/types/express.d';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const mockUser: AuthenticatedUser = {
   id: 'user-uuid',
   username: 'testuser',

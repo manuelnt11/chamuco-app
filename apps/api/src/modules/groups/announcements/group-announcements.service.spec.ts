@@ -13,10 +13,6 @@ import { GroupAnnouncementsService } from './group-announcements.service';
 import type { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import type { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const NOW = new Date('2026-01-01T00:00:00.000Z');
 const GROUP_ID = 'group-uuid';
 const ADMIN_ID = 'admin-uuid';

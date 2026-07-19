@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { type ReactNode } from 'react';
 import { InvitationTokenContext } from '@chamuco/shared-types';
 import { InvitationLinkWidget } from './InvitationLinkWidget';
+import { toast } from '@/components/ui/toast';
 
 const mocks = vi.hoisted(() => ({
   mockCreateToken: vi.fn(),
   mockGetOpenToken: vi.fn(),
   mockToggleToken: vi.fn(),
-  mockToastError: vi.fn(),
   mockClipboard: vi.fn(),
   mockShare: vi.fn(),
 }));
@@ -28,10 +28,6 @@ vi.mock('@/components/ui/dialog', () => ({
   DialogTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
   DialogDescription: ({ children }: { children: ReactNode }) => <p>{children}</p>,
   DialogClose: () => null,
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
 }));
 
 const STORAGE_ID = 'test-id';
@@ -59,7 +55,7 @@ describe('InvitationLinkWidget', () => {
     mocks.mockGetOpenToken.mockResolvedValue(null);
     mocks.mockToggleToken.mockClear();
     mocks.mockToggleToken.mockResolvedValue(undefined);
-    mocks.mockToastError.mockClear();
+    vi.mocked(toast.error).mockClear();
     mocks.mockClipboard.mockClear();
     mocks.mockShare.mockClear();
     Object.defineProperty(navigator, 'clipboard', {
@@ -124,7 +120,7 @@ describe('InvitationLinkWidget', () => {
       await waitFor(() => screen.getByText('invitationLink.generate'));
       await userEvent.click(screen.getByText('invitationLink.generate'));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('invitationLink.generateError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('invitationLink.generateError'),
       );
     });
 
@@ -167,7 +163,7 @@ describe('InvitationLinkWidget', () => {
       await renderWidget(InvitationTokenContext.REFERRAL);
       await userEvent.click(screen.getByRole('button', { name: 'invitationLink.share' }));
       await waitFor(() => expect(mocks.mockShare).toHaveBeenCalled());
-      expect(mocks.mockToastError).not.toHaveBeenCalled();
+      expect(vi.mocked(toast.error)).not.toHaveBeenCalled();
     });
 
     it('shows copy button when navigator.share unavailable', async () => {
@@ -292,7 +288,7 @@ describe('InvitationLinkWidget', () => {
       await renderWidget(InvitationTokenContext.REFERRAL, undefined, true);
       await userEvent.click(screen.getByText('invitationLink.disable'));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('invitationLink.toggleError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('invitationLink.toggleError'),
       );
     });
   });

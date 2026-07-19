@@ -1,22 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import type { ReactNode } from 'react';
 import { CONTACT_EMAIL } from '@/config/app.constants';
-
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
 
 vi.mock('@/components/header/Logo', () => ({
   Logo: () => <div data-testid="logo">Logo</div>,
@@ -28,13 +11,6 @@ vi.mock('@/components/LanguageToggle', () => ({
 
 vi.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <button data-testid="theme-toggle">Theme</button>,
-}));
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
 }));
 
 import TermsOfServicePage from './page';

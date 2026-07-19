@@ -5,8 +5,6 @@ const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockPatch: vi.fn(),
   mockDelete: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
   mockRandomUUID: vi.fn(() => 'test-uuid-1234'),
 }));
 
@@ -15,13 +13,6 @@ vi.mock('@/services/api-client', () => ({
     post: mocks.mockPost,
     patch: mocks.mockPatch,
     delete: mocks.mockDelete,
-  },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
   },
 }));
 
@@ -60,6 +51,7 @@ Object.defineProperty(globalThis, 'crypto', {
 
 import type { LoyaltyProgramDto } from '@/services/users.types';
 import { LoyaltyProgramsSection } from './LoyaltyProgramsSection';
+import { toast } from '@/components/ui/toast';
 
 const samplePrograms: LoyaltyProgramDto[] = [
   { id: 'prog-1', programName: 'LifeMiles', memberId: 'LM123', notes: 'Gold tier' },
@@ -157,7 +149,7 @@ describe('LoyaltyProgramsSection', () => {
       await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('loyaltyPrograms.addSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('loyaltyPrograms.addSuccess'),
       );
     });
 
@@ -187,7 +179,7 @@ describe('LoyaltyProgramsSection', () => {
       await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'AV999');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
       );
     });
 
@@ -248,7 +240,7 @@ describe('LoyaltyProgramsSection', () => {
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), ' ');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('loyaltyPrograms.updateSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('loyaltyPrograms.updateSuccess'),
       );
     });
 
@@ -268,7 +260,7 @@ describe('LoyaltyProgramsSection', () => {
       await user.type(screen.getByLabelText('loyaltyPrograms.programName'), ' ');
       await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
       );
     });
 
@@ -391,7 +383,7 @@ describe('LoyaltyProgramsSection', () => {
       await user.click(deleteButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('loyaltyPrograms.deleteSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('loyaltyPrograms.deleteSuccess'),
       );
     });
 
@@ -402,7 +394,7 @@ describe('LoyaltyProgramsSection', () => {
       await user.click(deleteButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('loyaltyPrograms.saveError'),
       );
     });
   });

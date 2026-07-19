@@ -9,8 +9,6 @@ const mocks = vi.hoisted(() => ({
   mockSignInWithGoogle: vi.fn(),
   mockSignInWithFacebook: vi.fn(),
   mockApiGet: vi.fn(),
-  mockToastError: vi.fn(),
-  mockToastInfo: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -27,13 +25,6 @@ vi.mock('@/services/api-client', () => ({
   apiClient: { get: mocks.mockApiGet },
 }));
 
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    error: mocks.mockToastError,
-    info: mocks.mockToastInfo,
-  },
-}));
-
 // Logo and Spinner are lightweight — render them as stubs to keep tests fast
 vi.mock('@/components/header/Logo', () => ({
   Logo: () => <div data-testid="logo">Logo</div>,
@@ -47,36 +38,21 @@ vi.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <button data-testid="theme-toggle">Theme</button>,
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: (_ns: string) => ({
-    t: (key: string, opts?: Record<string, string>) => {
-      if (opts?.provider) return `${key}:${opts.provider}`;
-      return key;
-    },
-    i18n: { language: 'en' },
-  }),
-}));
-
 import { useAuth } from '@/hooks/useAuth';
 import SignInPage from './page';
+import { makeAuth } from '@test/mocks/auth';
+import { toast } from '@/components/ui/toast';
 
 // --- helpers ---
 
-function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
-  return {
-    currentUser: null,
-    idToken: null,
-    isLoading: false,
-    getIdToken: vi.fn().mockResolvedValue(null),
-    signInWithGoogle: mocks.mockSignInWithGoogle,
-    signInWithFacebook: mocks.mockSignInWithFacebook,
-    signOut: vi.fn(),
-    ...overrides,
-  };
-}
-
 function setup(authOverrides: Partial<AuthContextValue> = {}) {
-  vi.mocked(useAuth).mockReturnValue(makeAuth(authOverrides));
+  vi.mocked(useAuth).mockReturnValue(
+    makeAuth({
+      signInWithGoogle: mocks.mockSignInWithGoogle,
+      signInWithFacebook: mocks.mockSignInWithFacebook,
+      ...authOverrides,
+    }),
+  );
   return userEvent.setup();
 }
 
@@ -220,7 +196,7 @@ describe('SignInPage', () => {
       mocks.mockSignInWithGoogle.mockRejectedValue(new Error('network error'));
       render(<SignInPage />);
       await user.click(screen.getByTestId('google-signin-btn'));
-      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('error.failed'));
+      await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalledWith('error.failed'));
     });
 
     it('shows an info toast when the sign-in popup is closed by the user', async () => {
@@ -230,7 +206,7 @@ describe('SignInPage', () => {
       );
       render(<SignInPage />);
       await user.click(screen.getByTestId('google-signin-btn'));
-      await waitFor(() => expect(mocks.mockToastInfo).toHaveBeenCalledWith('error.cancelled'));
+      await waitFor(() => expect(vi.mocked(toast.info)).toHaveBeenCalledWith('error.cancelled'));
     });
 
     it('shows an info toast when the popup request is cancelled', async () => {
@@ -240,7 +216,7 @@ describe('SignInPage', () => {
       );
       render(<SignInPage />);
       await user.click(screen.getByTestId('google-signin-btn'));
-      await waitFor(() => expect(mocks.mockToastInfo).toHaveBeenCalledWith('error.cancelled'));
+      await waitFor(() => expect(vi.mocked(toast.info)).toHaveBeenCalledWith('error.cancelled'));
     });
 
     it('shows error toast when the API returns an unexpected error (non-404)', async () => {
@@ -252,7 +228,7 @@ describe('SignInPage', () => {
       mocks.mockApiGet.mockRejectedValue(err);
       render(<SignInPage />);
       await user.click(screen.getByTestId('google-signin-btn'));
-      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('error.failed'));
+      await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalledWith('error.failed'));
     });
   });
 

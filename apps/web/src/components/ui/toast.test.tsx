@@ -1,3 +1,6 @@
+// This file tests the real toast implementation — unmock to override the global setup stub
+vi.unmock('@/components/ui/toast');
+
 import { type ReactNode } from 'react';
 import { render, screen, act, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

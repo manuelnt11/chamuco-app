@@ -6,8 +6,6 @@ import { AxiosError } from 'axios';
 
 const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
   mockIsAxiosError: vi.fn(),
 }));
 
@@ -19,13 +17,6 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { post: mocks.mockPost },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
-  },
 }));
 
 vi.mock('axios', async (importOriginal) => {
@@ -52,6 +43,7 @@ vi.mock('@/components/ui/dialog', () => ({
 }));
 
 import { FeedbackModal } from '@/components/feedback/FeedbackModal';
+import { toast } from '@/components/ui/toast';
 
 function makeAxiosError(status: number): AxiosError {
   const err = new AxiosError('Request failed');
@@ -229,7 +221,7 @@ describe('FeedbackModal', () => {
       );
       await user.click(screen.getByRole('button', { name: 'modal.submit' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.rateLimitExceeded'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.rateLimitExceeded'),
       );
       expect(onClose).not.toHaveBeenCalled();
     });
@@ -243,7 +235,9 @@ describe('FeedbackModal', () => {
         'This is a valid feedback comment.',
       );
       await user.click(screen.getByRole('button', { name: 'modal.submit' }));
-      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('errors.submitFailed'));
+      await waitFor(() =>
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.submitFailed'),
+      );
       expect(onClose).not.toHaveBeenCalled();
     });
   });

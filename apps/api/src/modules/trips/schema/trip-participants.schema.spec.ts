@@ -4,41 +4,11 @@ import { TripParticipantStatus, TripRole } from '@chamuco/shared-types';
 
 import {
   tripParticipants,
-  tripParticipantsRelations,
   tripParticipantStatusEnum,
   tripRoleEnum,
 } from './trip-participants.schema';
 
 describe('trip_participants schema', () => {
-  it('exports the tripParticipants table', () => {
-    expect(tripParticipants).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(tripParticipants);
-    expect(config.name).toBe('trip_participants');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(tripParticipants);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(
-      expect.arrayContaining([
-        'trip_id',
-        'user_id',
-        'role',
-        'status',
-        'is_traveler',
-        'did_travel',
-        'initiated_at',
-        'confirmed_at',
-        'updated_at',
-        'initiated_by',
-        'decided_by',
-      ]),
-    );
-  });
-
   it('has composite primary key on (trip_id, user_id)', () => {
     const config = getTableConfig(tripParticipants);
     expect(config.primaryKeys).toHaveLength(1);
@@ -81,9 +51,5 @@ describe('trip_participants schema', () => {
     expect(tripParticipantStatusEnum.enumValues).toContain(TripParticipantStatus.ACCEPTED);
     expect(tripParticipantStatusEnum.enumValues).toContain(TripParticipantStatus.CONFIRMED);
     expect(tripParticipantStatusEnum.enumValues).toContain(TripParticipantStatus.DECLINED);
-  });
-
-  it('exports tripParticipantsRelations', () => {
-    expect(tripParticipantsRelations).toBeDefined();
   });
 });

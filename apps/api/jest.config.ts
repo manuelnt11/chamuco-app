@@ -29,6 +29,7 @@ const config: Config = {
     '^@chamuco/shared-types$': '<rootDir>/../../packages/shared-types/src',
     '^@chamuco/shared-utils$': '<rootDir>/../../packages/shared-utils/src',
   },
+  setupFilesAfterEnv: ['<rootDir>/src/test/setup-mocks.ts'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/main.ts',
@@ -38,6 +39,7 @@ const config: Config = {
     '!src/config/environment.schema.ts',
     '!src/database/seeds/**/*.ts',
     '!src/**/*.schema.ts',
+    '!src/test/**/*.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

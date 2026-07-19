@@ -1,9 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
 import { TripJoinRequestsController } from './trip-join-requests.controller';
 import { TripJoinRequestsService } from './trip-join-requests.service';
 import type { AuthenticatedUser } from '@/types/express';

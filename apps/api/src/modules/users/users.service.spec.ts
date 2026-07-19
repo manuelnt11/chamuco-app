@@ -13,11 +13,7 @@ import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.servi
 import { UsersService } from './users.service';
 import type { UpdateAvatarDto } from './dto/update-avatar.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
-import type { AuthenticatedUser } from '@/types/express';
-
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
+import { makeAuthenticatedUser } from '@/test/fixtures/user.fixture';
 
 const mockHealthProfile = {
   userId: 'user-uuid',
@@ -47,21 +43,7 @@ const mockHealthProfile = {
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
-const mockUser: AuthenticatedUser = {
-  id: 'user-uuid',
-  username: 'john_doe',
-  displayName: 'John Doe',
-  avatar: null,
-  authProvider: AuthProvider.GOOGLE,
-  firebaseUid: 'firebase-uid-123',
-  timezone: 'UTC',
-  platformRole: PlatformRole.USER,
-  profileVisibility: ProfileVisibility.PRIVATE,
-  agencyId: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  lastActiveAt: new Date(),
-};
+const mockUser = makeAuthenticatedUser();
 
 describe('UsersService', () => {
   let service: UsersService;

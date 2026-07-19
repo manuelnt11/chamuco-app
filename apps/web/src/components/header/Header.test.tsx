@@ -1,7 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { User } from 'firebase/auth';
-import type { AuthContextValue } from '@/store/auth';
 import { Header } from './Header';
 
 // Mock the Logo component
@@ -34,23 +32,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 import { useAuth } from '@/hooks/useAuth';
-
-function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
-  return {
-    currentUser: null,
-    idToken: null,
-    isLoading: false,
-    getIdToken: vi.fn().mockResolvedValue(null),
-    signInWithGoogle: vi.fn(),
-    signInWithFacebook: vi.fn(),
-    signOut: vi.fn(),
-    ...overrides,
-  };
-}
-
-function makeFirebaseUser(): User {
-  return { uid: 'uid-1', displayName: 'Jane', email: 'jane@example.com' } as User;
-}
+import { makeAuth, makeFirebaseUser } from '@test/mocks/auth';
 
 beforeEach(() => {
   vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeFirebaseUser() }));

@@ -1,11 +1,9 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  AuthProvider,
   NotificationChannel,
   NotificationType,
   PlatformRole,
-  ProfileVisibility,
   TripParticipantStatus,
   TripRole,
   TripStatus,
@@ -19,27 +17,9 @@ import { TripsService } from './trips.service';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
-import type { AuthenticatedUser } from '@/types/express';
+import { makeAuthenticatedUser } from '@/test/fixtures/user.fixture';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({})),
-}));
-
-const mockUser: AuthenticatedUser = {
-  id: 'user-uuid',
-  username: 'john_doe',
-  displayName: 'John Doe',
-  avatar: null,
-  authProvider: AuthProvider.GOOGLE,
-  firebaseUid: 'firebase-uid-123',
-  timezone: 'UTC',
-  platformRole: PlatformRole.USER,
-  profileVisibility: ProfileVisibility.PRIVATE,
-  agencyId: null,
-  createdAt: new Date('2026-01-01T00:00:00.000Z'),
-  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-  lastActiveAt: new Date('2026-01-01T00:00:00.000Z'),
-};
+const mockUser = makeAuthenticatedUser();
 
 const mockTripRow = {
   id: 'trip-uuid',

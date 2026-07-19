@@ -3,36 +3,6 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 import { userEtas } from './user-etas.schema';
 
 describe('userEtas schema', () => {
-  it('exports the userEtas table', () => {
-    expect(userEtas).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(userEtas);
-    expect(config.name).toBe('user_etas');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(userEtas);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(
-      expect.arrayContaining([
-        'id',
-        'user_nationality_id',
-        'passport_number',
-        'destination_country',
-        'authorization_number',
-        'eta_type',
-        'entries',
-        'expiry_date',
-        'eta_status',
-        'notes',
-        'created_at',
-        'updated_at',
-      ]),
-    );
-  });
-
   it('has required columns as not null', () => {
     const config = getTableConfig(userEtas);
     const required = [

@@ -41,7 +41,24 @@
 
 ### Definitions
 
-- `i18n client` test suite — covers `initI18n` (idempotency, localStorage path, SSR fallback, concurrent calls), `getCurrentLanguage`, `changeLanguage`, `getI18n`, and `getSavedLanguage` (localStorage read, null on missing, null in SSR)
+- `i18n client` test suite — covers `initI18n` (idempotency, localStorage path, concurrent calls, default language fallback), `getCurrentLanguage`, `changeLanguage`, `getI18n`, and `getSavedLanguage` (localStorage read, null on missing); SSR paths are in `client.ssr.test.ts`
+
+### Exports
+
+- _(none)_
+
+---
+
+## client.ssr.test.ts
+
+### Imports
+
+- `vitest` — `describe`, `it`, `expect` test utilities
+- `./client` — `initI18n`, `getSavedLanguage` under test
+
+### Definitions
+
+- `i18n client — SSR (node environment)` test suite (`@vitest-environment node`) — verifies that `initI18n` returns a Promise and `getSavedLanguage` returns `null` when `window` is undefined (natural in node environment)
 
 ### Exports
 

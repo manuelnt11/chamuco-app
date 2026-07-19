@@ -11,9 +11,6 @@ import {
 } from '@chamuco/shared-types';
 import type { Response } from 'express';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
 import { TripParticipantsController } from './trip-participants.controller';
 import { TripParticipantsService } from './trip-participants.service';
 import type { UpdateParticipantRoleDto } from './dto/update-participant-role.dto';

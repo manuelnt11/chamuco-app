@@ -2,13 +2,6 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AnnouncementCard } from './announcement-card';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-}));
-
 vi.mock('@/components/ui/markdown-content', () => ({
   MarkdownContent: ({ content }: { content: string }) => <span>{content}</span>,
 }));

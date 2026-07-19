@@ -32,7 +32,7 @@
 
 ### Definitions
 
-- `describe('group_trips schema', ...)` (const) — test suite verifying table name, columns, composite PK, `group_id` index, `added_at` type, and relations export
+- `describe('group_trips schema', ...)` (const) — test suite verifying composite PK on `(trip_id, group_id)` and `group_id` index
 
 ### Exports
 
@@ -90,7 +90,7 @@
 
 ### Definitions
 
-- `describe('trip_destinations schema', ...)` (const) — test suite verifying table name, columns, unique constraint on `(trip_id, position)`, CHECK constraint, `created_at` type, and relations export
+- `describe('trip_destinations schema', ...)` (const) — test suite verifying unique constraint on `(trip_id, position)` and CHECK constraint on `position >= 1`
 
 ### Exports
 
@@ -134,7 +134,7 @@
 
 ### Definitions
 
-- `describe('trip_participants schema', ...)` (const) — test suite verifying table name, columns, composite PK, CHECK constraint, indexes, timestamptz columns, enum values, and relations export
+- `describe('trip_participants schema', ...)` (const) — test suite verifying composite PK, CHECK constraint, indexes, and enum values sync with shared-types
 
 ### Exports
 
@@ -178,7 +178,7 @@
 
 ### Definitions
 
-- `describe('trips schema', ...)` (const) — test suite verifying table name, columns, CHECK constraints, timestamptz columns, enum values for status and visibility, and relations export
+- `describe('trips schema', ...)` (const) — test suite verifying CHECK constraints and enum values for status and visibility against shared-types
 
 ### Exports
 

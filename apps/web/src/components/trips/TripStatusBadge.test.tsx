@@ -1,22 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { type ReactNode } from 'react';
 import { TripStatus } from '@chamuco/shared-types';
-
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
 
 import { TripStatusBadge } from './TripStatusBadge';
 import { STATUS_CLASSES, STATUS_I18N_KEYS } from './trip-status';

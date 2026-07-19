@@ -1,5 +1,4 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { type ReactNode } from 'react';
 import { TripRole, TripParticipantStatus } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
@@ -17,22 +16,6 @@ vi.mock('react', async (importOriginal) => {
   };
 });
 
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
 vi.mock('next/navigation', () => {
   let stableRouter: { push: typeof mocks.mockRouterPush } | null = null;
   return {
@@ -49,12 +32,6 @@ vi.mock('@/services/api-client', () => ({
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: mocks.mockUseAuth,
-}));
-
-vi.mock('@phosphor-icons/react', () => ({
-  ArrowLeftIcon: () => <span data-testid="arrow-left-icon" />,
-  MegaphoneIcon: () => <span data-testid="megaphone-icon" />,
-  PlusIcon: () => <span data-testid="plus-icon" />,
 }));
 
 vi.mock('@/components/ui/announcement-card', () => ({

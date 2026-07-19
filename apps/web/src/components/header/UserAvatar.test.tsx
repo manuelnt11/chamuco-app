@@ -1,9 +1,7 @@
 import { type ComponentProps, type ReactNode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { User } from 'firebase/auth';
 import { ProfileVisibility } from '@chamuco/shared-types';
-import type { AuthContextValue } from '@/store/auth';
 import type { UserContextValue } from '@/store/user';
 
 // --- hoisted mocks ---
@@ -12,7 +10,6 @@ const mocks = vi.hoisted(() => ({
   mockRouterReplace: vi.fn(),
   mockRouterPush: vi.fn(),
   mockSignOut: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -26,17 +23,6 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('@/hooks/useUser', () => ({
   useUser: vi.fn(),
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
-}));
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
 }));
 
 // Menu primitives use portals — stub them so assertions work in jsdom
@@ -66,21 +52,10 @@ vi.mock('@/components/ui/menu', () => ({
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { UserAvatar } from './UserAvatar';
+import { makeAuth, makeFirebaseUser } from '@test/mocks/auth';
+import { toast } from '@/components/ui/toast';
 
 // --- helpers ---
-
-function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
-  return {
-    currentUser: null,
-    idToken: null,
-    isLoading: false,
-    getIdToken: vi.fn().mockResolvedValue(null),
-    signInWithGoogle: vi.fn(),
-    signInWithFacebook: vi.fn(),
-    signOut: mocks.mockSignOut,
-    ...overrides,
-  };
-}
 
 function makeAppUser(
   overrides: Partial<NonNullable<UserContextValue['appUser']>> = {},
@@ -98,16 +73,6 @@ function makeAppUser(
     isLoading: false,
     refresh: vi.fn(),
   };
-}
-
-function makeFirebaseUser(overrides: Partial<User> = {}): User {
-  return {
-    uid: 'uid-123',
-    displayName: 'Firebase Name',
-    email: 'jane@example.com',
-    photoURL: null,
-    ...overrides,
-  } as User;
 }
 
 beforeEach(() => {
@@ -156,7 +121,9 @@ describe('UserAvatar', () => {
 
   describe('authenticated state', () => {
     beforeEach(() => {
-      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeFirebaseUser() }));
+      vi.mocked(useAuth).mockReturnValue(
+        makeAuth({ currentUser: makeFirebaseUser(), signOut: mocks.mockSignOut }),
+      );
       vi.mocked(useUser).mockReturnValue(makeAppUser());
     });
 
@@ -264,7 +231,7 @@ describe('UserAvatar', () => {
       render(<UserAvatar />);
       const items = screen.getAllByRole('menuitem');
       await user.click(items[1]!);
-      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalled());
+      await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalled());
     });
   });
 

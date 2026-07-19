@@ -288,26 +288,6 @@
 
 ---
 
-## index.test.ts
-
-### Imports
-
-- `vitest` — `describe`, `it`, `expect`, `vi`
-- `@/lib/firebase` — mocked (suppresses env validation during barrel import)
-- `@/services/api-client` — mocked
-- `@/hooks/useAuth` — mocked
-- `./index` — `Button`, `ThemeProvider`, `ThemeToggle`
-
-### Definitions
-
-- `describe('Component exports', ...)` (const) — smoke tests verifying `Button`, `ThemeProvider`, and `ThemeToggle` are defined, non-null, and of valid component types
-
-### Exports
-
-- _(none)_
-
----
-
 ## index.ts
 
 ### Imports

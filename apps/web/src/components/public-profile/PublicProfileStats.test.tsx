@@ -1,10 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
-}));
-
 import { PublicProfileStats } from './PublicProfileStats';
 
 const baseStats = {

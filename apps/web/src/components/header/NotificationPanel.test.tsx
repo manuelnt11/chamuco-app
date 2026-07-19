@@ -14,13 +14,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mocks.mockRouterPush }),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-}));
-
 // --- helpers ---
 
 function makeNotification(overrides: Partial<NotificationItem> = {}): NotificationItem {

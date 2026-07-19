@@ -1,11 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TripVisibility } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockPatch: vi.fn(),
-  mockToastError: vi.fn(),
   mockOnSuccess: vi.fn(),
   mockIsAxiosError: vi.fn(),
   mockGetSignedUrl: vi.fn(),
@@ -29,10 +28,6 @@ vi.mock('@/services/uploads.service', () => ({
 
 vi.mock('@/services/gcs-upload', () => ({
   uploadToGcs: mocks.mockUploadToGcs,
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
 }));
 
 vi.mock('react-i18next', () => ({
@@ -130,6 +125,7 @@ vi.mock('@/components/ui/group-autocomplete', () => ({
 }));
 
 import { TripForm } from './TripForm';
+import { toast } from '@/components/ui/toast';
 
 const mockTrip = {
   id: 'trip-uuid',
@@ -168,17 +164,16 @@ beforeEach(() => {
   mocks.mockUploadToGcs.mockResolvedValue(undefined);
 });
 
-async function fillRequiredFields(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('form.name'), 'Cancún 2026');
-  await user.type(screen.getByLabelText('form.startDate'), '2026-12-01');
+function fillRequiredFields() {
+  fireEvent.change(screen.getByLabelText('form.name'), { target: { value: 'Cancún 2026' } });
+  fireEvent.change(screen.getByLabelText('form.startDate'), { target: { value: '2026-12-01' } });
   // endDate auto-fills to '2026-12-02' when startDate is set
-  await user.clear(screen.getByLabelText('form.participantCapacity'));
-  await user.type(screen.getByLabelText('form.participantCapacity'), '10');
+  fireEvent.change(screen.getByLabelText('form.participantCapacity'), { target: { value: '10' } });
   // departure country + city
   const countrySelects = screen.getAllByTestId('country-combobox');
-  await user.selectOptions(countrySelects[0]!, 'MX');
+  fireEvent.change(countrySelects[0]!, { target: { value: 'MX' } });
   const cityInputs = screen.getAllByTestId('city-combobox');
-  await user.type(cityInputs[0]!, 'CIUDAD DE MEXICO');
+  fireEvent.change(cityInputs[0]!, { target: { value: 'CIUDAD DE MEXICO' } });
 }
 
 function setupCreate() {
@@ -311,7 +306,7 @@ describe('TripForm', () => {
   describe('cover section', () => {
     it('submit disabled when photo tab is active but no photo cropped', async () => {
       const { user } = setupCreate();
-      await fillRequiredFields(user);
+      fillRequiredFields();
       await user.click(screen.getByRole('button', { name: 'form.cover.tabImage' }));
       expect(screen.getByRole('button', { name: 'form.submit' })).toBeDisabled();
     });
@@ -347,7 +342,7 @@ describe('TripForm', () => {
 
     it('creates trip with emoji cover, then updates with GCS cover on photo tab', async () => {
       const { user } = setupCreate();
-      await fillRequiredFields(user);
+      fillRequiredFields();
 
       await user.click(screen.getByRole('button', { name: 'form.cover.tabImage' }));
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -386,7 +381,7 @@ describe('TripForm', () => {
     it('navigates to trip with warning toast when GCS cover upload fails', async () => {
       mocks.mockUploadToGcs.mockRejectedValue(new Error('Network error'));
       const { user } = setupCreate();
-      await fillRequiredFields(user);
+      fillRequiredFields();
 
       await user.click(screen.getByRole('button', { name: 'form.cover.tabImage' }));
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -396,7 +391,7 @@ describe('TripForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.coverUploadFailed');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.coverUploadFailed');
         expect(mocks.mockOnSuccess).toHaveBeenCalledWith(mockTrip);
       });
     });
@@ -405,7 +400,7 @@ describe('TripForm', () => {
   describe('create form submission', () => {
     it('calls POST /v1/trips with correct payload', async () => {
       const { user } = setupCreate();
-      await fillRequiredFields(user);
+      fillRequiredFields();
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
@@ -432,7 +427,7 @@ describe('TripForm', () => {
 
     it('uses separate landing location when hasDifferentReturn is checked', async () => {
       const { user } = setupCreate();
-      await fillRequiredFields(user);
+      fillRequiredFields();
       await user.click(screen.getByLabelText('form.differentReturn'));
 
       const countrySelects = screen.getAllByTestId('country-combobox');
@@ -458,11 +453,11 @@ describe('TripForm', () => {
     it('shows createFailed toast on generic error', async () => {
       mocks.mockPost.mockRejectedValue(new Error('Server error'));
       const { user } = setupCreate();
-      await fillRequiredFields(user);
+      fillRequiredFields();
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.createFailed');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.createFailed');
       });
       expect(mocks.mockOnSuccess).not.toHaveBeenCalled();
     });
@@ -472,11 +467,11 @@ describe('TripForm', () => {
       mocks.mockPost.mockRejectedValue(err);
       mocks.mockIsAxiosError.mockReturnValue(true);
       const { user } = setupCreate();
-      await fillRequiredFields(user);
+      fillRequiredFields();
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.forbidden');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.forbidden');
       });
     });
   });
@@ -521,7 +516,7 @@ describe('TripForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.cannotMakePublic');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.cannotMakePublic');
       });
     });
   });

@@ -6,10 +6,6 @@ import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { GroupsDiscoveryService } from './groups-discovery.service';
 import type { SearchGroupsQueryDto } from '@/modules/groups/dto/search-groups-query.dto';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const mockCoverAssetRow = {
   id: 'asset-uuid',
   type: 'image' as const,

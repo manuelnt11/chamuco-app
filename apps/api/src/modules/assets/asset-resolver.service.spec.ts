@@ -3,10 +3,6 @@ import { AssetResolverService } from './asset-resolver.service';
 import { CloudStorageService } from '@/modules/cloud-storage/cloud-storage.service';
 import type { Asset } from '@chamuco/shared-types';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const BUCKET = 'chamuco-uploads';
 
 const mockCloudStorage = {

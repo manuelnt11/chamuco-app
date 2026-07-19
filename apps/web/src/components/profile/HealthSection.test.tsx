@@ -4,19 +4,10 @@ import userEvent from '@testing-library/user-event';
 
 const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
-  },
 }));
 
 vi.mock('@/components/ui/input', () => ({
@@ -42,6 +33,7 @@ vi.mock('@/components/ui/label', () => ({
 import { HealthSection } from './HealthSection';
 import type { HealthData } from '@/services/users.types';
 import { BloodType, DietaryPreference } from '@chamuco/shared-types';
+import { toast } from '@/components/ui/toast';
 
 const baseHealth: HealthData = {
   bloodType: null,
@@ -298,7 +290,7 @@ describe('HealthSection', () => {
       );
       await user.click(screen.getByRole('button', { name: 'health.dietaryPreference.VEGAN' }));
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
-      await waitFor(() => expect(mocks.mockToastSuccess).toHaveBeenCalled());
+      await waitFor(() => expect(vi.mocked(toast.success)).toHaveBeenCalled());
 
       rerender(
         <HealthSection
@@ -406,7 +398,7 @@ describe('HealthSection', () => {
       await user.click(screen.getByRole('button', { name: 'health.dietaryPreference.VEGAN' }));
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('health.saveSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('health.saveSuccess'),
       );
     });
 
@@ -415,7 +407,7 @@ describe('HealthSection', () => {
       const { user } = setup();
       await user.click(screen.getByRole('button', { name: 'health.dietaryPreference.VEGAN' }));
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
-      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('health.saveError'));
+      await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalledWith('health.saveError'));
     });
 
     it('disables save button while saving', async () => {

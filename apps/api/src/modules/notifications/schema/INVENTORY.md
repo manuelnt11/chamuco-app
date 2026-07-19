@@ -37,7 +37,7 @@
 
 ### Definitions
 
-- `describe('notification-deliveries schema', ...)` (const) — test suite verifying table name, columns, FK with ON DELETE CASCADE, default status, nullable columns, timestamptz types, and enum completeness
+- `describe('notification-deliveries schema', ...)` (const) — test suite verifying FK with ON DELETE CASCADE, default status, nullable columns, and enum completeness
 
 ### Exports
 
@@ -78,7 +78,7 @@
 
 ### Definitions
 
-- `describe('notifications schema', ...)` (const) — test suite verifying table name, columns, FK with ON DELETE CASCADE, composite index on (user_id, created_at DESC), nullable columns, and notificationTypeEnum completeness (18 values)
+- `describe('notifications schema', ...)` (const) — test suite verifying FK with ON DELETE CASCADE, composite index on (user_id, created_at DESC), nullable columns, and notificationTypeEnum completeness (18 values)
 
 ### Exports
 

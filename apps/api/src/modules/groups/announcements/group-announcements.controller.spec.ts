@@ -10,10 +10,6 @@ import type { AnnouncementResponseDto } from './dto/announcement-response.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { ListAnnouncementsQueryDto } from './dto/list-announcements-query.dto';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const NOW = new Date('2026-01-01T00:00:00.000Z');
 const GROUP_ID = 'group-uuid';
 const ADMIN_ID = 'admin-uuid';

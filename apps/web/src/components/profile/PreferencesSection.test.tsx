@@ -3,17 +3,12 @@ import userEvent from '@testing-library/user-event';
 
 const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
-  mockToastError: vi.fn(),
   mockSetTheme: vi.fn(),
   mockChangeLanguage: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
 }));
 
 vi.mock('next-themes', () => ({
@@ -27,6 +22,7 @@ vi.mock('@/lib/i18n/client', () => ({
 import { PreferencesSection } from './PreferencesSection';
 import { AppLanguage, AppCurrency, AppTheme } from '@chamuco/shared-types';
 import type { PreferencesData } from '@/services/users.types';
+import { toast } from '@/components/ui/toast';
 
 const basePreferences: PreferencesData = {
   language: AppLanguage.EN,
@@ -175,7 +171,7 @@ describe('PreferencesSection', () => {
       mocks.mockPatch.mockRejectedValue(new Error('network error'));
       const { user } = setup({ theme: AppTheme.SYSTEM });
       await user.click(screen.getByRole('button', { name: 'preferences.themes.DARK' }));
-      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalled());
+      await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalled());
       expect(mocks.mockSetTheme).not.toHaveBeenCalled();
     });
   });
@@ -186,7 +182,7 @@ describe('PreferencesSection', () => {
       const { user } = setup({ language: AppLanguage.EN });
       await user.click(screen.getByRole('button', { name: 'preferences.languages.ES' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('preferences.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('preferences.saveError'),
       );
     });
   });

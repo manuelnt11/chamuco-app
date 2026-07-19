@@ -3,8 +3,6 @@ import userEvent from '@testing-library/user-event';
 
 const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
   mockRefresh: vi.fn(),
 }));
 
@@ -14,13 +12,6 @@ vi.mock('@/services/api-client', () => ({
 
 vi.mock('@/hooks/useUser', () => ({
   useUser: () => ({ appUser: null, isLoading: false, refresh: mocks.mockRefresh }),
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
-  },
 }));
 
 vi.mock('./AvatarEditor', () => ({
@@ -63,6 +54,7 @@ import { ProfileVisibility } from '@chamuco/shared-types';
 import type { AppUser } from '@/store/user';
 import { BasicInfoSection } from './BasicInfoSection';
 import type { BasicInfoProfile } from '@/services/users.types';
+import { toast } from '@/components/ui/toast';
 
 const baseUser: AppUser = {
   id: 'user-uuid',
@@ -222,7 +214,7 @@ describe('BasicInfoSection', () => {
       const { user } = setup({ timezone: 'UTC' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('basicInfo.saveSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('basicInfo.saveSuccess'),
       );
     });
 
@@ -230,7 +222,9 @@ describe('BasicInfoSection', () => {
       mocks.mockPatch.mockRejectedValue(new Error('network error'));
       const { user } = setup({ timezone: 'UTC' });
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
-      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('basicInfo.saveError'));
+      await waitFor(() =>
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('basicInfo.saveError'),
+      );
     });
 
     it('sends null bio when bio is empty', async () => {
@@ -297,7 +291,7 @@ describe('BasicInfoSection', () => {
 
       await user.type(displayNameInput, 'Jane Doe Updated');
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
-      await waitFor(() => expect(mocks.mockToastSuccess).toHaveBeenCalled());
+      await waitFor(() => expect(vi.mocked(toast.success)).toHaveBeenCalled());
       expect(screen.queryByText('basicInfo.validDisplayName')).not.toBeInTheDocument();
     });
   });

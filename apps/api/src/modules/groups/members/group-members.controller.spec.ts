@@ -14,10 +14,6 @@ import type { MemberResponseDto } from './dto/member-response.dto';
 import type { PendingItemResponseDto } from './dto/pending-item-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const NOW = new Date('2026-01-01T00:00:00.000Z');
 
 const mockAuthUser: AuthenticatedUser = {

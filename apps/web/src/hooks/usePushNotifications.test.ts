@@ -26,10 +26,6 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('@/components/ui/toast', () => ({
-  toast: { info: vi.fn() },
-}));
-
 vi.mock('@/config/env', () => ({
   env: { NEXT_PUBLIC_FIREBASE_VAPID_KEY: 'test-vapid-key' },
 }));

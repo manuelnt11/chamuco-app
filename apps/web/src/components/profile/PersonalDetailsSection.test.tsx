@@ -4,21 +4,12 @@ import userEvent from '@testing-library/user-event';
 
 const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
   mockIsValidPhoneNumber: vi.fn(() => true),
   mockGetCallingCode: vi.fn((iso2: string) => (iso2 === 'CO' ? '+57' : '+1')),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
-  },
 }));
 
 vi.mock('libphonenumber-js', () => ({
@@ -80,6 +71,7 @@ vi.mock('@/components/ui/city-combobox', () => ({
 
 import { PersonalDetailsSection } from './PersonalDetailsSection';
 import type { PersonalDetailsProfile } from '@/services/users.types';
+import { toast } from '@/components/ui/toast';
 
 const baseProfile: PersonalDetailsProfile = {
   firstName: 'Juan',
@@ -287,7 +279,7 @@ describe('PersonalDetailsSection', () => {
       await user.type(screen.getByLabelText('personalDetails.firstName'), ' Carlos');
       await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('personalDetails.saveSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('personalDetails.saveSuccess'),
       );
     });
 
@@ -297,7 +289,7 @@ describe('PersonalDetailsSection', () => {
       await user.type(screen.getByLabelText('personalDetails.firstName'), ' Carlos');
       await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('personalDetails.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('personalDetails.saveError'),
       );
     });
 
@@ -430,7 +422,7 @@ describe('PersonalDetailsSection', () => {
 
       await user.type(input, 'Pedro');
       await user.click(screen.getByRole('button', { name: 'personalDetails.save' }));
-      await waitFor(() => expect(mocks.mockToastSuccess).toHaveBeenCalled());
+      await waitFor(() => expect(vi.mocked(toast.success)).toHaveBeenCalled());
       expect(
         screen.queryByText('personalDetails.errors.firstNameRequired'),
       ).not.toBeInTheDocument();

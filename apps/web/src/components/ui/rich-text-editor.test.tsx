@@ -46,13 +46,6 @@ vi.mock('@tiptap/react', () => ({
 
 import { useEditor as useEditorMock } from '@tiptap/react';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-}));
-
 vi.mock('next-themes', () => ({
   useTheme: () => ({ resolvedTheme: 'light' }),
 }));
@@ -64,20 +57,6 @@ vi.mock('@emoji-mart/react', () => ({
 }));
 
 vi.mock('@emoji-mart/data', () => ({ default: {} }));
-
-vi.mock('@phosphor-icons/react', () => ({
-  TextHOneIcon: () => <span data-testid="icon-h1" />,
-  TextHTwoIcon: () => <span data-testid="icon-h2" />,
-  TextHThreeIcon: () => <span data-testid="icon-h3" />,
-  TextBIcon: () => <span data-testid="icon-bold" />,
-  TextItalicIcon: () => <span data-testid="icon-italic" />,
-  ListBulletsIcon: () => <span data-testid="icon-bullet" />,
-  ListNumbersIcon: () => <span data-testid="icon-ordered" />,
-  QuotesIcon: () => <span data-testid="icon-blockquote" />,
-  CodeIcon: () => <span data-testid="icon-code" />,
-  SmileyIcon: () => <span data-testid="icon-emoji" />,
-  TableIcon: () => <span data-testid="icon-table" />,
-}));
 
 vi.mock('@tiptap/starter-kit', () => ({ default: { configure: vi.fn(() => ({})) } }));
 vi.mock('@tiptap/extension-placeholder', () => ({ default: { configure: vi.fn(() => ({})) } }));

@@ -6,7 +6,6 @@ import type { Group } from '@/types/group';
 const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockPatch: vi.fn(),
-  mockToastError: vi.fn(),
   mockOnSuccess: vi.fn(),
   mockUploadToGcs: vi.fn(),
   mockIsAxiosError: vi.fn(),
@@ -25,10 +24,6 @@ vi.mock('@/services/api-client', () => ({
 
 vi.mock('@/services/gcs-upload', () => ({
   uploadToGcs: mocks.mockUploadToGcs,
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
 }));
 
 vi.mock('react-i18next', () => ({
@@ -70,6 +65,7 @@ vi.mock('@/components/ui/crop-modal', () => ({
 }));
 
 import { GroupForm } from './GroupForm';
+import { toast } from '@/components/ui/toast';
 
 const mockGroup: Group = {
   id: 'group-uuid',
@@ -300,7 +296,7 @@ describe('GroupForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.createFailed');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.createFailed');
       });
       expect(mocks.mockOnSuccess).not.toHaveBeenCalled();
     });
@@ -314,7 +310,7 @@ describe('GroupForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.forbidden');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.forbidden');
       });
     });
   });
@@ -438,7 +434,7 @@ describe('GroupForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.cannotMakePublic');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.cannotMakePublic');
       });
     });
   });
