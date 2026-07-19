@@ -716,7 +716,7 @@ export class TripParticipantsService {
     dataRows: ParticipantExportRow[],
     columns: Array<{ key: ExportField; header: string }>,
   ): Buffer {
-    const escape = (v: string) => (/[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+    const escape = (v: string): string => (/[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
     const headerLine = columns.map((c) => escape(c.header)).join(',');
     const lines = dataRows.map((row) => columns.map((c) => escape(row[c.key])).join(','));
     return Buffer.from([headerLine, ...lines].join('\r\n'), 'utf-8');
@@ -726,9 +726,10 @@ export class TripParticipantsService {
     dataRows: ParticipantExportRow[],
     columns: Array<{ key: ExportField; header: string }>,
   ): Promise<Buffer> {
-    const x = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const x = (s: string): string =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    const cell = (v: string) =>
+    const cell = (v: string): string =>
       `<table:table-cell office:value-type="string"><text:p>${x(v)}</text:p></table:table-cell>`;
 
     const headerRow = `<table:table-row>${columns.map((c) => cell(c.header)).join('')}</table:table-row>`;

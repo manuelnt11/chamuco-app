@@ -276,7 +276,7 @@ export class NotificationsService {
     const tripAnnouncementSenderMap = new Map<string, string>();
 
     await Promise.all([
-      (async () => {
+      (async (): Promise<void> => {
         if (groupIdsNeeded.size === 0) return;
         const fetched = await this.db
           .select({ id: groups.id, name: groups.name })
@@ -284,7 +284,7 @@ export class NotificationsService {
           .where(inArray(groups.id, [...groupIdsNeeded]));
         for (const r of fetched) groupNameMap.set(r.id, r.name);
       })(),
-      (async () => {
+      (async (): Promise<void> => {
         if (groupAnnouncementIdsNeeded.size === 0) return;
         const fetched = await this.db
           .select({ id: groupAnnouncements.id, username: users.username })
@@ -293,7 +293,7 @@ export class NotificationsService {
           .where(inArray(groupAnnouncements.id, [...groupAnnouncementIdsNeeded]));
         for (const r of fetched) groupAnnouncementSenderMap.set(r.id, r.username);
       })(),
-      (async () => {
+      (async (): Promise<void> => {
         if (tripIdsNeeded.size === 0) return;
         const fetched = await this.db
           .select({ id: trips.id, name: trips.name })
@@ -301,7 +301,7 @@ export class NotificationsService {
           .where(inArray(trips.id, [...tripIdsNeeded]));
         for (const r of fetched) tripNameMap.set(r.id, r.name);
       })(),
-      (async () => {
+      (async (): Promise<void> => {
         if (tripAnnouncementIdsNeeded.size === 0) return;
         const fetched = await this.db
           .select({ id: tripAnnouncements.id, username: users.username })
