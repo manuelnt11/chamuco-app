@@ -9,7 +9,6 @@ const mocks = vi.hoisted(() => ({
   updateTripDestination: vi.fn(),
   deleteTripDestination: vi.fn(),
   reorderTripDestinations: vi.fn(),
-  toastError: vi.fn(),
   onDragEnd: null as
     ((event: { active: { id: string }; over: { id: string } | null }) => void) | null,
 }));
@@ -19,10 +18,6 @@ vi.mock('@/services/trips.service', () => ({
   updateTripDestination: mocks.updateTripDestination,
   deleteTripDestination: mocks.deleteTripDestination,
   reorderTripDestinations: mocks.reorderTripDestinations,
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.toastError },
 }));
 
 vi.mock('@/components/ui/country-combobox', () => ({
@@ -89,6 +84,7 @@ vi.mock('@dnd-kit/utilities', () => ({
 
 import { DestinationList } from './DestinationList';
 import type React from 'react';
+import { toast } from '@/components/ui/toast';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -387,7 +383,7 @@ describe('DestinationList', () => {
         await user.click(screen.getByRole('button', { name: 'common:actions.save' }));
 
         await waitFor(() => {
-          expect(mocks.toastError).toHaveBeenCalledWith('destinations.saveError');
+          expect(vi.mocked(toast.error)).toHaveBeenCalledWith('destinations.saveError');
         });
       });
     });
@@ -495,7 +491,7 @@ describe('DestinationList', () => {
         await user.click(screen.getByText('actions.deleteConfirm'));
 
         await waitFor(() => {
-          expect(mocks.toastError).toHaveBeenCalledWith('destinations.deleteError');
+          expect(vi.mocked(toast.error)).toHaveBeenCalledWith('destinations.deleteError');
         });
 
         expect(screen.getByText(/Cancun/)).toBeInTheDocument();
@@ -521,7 +517,7 @@ describe('DestinationList', () => {
         await user.click(screen.getByText('actions.deleteConfirm'));
 
         await waitFor(() => {
-          expect(mocks.toastError).toHaveBeenCalledWith('destinations.deleteLastError');
+          expect(vi.mocked(toast.error)).toHaveBeenCalledWith('destinations.deleteLastError');
         });
 
         expect(mocks.deleteTripDestination).not.toHaveBeenCalled();
@@ -578,7 +574,7 @@ describe('DestinationList', () => {
         await mocks.onDragEnd!({ active: { id: 'dest-a' }, over: { id: 'dest-b' } });
 
         await waitFor(() => {
-          expect(mocks.toastError).toHaveBeenCalledWith('destinations.reorderError');
+          expect(vi.mocked(toast.error)).toHaveBeenCalledWith('destinations.reorderError');
         });
 
         // Cancun should still be in position 1 after rollback

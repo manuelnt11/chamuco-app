@@ -10,10 +10,6 @@ import type { TripAnnouncementResponseDto } from './dto/trip-announcement-respon
 import { UpdateTripAnnouncementDto } from './dto/update-trip-announcement.dto';
 import { ListTripAnnouncementsQueryDto } from './dto/list-trip-announcements-query.dto';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const NOW = new Date('2026-01-01T00:00:00.000Z');
 const TRIP_ID = 'trip-uuid';
 const ORGANIZER_ID = 'organizer-uuid';

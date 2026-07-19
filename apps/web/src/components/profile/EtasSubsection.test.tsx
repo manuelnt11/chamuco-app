@@ -7,8 +7,6 @@ const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockPatch: vi.fn(),
   mockDelete: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
@@ -17,13 +15,6 @@ vi.mock('@/services/api-client', () => ({
     post: mocks.mockPost,
     patch: mocks.mockPatch,
     delete: mocks.mockDelete,
-  },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
   },
 }));
 
@@ -62,6 +53,7 @@ vi.mock('@/components/ui/country-combobox', () => ({
 
 import { EtasSubsection } from './EtasSubsection';
 import type { EtaDto } from '@/services/users.types';
+import { toast } from '@/components/ui/toast';
 
 const NATIONALITY_ID = 'nat-1';
 const PASSPORT_NUMBER = 'AB123456';
@@ -285,7 +277,7 @@ describe('EtasSubsection', () => {
       await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.etas.addSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.etas.addSuccess'),
       );
     });
 
@@ -300,7 +292,7 @@ describe('EtasSubsection', () => {
       await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.etas.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.etas.saveError'),
       );
     });
 
@@ -475,7 +467,7 @@ describe('EtasSubsection', () => {
       await user.type(authInput, 'NEWAUTH123');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.etas.updateSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.etas.updateSuccess'),
       );
     });
 
@@ -489,7 +481,7 @@ describe('EtasSubsection', () => {
       await user.type(authInput, 'NEWAUTH123');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.etas.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.etas.saveError'),
       );
     });
 
@@ -575,7 +567,7 @@ describe('EtasSubsection', () => {
       await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.etas.deleteSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.etas.deleteSuccess'),
       );
     });
 
@@ -586,7 +578,7 @@ describe('EtasSubsection', () => {
       await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.etas.deleteError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.etas.deleteError'),
       );
     });
   });

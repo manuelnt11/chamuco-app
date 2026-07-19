@@ -1,7 +1,5 @@
 import { type ReactNode } from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react';
-import type { User } from 'firebase/auth';
-import type { AuthContextValue } from '@/store/auth';
 
 const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
@@ -18,23 +16,7 @@ vi.mock('@/services/api-client', () => ({
 import { useAuth } from '@/hooks/useAuth';
 import { GroupInvitationsProvider, useGroupInvitations } from './group-invitations';
 import type { GroupInvitation } from '@/types/group';
-
-function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
-  return {
-    currentUser: null,
-    idToken: null,
-    isLoading: false,
-    getIdToken: vi.fn().mockResolvedValue(null),
-    signInWithGoogle: vi.fn(),
-    signInWithFacebook: vi.fn(),
-    signOut: vi.fn(),
-    ...overrides,
-  };
-}
-
-function makeFirebaseUser(overrides: Partial<User> = {}): User {
-  return { uid: 'uid-123', displayName: 'Test', email: 'test@example.com', ...overrides } as User;
-}
+import { makeAuth, makeFirebaseUser } from '@test/mocks/auth';
 
 function wrapper({ children }: { children: ReactNode }) {
   return <GroupInvitationsProvider>{children}</GroupInvitationsProvider>;

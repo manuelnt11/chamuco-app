@@ -14,10 +14,6 @@ import { NotificationsService } from '@/modules/notifications/notifications.serv
 import { TripParticipantsService } from './trip-participants.service';
 import type { UpdateParticipantRoleDto } from './dto/update-participant-role.dto';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const TRIP_ID = 'trip-uuid';
 const ORGANIZER_ID = 'organizer-uuid';
 const USER_ID = 'user-uuid';

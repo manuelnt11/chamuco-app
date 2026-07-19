@@ -6,8 +6,6 @@ const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockPatch: vi.fn(),
   mockDelete: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
@@ -15,13 +13,6 @@ vi.mock('@/services/api-client', () => ({
     post: mocks.mockPost,
     patch: mocks.mockPatch,
     delete: mocks.mockDelete,
-  },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
   },
 }));
 
@@ -77,6 +68,7 @@ vi.mock('./EtasSubsection', () => ({
 
 import { NationalitiesSection } from './NationalitiesSection';
 import type { NationalityDto } from '@/services/users.types';
+import { toast } from '@/components/ui/toast';
 
 const sampleNationalities: NationalityDto[] = [
   {
@@ -289,7 +281,7 @@ describe('NationalitiesSection', () => {
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.addSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.addSuccess'),
       );
     });
 
@@ -317,7 +309,7 @@ describe('NationalitiesSection', () => {
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.saveError'),
       );
     });
   });
@@ -527,7 +519,7 @@ describe('NationalitiesSection', () => {
       await user.click(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.updateSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.updateSuccess'),
       );
     });
 
@@ -556,7 +548,7 @@ describe('NationalitiesSection', () => {
       await user.click(screen.getByRole('checkbox', { name: 'nationalities.primaryBadge' }));
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.saveError'),
       );
     });
   });
@@ -594,7 +586,7 @@ describe('NationalitiesSection', () => {
       await user.click(deleteButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.deleteSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.deleteSuccess'),
       );
     });
 
@@ -606,7 +598,7 @@ describe('NationalitiesSection', () => {
       await user.click(deleteButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.deletePrimaryError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.deletePrimaryError'),
       );
     });
 
@@ -617,7 +609,7 @@ describe('NationalitiesSection', () => {
       await user.click(deleteButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.deleteError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.deleteError'),
       );
     });
   });

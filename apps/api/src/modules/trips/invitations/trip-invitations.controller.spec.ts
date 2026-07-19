@@ -1,9 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
 import { TripInvitationsController } from './trip-invitations.controller';
 import { TripInvitationsService } from './trip-invitations.service';
 import type { CreateTripInvitationDto } from './dto/create-trip-invitation.dto';

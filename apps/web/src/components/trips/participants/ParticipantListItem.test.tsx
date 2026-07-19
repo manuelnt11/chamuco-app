@@ -6,18 +6,14 @@ import type { TripParticipantResponse } from '@/services/trips.types';
 const mocks = vi.hoisted(() => ({
   mockDelete: vi.fn(),
   mockPatch: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { delete: mocks.mockDelete, patch: mocks.mockPatch },
 }));
 
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
-}));
-
 import { ParticipantListItem } from './ParticipantListItem';
+import { toast } from '@/components/ui/toast';
 
 const TRIP_ID = 'trip-1';
 const CURRENT_USER_ID = 'current-user';
@@ -248,7 +244,7 @@ describe('ParticipantListItem', () => {
 
       await userEvent.click(screen.getByTitle('participants.actions.promote'));
 
-      expect(mocks.mockToastError).toHaveBeenCalledWith('participants.actions.promoteError');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('participants.actions.promoteError');
     });
 
     it('shows toast error when demote fails', async () => {
@@ -257,7 +253,7 @@ describe('ParticipantListItem', () => {
 
       await userEvent.click(screen.getByTitle('participants.actions.demote'));
 
-      expect(mocks.mockToastError).toHaveBeenCalledWith('participants.actions.demoteError');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('participants.actions.demoteError');
     });
 
     it('shows toast error when remove fails', async () => {
@@ -269,7 +265,7 @@ describe('ParticipantListItem', () => {
       const confirmBtn = screen.getByRole('button', { name: 'actions.deleteConfirm' });
       await userEvent.click(confirmBtn);
 
-      expect(mocks.mockToastError).toHaveBeenCalledWith('participants.actions.removeError');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('participants.actions.removeError');
     });
 
     it('calls toggle confirmation endpoint and onActionSuccess on click', async () => {
@@ -290,7 +286,7 @@ describe('ParticipantListItem', () => {
 
       await userEvent.click(screen.getByTitle('participants.actions.confirm'));
 
-      expect(mocks.mockToastError).toHaveBeenCalledWith('participants.actions.confirmError');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('participants.actions.confirmError');
     });
   });
 });

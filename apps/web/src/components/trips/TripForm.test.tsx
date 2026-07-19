@@ -5,7 +5,6 @@ import { TripVisibility } from '@chamuco/shared-types';
 const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockPatch: vi.fn(),
-  mockToastError: vi.fn(),
   mockOnSuccess: vi.fn(),
   mockIsAxiosError: vi.fn(),
   mockGetSignedUrl: vi.fn(),
@@ -29,10 +28,6 @@ vi.mock('@/services/uploads.service', () => ({
 
 vi.mock('@/services/gcs-upload', () => ({
   uploadToGcs: mocks.mockUploadToGcs,
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
 }));
 
 vi.mock('react-i18next', () => ({
@@ -130,6 +125,7 @@ vi.mock('@/components/ui/group-autocomplete', () => ({
 }));
 
 import { TripForm } from './TripForm';
+import { toast } from '@/components/ui/toast';
 
 const mockTrip = {
   id: 'trip-uuid',
@@ -396,7 +392,7 @@ describe('TripForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.coverUploadFailed');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.coverUploadFailed');
         expect(mocks.mockOnSuccess).toHaveBeenCalledWith(mockTrip);
       });
     });
@@ -462,7 +458,7 @@ describe('TripForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.createFailed');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.createFailed');
       });
       expect(mocks.mockOnSuccess).not.toHaveBeenCalled();
     });
@@ -476,7 +472,7 @@ describe('TripForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.submit' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.forbidden');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.forbidden');
       });
     });
   });
@@ -521,7 +517,7 @@ describe('TripForm', () => {
       await user.click(screen.getByRole('button', { name: 'form.saveChanges' }));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('errors.cannotMakePublic');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('errors.cannotMakePublic');
       });
     });
   });

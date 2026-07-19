@@ -1,29 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';
 import { TripsGroupsController } from './trips-groups.controller';
 import { TripsGroupsService } from './trips-groups.service';
 import type { TripGroupResponseDto } from './dto/trip-group-response.dto';
-import type { AuthenticatedUser } from '@/types/express';
+import { makeAuthenticatedUser } from '@/test/fixtures/user.fixture';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({})),
-}));
-
-const mockUser: AuthenticatedUser = {
-  id: 'user-uuid',
-  username: 'john_doe',
-  displayName: 'John Doe',
-  avatar: null,
-  authProvider: AuthProvider.GOOGLE,
-  firebaseUid: 'firebase-uid-123',
-  timezone: 'UTC',
-  platformRole: PlatformRole.USER,
-  profileVisibility: ProfileVisibility.PRIVATE,
-  agencyId: null,
-  createdAt: new Date('2026-01-01T00:00:00.000Z'),
-  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-  lastActiveAt: new Date('2026-01-01T00:00:00.000Z'),
-};
+const mockUser = makeAuthenticatedUser();
 
 const mockGroupTripResponse: TripGroupResponseDto = {
   tripId: 'trip-uuid',

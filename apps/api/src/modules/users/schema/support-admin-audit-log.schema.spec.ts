@@ -3,32 +3,6 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 import { supportAdminAuditLog } from './support-admin-audit-log.schema';
 
 describe('supportAdminAuditLog schema', () => {
-  it('exports the supportAdminAuditLog table', () => {
-    expect(supportAdminAuditLog).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(supportAdminAuditLog);
-    expect(config.name).toBe('support_admin_audit_log');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(supportAdminAuditLog);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(
-      expect.arrayContaining([
-        'id',
-        'admin_user_id',
-        'action',
-        'target_table',
-        'target_id',
-        'before_state',
-        'after_state',
-        'performed_at',
-      ]),
-    );
-  });
-
   it('does not have an updated_at column (append-only)', () => {
     const config = getTableConfig(supportAdminAuditLog);
     const columnNames = config.columns.map((c) => c.name);

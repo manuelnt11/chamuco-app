@@ -11,8 +11,6 @@ const mocks = vi.hoisted(() => ({
   mockApiGet: vi.fn(),
   mockApiPost: vi.fn(),
   mockApiPatch: vi.fn(),
-  mockToastError: vi.fn(),
-  mockToastInfo: vi.fn(),
   mockSignOut: vi.fn(),
   mockRefreshUser: vi.fn(),
 }));
@@ -41,13 +39,6 @@ vi.mock('@/services/api-client', () => ({
 
 vi.mock('next-themes', () => ({
   useTheme: () => ({ theme: 'system', setTheme: vi.fn() }),
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    error: mocks.mockToastError,
-    info: mocks.mockToastInfo,
-  },
 }));
 
 vi.mock('@/components/header/Logo', () => ({
@@ -115,6 +106,8 @@ vi.mock('@/components/ui/city-combobox', () => ({
 
 import { useAuth } from '@/hooks/useAuth';
 import OnboardingPage from './page';
+import { makeAuth } from '@test/mocks/auth';
+import { toast } from '@/components/ui/toast';
 
 // --- helpers ---
 
@@ -135,19 +128,6 @@ function makeUser(overrides?: Partial<User>): User {
     displayName: null,
     ...overrides,
   } as unknown as User;
-}
-
-function makeAuth(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
-  return {
-    currentUser: makeUser(),
-    idToken: null,
-    isLoading: false,
-    getIdToken: vi.fn().mockResolvedValue(null),
-    signInWithGoogle: vi.fn(),
-    signInWithFacebook: vi.fn(),
-    signOut: mocks.mockSignOut,
-    ...overrides,
-  };
 }
 
 /**
@@ -177,7 +157,9 @@ function mockGetByUrl({
  * Renders the page and waits for the registration guard to complete (404 → form shown).
  */
 async function renderForm(authOverrides: Partial<AuthContextValue> = {}) {
-  vi.mocked(useAuth).mockReturnValue(makeAuth(authOverrides));
+  vi.mocked(useAuth).mockReturnValue(
+    makeAuth({ currentUser: makeUser(), signOut: mocks.mockSignOut, ...authOverrides }),
+  );
   mockGetByUrl(); // default: /users/me → 404, /username-available → 200
   const user = userEvent.setup();
   render(<OnboardingPage />);
@@ -230,7 +212,7 @@ describe('OnboardingPage', () => {
     });
 
     it('shows a spinner while checking if the user is already registered', () => {
-      vi.mocked(useAuth).mockReturnValue(makeAuth());
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
       mocks.mockApiGet.mockReturnValue(new Promise(() => undefined)); // never resolves
       render(<OnboardingPage />);
       expect(screen.getByRole('status')).toBeInTheDocument();
@@ -246,21 +228,21 @@ describe('OnboardingPage', () => {
     });
 
     it('redirects to / when the user already has a Chamuco account (GET /users/me → 200)', async () => {
-      vi.mocked(useAuth).mockReturnValue(makeAuth());
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
       mockGetByUrl({ meError: null }); // /users/me returns 200
       render(<OnboardingPage />);
       await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
     });
 
     it('shows the form and an error toast when GET /users/me returns an unexpected error', async () => {
-      vi.mocked(useAuth).mockReturnValue(makeAuth());
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
       const serverErr = Object.assign(new Error('Server error'), {
         isAxiosError: true,
         response: { status: 500 },
       });
       mockGetByUrl({ meError: serverErr });
       render(<OnboardingPage />);
-      await waitFor(() => expect(mocks.mockToastError).toHaveBeenCalledWith('error.failed'));
+      await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalledWith('error.failed'));
       expect(screen.getByTestId('username-input')).toBeInTheDocument();
       expect(mocks.mockRouterReplace).not.toHaveBeenCalledWith('/sign-in');
     });
@@ -339,7 +321,7 @@ describe('OnboardingPage', () => {
 
     it('back button is disabled while isSubmitting', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
-      vi.mocked(useAuth).mockReturnValue(makeAuth());
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
       mockGetByUrl();
       mocks.mockApiPost.mockReturnValue(new Promise(() => undefined));
       const user = userEvent.setup({
@@ -409,7 +391,7 @@ describe('OnboardingPage', () => {
       });
 
       it('shows checking status immediately after a valid-pattern username is entered', async () => {
-        vi.mocked(useAuth).mockReturnValue(makeAuth());
+        vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
         mockGetByUrl(); // /users/me → 404 (show form), /username-available → 200
         const user = userEvent.setup({
           advanceTimers: vi.advanceTimersByTime.bind(vi),
@@ -425,7 +407,7 @@ describe('OnboardingPage', () => {
       });
 
       it('shows available after the debounce resolves with available: true', async () => {
-        vi.mocked(useAuth).mockReturnValue(makeAuth());
+        vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
         mockGetByUrl(); // /username-available → { available: true }
         const user = userEvent.setup({
           advanceTimers: vi.advanceTimersByTime.bind(vi),
@@ -445,7 +427,7 @@ describe('OnboardingPage', () => {
       });
 
       it('shows taken after the debounce resolves with available: false', async () => {
-        vi.mocked(useAuth).mockReturnValue(makeAuth());
+        vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
         mockGetByUrl({ usernameAvailable: false }); // /username-available → { available: false }
         const user = userEvent.setup({
           advanceTimers: vi.advanceTimersByTime.bind(vi),
@@ -534,7 +516,7 @@ describe('OnboardingPage', () => {
     }
 
     it('clicking Next on step 1 with unavailable username blocks navigation', async () => {
-      vi.mocked(useAuth).mockReturnValue(makeAuth());
+      vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: makeUser() }));
       mockGetByUrl({ usernameAvailable: false });
       const user = userEvent.setup({
         advanceTimers: vi.advanceTimersByTime.bind(vi),
@@ -806,7 +788,7 @@ describe('OnboardingPage', () => {
       await user.click(screen.getByTestId('submit-btn'));
 
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('onboarding.error.usernameTaken'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('onboarding.error.usernameTaken'),
       );
       expect(screen.getByText('onboarding.username.taken')).toBeInTheDocument();
     });
@@ -909,7 +891,7 @@ describe('OnboardingPage', () => {
       await user.click(screen.getByTestId('submit-btn'));
 
       await waitFor(() => expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/'));
-      expect(mocks.mockToastError).not.toHaveBeenCalled();
+      expect(vi.mocked(toast.error)).not.toHaveBeenCalled();
     });
 
     it('pre-fills notification email from Firebase auth email', async () => {
@@ -1006,7 +988,7 @@ describe('OnboardingPage', () => {
       await user.click(screen.getByTestId('submit-btn'));
 
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('onboarding.error.failed'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('onboarding.error.failed'),
       );
     });
   });

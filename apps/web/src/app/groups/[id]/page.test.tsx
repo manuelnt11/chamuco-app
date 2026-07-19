@@ -1,5 +1,4 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { type ReactNode } from 'react';
 import { GroupRole, GroupVisibility } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
@@ -16,22 +15,6 @@ vi.mock('react', async (importOriginal) => {
   };
 });
 
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
 vi.mock('@/services/api-client', () => ({
   apiClient: { get: mocks.mockApiGet },
 }));
@@ -42,14 +25,6 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('@/hooks/useUser', () => ({
   useUser: mocks.mockUseUser,
-}));
-
-vi.mock('@phosphor-icons/react', () => ({
-  ArrowLeftIcon: () => <span data-testid="arrow-left-icon" />,
-  ArrowRightIcon: () => null,
-  GearSixIcon: () => null,
-  MegaphoneIcon: () => <span data-testid="megaphone-icon" />,
-  UsersThreeIcon: () => null,
 }));
 
 vi.mock('@/components/ui/announcement-card', () => ({

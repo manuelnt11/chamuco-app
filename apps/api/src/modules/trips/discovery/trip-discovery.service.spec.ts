@@ -4,10 +4,6 @@ import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { TripDiscoveryService } from './trip-discovery.service';
 import type { SearchTripsQueryDto } from './dto/search-trips-query.dto';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const mockTripRow = {
   id: 'trip-uuid',
   name: 'Cancún 2026',

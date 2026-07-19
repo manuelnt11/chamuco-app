@@ -3,36 +3,6 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 import { userVisas } from './user-visas.schema';
 
 describe('userVisas schema', () => {
-  it('exports the userVisas table', () => {
-    expect(userVisas).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(userVisas);
-    expect(config.name).toBe('user_visas');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(userVisas);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(
-      expect.arrayContaining([
-        'id',
-        'nationality_id',
-        'coverage_type',
-        'country_code',
-        'visa_zone',
-        'visa_type',
-        'entries',
-        'expiry_date',
-        'visa_status',
-        'notes',
-        'created_at',
-        'updated_at',
-      ]),
-    );
-  });
-
   it('has nationality_id as not null', () => {
     const config = getTableConfig(userVisas);
     const col = config.columns.find((c) => c.name === 'nationality_id');

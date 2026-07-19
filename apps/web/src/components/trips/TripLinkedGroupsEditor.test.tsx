@@ -5,17 +5,12 @@ const mocks = vi.hoisted(() => ({
   mockGetTripLinkedGroups: vi.fn(),
   mockAddTripGroup: vi.fn(),
   mockRemoveTripGroup: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('@/services/trips.service', () => ({
   getTripLinkedGroups: mocks.mockGetTripLinkedGroups,
   addTripGroup: mocks.mockAddTripGroup,
   removeTripGroup: mocks.mockRemoveTripGroup,
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
 }));
 
 vi.mock('@/components/ui/group-autocomplete', () => ({
@@ -47,11 +42,8 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('@phosphor-icons/react', () => ({
-  XIcon: () => <span>x</span>,
-}));
-
 import { TripLinkedGroupsEditor } from './TripLinkedGroupsEditor';
+import { toast } from '@/components/ui/toast';
 
 const existingGroup = { id: 'group-1', name: 'Mountain Crew', coverUrl: 'https://cdn/emoji.svg' };
 
@@ -109,7 +101,7 @@ describe('TripLinkedGroupsEditor', () => {
     await user.click(screen.getByRole('button', { name: /linkedGroupRemove/ }));
 
     await waitFor(() => {
-      expect(mocks.mockToastError).toHaveBeenCalledWith('settings.linkedGroupRemoveFailed');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('settings.linkedGroupRemoveFailed');
     });
   });
 
@@ -123,7 +115,7 @@ describe('TripLinkedGroupsEditor', () => {
     await user.click(screen.getByTestId('group-autocomplete'));
 
     await waitFor(() => {
-      expect(mocks.mockToastError).toHaveBeenCalledWith('settings.linkedGroupAddFailed');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('settings.linkedGroupAddFailed');
     });
   });
 

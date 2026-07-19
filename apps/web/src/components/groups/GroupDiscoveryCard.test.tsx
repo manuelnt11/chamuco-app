@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GroupVisibility } from '@chamuco/shared-types';
-import type { ReactNode } from 'react';
 import type { GroupSearchResult } from '@/types/group';
 
 const mocks = vi.hoisted(() => ({
@@ -13,12 +12,6 @@ vi.mock('react-i18next', () => ({
     t: (key: string, opts?: Record<string, unknown>) =>
       opts ? `${key}:${JSON.stringify(opts)}` : key,
   }),
-}));
-
-vi.mock('next/link', () => ({
-  default: ({ href, children }: { href: string; children: ReactNode }) => (
-    <a href={href}>{children}</a>
-  ),
 }));
 
 vi.mock('@/components/groups/members/JoinRequestButton', () => ({

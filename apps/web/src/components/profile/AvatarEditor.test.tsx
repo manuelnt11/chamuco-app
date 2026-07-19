@@ -4,8 +4,6 @@ import { ProfileVisibility } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
   mockRefresh: vi.fn(),
   mockUpload: vi.fn(),
 }));
@@ -16,13 +14,6 @@ vi.mock('@/services/api-client', () => ({
 
 vi.mock('@/hooks/useUser', () => ({
   useUser: () => ({ appUser: null, isLoading: false, refresh: mocks.mockRefresh }),
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
-  },
 }));
 
 vi.mock('react-i18next', () => ({
@@ -87,6 +78,7 @@ vi.mock('@/lib/avatar-emojis', () => ({
 
 import type { AppUser } from '@/store/user';
 import { AvatarEditor } from './AvatarEditor';
+import { toast } from '@/components/ui/toast';
 
 const baseUser: AppUser = {
   id: 'user-uuid',
@@ -226,7 +218,7 @@ describe('AvatarEditor', () => {
         });
       });
       expect(mocks.mockRefresh).toHaveBeenCalled();
-      expect(mocks.mockToastSuccess).toHaveBeenCalledWith('basicInfo.avatarEditor.photoSuccess');
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('basicInfo.avatarEditor.photoSuccess');
     });
 
     it('hides crop modal after cancel', async () => {
@@ -251,7 +243,7 @@ describe('AvatarEditor', () => {
       await user.click(screen.getByTestId('crop-confirm'));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('basicInfo.avatarEditor.photoError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('basicInfo.avatarEditor.photoError');
       });
       expect(mocks.mockRefresh).not.toHaveBeenCalled();
     });
@@ -267,7 +259,7 @@ describe('AvatarEditor', () => {
       await user.click(screen.getByTestId('crop-confirm'));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('basicInfo.avatarEditor.photoError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('basicInfo.avatarEditor.photoError');
       });
       expect(mocks.mockRefresh).not.toHaveBeenCalled();
     });
@@ -287,7 +279,7 @@ describe('AvatarEditor', () => {
         });
       });
       expect(mocks.mockRefresh).toHaveBeenCalled();
-      expect(mocks.mockToastSuccess).toHaveBeenCalledWith('basicInfo.avatarEditor.emojiSuccess');
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('basicInfo.avatarEditor.emojiSuccess');
     });
 
     it('shows error toast when emoji PATCH fails', async () => {
@@ -298,7 +290,7 @@ describe('AvatarEditor', () => {
       await user.click(screen.getByAltText('😀'));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('basicInfo.avatarEditor.emojiError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('basicInfo.avatarEditor.emojiError');
       });
     });
   });

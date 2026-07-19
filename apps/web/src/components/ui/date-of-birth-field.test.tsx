@@ -23,10 +23,6 @@ vi.mock('@/components/ui/field-message', () => ({
     ) : null,
 }));
 
-vi.mock('@phosphor-icons/react', () => ({
-  CalendarBlankIcon: () => <svg data-testid="calendar-icon" />,
-}));
-
 import { DateOfBirthField } from './date-of-birth-field';
 import type { DateOfBirthFieldProps } from './date-of-birth-field';
 

@@ -5,7 +5,6 @@ import type { TripResponse } from '@/services/trips.types';
 
 const mocks = vi.hoisted(() => ({
   transitionTripStatus: vi.fn(),
-  toastError: vi.fn(),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -23,11 +22,8 @@ vi.mock('@/services/trips.service', () => ({
   transitionTripStatus: mocks.transitionTripStatus,
 }));
 
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.toastError },
-}));
-
 import { TripStatusTransition } from './TripStatusTransition';
+import { toast } from '@/components/ui/toast';
 
 const baseTripResponse: TripResponse = {
   id: 'trip-1',
@@ -312,7 +308,7 @@ describe('TripStatusTransition', () => {
       await user.click(screen.getByTestId('transition-confirm-btn'));
 
       await waitFor(() => {
-        expect(mocks.toastError).toHaveBeenCalledWith('transitions.error');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('transitions.error');
       });
       expect(onTransitioned).not.toHaveBeenCalled();
     });

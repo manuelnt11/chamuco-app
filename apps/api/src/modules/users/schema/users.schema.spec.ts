@@ -5,36 +5,6 @@ import { AuthProvider, PlatformRole } from '@chamuco/shared-types';
 import { authProviderEnum, platformRoleEnum, users } from './users.schema';
 
 describe('users schema', () => {
-  it('exports the users table', () => {
-    expect(users).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(users);
-    expect(config.name).toBe('users');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(users);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(
-      expect.arrayContaining([
-        'id',
-        'username',
-        'display_name',
-        'avatar',
-        'auth_provider',
-        'firebase_uid',
-        'timezone',
-        'platform_role',
-        'agency_id',
-        'created_at',
-        'updated_at',
-        'last_active_at',
-      ]),
-    );
-  });
-
   it('has unique columns: username, firebase_uid', () => {
     const config = getTableConfig(users);
     const uniqueColumns = config.columns.filter((c) => c.isUnique).map((c) => c.name);

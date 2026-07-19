@@ -14,10 +14,6 @@ import type { InvitationTokenResolveResponseDto } from './dto/invitation-token-r
 import type { InvitationTokenRedeemResponseDto } from './dto/invitation-token-redeem-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const NOW = new Date('2026-01-01T00:00:00.000Z');
 const TOKEN = 'abc123token';
 const TRIP_ID = 'trip-uuid';

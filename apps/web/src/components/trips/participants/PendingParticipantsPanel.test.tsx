@@ -7,7 +7,6 @@ const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
   mockDelete: vi.fn(),
   mockOnUpdate: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -21,10 +20,6 @@ vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch, delete: mocks.mockDelete },
 }));
 
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
-}));
-
 function makeAxios409() {
   return Object.assign(new Error('409'), {
     isAxiosError: true,
@@ -33,6 +28,7 @@ function makeAxios409() {
 }
 
 import { PendingParticipantsPanel } from './PendingParticipantsPanel';
+import { toast } from '@/components/ui/toast';
 
 const TRIP_ID = 'trip-1';
 
@@ -209,7 +205,7 @@ describe('PendingParticipantsPanel', () => {
       );
       await user.click(screen.getByRole('button', { name: 'participants.pending.accept' }));
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('participants.pending.capacityFull');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('participants.pending.capacityFull');
       });
       expect(mocks.mockOnUpdate).not.toHaveBeenCalled();
     });
@@ -226,7 +222,7 @@ describe('PendingParticipantsPanel', () => {
       );
       await user.click(screen.getByRole('button', { name: 'participants.pending.accept' }));
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('participants.pending.acceptError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('participants.pending.acceptError');
       });
     });
 
@@ -242,7 +238,7 @@ describe('PendingParticipantsPanel', () => {
       );
       await user.click(screen.getByRole('button', { name: 'participants.pending.reject' }));
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('participants.pending.rejectError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('participants.pending.rejectError');
       });
     });
 
@@ -258,7 +254,7 @@ describe('PendingParticipantsPanel', () => {
       );
       await user.click(screen.getByRole('button', { name: 'participants.pending.revoke' }));
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('participants.pending.revokeError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('participants.pending.revokeError');
       });
     });
   });

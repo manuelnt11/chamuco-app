@@ -1,5 +1,3 @@
-jest.mock('@google-cloud/storage', () => ({ Storage: jest.fn() }));
-
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthProvider, PlatformRole, ProfileVisibility } from '@chamuco/shared-types';

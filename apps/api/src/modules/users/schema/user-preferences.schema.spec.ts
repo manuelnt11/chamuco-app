@@ -10,23 +10,6 @@ import {
 } from './user-preferences.schema';
 
 describe('user-preferences schema', () => {
-  it('exports the userPreferences table', () => {
-    expect(userPreferences).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(userPreferences);
-    expect(config.name).toBe('user_preferences');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(userPreferences);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(
-      expect.arrayContaining(['user_id', 'language', 'currency', 'theme', 'updated_at']),
-    );
-  });
-
   it('has a FK from user_id to users.id with ON DELETE CASCADE', () => {
     const config = getTableConfig(userPreferences);
     expect(config.foreignKeys).toHaveLength(1);

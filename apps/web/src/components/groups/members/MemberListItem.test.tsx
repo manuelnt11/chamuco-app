@@ -6,18 +6,14 @@ import type { GroupMember } from '@/types/group';
 const mocks = vi.hoisted(() => ({
   mockDelete: vi.fn(),
   mockPatch: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { delete: mocks.mockDelete, patch: mocks.mockPatch },
 }));
 
-vi.mock('@/components/ui/toast', () => ({
-  toast: { error: mocks.mockToastError },
-}));
-
 import { MemberListItem } from './MemberListItem';
+import { toast } from '@/components/ui/toast';
 
 const GROUP_ID = 'group-1';
 const CURRENT_USER_ID = 'current-user';
@@ -194,7 +190,7 @@ describe('MemberListItem', () => {
 
       await userEvent.click(screen.getByTitle('members.actions.promote'));
 
-      expect(mocks.mockToastError).toHaveBeenCalledWith('members.actions.promoteError');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('members.actions.promoteError');
     });
 
     it('shows toast error when demote fails', async () => {
@@ -203,7 +199,7 @@ describe('MemberListItem', () => {
 
       await userEvent.click(screen.getByTitle('members.actions.demote'));
 
-      expect(mocks.mockToastError).toHaveBeenCalledWith('members.actions.demoteError');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('members.actions.demoteError');
     });
 
     it('shows toast error when remove fails', async () => {
@@ -215,7 +211,7 @@ describe('MemberListItem', () => {
       const confirmBtn = screen.getByRole('button', { name: 'actions.deleteConfirm' });
       await userEvent.click(confirmBtn);
 
-      expect(mocks.mockToastError).toHaveBeenCalledWith('members.actions.removeError');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('members.actions.removeError');
     });
   });
 });

@@ -13,8 +13,6 @@ const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockPatch: vi.fn(),
   mockDelete: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
@@ -23,13 +21,6 @@ vi.mock('@/services/api-client', () => ({
     post: mocks.mockPost,
     patch: mocks.mockPatch,
     delete: mocks.mockDelete,
-  },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
   },
 }));
 
@@ -55,6 +46,7 @@ vi.mock('@/components/ui/country-combobox', () => ({
 
 import { VisasSubsection } from './VisasSubsection';
 import type { VisaDto } from '@/services/users.types';
+import { toast } from '@/components/ui/toast';
 
 const NATIONALITY_ID = 'nat-1';
 
@@ -284,7 +276,7 @@ describe('VisasSubsection', () => {
       await user.type(screen.getByLabelText('nationalities.visas.expiryDate'), '2027-12-31');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.visas.addSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.visas.addSuccess'),
       );
     });
 
@@ -302,7 +294,7 @@ describe('VisasSubsection', () => {
       await user.type(screen.getByLabelText('nationalities.visas.expiryDate'), '2027-12-31');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.visas.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.visas.saveError'),
       );
     });
 
@@ -432,7 +424,7 @@ describe('VisasSubsection', () => {
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.visas.updateSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.visas.updateSuccess'),
       );
     });
 
@@ -444,7 +436,7 @@ describe('VisasSubsection', () => {
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.visas.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.visas.saveError'),
       );
     });
 
@@ -528,7 +520,7 @@ describe('VisasSubsection', () => {
       await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('nationalities.visas.deleteSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.visas.deleteSuccess'),
       );
     });
 
@@ -539,7 +531,7 @@ describe('VisasSubsection', () => {
       await user.click(screen.getAllByRole('button', { name: 'actions.delete' })[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('nationalities.visas.deleteError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.visas.deleteError'),
       );
     });
   });

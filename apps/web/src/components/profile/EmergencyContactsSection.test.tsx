@@ -5,8 +5,6 @@ const mocks = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockPatch: vi.fn(),
   mockDelete: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
   mockRandomUUID: vi.fn(() => 'test-uuid-1234'),
   mockIsValidPhoneNumber: vi.fn(() => true),
 }));
@@ -16,13 +14,6 @@ vi.mock('@/services/api-client', () => ({
     post: mocks.mockPost,
     patch: mocks.mockPatch,
     delete: mocks.mockDelete,
-  },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
   },
 }));
 
@@ -78,6 +69,7 @@ Object.defineProperty(globalThis, 'crypto', {
 
 import type { EmergencyContactDto } from '@/services/users.types';
 import { EmergencyContactsSection } from './EmergencyContactsSection';
+import { toast } from '@/components/ui/toast';
 
 const sampleContacts: EmergencyContactDto[] = [
   {
@@ -234,7 +226,7 @@ describe('EmergencyContactsSection', () => {
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('emergencyContacts.addSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('emergencyContacts.addSuccess'),
       );
     });
 
@@ -266,7 +258,7 @@ describe('EmergencyContactsSection', () => {
       await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('emergencyContacts.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('emergencyContacts.saveError'),
       );
     });
   });
@@ -425,7 +417,7 @@ describe('EmergencyContactsSection', () => {
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), ' ');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('emergencyContacts.updateSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('emergencyContacts.updateSuccess'),
       );
     });
 
@@ -454,7 +446,7 @@ describe('EmergencyContactsSection', () => {
       await user.type(screen.getByLabelText('emergencyContacts.fullName'), ' ');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('emergencyContacts.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('emergencyContacts.saveError'),
       );
     });
 
@@ -514,7 +506,7 @@ describe('EmergencyContactsSection', () => {
       await user.click(deleteButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastSuccess).toHaveBeenCalledWith('emergencyContacts.deleteSuccess'),
+        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('emergencyContacts.deleteSuccess'),
       );
     });
 
@@ -527,7 +519,7 @@ describe('EmergencyContactsSection', () => {
       await user.click(deleteButtons[0]!);
       await user.click(screen.getByRole('button', { name: 'actions.deleteConfirm' }));
       await waitFor(() =>
-        expect(mocks.mockToastError).toHaveBeenCalledWith('emergencyContacts.saveError'),
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('emergencyContacts.saveError'),
       );
     });
   });

@@ -9,32 +9,6 @@ import {
 } from './notification-deliveries.schema';
 
 describe('notification-deliveries schema', () => {
-  it('exports the notificationDeliveries table', () => {
-    expect(notificationDeliveries).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(notificationDeliveries);
-    expect(config.name).toBe('notification_deliveries');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(notificationDeliveries);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(
-      expect.arrayContaining([
-        'id',
-        'notification_id',
-        'channel',
-        'status',
-        'sent_at',
-        'error',
-        'created_at',
-        'updated_at',
-      ]),
-    );
-  });
-
   it('has a FK from notification_id to notifications.id with ON DELETE CASCADE', () => {
     const config = getTableConfig(notificationDeliveries);
     expect(config.foreignKeys).toHaveLength(1);

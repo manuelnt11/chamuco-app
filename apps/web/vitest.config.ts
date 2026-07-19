@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./test/setup.ts'],
+    setupFiles: ['./test/setup.tsx'],
     include: ['src/**/*.{test,spec}.{ts,tsx}', 'test/unit/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules', '.next', 'dist', 'coverage', 'test/e2e'],
     coverage: {
@@ -42,6 +42,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@test': path.resolve(__dirname, './test'),
       '@chamuco/shared-types': path.resolve(__dirname, '../../packages/shared-types/src'),
       '@chamuco/shared-utils': path.resolve(__dirname, '../../packages/shared-utils/src'),
     },

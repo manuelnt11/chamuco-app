@@ -1,5 +1,4 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { type ReactNode } from 'react';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import type { TripResponse } from '@/services/trips.types';
 
@@ -9,8 +8,6 @@ const mocks = vi.hoisted(() => ({
   mockApiDelete: vi.fn(),
   mockUseAuth: vi.fn(),
   mockRouterReplace: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
 }));
 
 vi.mock('react', async (importOriginal) => {
@@ -20,22 +17,6 @@ vi.mock('react', async (importOriginal) => {
     use: vi.fn().mockReturnValue({ id: 'trip-id' }),
   };
 });
-
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -84,18 +65,6 @@ vi.mock('@/components/trips/TripLinkedGroupsEditor', () => ({
   TripLinkedGroupsEditor: () => <div data-testid="linked-groups-editor" />,
 }));
 
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
-  },
-}));
-
-vi.mock('@phosphor-icons/react', () => ({
-  ArrowLeftIcon: () => null,
-  XIcon: () => null,
-}));
-
 vi.mock('react-i18next', () => ({
   useTranslation: (_ns?: string) => ({
     t: (key: string, opts?: Record<string, string>) => {
@@ -113,6 +82,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 import TripSettingsPage from './page';
+import { toast } from '@/components/ui/toast';
 
 const mockTrip: TripResponse = {
   id: 'trip-id',
@@ -201,7 +171,7 @@ describe('TripSettingsPage', () => {
     fireEvent.click(screen.getByText('save-form'));
 
     await waitFor(() => {
-      expect(mocks.mockToastSuccess).toHaveBeenCalledWith('settings.editSuccess');
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('settings.editSuccess');
       expect(mocks.mockRouterReplace).not.toHaveBeenCalled();
     });
   });
@@ -326,7 +296,7 @@ describe('TripSettingsPage', () => {
       expect(mocks.mockApiPatch).toHaveBeenCalledWith('/v1/trips/trip-id/status', {
         status: TripStatus.CANCELLED,
       });
-      expect(mocks.mockToastSuccess).toHaveBeenCalledWith('settings.cancelSuccess');
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('settings.cancelSuccess');
       expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips/trip-id');
     });
   });
@@ -349,7 +319,7 @@ describe('TripSettingsPage', () => {
     fireEvent.click(screen.getByTestId('cancel-trip-confirm-btn'));
 
     await waitFor(() => {
-      expect(mocks.mockToastError).toHaveBeenCalledWith('settings.cancelFailed');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('settings.cancelFailed');
     });
   });
 
@@ -408,7 +378,7 @@ describe('TripSettingsPage', () => {
 
     await waitFor(() => {
       expect(mocks.mockApiDelete).toHaveBeenCalledWith('/v1/trips/trip-id');
-      expect(mocks.mockToastSuccess).toHaveBeenCalledWith('settings.deleteSuccess');
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('settings.deleteSuccess');
       expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/trips');
     });
   });
@@ -431,7 +401,7 @@ describe('TripSettingsPage', () => {
     fireEvent.click(screen.getByTestId('delete-trip-confirm-btn'));
 
     await waitFor(() => {
-      expect(mocks.mockToastError).toHaveBeenCalledWith('settings.deleteFailed');
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('settings.deleteFailed');
     });
   });
 

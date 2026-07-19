@@ -15,10 +15,6 @@ import type { GroupSearchResponseDto } from './dto/group-search-result.dto';
 import type { SearchGroupsQueryDto } from './dto/search-groups-query.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
-jest.mock('@google-cloud/storage', () => ({
-  Storage: jest.fn().mockImplementation(() => ({ bucket: jest.fn() })),
-}));
-
 const NOW = new Date('2026-01-01T00:00:00.000Z');
 
 const mockAuthUser: AuthenticatedUser = {

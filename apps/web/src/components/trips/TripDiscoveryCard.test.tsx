@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { type ReactNode } from 'react';
 
 const mocks = vi.hoisted(() => ({
   mockApiPost: vi.fn(),
@@ -9,22 +8,6 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { post: mocks.mockApiPost, delete: mocks.mockApiDelete },
-}));
-
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
 }));
 
 vi.mock('react-i18next', () => ({

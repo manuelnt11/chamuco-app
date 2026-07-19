@@ -1,24 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { type ReactNode } from 'react';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import type { MyTripListItemResponse } from '@/services/trips.types';
-
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    className,
-  }: {
-    href: string;
-    children: ReactNode;
-    className?: string;
-  }) => (
-    <a href={href} className={className}>
-      {children}
-    </a>
-  ),
-}));
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ isLoading: false }),

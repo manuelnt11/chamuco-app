@@ -1,23 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { type ReactNode } from 'react';
 import { GroupVisibility } from '@chamuco/shared-types';
 import type { Group } from '@/types/group';
-
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    className,
-  }: {
-    href: string;
-    children: ReactNode;
-    className?: string;
-  }) => (
-    <a href={href} className={className}>
-      {children}
-    </a>
-  ),
-}));
 
 import { GroupCard } from './GroupCard';
 

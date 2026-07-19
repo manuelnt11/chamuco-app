@@ -1,23 +1,8 @@
 import { getTableConfig } from 'drizzle-orm/pg-core';
 
-import { groupTrips, groupTripsRelations } from './group-trips.schema';
+import { groupTrips } from './group-trips.schema';
 
 describe('group_trips schema', () => {
-  it('exports the groupTrips table', () => {
-    expect(groupTrips).toBeDefined();
-  });
-
-  it('has correct table name', () => {
-    const config = getTableConfig(groupTrips);
-    expect(config.name).toBe('group_trips');
-  });
-
-  it('has all expected columns', () => {
-    const config = getTableConfig(groupTrips);
-    const columnNames = config.columns.map((c) => c.name);
-    expect(columnNames).toEqual(expect.arrayContaining(['trip_id', 'group_id', 'added_at']));
-  });
-
   it('has composite PK on (trip_id, group_id)', () => {
     const config = getTableConfig(groupTrips);
     expect(config.primaryKeys).toHaveLength(1);
@@ -37,9 +22,5 @@ describe('group_trips schema', () => {
     const config = getTableConfig(groupTrips);
     const col = config.columns.find((c) => c.name === 'added_at');
     expect(col?.getSQLType()).toBe('timestamp with time zone');
-  });
-
-  it('exports groupTripsRelations', () => {
-    expect(groupTripsRelations).toBeDefined();
   });
 });

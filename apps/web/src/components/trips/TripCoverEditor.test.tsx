@@ -3,21 +3,12 @@ import userEvent from '@testing-library/user-event';
 
 const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
   mockOnUpdate: vi.fn(),
   mockUpload: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch },
-}));
-
-vi.mock('@/components/ui/toast', () => ({
-  toast: {
-    success: mocks.mockToastSuccess,
-    error: mocks.mockToastError,
-  },
 }));
 
 vi.mock('react-i18next', () => ({
@@ -80,6 +71,7 @@ vi.mock('@/lib/avatar-emojis', () => ({
 }));
 
 import { TripCoverEditor } from './TripCoverEditor';
+import { toast } from '@/components/ui/toast';
 
 const baseTrip: { id: string; coverUrl: string | null } = {
   id: 'trip-uuid',
@@ -184,7 +176,7 @@ describe('TripCoverEditor', () => {
         });
       });
       expect(mocks.mockOnUpdate).toHaveBeenCalled();
-      expect(mocks.mockToastSuccess).toHaveBeenCalledWith('cover.photoSuccess');
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('cover.photoSuccess');
     });
 
     it('hides crop modal after cancel', async () => {
@@ -209,7 +201,7 @@ describe('TripCoverEditor', () => {
       await user.click(screen.getByTestId('crop-confirm'));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('cover.photoError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('cover.photoError');
       });
       expect(mocks.mockOnUpdate).not.toHaveBeenCalled();
     });
@@ -224,7 +216,7 @@ describe('TripCoverEditor', () => {
       await user.click(screen.getByTestId('crop-confirm'));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('cover.photoError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('cover.photoError');
       });
       expect(mocks.mockOnUpdate).not.toHaveBeenCalled();
     });
@@ -243,7 +235,7 @@ describe('TripCoverEditor', () => {
         });
       });
       expect(mocks.mockOnUpdate).toHaveBeenCalled();
-      expect(mocks.mockToastSuccess).toHaveBeenCalledWith('cover.emojiSuccess');
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('cover.emojiSuccess');
     });
 
     it('shows error toast when emoji PATCH fails', async () => {
@@ -254,7 +246,7 @@ describe('TripCoverEditor', () => {
       await user.click(screen.getByAltText('😀'));
 
       await waitFor(() => {
-        expect(mocks.mockToastError).toHaveBeenCalledWith('cover.emojiError');
+        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('cover.emojiError');
       });
     });
   });

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { type ReactNode, type FormEvent } from 'react';
+import { type FormEvent } from 'react';
 import { GroupRole } from '@chamuco/shared-types';
 
 const mocks = vi.hoisted(() => ({
@@ -19,22 +19,6 @@ vi.mock('react', async (importOriginal) => {
     use: vi.fn().mockReturnValue({ id: 'group-id' }),
   };
 });
-
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
 
 vi.mock('next/navigation', () => {
   let stableRouter: {
@@ -60,11 +44,6 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('@/hooks/useUser', () => ({
   useUser: mocks.mockUseUser,
-}));
-
-vi.mock('@phosphor-icons/react', () => ({
-  ArrowLeftIcon: () => <span data-testid="arrow-left-icon" />,
-  MegaphoneIcon: () => <span data-testid="megaphone-icon" />,
 }));
 
 vi.mock('@/components/ui/announcement-form', () => ({
