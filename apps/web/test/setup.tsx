@@ -32,7 +32,10 @@ vi.mock('next/navigation', () => ({
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: (_ns?: string) => ({
+    t: (key: string) => key,
+    i18n: { language: 'en', changeLanguage: vi.fn() },
+  }),
   Trans: ({ children }: { children: ReactNode }) => children,
   I18nextProvider: ({ children }: { children: ReactNode }) => children,
   initReactI18next: { type: '3rdParty' as const, init: () => {} },

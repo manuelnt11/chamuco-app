@@ -1,10 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
-}));
-
 import { PublicProfileRecognitions } from './PublicProfileRecognitions';
 
 describe('PublicProfileRecognitions', () => {

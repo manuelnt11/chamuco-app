@@ -25,13 +25,6 @@ vi.mock('@/hooks/useUser', () => ({
   useUser: vi.fn(),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-}));
-
 // Menu primitives use portals — stub them so assertions work in jsdom
 vi.mock('@/components/ui/menu', () => ({
   MenuRoot: ({ children }: { children: ReactNode }) => <div>{children}</div>,

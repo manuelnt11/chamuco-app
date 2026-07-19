@@ -46,13 +46,6 @@ vi.mock('@tiptap/react', () => ({
 
 import { useEditor as useEditorMock } from '@tiptap/react';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-}));
-
 vi.mock('next-themes', () => ({
   useTheme: () => ({ resolvedTheme: 'light' }),
 }));

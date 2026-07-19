@@ -13,13 +13,6 @@ vi.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <button data-testid="theme-toggle">Theme</button>,
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-}));
-
 import TermsOfServicePage from './page';
 
 describe('TermsOfServicePage', () => {

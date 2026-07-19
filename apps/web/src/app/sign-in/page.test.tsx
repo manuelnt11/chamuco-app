@@ -38,16 +38,6 @@ vi.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <button data-testid="theme-toggle">Theme</button>,
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: (_ns: string) => ({
-    t: (key: string, opts?: Record<string, string>) => {
-      if (opts?.provider) return `${key}:${opts.provider}`;
-      return key;
-    },
-    i18n: { language: 'en' },
-  }),
-}));
-
 import { useAuth } from '@/hooks/useAuth';
 import SignInPage from './page';
 import { makeAuth } from '@test/mocks/auth';

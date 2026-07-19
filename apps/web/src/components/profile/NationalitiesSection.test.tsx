@@ -16,13 +16,6 @@ vi.mock('@/services/api-client', () => ({
   },
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-}));
-
 vi.mock('@/lib/countries', () => ({
   getEmojiFlag: (iso2: string) => `[${iso2}]`,
   getCountryName: (iso2: string) => {

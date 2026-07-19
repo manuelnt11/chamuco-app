@@ -1,6 +1,5 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
 import type { User } from 'firebase/auth';
 import type { AuthContextValue } from '@/store/auth';
 
@@ -51,14 +50,6 @@ vi.mock('@/components/LanguageToggle', () => ({
 
 vi.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <button data-testid="theme-toggle">Theme</button>,
-}));
-
-vi.mock('react-i18next', () => ({
-  useTranslation: (_ns: string) => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-  Trans: ({ children }: { children?: ReactNode }) => <>{children}</>,
 }));
 
 vi.mock('libphonenumber-js', () => ({

@@ -79,13 +79,6 @@ vi.mock('@/components/ui/announcement-form', () => ({
   ),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: (_ns?: string) => ({
-    t: (key: string) => key,
-    i18n: { language: 'en' },
-  }),
-}));
-
 import EditAnnouncementPage from './page';
 
 const mockAnnouncement = {
