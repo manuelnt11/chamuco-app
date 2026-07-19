@@ -1,8 +1,6 @@
 /**
- * @vitest-pool forks
- *
- * Uses forks pool: i18next accesses browser globals at module init (incompatible
- * with vmThreads VM context), and SSR tests require mutable globalThis.window.
+ * i18n Client Tests — browser environment
+ * SSR paths (window undefined) are in client.ssr.test.ts
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -83,28 +81,6 @@ describe('i18n client', () => {
       }
     });
 
-    it('handles window being undefined during initialization', () => {
-      // Create a new isolated module context where window is undefined
-      // This tests the SSR branch where typeof window is undefined
-      const originalWindow = globalThis.window;
-      const originalLocalStorage = globalThis.localStorage;
-
-      try {
-        // @ts-expect-error - Testing SSR environment
-        delete globalThis.window;
-        // @ts-expect-error - Testing SSR environment
-        delete globalThis.localStorage;
-
-        // This should not throw even without window
-        const result = initI18n();
-        expect(result).toBeInstanceOf(Promise);
-      } finally {
-        // Restore window and localStorage
-        globalThis.window = originalWindow;
-        globalThis.localStorage = originalLocalStorage;
-      }
-    });
-
     it('uses default language when localStorage returns null', async () => {
       // Mock localStorage.getItem to return null
       const getItemSpy = vi.spyOn(window.localStorage.__proto__, 'getItem').mockReturnValue(null);
@@ -167,18 +143,6 @@ describe('i18n client', () => {
       expect(result).toBeNull();
     });
 
-    it('returns null in SSR environment', () => {
-      const originalWindow = globalThis.window;
-
-      try {
-        // @ts-expect-error - Simulating SSR environment
-        delete globalThis.window;
-
-        const result = getSavedLanguage();
-        expect(result).toBeNull();
-      } finally {
-        globalThis.window = originalWindow;
-      }
-    });
+    // SSR branch (window === undefined) covered in client.ssr.test.ts
   });
 });
