@@ -28,7 +28,7 @@
 
 ### Definitions
 
-- Test suite (`describe`) — verifies table name, expected columns, absence of `updated_at` (append-only), `performed_at` as `timestamptz`, nullable `before_state`/`after_state` JSONB, `admin_user_id` as not-null, FK with `RESTRICT` on delete, and indexes on `admin_user_id` and `performed_at`
+- Test suite (`describe`) — verifies absence of `updated_at` (append-only), nullable `before_state`/`after_state` JSONB, `admin_user_id` as not-null, FK with `RESTRICT` on delete, and indexes on `admin_user_id` and `performed_at`
 
 ### Exports
 
@@ -68,7 +68,7 @@
 
 ### Definitions
 
-- Test suite (`describe`) — verifies table name, expected columns, required not-null columns, nullable `notes`, FK to `user_nationalities.id` with CASCADE on delete, and indexes on `user_nationality_id`, `eta_status`, and `passport_number`
+- Test suite (`describe`) — verifies required not-null columns, nullable `notes`, FK to `user_nationalities.id` with CASCADE on delete, and indexes on `user_nationality_id`, `eta_status`, and `passport_number`
 
 ### Exports
 
@@ -131,7 +131,7 @@
 
 ### Definitions
 
-- Test suite (`describe`) — verifies table name, expected columns, FK to `users.id` with CASCADE on delete, `updated_at` as `timestamptz`, and that each pgEnum contains all corresponding shared-types values
+- Test suite (`describe`) — verifies FK to `users.id` with CASCADE on delete, and that each pgEnum contains all corresponding shared-types values
 
 ### Exports
 
@@ -207,7 +207,7 @@
 
 ### Definitions
 
-- Test suite (`describe`) — verifies table name, expected columns, not-null/nullable constraints, FK to `user_nationalities.id` with CASCADE on delete, indexes on `nationality_id` and `visa_status`, and `visa_coverage_consistency` check constraint
+- Test suite (`describe`) — verifies not-null/nullable constraints, FK to `user_nationalities.id` with CASCADE on delete, indexes on `nationality_id` and `visa_status`, and `visa_coverage_consistency` check constraint
 
 ### Exports
 
@@ -252,7 +252,7 @@
 
 ### Definitions
 
-- Test suite (`describe`) — verifies table name, expected columns, unique constraints on `username` and `firebase_uid`, `timestamptz` type for `created_at`/`updated_at`/`last_active_at`, username CHECK constraint, and enum values for `authProviderEnum` and `platformRoleEnum`
+- Test suite (`describe`) — verifies unique constraints on `username` and `firebase_uid`, username CHECK constraint, and enum values for `authProviderEnum` and `platformRoleEnum`
 
 ### Exports
 
