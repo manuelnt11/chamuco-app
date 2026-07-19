@@ -1,5 +1,8 @@
 /**
- * i18n Client Tests
+ * @vitest-pool forks
+ *
+ * Uses forks pool: i18next accesses browser globals at module init (incompatible
+ * with vmThreads VM context), and SSR tests require mutable globalThis.window.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
