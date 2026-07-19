@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PassportStatus } from '@chamuco/shared-types';
 
@@ -197,7 +197,9 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), '9876543210');
+      fireEvent.change(screen.getByLabelText('nationalities.nationalIdNumber'), {
+        target: { value: '9876543210' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/nationalities', {
@@ -215,9 +217,15 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456');
-      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      fireEvent.change(screen.getByLabelText('nationalities.passportNumber'), {
+        target: { value: 'AB123456' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportExpiryDate'), {
+        target: { value: '2030-01-15' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-01-15' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -234,15 +242,21 @@ describe('NationalitiesSection', () => {
     it('auto-fills expiry date to issue date + 10 years when expiry is empty', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-01-15' },
+      });
       expect(screen.getByLabelText('nationalities.passportExpiryDate')).toHaveValue('2030-01-15');
     });
 
     it('does not overwrite expiry date when already set', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2025-06-01');
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      fireEvent.change(screen.getByLabelText('nationalities.passportExpiryDate'), {
+        target: { value: '2025-06-01' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-01-15' },
+      });
       expect(screen.getByLabelText('nationalities.passportExpiryDate')).toHaveValue('2025-06-01');
     });
 
@@ -312,7 +326,9 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'AB 123');
+      fireEvent.change(screen.getByLabelText('nationalities.nationalIdNumber'), {
+        target: { value: 'AB 123' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.nationalIdFormat')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -329,7 +345,9 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'AB-123');
+      fireEvent.change(screen.getByLabelText('nationalities.nationalIdNumber'), {
+        target: { value: 'AB-123' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() => expect(mocks.mockPost).toHaveBeenCalledOnce());
     });
@@ -338,7 +356,9 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), '-AB123');
+      fireEvent.change(screen.getByLabelText('nationalities.nationalIdNumber'), {
+        target: { value: '-AB123' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.nationalIdFormat')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -348,7 +368,9 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.nationalIdNumber'), 'AB123-');
+      fireEvent.change(screen.getByLabelText('nationalities.nationalIdNumber'), {
+        target: { value: 'AB123-' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.nationalIdFormat')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -364,7 +386,9 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456');
+      fireEvent.change(screen.getByLabelText('nationalities.passportNumber'), {
+        target: { value: 'AB123456' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.passportIncomplete')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -374,7 +398,9 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-01-15' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.passportIncomplete')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -384,9 +410,15 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456');
-      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2020-01-01');
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-06-01');
+      fireEvent.change(screen.getByLabelText('nationalities.passportNumber'), {
+        target: { value: 'AB123456' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportExpiryDate'), {
+        target: { value: '2020-01-01' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-06-01' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.expiryBeforeIssue')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -404,9 +436,15 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB 123456');
-      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      fireEvent.change(screen.getByLabelText('nationalities.passportNumber'), {
+        target: { value: 'AB 123456' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportExpiryDate'), {
+        target: { value: '2030-01-15' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-01-15' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.passportFormat')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -416,9 +454,15 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.passportNumber'), '-AB123456');
-      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      fireEvent.change(screen.getByLabelText('nationalities.passportNumber'), {
+        target: { value: '-AB123456' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportExpiryDate'), {
+        target: { value: '2030-01-15' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-01-15' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.passportFormat')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -428,9 +472,15 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB123456-');
-      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      fireEvent.change(screen.getByLabelText('nationalities.passportNumber'), {
+        target: { value: 'AB123456-' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportExpiryDate'), {
+        target: { value: '2030-01-15' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-01-15' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       expect(screen.getByText('nationalities.errors.passportFormat')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -440,9 +490,15 @@ describe('NationalitiesSection', () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       await user.selectOptions(screen.getByTestId('add-country'), 'CO');
-      await user.type(screen.getByLabelText('nationalities.passportNumber'), 'AB-123456');
-      await user.type(screen.getByLabelText('nationalities.passportExpiryDate'), '2030-01-15');
-      await user.type(screen.getByLabelText('nationalities.passportIssueDate'), '2020-01-15');
+      fireEvent.change(screen.getByLabelText('nationalities.passportNumber'), {
+        target: { value: 'AB-123456' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportExpiryDate'), {
+        target: { value: '2030-01-15' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.passportIssueDate'), {
+        target: { value: '2020-01-15' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -492,7 +548,7 @@ describe('NationalitiesSection', () => {
       await user.click(editButtons[0]!);
       const idInput = screen.getByLabelText('nationalities.nationalIdNumber');
       await user.clear(idInput);
-      await user.type(idInput, '0000000000');
+      fireEvent.change(idInput, { target: { value: '0000000000' } });
       await user.click(screen.getByRole('button', { name: 'nationalities.save' }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/nationalities/nat-1', {

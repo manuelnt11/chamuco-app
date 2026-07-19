@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const mocks = vi.hoisted(() => ({
@@ -161,9 +161,16 @@ describe('EmergencyContactsSection', () => {
     it('calls POST /users/me/emergency-contacts with form values on submit', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      // fireEvent.change: skip per-keystroke DOM overhead
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/emergency-contacts', {
@@ -179,9 +186,15 @@ describe('EmergencyContactsSection', () => {
     it('strips internal spaces from phone number before POST', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '300 987 6543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '300 987 6543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/emergency-contacts', {
@@ -211,9 +224,15 @@ describe('EmergencyContactsSection', () => {
     it('calls onRefresh after adding', async () => {
       const { user, onRefresh } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
@@ -221,9 +240,15 @@ describe('EmergencyContactsSection', () => {
     it('shows success toast on add', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.success)).toHaveBeenCalledWith('emergencyContacts.addSuccess'),
@@ -233,9 +258,15 @@ describe('EmergencyContactsSection', () => {
     it('hides add form after successful add', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(screen.queryByLabelText('emergencyContacts.fullName')).not.toBeInTheDocument(),
@@ -253,9 +284,15 @@ describe('EmergencyContactsSection', () => {
       mocks.mockPost.mockRejectedValue(new Error('network error'));
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.error)).toHaveBeenCalledWith('emergencyContacts.saveError'),
@@ -267,8 +304,12 @@ describe('EmergencyContactsSection', () => {
     it('shows fullName error when name is empty', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.fullNameRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -277,8 +318,12 @@ describe('EmergencyContactsSection', () => {
     it('shows relationship error when relationship is empty', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.relationshipRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -287,8 +332,12 @@ describe('EmergencyContactsSection', () => {
     it('shows phone required error when phone is empty', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.phoneRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -298,9 +347,15 @@ describe('EmergencyContactsSection', () => {
       mocks.mockIsValidPhoneNumber.mockReturnValue(false);
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '123');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '123' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.invalidPhone')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -309,9 +364,15 @@ describe('EmergencyContactsSection', () => {
     it('shows fullNameInvalid error when name contains special characters', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana123!');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sister');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana123!' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sister' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.fullNameInvalid')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -320,9 +381,15 @@ describe('EmergencyContactsSection', () => {
     it('shows relationshipInvalid error when relationship contains special characters', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Sis@ter!');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Sis@ter!' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.relationshipInvalid')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -331,9 +398,15 @@ describe('EmergencyContactsSection', () => {
     it('shows relationshipRequired error when relationship is one character', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Ana López');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'A');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Ana López' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'A' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.relationshipRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -342,9 +415,15 @@ describe('EmergencyContactsSection', () => {
     it('accepts accented characters in fullName and relationship', async () => {
       const { user } = setup([]);
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'María José');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Hermana');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'María José' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Hermana' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -378,7 +457,7 @@ describe('EmergencyContactsSection', () => {
       await user.click(editButtons[0]!);
       const nameInput = screen.getByLabelText('emergencyContacts.fullName');
       await user.clear(nameInput);
-      await user.type(nameInput, 'María López');
+      fireEvent.change(nameInput, { target: { value: 'María López' } });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/emergency-contacts/contact-1', {
@@ -397,7 +476,7 @@ describe('EmergencyContactsSection', () => {
       await user.click(editButtons[0]!);
       const phoneInput = screen.getByLabelText('emergencyContacts.phoneNumber');
       await user.clear(phoneInput);
-      await user.type(phoneInput, '300 123 4567');
+      fireEvent.change(phoneInput, { target: { value: '300 123 4567' } });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/emergency-contacts/contact-1', {
@@ -414,7 +493,9 @@ describe('EmergencyContactsSection', () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), ' ');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'MARÍA GARCÍA X' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.success)).toHaveBeenCalledWith('emergencyContacts.updateSuccess'),
@@ -425,7 +506,9 @@ describe('EmergencyContactsSection', () => {
       const { user, onRefresh } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), ' ');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'MARÍA GARCÍA X' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
@@ -443,7 +526,9 @@ describe('EmergencyContactsSection', () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), ' ');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'MARÍA GARCÍA X' },
+      });
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.error)).toHaveBeenCalledWith('emergencyContacts.saveError'),
@@ -568,9 +653,15 @@ describe('EmergencyContactsSection', () => {
     it('sends isPrimary: true when checkbox is checked on add', async () => {
       const { user } = setup();
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      await user.type(screen.getByLabelText('emergencyContacts.fullName'), 'Carlos Pérez');
-      await user.type(screen.getByLabelText('emergencyContacts.phoneNumber'), '3009876543');
-      await user.type(screen.getByLabelText('emergencyContacts.relationship'), 'Father');
+      fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
+        target: { value: 'Carlos Pérez' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
+        target: { value: '3009876543' },
+      });
+      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
+        target: { value: 'Father' },
+      });
       await user.click(screen.getByRole('checkbox', { name: 'emergencyContacts.isPrimary' }));
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>

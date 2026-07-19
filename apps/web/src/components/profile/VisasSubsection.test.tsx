@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   DocumentStatus,
@@ -203,7 +203,9 @@ describe('VisasSubsection', () => {
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
-      await user.type(screen.getByLabelText('nationalities.visas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -227,7 +229,9 @@ describe('VisasSubsection', () => {
       await user.selectOptions(screen.getByLabelText('nationalities.visas.zone'), 'SCHENGEN');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.visas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -252,8 +256,12 @@ describe('VisasSubsection', () => {
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.visas.expiryDate'), '2027-12-31');
-      await user.type(screen.getByLabelText('nationalities.visas.notes'), 'My note');
+      fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.visas.notes'), {
+        target: { value: 'My note' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -273,7 +281,9 @@ describe('VisasSubsection', () => {
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
-      await user.type(screen.getByLabelText('nationalities.visas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.visas.addSuccess'),
@@ -291,7 +301,9 @@ describe('VisasSubsection', () => {
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
-      await user.type(screen.getByLabelText('nationalities.visas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.visas.saveError'),
@@ -318,7 +330,9 @@ describe('VisasSubsection', () => {
       // Fill other fields to enable save button (isAddDirty), but leave coverageType empty
       await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
-      await user.type(screen.getByLabelText('nationalities.visas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.coverageRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();

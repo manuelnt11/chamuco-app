@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DocumentStatus, EtaType, VisaEntries } from '@chamuco/shared-types';
 
@@ -219,13 +219,14 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(
-        screen.getByLabelText('nationalities.etas.authorizationNumber'),
-        'A1B2C3D4E5',
-      );
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1B2C3D4E5' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'MULTIPLE');
-      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -253,11 +254,17 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1B2C3' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
-      await user.type(screen.getByLabelText('nationalities.etas.notes'), 'My note');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
+      fireEvent.change(screen.getByLabelText('nationalities.etas.notes'), {
+        target: { value: 'My note' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -271,10 +278,14 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1B2C3' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.etas.addSuccess'),
@@ -286,10 +297,14 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1B2C3' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.etas.saveError'),
@@ -315,10 +330,14 @@ describe('EtasSubsection', () => {
     it('shows country required error when no destination selected', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1B2C3' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.countryRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -330,7 +349,9 @@ describe('EtasSubsection', () => {
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.authNumberRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -340,10 +361,14 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1 B2');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1 B2' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.authNumberFormat')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -353,10 +378,14 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1-B2C3');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1-B2C3' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
-      await user.type(screen.getByLabelText('nationalities.etas.expiryDate'), '2027-12-31');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
+        target: { value: '2027-12-31' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() => expect(mocks.mockPost).toHaveBeenCalledOnce());
     });
@@ -365,7 +394,9 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1B2C3' },
+      });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.typeRequired')).toBeInTheDocument();
     });
@@ -374,7 +405,9 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1B2C3' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.entriesRequired')).toBeInTheDocument();
@@ -384,7 +417,9 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.type(screen.getByLabelText('nationalities.etas.authorizationNumber'), 'A1B2C3');
+      fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
+        target: { value: 'A1B2C3' },
+      });
       await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
       await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
@@ -436,7 +471,7 @@ describe('EtasSubsection', () => {
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
-      await user.type(authInput, 'BAD AUTH');
+      fireEvent.change(authInput, { target: { value: 'BAD AUTH' } });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.authNumberFormat')).toBeInTheDocument();
       expect(mocks.mockPatch).not.toHaveBeenCalled();
@@ -448,7 +483,7 @@ describe('EtasSubsection', () => {
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
-      await user.type(authInput, 'NEWAUTH123');
+      fireEvent.change(authInput, { target: { value: 'NEWAUTH123' } });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith(
@@ -464,7 +499,7 @@ describe('EtasSubsection', () => {
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
-      await user.type(authInput, 'NEWAUTH123');
+      fireEvent.change(authInput, { target: { value: 'NEWAUTH123' } });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.etas.updateSuccess'),
@@ -478,7 +513,7 @@ describe('EtasSubsection', () => {
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
       const authInput = screen.getByLabelText('nationalities.etas.authorizationNumber');
       await user.clear(authInput);
-      await user.type(authInput, 'NEWAUTH123');
+      fireEvent.change(authInput, { target: { value: 'NEWAUTH123' } });
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.etas.saveError'),
