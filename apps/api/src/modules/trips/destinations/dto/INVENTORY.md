@@ -13,7 +13,7 @@
 
 ### Definitions
 
-- `CreateDestinationDto` (class) — Request body DTO for creating a trip destination; validates and sanitizes `countryCode` (ISO 3166-1 alpha-2, uppercased), `city` (Unicode letters/spaces, proper-noun cased), and optional `label`
+- `CreateDestinationDto` (class) — Request body DTO for creating a trip destination; validates and sanitizes `countryCode` (ISO 3166-1 alpha-2, uppercased), `city` (Unicode letters/spaces, proper-noun cased), optional `label` (max 100 chars), and optional `itinerary` (Markdown string, max 2000 chars)
 
 ### Exports
 
@@ -29,7 +29,7 @@
 
 ### Definitions
 
-- `DestinationResponseDto` (class) — Response shape for a trip destination; exposes `id`, `tripId`, `position`, `countryCode`, `city`, `label`, and `createdAt`
+- `DestinationResponseDto` (class) — Response shape for a trip destination; exposes `id`, `tripId`, `position`, `countryCode`, `city`, `label`, `itinerary`, and `createdAt`
 - `DestinationWriteResponseDto` (class) — Extends `DestinationResponseDto` with `requiresConfirmation` flag that is `true` when the trip is `IN_PROGRESS` (edit requires organizer confirmation and notifies participants)
 
 ### Exports
@@ -51,8 +51,8 @@
 
 ### Definitions
 
-- `describe('CreateDestinationDto', ...)` — Test suite covering: uppercase transform on `countryCode`, `sanitizeProperNoun` on `city`, valid DTO acceptance, rejection of wrong-length `countryCode`, rejection of digits in `city`, acceptance of optional `label`
-- `describe('UpdateDestinationDto', ...)` — Test suite covering: uppercase transform when `countryCode` provided, `sanitizeProperNoun` when `city` provided, empty DTO acceptance (all fields optional), partial update with only `city`, rejection of digits in `city` when provided
+- `describe('CreateDestinationDto', ...)` — Test suite covering: uppercase transform on `countryCode`, `sanitizeProperNoun` on `city`, valid DTO acceptance, rejection of wrong-length `countryCode`, rejection of digits in `city`, acceptance of optional `label`, acceptance of optional `itinerary` HTML string, rejection of `itinerary` exceeding 2000 chars
+- `describe('UpdateDestinationDto', ...)` — Test suite covering: uppercase transform when `countryCode` provided, `sanitizeProperNoun` when `city` provided, empty DTO acceptance (all fields optional), partial update with only `city`, rejection of digits in `city` when provided, acceptance of `itinerary` HTML string, rejection of `itinerary` exceeding 2000 chars
 
 ### Exports
 
@@ -88,7 +88,7 @@
 
 ### Definitions
 
-- `UpdateDestinationDto` (class) — Request body DTO for partially updating a trip destination; all fields (`countryCode`, `city`, `label`) are optional and apply the same validation/sanitization rules as `CreateDestinationDto`
+- `UpdateDestinationDto` (class) — Request body DTO for partially updating a trip destination; all fields (`countryCode`, `city`, `label`, `itinerary`) are optional and apply the same validation/sanitization rules as `CreateDestinationDto`
 
 ### Exports
 

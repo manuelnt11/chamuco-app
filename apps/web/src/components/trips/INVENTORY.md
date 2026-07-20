@@ -31,7 +31,7 @@
 - `@dnd-kit/core` — `DndContext`, `PointerSensor`, `KeyboardSensor`, `closestCenter`, `useSensor`, `useSensors`, `DragEndEvent`
 - `@dnd-kit/sortable` — `SortableContext`, `sortableKeyboardCoordinates`, `useSortable`, `verticalListSortingStrategy`, `arrayMove`
 - `@dnd-kit/utilities` — `CSS`
-- `@phosphor-icons/react` — `AirplaneLandingIcon`, `AirplaneTakeoffIcon`, `DotsSixVerticalIcon`, `PlusIcon`
+- `@phosphor-icons/react` — `AirplaneLandingIcon`, `AirplaneTakeoffIcon`, `CaretDownIcon`, `DotsSixVerticalIcon`, `PencilSimpleIcon`, `PlusIcon`
 - `axios` — default import for `isAxiosError` check
 - `@/components/ui/button` — `Button`
 - `@/components/ui/input` — `Input`
@@ -41,14 +41,17 @@
 - `@/components/ui/edit-delete-actions` — `EditDeleteActions`
 - `@/components/ui/toast` — `toast`
 - `@/components/ui/dialog` — `Dialog`, `DialogPopup`, `DialogHeader`, `DialogTitle`, `DialogClose`, `DialogFooter`
+- `@/components/ui/markdown-content` — `MarkdownContent`
+- `@/components/ui/rich-text-editor` — `RichTextEditor`
 - `@/services/trips.service` — `addTripDestination`, `updateTripDestination`, `deleteTripDestination`, `reorderTripDestinations`
 - `@/services/trips.types` — `DestinationResponse`
 
 ### Definitions
 
-- `SortableItem` (component) — drag-handle list row for a single destination with edit/delete actions; not exported
+- `DestinationReadItem` (component) — collapsible row for participant view; clicking the row expands an itinerary panel (`MarkdownContent` or "no itinerary" fallback); not exported
+- `SortableItem` (component) — drag-handle collapsible row for organizer view; main content area is an expand button; expanded panel shows itinerary read mode with inline pencil edit → `RichTextEditor` with save/cancel; not exported
 - `DestinationFormDialog` (component) — modal dialog for adding or editing a destination with country, city, and optional label fields; not exported
-- `DestinationList` (component) — sortable trip destination list; organizers can drag-reorder, add, edit, and delete; non-organizers see a read-only ordered list
+- `DestinationList` (component) — sortable trip destination list; organizers can drag-reorder, add, edit, and delete, and edit per-destination itinerary inline; non-organizers see a collapsible read-only ordered list
 
 ### Exports
 

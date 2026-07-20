@@ -482,13 +482,13 @@
 - `CreateTripPayload` (interface) — full payload for POST `/v1/trips`
 - `UpdateTripPayload` (interface) — partial update payload for PATCH `/v1/trips/:id`
 - `TransitionTripStatusPayload` (interface) — payload for PATCH `/v1/trips/:id/status`
-- `CreateDestinationPayload` (interface) — payload to add a trip destination
-- `UpdateDestinationPayload` (interface) — partial update for a trip destination
+- `CreateDestinationPayload` (interface) — payload to add a trip destination; includes optional `itinerary` Markdown string
+- `UpdateDestinationPayload` (interface) — partial update for a trip destination; includes optional `itinerary` Markdown string
 - `ReorderDestinationsPayload` (interface) — ordered list of destination IDs for reorder endpoint
 - `AddTripGroupPayload` (interface) — payload to link a group to a trip
 - `TripResponse` (interface) — full trip record returned by the API
 - `MyTripListItemResponse` (interface) — extends `TripResponse` with `confirmedParticipantCount` and `userRole`
-- `DestinationResponse` (interface) — trip destination record
+- `DestinationResponse` (interface) — trip destination record; includes `itinerary: string | null`
 - `DestinationWriteResponse` (interface) — extends `DestinationResponse` with `requiresConfirmation`
 - `TripGroupResponse` (interface) — trip-group link record
 - `TripLinkedGroup` (interface) — minimal group info for display in a trip context
