@@ -139,7 +139,7 @@ function SortableItem({ dest, tripId, isSaving, onSave, onEdit, onDelete }: Sort
     setIsSavingItinerary(true);
     try {
       const result = await updateTripDestination(tripId, dest.id, {
-        itinerary: draftItinerary.trim() || undefined,
+        itinerary: draftItinerary.trim() || null,
       });
       onSave(result);
       setIsEditingItinerary(false);

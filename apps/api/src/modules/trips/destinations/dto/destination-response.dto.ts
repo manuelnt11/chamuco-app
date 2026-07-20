@@ -20,7 +20,7 @@ export class DestinationResponseDto {
   label!: string | null;
 
   @ApiProperty({
-    description: 'Rich-text itinerary for this destination (HTML string).',
+    description: 'Markdown itinerary for this destination.',
     nullable: true,
   })
   itinerary!: string | null;

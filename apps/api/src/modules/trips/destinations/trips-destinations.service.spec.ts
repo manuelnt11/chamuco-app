@@ -319,15 +319,27 @@ describe('TripsDestinationsService', () => {
     });
 
     it('updates itinerary when provided', async () => {
-      const dto: UpdateDestinationDto = { itinerary: '<p>Updated itinerary</p>' };
-      const updatedDest = { ...mockDestRow, itinerary: '<p>Updated itinerary</p>' };
+      const dto: UpdateDestinationDto = { itinerary: '## Day 1' };
+      const updatedDest = { ...mockDestRow, itinerary: '## Day 1' };
       const mockReturning = jest.fn().mockResolvedValue([updatedDest]);
       mockUpdateWhere.mockReturnValue({ returning: mockReturning });
 
       const result = await service.updateDestination(mockUser, 'trip-uuid', 'dest-uuid', dto);
 
       expect(mockUpdate).toHaveBeenCalled();
-      expect(result.itinerary).toBe('<p>Updated itinerary</p>');
+      expect(result.itinerary).toBe('## Day 1');
+    });
+
+    it('clears itinerary when null is provided', async () => {
+      const dto: UpdateDestinationDto = { itinerary: null };
+      const updatedDest = { ...mockDestRow, itinerary: null };
+      const mockReturning = jest.fn().mockResolvedValue([updatedDest]);
+      mockUpdateWhere.mockReturnValue({ returning: mockReturning });
+
+      const result = await service.updateDestination(mockUser, 'trip-uuid', 'dest-uuid', dto);
+
+      expect(mockUpdate).toHaveBeenCalled();
+      expect(result.itinerary).toBeNull();
     });
 
     it('skips update when dto is empty and returns existing destination', async () => {

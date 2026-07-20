@@ -106,11 +106,18 @@ describe('UpdateDestinationDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
-  it('accepts itinerary as HTML string', async () => {
-    const dto = plainToInstance(UpdateDestinationDto, { itinerary: '<p>Updated</p>' });
+  it('accepts itinerary as Markdown string', async () => {
+    const dto = plainToInstance(UpdateDestinationDto, { itinerary: '## Day 1' });
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
-    expect(dto.itinerary).toBe('<p>Updated</p>');
+    expect(dto.itinerary).toBe('## Day 1');
+  });
+
+  it('accepts itinerary as null to clear', async () => {
+    const dto = plainToInstance(UpdateDestinationDto, { itinerary: null });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.itinerary).toBeNull();
   });
 
   it('rejects itinerary exceeding 2000 chars', async () => {

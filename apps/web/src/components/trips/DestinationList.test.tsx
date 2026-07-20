@@ -821,6 +821,41 @@ describe('DestinationList', () => {
         expect(screen.getByTestId('markdown-content')).toHaveTextContent('## Day 1');
       });
 
+      it('sends null when editor is cleared to clear itinerary', async () => {
+        const user = userEvent.setup();
+        const dest = makeDestination({ itinerary: '## Existing' });
+        const cleared: DestinationResponse = { ...dest, itinerary: null };
+        mocks.updateTripDestination.mockResolvedValueOnce({
+          ...cleared,
+          requiresConfirmation: false,
+        });
+
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[dest]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+
+        await user.click(screen.getByLabelText('destinations.toggleItinerary'));
+        await user.click(screen.getByLabelText('destinations.editItinerary'));
+        await user.clear(screen.getByTestId('rich-text-editor'));
+        await user.click(screen.getByRole('button', { name: 'common:actions.save' }));
+
+        await waitFor(() => {
+          expect(mocks.updateTripDestination).toHaveBeenCalledWith('trip-1', dest.id, {
+            itinerary: null,
+          });
+        });
+
+        expect(screen.getByText('destinations.noItinerary')).toBeInTheDocument();
+      });
+
       it('shows error toast when updateTripDestination fails', async () => {
         const user = userEvent.setup();
         mocks.updateTripDestination.mockRejectedValueOnce(new Error('network'));

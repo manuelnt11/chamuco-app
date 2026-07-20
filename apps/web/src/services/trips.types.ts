@@ -67,7 +67,7 @@ export interface UpdateDestinationPayload {
   countryCode?: string;
   city?: string;
   label?: string;
-  itinerary?: string;
+  itinerary?: string | null;
 }
 
 export interface ReorderDestinationsPayload {

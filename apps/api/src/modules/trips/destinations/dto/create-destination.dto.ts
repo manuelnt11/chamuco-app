@@ -38,7 +38,7 @@ export class CreateDestinationDto {
   label?: string;
 
   @ApiProperty({
-    description: 'Optional rich-text itinerary for this destination (HTML string).',
+    description: 'Optional Markdown itinerary for this destination.',
     required: false,
     maxLength: 2000,
   })
