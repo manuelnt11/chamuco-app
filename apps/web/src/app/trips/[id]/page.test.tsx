@@ -156,6 +156,7 @@ const mockDestination: DestinationResponse = {
   countryCode: 'MX',
   city: 'Cancún',
   label: null,
+  itinerary: null,
   createdAt: '2026-01-01T00:00:00.000Z',
 };
 

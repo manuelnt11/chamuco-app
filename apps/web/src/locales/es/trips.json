@@ -313,7 +313,11 @@
     "saveError": "Error al guardar el destino.",
     "deleteError": "Error al eliminar el destino.",
     "deleteLastError": "Los viajes deben tener al menos un destino.",
-    "reorderError": "Error al reordenar los destinos."
+    "reorderError": "Error al reordenar los destinos.",
+    "noItinerary": "Sin detalles del itinerario",
+    "toggleItinerary": "Ver itinerario",
+    "editItinerary": "Editar itinerario",
+    "itineraryPlaceholder": "Agregar detalles del itinerario..."
   },
   "statusGuide": {
     "title": "Guía de estados",

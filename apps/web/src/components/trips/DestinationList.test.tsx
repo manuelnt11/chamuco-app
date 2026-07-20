@@ -80,6 +80,31 @@ vi.mock('@dnd-kit/utilities', () => ({
   CSS: { Transform: { toString: vi.fn(() => '') } },
 }));
 
+vi.mock('@/components/ui/markdown-content', () => ({
+  MarkdownContent: ({ content }: { content: string }) => (
+    <div data-testid="markdown-content">{content}</div>
+  ),
+}));
+
+vi.mock('@/components/ui/rich-text-editor', () => ({
+  RichTextEditor: ({
+    value,
+    onChange,
+    placeholder,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+  }) => (
+    <textarea
+      data-testid="rich-text-editor"
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  ),
+}));
+
 // ─── Import component after mocks ────────────────────────────────────────────
 
 import { DestinationList } from './DestinationList';
@@ -96,6 +121,7 @@ function makeDestination(overrides: Partial<DestinationResponse> = {}): Destinat
     countryCode: 'MX',
     city: 'Cancun',
     label: null,
+    itinerary: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
   };
@@ -274,6 +300,79 @@ describe('DestinationList', () => {
       );
       expect(screen.queryByLabelText('actions.edit')).not.toBeInTheDocument();
       expect(screen.queryByLabelText('actions.delete')).not.toBeInTheDocument();
+    });
+
+    describe('itinerary expand', () => {
+      it('itinerary panel hidden by default', () => {
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={false}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+        expect(screen.queryByTestId('markdown-content')).not.toBeInTheDocument();
+        expect(screen.queryByText('destinations.noItinerary')).not.toBeInTheDocument();
+      });
+
+      it('shows noItinerary when expanded and itinerary is null', async () => {
+        const user = userEvent.setup();
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={false}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+        await user.click(screen.getByRole('button', { expanded: false }));
+        expect(screen.getByText('destinations.noItinerary')).toBeInTheDocument();
+      });
+
+      it('renders itinerary content when expanded and itinerary is set', async () => {
+        const user = userEvent.setup();
+        const dest = makeDestination({ itinerary: '## Day 1\n\nBeach time' });
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[dest]}
+            isOrganizer={false}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+        await user.click(screen.getByRole('button', { expanded: false }));
+        expect(screen.getByTestId('markdown-content')).toHaveTextContent('## Day 1');
+      });
+
+      it('collapses panel on second click', async () => {
+        const user = userEvent.setup();
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={false}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+        const btn = screen.getByRole('button', { expanded: false });
+        await user.click(btn);
+        expect(screen.getByText('destinations.noItinerary')).toBeInTheDocument();
+        await user.click(btn);
+        expect(screen.queryByText('destinations.noItinerary')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -613,6 +712,162 @@ describe('DestinationList', () => {
 
         await mocks.onDragEnd!({ active: { id: 'dest-a' }, over: null });
         expect(mocks.reorderTripDestinations).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('itinerary expand (organizer)', () => {
+      it('itinerary panel hidden by default', () => {
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+        expect(screen.queryByText('destinations.noItinerary')).not.toBeInTheDocument();
+      });
+
+      it('shows noItinerary when expanded and itinerary is null', async () => {
+        const user = userEvent.setup();
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+        await user.click(screen.getByLabelText('destinations.toggleItinerary'));
+        expect(screen.getByText('destinations.noItinerary')).toBeInTheDocument();
+      });
+
+      it('renders itinerary content when expanded', async () => {
+        const user = userEvent.setup();
+        const dest = makeDestination({ itinerary: '## Day 1\n\nBeach time' });
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[dest]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+        await user.click(screen.getByLabelText('destinations.toggleItinerary'));
+        expect(screen.getByTestId('markdown-content')).toHaveTextContent('## Day 1');
+      });
+
+      it('shows edit button on hover and opens editor on click', async () => {
+        const user = userEvent.setup();
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+        await user.click(screen.getByLabelText('destinations.toggleItinerary'));
+        await user.click(screen.getByLabelText('destinations.editItinerary'));
+        expect(screen.getByTestId('rich-text-editor')).toBeInTheDocument();
+      });
+
+      it('calls updateTripDestination and updates list on save', async () => {
+        const user = userEvent.setup();
+        const dest = makeDestination({ itinerary: null });
+        const updated: DestinationResponse = { ...dest, itinerary: '## Day 1' };
+        mocks.updateTripDestination.mockResolvedValueOnce({
+          ...updated,
+          requiresConfirmation: false,
+        });
+
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[dest]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+
+        await user.click(screen.getByLabelText('destinations.toggleItinerary'));
+        await user.click(screen.getByLabelText('destinations.editItinerary'));
+        await user.clear(screen.getByTestId('rich-text-editor'));
+        await user.type(screen.getByTestId('rich-text-editor'), '## Day 1');
+        await user.click(screen.getByRole('button', { name: 'common:actions.save' }));
+
+        await waitFor(() => {
+          expect(mocks.updateTripDestination).toHaveBeenCalledWith('trip-1', dest.id, {
+            itinerary: '## Day 1',
+          });
+        });
+
+        expect(screen.queryByTestId('rich-text-editor')).not.toBeInTheDocument();
+        expect(screen.getByTestId('markdown-content')).toHaveTextContent('## Day 1');
+      });
+
+      it('shows error toast when updateTripDestination fails', async () => {
+        const user = userEvent.setup();
+        mocks.updateTripDestination.mockRejectedValueOnce(new Error('network'));
+
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+
+        await user.click(screen.getByLabelText('destinations.toggleItinerary'));
+        await user.click(screen.getByLabelText('destinations.editItinerary'));
+        await user.click(screen.getByRole('button', { name: 'common:actions.save' }));
+
+        await waitFor(() => {
+          expect(vi.mocked(toast.error)).toHaveBeenCalledWith('destinations.saveError');
+        });
+
+        expect(screen.getByTestId('rich-text-editor')).toBeInTheDocument();
+      });
+
+      it('cancel dismisses editor without saving', async () => {
+        const user = userEvent.setup();
+        render(
+          <DestinationList
+            tripId="trip-1"
+            initialDestinations={[destA]}
+            isOrganizer={true}
+            departureCity="Bogota"
+            departureCountry="CO"
+            landingCity="Bogota"
+            landingCountry="CO"
+          />,
+        );
+
+        await user.click(screen.getByLabelText('destinations.toggleItinerary'));
+        await user.click(screen.getByLabelText('destinations.editItinerary'));
+        await user.click(screen.getByRole('button', { name: 'common:actions.cancel' }));
+
+        expect(screen.queryByTestId('rich-text-editor')).not.toBeInTheDocument();
+        expect(mocks.updateTripDestination).not.toHaveBeenCalled();
       });
     });
   });

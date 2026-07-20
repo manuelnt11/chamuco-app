@@ -45,6 +45,34 @@ describe('CreateDestinationDto', () => {
     expect(errors).toHaveLength(0);
     expect(dto.label).toBe('Beach stop');
   });
+
+  it('accepts optional itinerary as HTML string', async () => {
+    const dto = plainToInstance(CreateDestinationDto, {
+      countryCode: 'MX',
+      city: 'CANCUN',
+      itinerary: '<p>Day 1: Beach</p>',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.itinerary).toBe('<p>Day 1: Beach</p>');
+  });
+
+  it('accepts dto without itinerary', async () => {
+    const dto = plainToInstance(CreateDestinationDto, { countryCode: 'MX', city: 'CANCUN' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.itinerary).toBeUndefined();
+  });
+
+  it('rejects itinerary exceeding 2000 chars', async () => {
+    const dto = plainToInstance(CreateDestinationDto, {
+      countryCode: 'MX',
+      city: 'CANCUN',
+      itinerary: 'a'.repeat(2001),
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
 });
 
 describe('UpdateDestinationDto', () => {
@@ -74,6 +102,19 @@ describe('UpdateDestinationDto', () => {
 
   it('rejects city with digits when provided', async () => {
     const dto = plainToInstance(UpdateDestinationDto, { city: 'T4LUM' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('accepts itinerary as HTML string', async () => {
+    const dto = plainToInstance(UpdateDestinationDto, { itinerary: '<p>Updated</p>' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.itinerary).toBe('<p>Updated</p>');
+  });
+
+  it('rejects itinerary exceeding 2000 chars', async () => {
+    const dto = plainToInstance(UpdateDestinationDto, { itinerary: 'a'.repeat(2001) });
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });

@@ -19,6 +19,12 @@ export class DestinationResponseDto {
   @ApiProperty({ example: 'Beach stop', nullable: true })
   label!: string | null;
 
+  @ApiProperty({
+    description: 'Rich-text itinerary for this destination (HTML string).',
+    nullable: true,
+  })
+  itinerary!: string | null;
+
   @ApiProperty({ example: '2026-01-01T00:00:00.000Z' })
   createdAt!: string;
 }

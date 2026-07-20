@@ -22,7 +22,9 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   AirplaneLandingIcon,
   AirplaneTakeoffIcon,
+  CaretDownIcon,
   DotsSixVerticalIcon,
+  PencilSimpleIcon,
   PlusIcon,
 } from '@phosphor-icons/react';
 
@@ -43,6 +45,8 @@ import {
   DialogClose,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { MarkdownContent } from '@/components/ui/markdown-content';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
   addTripDestination,
   updateTripDestination,
@@ -71,19 +75,80 @@ interface FormState {
   dest: DestinationResponse | null;
 }
 
+// ─── DestinationReadItem ─────────────────────────────────────────────────────
+
+function DestinationReadItem({ dest }: { dest: DestinationResponse }) {
+  const { t } = useTranslation('trips');
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <li className="rounded-lg border border-transparent hover:border-border">
+      <button
+        type="button"
+        className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm"
+        onClick={() => setIsExpanded((v) => !v)}
+        aria-expanded={isExpanded}
+      >
+        <span className="text-muted-foreground tabular-nums w-5 shrink-0 text-right">
+          {dest.position}.
+        </span>
+        <span className="flex-1">
+          {dest.city}, {dest.countryCode}
+          {dest.label && <span className="ml-1 text-muted-foreground">— {dest.label}</span>}
+        </span>
+        <CaretDownIcon
+          className={`size-4 shrink-0 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+      {isExpanded && (
+        <div className="border-t border-border px-3 py-2">
+          {dest.itinerary ? (
+            <MarkdownContent content={dest.itinerary} />
+          ) : (
+            <p className="text-sm text-muted-foreground">{t('destinations.noItinerary')}</p>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
 // ─── SortableItem ────────────────────────────────────────────────────────────
 
 interface SortableItemProps {
   dest: DestinationResponse;
+  tripId: string;
   isSaving: boolean;
+  onSave: (dest: DestinationResponse) => void;
   onEdit: (dest: DestinationResponse) => void;
   onDelete: (dest: DestinationResponse) => Promise<void>;
 }
 
-function SortableItem({ dest, isSaving, onEdit, onDelete }: SortableItemProps) {
+function SortableItem({ dest, tripId, isSaving, onSave, onEdit, onDelete }: SortableItemProps) {
+  const { t } = useTranslation('trips');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditingItinerary, setIsEditingItinerary] = useState(false);
+  const [draftItinerary, setDraftItinerary] = useState('');
+  const [isSavingItinerary, setIsSavingItinerary] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: dest.id,
   });
+
+  async function handleSaveItinerary() {
+    setIsSavingItinerary(true);
+    try {
+      const result = await updateTripDestination(tripId, dest.id, {
+        itinerary: draftItinerary.trim() || undefined,
+      });
+      onSave(result);
+      setIsEditingItinerary(false);
+    } catch {
+      toast.error(t('destinations.saveError'));
+    } finally {
+      setIsSavingItinerary(false);
+    }
+  }
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -95,32 +160,98 @@ function SortableItem({ dest, isSaving, onEdit, onDelete }: SortableItemProps) {
     <li
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 hover:border-border"
+      className="rounded-lg border border-transparent hover:border-border"
     >
-      <button
-        type="button"
-        className="cursor-grab touch-none text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-        disabled={isSaving}
-        {...attributes}
-        {...listeners}
-      >
-        <DotsSixVerticalIcon className="size-4" aria-hidden="true" />
-      </button>
+      <div className="flex items-center gap-2 px-2 py-1.5">
+        <button
+          type="button"
+          className="cursor-grab touch-none text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={isSaving}
+          {...attributes}
+          {...listeners}
+        >
+          <DotsSixVerticalIcon className="size-4" aria-hidden="true" />
+        </button>
 
-      <span className="text-muted-foreground tabular-nums w-5 shrink-0 text-right text-sm">
-        {dest.position}.
-      </span>
+        <button
+          type="button"
+          className="flex flex-1 items-center gap-2 text-left text-sm"
+          onClick={() => setIsExpanded((v) => !v)}
+          aria-expanded={isExpanded}
+          aria-label={t('destinations.toggleItinerary')}
+        >
+          <span className="text-muted-foreground tabular-nums w-5 shrink-0 text-right">
+            {dest.position}.
+          </span>
+          <span className="flex-1">
+            {dest.city}, {dest.countryCode}
+            {dest.label && <span className="ml-1 text-muted-foreground">— {dest.label}</span>}
+          </span>
+          <CaretDownIcon
+            className={`size-4 shrink-0 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
 
-      <span className="flex-1 text-sm">
-        {dest.city}, {dest.countryCode}
-        {dest.label && <span className="ml-1 text-muted-foreground">— {dest.label}</span>}
-      </span>
-
-      <EditDeleteActions
-        onEdit={() => onEdit(dest)}
-        onDelete={() => onDelete(dest)}
-        disabled={isSaving}
-      />
+        <EditDeleteActions
+          onEdit={() => onEdit(dest)}
+          onDelete={() => onDelete(dest)}
+          disabled={isSaving}
+        />
+      </div>
+      {isExpanded && (
+        <div className="border-t border-border px-3 py-2">
+          {isEditingItinerary ? (
+            <div className="space-y-2">
+              <RichTextEditor
+                value={draftItinerary}
+                onChange={setDraftItinerary}
+                placeholder={t('destinations.itineraryPlaceholder')}
+                maxLength={2000}
+                disabled={isSavingItinerary}
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingItinerary(false)}
+                  disabled={isSavingItinerary}
+                  className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+                >
+                  {t('common:actions.cancel')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveItinerary}
+                  disabled={isSavingItinerary}
+                  className="rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {isSavingItinerary ? t('form.saving') : t('common:actions.save')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="group relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftItinerary(dest.itinerary ?? '');
+                  setIsEditingItinerary(true);
+                }}
+                className="absolute right-0 top-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
+                title={t('destinations.editItinerary')}
+                aria-label={t('destinations.editItinerary')}
+              >
+                <PencilSimpleIcon className="size-4" aria-hidden="true" />
+              </button>
+              {dest.itinerary ? (
+                <MarkdownContent content={dest.itinerary} />
+              ) : (
+                <p className="text-sm text-muted-foreground">{t('destinations.noItinerary')}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </li>
   );
 }
@@ -369,15 +500,7 @@ export function DestinationList({
         ) : (
           <ol className="space-y-1">
             {destinations.map((dest) => (
-              <li key={dest.id} className="flex items-center gap-2 px-2 py-1.5 text-sm">
-                <span className="text-muted-foreground tabular-nums w-5 shrink-0 text-right">
-                  {dest.position}.
-                </span>
-                <span className="flex-1">
-                  {dest.city}, {dest.countryCode}
-                  {dest.label && <span className="ml-1 text-muted-foreground">— {dest.label}</span>}
-                </span>
-              </li>
+              <DestinationReadItem key={dest.id} dest={dest} />
             ))}
           </ol>
         )}
@@ -423,7 +546,9 @@ export function DestinationList({
                   <SortableItem
                     key={dest.id}
                     dest={dest}
+                    tripId={tripId}
                     isSaving={isSaving}
+                    onSave={handleSave}
                     onEdit={openEdit}
                     onDelete={handleDelete}
                   />

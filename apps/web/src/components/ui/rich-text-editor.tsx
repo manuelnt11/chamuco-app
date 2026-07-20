@@ -172,6 +172,7 @@ export function RichTextEditor({
         class: 'min-h-[80px] px-3 py-2 focus:outline-none',
       },
     },
+    immediatelyRender: true,
   });
 
   const charCount = editor?.storage.characterCount.characters() ?? 0;
