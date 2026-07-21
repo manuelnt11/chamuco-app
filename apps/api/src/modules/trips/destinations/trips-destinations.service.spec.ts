@@ -53,6 +53,7 @@ const mockDestRow = {
   countryCode: 'MX',
   city: 'CANCUN',
   label: null,
+  itinerary: null,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
@@ -169,7 +170,7 @@ describe('TripsDestinationsService', () => {
     });
 
     it('maps all destination fields correctly', async () => {
-      const fullDest = { ...mockDestRow, label: 'Beach stop' };
+      const fullDest = { ...mockDestRow, label: 'Beach stop', itinerary: '<p>Day 1</p>' };
       const mockOrderBy = jest.fn().mockResolvedValue([fullDest]);
       mockSelectWhere.mockReturnValue({ orderBy: mockOrderBy });
 
@@ -182,6 +183,7 @@ describe('TripsDestinationsService', () => {
         countryCode: 'MX',
         city: 'CANCUN',
         label: 'Beach stop',
+        itinerary: '<p>Day 1</p>',
         createdAt: new Date('2026-01-01T00:00:00.000Z').toISOString(),
       });
     });
@@ -234,6 +236,26 @@ describe('TripsDestinationsService', () => {
 
       const insertedValues = mockInsertValues.mock.calls[0]?.[0] as { label: string | null };
       expect(insertedValues?.label).toBe('Beach stop');
+    });
+
+    it('stores itinerary when provided', async () => {
+      const dto: CreateDestinationDto = {
+        countryCode: 'MX',
+        city: 'CANCUN',
+        itinerary: '<p>Day 1: Beach</p>',
+      };
+
+      await service.addDestination(mockUser, 'trip-uuid', dto);
+
+      const insertedValues = mockInsertValues.mock.calls[0]?.[0] as { itinerary: string | null };
+      expect(insertedValues?.itinerary).toBe('<p>Day 1: Beach</p>');
+    });
+
+    it('sets itinerary to null when not provided', async () => {
+      await service.addDestination(mockUser, 'trip-uuid', addDto);
+
+      const insertedValues = mockInsertValues.mock.calls[0]?.[0] as { itinerary: string | null };
+      expect(insertedValues?.itinerary).toBeNull();
     });
 
     it('throws ForbiddenException for COMPLETED trip', async () => {
@@ -294,6 +316,30 @@ describe('TripsDestinationsService', () => {
       expect(mockUpdate).toHaveBeenCalled();
       expect(result.city).toBe('PLAYA DEL CARMEN');
       expect(result.requiresConfirmation).toBe(false);
+    });
+
+    it('updates itinerary when provided', async () => {
+      const dto: UpdateDestinationDto = { itinerary: '## Day 1' };
+      const updatedDest = { ...mockDestRow, itinerary: '## Day 1' };
+      const mockReturning = jest.fn().mockResolvedValue([updatedDest]);
+      mockUpdateWhere.mockReturnValue({ returning: mockReturning });
+
+      const result = await service.updateDestination(mockUser, 'trip-uuid', 'dest-uuid', dto);
+
+      expect(mockUpdate).toHaveBeenCalled();
+      expect(result.itinerary).toBe('## Day 1');
+    });
+
+    it('clears itinerary when null is provided', async () => {
+      const dto: UpdateDestinationDto = { itinerary: null };
+      const updatedDest = { ...mockDestRow, itinerary: null };
+      const mockReturning = jest.fn().mockResolvedValue([updatedDest]);
+      mockUpdateWhere.mockReturnValue({ returning: mockReturning });
+
+      const result = await service.updateDestination(mockUser, 'trip-uuid', 'dest-uuid', dto);
+
+      expect(mockUpdate).toHaveBeenCalled();
+      expect(result.itinerary).toBeNull();
     });
 
     it('skips update when dto is empty and returns existing destination', async () => {

@@ -73,8 +73,8 @@
 - `mockUser` (const) — stub `AuthenticatedUser` fixture
 - `mockTripRow` (const) — stub trip database row in `DRAFT` status
 - `mockOrganizerParticipant` (const) — stub trip-participant row with `ORGANIZER` role and `CONFIRMED` status
-- `mockDestRow` (const) — stub destination database row at position 1
-- `TripsDestinationsService` describe block — grouped tests for `listDestinations` (4 cases), `addDestination` (8 cases), `updateDestination` (7 cases), `deleteDestination` (7 cases), `reorderDestinations` (8 cases)
+- `mockDestRow` (const) — stub destination database row at position 1 (includes `itinerary: null`)
+- `TripsDestinationsService` describe block — grouped tests for `listDestinations` (4 cases), `addDestination` (10 cases), `updateDestination` (8 cases), `deleteDestination` (7 cases), `reorderDestinations` (8 cases)
 
 ### Exports
 
@@ -103,7 +103,7 @@
 
 - `TripsDestinationsService` (service) — injectable service exposing `listDestinations`, `addDestination`, `updateDestination`, `deleteDestination`, `reorderDestinations`
 - `assertDestinationWrite` (function) — private guard; verifies trip exists, is not COMPLETED/CANCELLED, and caller holds ORGANIZER or CO_ORGANIZER role; returns `{ trip, requiresConfirmation }`
-- `mapDestination` (function) — private mapper; converts a `tripDestinations` Drizzle row to `DestinationResponseDto` with ISO-string `createdAt`
+- `mapDestination` (function) — private mapper; converts a `tripDestinations` Drizzle row to `DestinationResponseDto` with ISO-string `createdAt`; includes `itinerary` passthrough
 
 ### Exports
 

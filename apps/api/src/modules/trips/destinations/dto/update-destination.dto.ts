@@ -39,4 +39,15 @@ export class UpdateDestinationDto {
   @IsString()
   @MaxLength(100)
   label?: string;
+
+  @ApiProperty({
+    description: 'Optional Markdown itinerary for this destination. Send null to clear.',
+    required: false,
+    maxLength: 2000,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  itinerary?: string | null;
 }

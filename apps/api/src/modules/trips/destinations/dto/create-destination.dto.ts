@@ -36,4 +36,14 @@ export class CreateDestinationDto {
   @IsString()
   @MaxLength(100)
   label?: string;
+
+  @ApiProperty({
+    description: 'Optional Markdown itinerary for this destination.',
+    required: false,
+    maxLength: 2000,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  itinerary?: string;
 }

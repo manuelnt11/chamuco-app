@@ -313,7 +313,11 @@
     "saveError": "Failed to save destination.",
     "deleteError": "Failed to delete destination.",
     "deleteLastError": "Trips must have at least one destination.",
-    "reorderError": "Failed to reorder destinations."
+    "reorderError": "Failed to reorder destinations.",
+    "noItinerary": "No itinerary details",
+    "toggleItinerary": "Toggle itinerary",
+    "editItinerary": "Edit itinerary",
+    "itineraryPlaceholder": "Add itinerary details..."
   },
   "statusGuide": {
     "title": "Status Guide",

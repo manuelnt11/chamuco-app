@@ -71,7 +71,7 @@
 
 ### Definitions
 
-- `tripDestinations` (const) — Drizzle table for `trip_destinations`; UUID PK, ordered by `position` (integer ≥ 1), 2-char `country_code`, unique constraint on `(trip_id, position)`, CHECK on `position >= 1`
+- `tripDestinations` (const) — Drizzle table for `trip_destinations`; UUID PK, ordered by `position` (integer ≥ 1), 2-char `country_code`, optional `itinerary` text (Markdown rich-text), unique constraint on `(trip_id, position)`, CHECK on `position >= 1`
 - `tripDestinationsRelations` (const) — Drizzle relations defining `trip` one-to-one association
 
 ### Exports

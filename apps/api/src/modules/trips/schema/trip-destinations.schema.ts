@@ -14,6 +14,7 @@ export const tripDestinations = pgTable(
     countryCode: char('country_code', { length: 2 }).notNull(),
     city: text('city').notNull(),
     label: text('label'),
+    itinerary: text('itinerary'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

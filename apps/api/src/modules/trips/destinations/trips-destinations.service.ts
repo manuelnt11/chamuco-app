@@ -64,6 +64,7 @@ export class TripsDestinationsService {
         countryCode: dto.countryCode,
         city: dto.city,
         label: dto.label ?? null,
+        itinerary: dto.itinerary ?? null,
       })
       .returning();
 
@@ -89,6 +90,7 @@ export class TripsDestinationsService {
     if (dto.countryCode !== undefined) patch.countryCode = dto.countryCode;
     if (dto.city !== undefined) patch.city = dto.city;
     if (dto.label !== undefined) patch.label = dto.label;
+    if (dto.itinerary !== undefined) patch.itinerary = dto.itinerary;
 
     const [updated] =
       Object.keys(patch).length > 0
@@ -216,6 +218,7 @@ export class TripsDestinationsService {
       countryCode: dest.countryCode,
       city: dest.city,
       label: dest.label,
+      itinerary: dest.itinerary,
       createdAt: dest.createdAt.toISOString(),
     };
   }

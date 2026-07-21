@@ -60,12 +60,14 @@ export interface CreateDestinationPayload {
   countryCode: string;
   city: string;
   label?: string;
+  itinerary?: string;
 }
 
 export interface UpdateDestinationPayload {
   countryCode?: string;
   city?: string;
   label?: string;
+  itinerary?: string | null;
 }
 
 export interface ReorderDestinationsPayload {
@@ -115,6 +117,7 @@ export interface DestinationResponse {
   countryCode: string;
   city: string;
   label: string | null;
+  itinerary: string | null;
   createdAt: string;
 }
 
