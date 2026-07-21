@@ -94,12 +94,12 @@ export class CreateTripDto {
   endDate!: string;
 
   @ApiProperty({
-    description: 'Maximum number of traveling participants. Must be ≥ 1.',
+    description: 'Maximum number of traveling participants. Must be ≥ 2.',
     example: 10,
-    minimum: 1,
+    minimum: 2,
   })
   @IsInt()
-  @Min(1)
+  @Min(2)
   participantCapacity!: number;
 
   @ApiProperty({

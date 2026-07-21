@@ -1,3 +1,4 @@
+import { type ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NotificationType } from '@chamuco/shared-types';
@@ -12,6 +13,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mocks.mockRouterPush }),
+}));
+
+vi.mock('@/components/ui/popover', () => ({
+  PopoverClose: ({ render }: { render: ReactElement }) => render,
 }));
 
 // --- helpers ---

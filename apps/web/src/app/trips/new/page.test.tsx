@@ -1,9 +1,16 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
+}));
+
+vi.mock('@/services/users.service', () => ({
+  getMyProfile: vi.fn().mockResolvedValue({
+    homeCountry: 'CO',
+    homeCity: 'Bogotá',
+  }),
 }));
 
 vi.mock('@/components/trips/TripForm', () => ({
@@ -21,15 +28,18 @@ describe('NewTripPage', () => {
     mockPush.mockClear();
   });
 
-  it('renders the page title and form in create mode', () => {
+  it('renders the page title and form in create mode', async () => {
     render(<NewTripPage />);
     expect(screen.getByText('form.createTitle')).toBeInTheDocument();
-    expect(screen.getByTestId('trip-form')).toHaveAttribute('data-mode', 'create');
+    await waitFor(() =>
+      expect(screen.getByTestId('trip-form')).toHaveAttribute('data-mode', 'create'),
+    );
   });
 
   it('navigates to the new trip on success', async () => {
     const user = userEvent.setup();
     render(<NewTripPage />);
+    await waitFor(() => screen.getByRole('button', { name: 'submit' }));
     await user.click(screen.getByRole('button', { name: 'submit' }));
     expect(mockPush).toHaveBeenCalledWith('/trips/new-trip-uuid');
   });

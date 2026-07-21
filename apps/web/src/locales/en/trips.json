@@ -57,7 +57,8 @@
     "invitation": {
       "received": "You have been invited to join this trip",
       "acceptError": "Failed to accept invitation",
-      "declineError": "Failed to decline invitation"
+      "declineError": "Failed to decline invitation",
+      "capacityFull": "No spots left on this trip"
     },
     "pending": {
       "title": "Pending ({{count}})",

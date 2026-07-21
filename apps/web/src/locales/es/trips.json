@@ -57,7 +57,8 @@
     "invitation": {
       "received": "Has sido invitado a unirte a este viaje",
       "acceptError": "Error al aceptar la invitación",
-      "declineError": "Error al rechazar la invitación"
+      "declineError": "Error al rechazar la invitación",
+      "capacityFull": "Ya no hay cupos disponibles en este viaje"
     },
     "pending": {
       "title": "Pendientes ({{count}})",

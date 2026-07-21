@@ -9,16 +9,57 @@
 - `@nestjs/common` — `Module` decorator for defining NestJS modules
 - `@/database/database.module` — `DatabaseModule` providing the Drizzle client
 - `@/modules/notifications/notifications.module` — `NotificationsModule` providing `NotificationsService`
+- `./notification-cleanup.job` — `NotificationCleanupJob` scheduled job provider
 - `./passport-status.job` — `PassportStatusJob` scheduled job provider
 - `./trip-status.job` — `TripStatusJob` scheduled job provider
 
 ### Definitions
 
-- `JobsModule` (module) — NestJS module that registers `PassportStatusJob` and `TripStatusJob` as providers, importing database and notifications dependencies
+- `JobsModule` (module) — NestJS module that registers `NotificationCleanupJob`, `PassportStatusJob`, and `TripStatusJob` as providers, importing database and notifications dependencies
 
 ### Exports
 
 - `JobsModule` — named
+
+---
+
+## notification-cleanup.job.ts
+
+### Imports
+
+- `@nestjs/common` — `Inject`, `Injectable`, `Logger` for DI, logging, and provider registration
+- `@nestjs/schedule` — `Cron`, `CronExpression` for cron-based scheduling
+- `drizzle-orm` — `and`, `isNotNull`, `lt`, `sql` for query composition
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token, `DrizzleClient` type
+- `@/modules/notifications/schema/notifications.schema` — `notifications` Drizzle table reference
+
+### Definitions
+
+- `NotificationCleanupJob` (service) — scheduled job that runs daily at midnight; hard-deletes all notifications where `read_at IS NOT NULL` and `read_at < NOW() - INTERVAL '7 days'`
+  - `runNotificationCleanup()` — cron entry point (`EVERY_DAY_AT_MIDNIGHT`); catches and logs top-level errors
+  - `cleanup()` (private) — executes the bulk DELETE using Drizzle query builder
+
+### Exports
+
+- `NotificationCleanupJob` — named
+
+---
+
+## notification-cleanup.job.spec.ts
+
+### Imports
+
+- `@nestjs/testing` — `Test`, `TestingModule` for NestJS unit test harness
+- `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token
+- `./notification-cleanup.job` — `NotificationCleanupJob` class under test
+
+### Definitions
+
+- `NotificationCleanupJob` test suite — covers: bulk DELETE called once for read notifications older than 7 days, DB error caught and logged without rethrowing
+
+### Exports
+
+- _(none — test file)_
 
 ---
 

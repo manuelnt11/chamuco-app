@@ -24,7 +24,7 @@ export class TripResponseDto {
   @ApiProperty({ example: '2026-12-08' })
   endDate!: string;
 
-  @ApiProperty({ example: 10, minimum: 1 })
+  @ApiProperty({ example: 10, minimum: 2 })
   participantCapacity!: number;
 
   @ApiProperty({ example: 'MX' })

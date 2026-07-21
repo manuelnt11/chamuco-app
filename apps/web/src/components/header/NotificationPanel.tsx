@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { PopoverClose } from '@/components/ui/popover';
 import {
   AirplaneIcon,
   BellIcon,
@@ -117,48 +118,52 @@ export function NotificationPanel({
             const isUnread = notif.readAt === null;
 
             return (
-              <button
+              <PopoverClose
                 key={notif.id}
-                onClick={() => handleItemClick(notif)}
-                className={cn(
-                  'w-full flex items-start gap-3 px-4 py-3 text-left',
-                  'hover:bg-muted transition-colors',
-                  'focus-visible:outline-none focus-visible:bg-muted',
-                  isUnread && 'bg-primary/5',
-                )}
-              >
-                <TypeIcon
-                  className="size-5 shrink-0 mt-0.5 text-muted-foreground"
-                  weight="regular"
-                  aria-hidden="true"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <span
-                      className={cn(
-                        'text-sm truncate text-foreground',
-                        isUnread ? 'font-semibold' : 'font-medium',
-                      )}
-                    >
-                      {notif.title}
-                    </span>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {formatRelativeTime(notif.createdAt)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                      {notif.body}
-                    </p>
-                    {isUnread && (
-                      <span
-                        className="size-2 rounded-full bg-primary shrink-0 mt-1"
-                        aria-label="unread"
-                      />
+                render={
+                  <button
+                    onClick={() => handleItemClick(notif)}
+                    className={cn(
+                      'w-full flex items-start gap-3 px-4 py-3 text-left',
+                      'hover:bg-muted transition-colors',
+                      'focus-visible:outline-none focus-visible:bg-muted',
+                      isUnread && 'bg-primary/5',
                     )}
-                  </div>
-                </div>
-              </button>
+                  >
+                    <TypeIcon
+                      className="size-5 shrink-0 mt-0.5 text-muted-foreground"
+                      weight="regular"
+                      aria-hidden="true"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <span
+                          className={cn(
+                            'text-sm truncate text-foreground',
+                            isUnread ? 'font-semibold' : 'font-medium',
+                          )}
+                        >
+                          {notif.title}
+                        </span>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {formatRelativeTime(notif.createdAt)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                          {notif.body}
+                        </p>
+                        {isUnread && (
+                          <span
+                            className="size-2 rounded-full bg-primary shrink-0 mt-1"
+                            aria-label="unread"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                }
+              />
             );
           })
         )}

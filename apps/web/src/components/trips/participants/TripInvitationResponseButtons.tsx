@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { CheckIcon, XIcon } from '@phosphor-icons/react';
 import { acceptTripInvitation, declineTripInvitation } from '@/services/trips.service';
@@ -30,8 +31,15 @@ export function TripInvitationResponseButtons({
     try {
       await acceptTripInvitation(tripId);
       onSuccess();
-    } catch {
-      setError(t('participants.invitation.acceptError'));
+    } catch (err) {
+      const isCapacityFull = axios.isAxiosError(err) && err.response?.status === 409;
+      setError(
+        t(
+          isCapacityFull
+            ? 'participants.invitation.capacityFull'
+            : 'participants.invitation.acceptError',
+        ),
+      );
       setIsAccepting(false);
     }
   };
