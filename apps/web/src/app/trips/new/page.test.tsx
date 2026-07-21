@@ -14,8 +14,21 @@ vi.mock('@/services/users.service', () => ({
 }));
 
 vi.mock('@/components/trips/TripForm', () => ({
-  TripForm: ({ mode, onSuccess }: { mode: string; onSuccess: (trip: { id: string }) => void }) => (
-    <div data-testid="trip-form" data-mode={mode}>
+  TripForm: ({
+    mode,
+    initialValues,
+    onSuccess,
+  }: {
+    mode: string;
+    initialValues?: { departureCountry?: string; departureCity?: string };
+    onSuccess: (trip: { id: string }) => void;
+  }) => (
+    <div
+      data-testid="trip-form"
+      data-mode={mode}
+      data-departure-country={initialValues?.departureCountry}
+      data-departure-city={initialValues?.departureCity}
+    >
       <button onClick={() => onSuccess({ id: 'new-trip-uuid' })}>submit</button>
     </div>
   ),
@@ -34,6 +47,14 @@ describe('NewTripPage', () => {
     await waitFor(() =>
       expect(screen.getByTestId('trip-form')).toHaveAttribute('data-mode', 'create'),
     );
+  });
+
+  it('pre-fills departure from user home country and city', async () => {
+    render(<NewTripPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('trip-form')).toHaveAttribute('data-departure-country', 'CO');
+      expect(screen.getByTestId('trip-form')).toHaveAttribute('data-departure-city', 'Bogotá');
+    });
   });
 
   it('navigates to the new trip on success', async () => {

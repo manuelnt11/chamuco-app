@@ -32,7 +32,11 @@ export function TripInvitationResponseButtons({
       await acceptTripInvitation(tripId);
       onSuccess();
     } catch (err) {
-      const isCapacityFull = axios.isAxiosError(err) && err.response?.status === 409;
+      const isCapacityFull =
+        axios.isAxiosError(err) &&
+        err.response?.status === 409 &&
+        (err.response.data as { message?: string })?.message ===
+          'Trip has reached maximum participant capacity';
       setError(
         t(
           isCapacityFull
