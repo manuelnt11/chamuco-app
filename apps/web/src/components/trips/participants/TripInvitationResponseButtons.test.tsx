@@ -4,10 +4,15 @@ import userEvent from '@testing-library/user-event';
 const mocks = vi.hoisted(() => ({
   mockPatch: vi.fn(),
   mockOnSuccess: vi.fn(),
+  mockIsAxiosError: vi.fn(),
 }));
 
 vi.mock('@/services/api-client', () => ({
   apiClient: { patch: mocks.mockPatch },
+}));
+
+vi.mock('axios', () => ({
+  default: { isAxiosError: mocks.mockIsAxiosError },
 }));
 
 import { TripInvitationResponseButtons } from './TripInvitationResponseButtons';
@@ -62,6 +67,34 @@ describe('TripInvitationResponseButtons', () => {
 
   it('shows acceptError on accept failure', async () => {
     mocks.mockPatch.mockRejectedValueOnce(new Error('fail'));
+    const user = userEvent.setup();
+    render(<TripInvitationResponseButtons tripId="t1" onSuccess={mocks.mockOnSuccess} />);
+    await user.click(screen.getByRole('button', { name: 'common:actions.accept' }));
+    await waitFor(() => {
+      expect(screen.getByText('participants.invitation.acceptError')).toBeInTheDocument();
+    });
+  });
+
+  it('shows capacityFull when 409 has capacity message', async () => {
+    const capacityError = {
+      response: { status: 409, data: { message: 'Trip has reached maximum participant capacity' } },
+    };
+    mocks.mockPatch.mockRejectedValueOnce(capacityError);
+    mocks.mockIsAxiosError.mockReturnValue(true);
+    const user = userEvent.setup();
+    render(<TripInvitationResponseButtons tripId="t1" onSuccess={mocks.mockOnSuccess} />);
+    await user.click(screen.getByRole('button', { name: 'common:actions.accept' }));
+    await waitFor(() => {
+      expect(screen.getByText('participants.invitation.capacityFull')).toBeInTheDocument();
+    });
+  });
+
+  it('shows acceptError when 409 has a different message', async () => {
+    const otherConflict = {
+      response: { status: 409, data: { message: 'No pending invitation found' } },
+    };
+    mocks.mockPatch.mockRejectedValueOnce(otherConflict);
+    mocks.mockIsAxiosError.mockReturnValue(true);
     const user = userEvent.setup();
     render(<TripInvitationResponseButtons tripId="t1" onSuccess={mocks.mockOnSuccess} />);
     await user.click(screen.getByRole('button', { name: 'common:actions.accept' }));

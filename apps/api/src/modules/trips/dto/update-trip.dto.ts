@@ -60,10 +60,10 @@ export class UpdateTripDto {
   @IsDateString()
   endDate?: string;
 
-  @ApiProperty({ required: false, description: 'Max traveling participants. ≥ 1.', minimum: 1 })
+  @ApiProperty({ required: false, description: 'Max traveling participants. ≥ 2.', minimum: 2 })
   @IsOptional()
   @IsInt()
-  @Min(1)
+  @Min(2)
   participantCapacity?: number;
 
   @ApiProperty({

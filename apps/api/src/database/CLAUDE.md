@@ -229,6 +229,8 @@ Each step is a separate migration file and a separate PR. Document the steps in 
 | 0032      | `0032_abnormal_blockbuster.sql` | `trip_participants` table (composite PK `(trip_id, user_id)`); `trip_role`, `trip_participant_status` enums; `initiated_by`/`decided_by` audit columns; CHECK `participant_must_be_traveler`; `updated_at` trigger |
 | 0033–0034 | _(pending doc)_                 | See migration files for details                                                                                                                                                                                    |
 | 0035      | `0035_robust_snowbird.sql`      | `invitation_tokens` table; `invitation_token_context` enum; partial unique index for one open link per context                                                                                                     |
+| 0036      | `0036_shallow_vin_gonzales.sql` | `invitation_tokens.updated_at` column; `trip_destinations.itinerary` text column; unique index `idx_invitation_tokens_one_targeted_per_context` for targeted invites                                               |
+| 0037      | `0037_hard_blockbuster.sql`     | Tightened `trips_participant_capacity_min` CHECK constraint from `>= 1` to `>= 2`                                                                                                                                  |
 
 ---
 

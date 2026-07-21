@@ -55,7 +55,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
   const [startDate, setStartDate] = useState(initialValues?.startDate ?? '');
   const [endDate, setEndDate] = useState(initialValues?.endDate ?? '');
   const [participantCapacity, setParticipantCapacity] = useState(
-    initialValues?.participantCapacity ?? 1,
+    initialValues?.participantCapacity ?? 2,
   );
   const [isTravelingParticipant, setIsTravelingParticipant] = useState(
     initialValues?.isTravelingParticipant ?? true,
@@ -98,7 +98,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
     !startDate ||
     !endDate ||
     !!endDateError ||
-    participantCapacity < 1 ||
+    participantCapacity < 2 ||
     !departureCountry ||
     !departureCity ||
     (hasDifferentReturn && (!landingCountry || !landingCity)) ||
@@ -298,7 +298,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
             type="number"
             value={participantCapacity}
             onChange={(e) => setParticipantCapacity(Number(e.target.value))}
-            min={1}
+            min={2}
             required
             disabled={isSaving}
             className="w-28"

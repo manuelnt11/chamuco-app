@@ -59,7 +59,7 @@ export const trips = pgTable(
   },
   (table) => [
     check('trips_date_order', sql`${table.endDate} >= ${table.startDate}`),
-    check('trips_participant_capacity_min', sql`${table.participantCapacity} >= 1`),
+    check('trips_participant_capacity_min', sql`${table.participantCapacity} >= 2`),
   ],
 );
 
