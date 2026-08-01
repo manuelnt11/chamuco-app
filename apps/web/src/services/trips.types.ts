@@ -3,6 +3,7 @@ import type {
   TripParticipantStatus,
   TripRole,
   TripStatus,
+  TripTaskScope,
   TripVisibility,
 } from '@chamuco/shared-types';
 
@@ -189,6 +190,28 @@ export interface TripAnnouncementsResponse {
 
 export interface TripAnnouncementPayload {
   content: string;
+}
+
+// ─── Task types ───────────────────────────────────────────────────────────────
+
+export interface TripTask {
+  id: string;
+  tripId: string;
+  scope: TripTaskScope;
+  title: string;
+  completed: boolean;
+  ownerId: string | null;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface CreateTripTaskPayload {
+  scope: TripTaskScope;
+  title: string;
+}
+
+export interface SetTripTaskCompletionPayload {
+  completed: boolean;
 }
 
 // ─── Search / discovery types ─────────────────────────────────────────────────

@@ -3,18 +3,22 @@ import {
   addTripGroup,
   createTrip,
   createTripAnnouncement,
+  createTripTask,
   deleteTrip,
   deleteTripAnnouncement,
   deleteTripDestination,
+  deleteTripTask,
   getMyTrips,
   getTrip,
   getTripAnnouncement,
   getTripAnnouncements,
   getTripDestinations,
   getTripGroups,
+  getTripTasks,
   removeTripGroup,
   reorderTripDestinations,
   searchTrips,
+  setTripTaskCompletion,
   transitionTripStatus,
   updateTrip,
   updateTripAnnouncement,
@@ -29,8 +33,9 @@ import type {
   TripGroupResponse,
   TripResponse,
   TripSearchResponse,
+  TripTask,
 } from '@/services/trips.types';
-import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
+import { TripRole, TripStatus, TripTaskScope, TripVisibility } from '@chamuco/shared-types';
 
 const { mockGet, mockPost, mockPatch, mockDelete } = vi.hoisted(() => {
   const get = vi.fn();
@@ -616,6 +621,110 @@ describe('deleteTripAnnouncement', () => {
   it('propagates 404 errors', async () => {
     mockDelete.mockRejectedValueOnce({ response: { status: 404 } });
     await expect(deleteTripAnnouncement('trip-uuid-1', 'announcement-uuid-1')).rejects.toEqual({
+      response: { status: 404 },
+    });
+  });
+});
+
+// ─── Task methods ─────────────────────────────────────────────────────────────
+
+const taskFixture: TripTask = {
+  id: 'task-uuid-1',
+  tripId: 'trip-uuid-1',
+  scope: TripTaskScope.PERSONAL,
+  title: 'Pack sunscreen',
+  completed: false,
+  ownerId: 'user-uuid-1',
+  createdBy: 'user-uuid-1',
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
+describe('getTripTasks', () => {
+  it('gets /v1/trips/:tripId/tasks and returns the list', async () => {
+    mockGet.mockResolvedValueOnce({ data: [taskFixture] });
+    const result = await getTripTasks('trip-uuid-1');
+    expect(mockGet).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/tasks');
+    expect(result).toEqual([taskFixture]);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(getTripTasks('trip-uuid-1')).rejects.toEqual({ response: { status: 401 } });
+  });
+
+  it('propagates 403 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 403 } });
+    await expect(getTripTasks('trip-uuid-1')).rejects.toEqual({ response: { status: 403 } });
+  });
+});
+
+describe('createTripTask', () => {
+  it('posts to /v1/trips/:tripId/tasks and returns the task', async () => {
+    mockPost.mockResolvedValueOnce({ data: taskFixture });
+    const dto = { scope: TripTaskScope.PERSONAL, title: 'Pack sunscreen' };
+    const result = await createTripTask('trip-uuid-1', dto);
+    expect(mockPost).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/tasks', dto);
+    expect(result).toEqual(taskFixture);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockPost.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(
+      createTripTask('trip-uuid-1', { scope: TripTaskScope.PERSONAL, title: 'x' }),
+    ).rejects.toEqual({ response: { status: 401 } });
+  });
+
+  it('propagates 403 errors', async () => {
+    mockPost.mockRejectedValueOnce({ response: { status: 403 } });
+    await expect(
+      createTripTask('trip-uuid-1', { scope: TripTaskScope.SHARED, title: 'x' }),
+    ).rejects.toEqual({ response: { status: 403 } });
+  });
+});
+
+describe('setTripTaskCompletion', () => {
+  it('patches /v1/trips/:tripId/tasks/:taskId/completion and returns the task', async () => {
+    const completedTask = { ...taskFixture, completed: true };
+    mockPatch.mockResolvedValueOnce({ data: completedTask });
+    const result = await setTripTaskCompletion('trip-uuid-1', 'task-uuid-1', { completed: true });
+    expect(mockPatch).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/tasks/task-uuid-1/completion', {
+      completed: true,
+    });
+    expect(result).toEqual(completedTask);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockPatch.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(
+      setTripTaskCompletion('trip-uuid-1', 'task-uuid-1', { completed: true }),
+    ).rejects.toEqual({ response: { status: 401 } });
+  });
+
+  it('propagates 404 errors', async () => {
+    mockPatch.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(
+      setTripTaskCompletion('trip-uuid-1', 'task-uuid-1', { completed: true }),
+    ).rejects.toEqual({ response: { status: 404 } });
+  });
+});
+
+describe('deleteTripTask', () => {
+  it('deletes /v1/trips/:tripId/tasks/:taskId', async () => {
+    mockDelete.mockResolvedValueOnce({});
+    await deleteTripTask('trip-uuid-1', 'task-uuid-1');
+    expect(mockDelete).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/tasks/task-uuid-1');
+  });
+
+  it('propagates 401 errors', async () => {
+    mockDelete.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(deleteTripTask('trip-uuid-1', 'task-uuid-1')).rejects.toEqual({
+      response: { status: 401 },
+    });
+  });
+
+  it('propagates 404 errors', async () => {
+    mockDelete.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(deleteTripTask('trip-uuid-1', 'task-uuid-1')).rejects.toEqual({
       response: { status: 404 },
     });
   });

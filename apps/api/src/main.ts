@@ -39,6 +39,7 @@ async function bootstrap(): Promise<void> {
       .addTag('user-travel-docs', '', undefined, { parent: 'users' })
       .addTag('user-loyalty-programs', '', undefined, { parent: 'users' })
       .addTag('user-preferences', '', undefined, { parent: 'users' })
+      .addTag('invitation-tokens', '', undefined, { parent: 'users' })
       // groups sub-tags
       .addTag('groups')
       .addTag('group-members', '', undefined, { parent: 'groups' })
@@ -53,6 +54,7 @@ async function bootstrap(): Promise<void> {
       .addTag('trip-participants', '', undefined, { parent: 'trips' })
       .addTag('trip-invitations', '', undefined, { parent: 'trips' })
       .addTag('trip-join-requests', '', undefined, { parent: 'trips' })
+      .addTag('trip-tasks', '', undefined, { parent: 'trips' })
       // Root-level tags — standalone
       .addTag('notifications')
       .addTag('uploads')

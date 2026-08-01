@@ -250,7 +250,25 @@
   "announcementsEditError": "Error al actualizar el anuncio.",
   "announcementsDeleteError": "Error al eliminar el anuncio.",
   "actions": {
-    "editSettings": "Editar configuración"
+    "editSettings": "Editar configuración",
+    "viewTasks": "Ver tareas"
+  },
+  "tasks": {
+    "title": "Tareas",
+    "sharedTitle": "Tareas grupales",
+    "personalTitle": "Mis tareas",
+    "sharedEmpty": "Aún no hay tareas grupales.",
+    "personalEmpty": "Aún no hay tareas personales.",
+    "loadError": "Error al cargar las tareas.",
+    "createError": "Error al crear la tarea.",
+    "toggleError": "Error al actualizar la tarea.",
+    "deleteError": "Error al eliminar la tarea.",
+    "addPlaceholder": "Agregar una tarea...",
+    "addButton": "Agregar tarea",
+    "scope": {
+      "SHARED": "Grupal",
+      "PERSONAL": "Personal"
+    }
   },
   "cover": {
     "label": "Portada",

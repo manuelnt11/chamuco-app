@@ -1114,6 +1114,26 @@ None
 
 ---
 
+## trip-task-item.tsx
+
+### Imports
+
+- `react` — `useState`
+- `@/components/ui/checkbox` — `Checkbox`
+- `@/components/ui/edit-delete-actions` — `EditDeleteActions` (used delete-only — `onEdit` omitted)
+- `@/lib/utils` — `cn` class merging helper
+- `@/services/trips.types` — `TripTask` (type-only)
+
+### Definitions
+
+- `TripTaskItem` (component) — renders a checkbox bound to `task.completed`, the task title (strike-through when completed), and a delete button when `onDelete` is provided (omit to render a read-only-delete row, e.g. a SHARED task for a non-organizer); tracks local `isToggling`/`isDeleting` state to disable interaction mid-mutation
+
+### Exports
+
+- `TripTaskItem` — named
+
+---
+
 ## user-autocomplete.test.tsx
 
 ### Imports

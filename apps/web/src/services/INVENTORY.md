@@ -404,7 +404,7 @@
 
 - `@chamuco/shared-types` — `BulkInvitationResponse`, `ExportField`, `ExportFormat`
 - `@/services/api-client` — `apiClient`
-- `@/services/trips.types` — `AddTripGroupPayload`, `CreateDestinationPayload`, `CreateTripInvitationPayload`, `CreateTripPayload`, `DestinationResponse`, `DestinationWriteResponse`, `MyTripInvitationResponse`, `MyTripListItemResponse`, `MyTripParticipationResponse`, `PendingTripParticipantResponse`, `ReorderDestinationsPayload`, `SearchTripsParams`, `TransitionTripStatusPayload`, `TripAnnouncement`, `TripAnnouncementPayload`, `TripAnnouncementsResponse`, `TripGroupResponse`, `TripLinkedGroup`, `TripParticipantResponse`, `TripResponse`, `TripSearchResponse`, `UpdateDestinationPayload`, `UpdateParticipantRolePayload`, `UpdateTripPayload`
+- `@/services/trips.types` — `AddTripGroupPayload`, `CreateDestinationPayload`, `CreateTripInvitationPayload`, `CreateTripPayload`, `CreateTripTaskPayload`, `DestinationResponse`, `DestinationWriteResponse`, `MyTripInvitationResponse`, `MyTripListItemResponse`, `MyTripParticipationResponse`, `PendingTripParticipantResponse`, `ReorderDestinationsPayload`, `SearchTripsParams`, `SetTripTaskCompletionPayload`, `TransitionTripStatusPayload`, `TripAnnouncement`, `TripAnnouncementPayload`, `TripAnnouncementsResponse`, `TripGroupResponse`, `TripLinkedGroup`, `TripParticipantResponse`, `TripResponse`, `TripSearchResponse`, `TripTask`, `UpdateDestinationPayload`, `UpdateParticipantRolePayload`, `UpdateTripPayload`
 
 ### Definitions
 
@@ -445,10 +445,14 @@
 - `createTripAnnouncement` (function) — POST `/v1/trips/:tripId/announcements`; returns `TripAnnouncement`
 - `updateTripAnnouncement` (function) — PATCH `/v1/trips/:tripId/announcements/:announcementId`; returns `TripAnnouncement`
 - `deleteTripAnnouncement` (function) — DELETE `/v1/trips/:tripId/announcements/:announcementId`
+- `getTripTasks` (function) — GET `/v1/trips/:tripId/tasks`; returns `TripTask[]`
+- `createTripTask` (function) — POST `/v1/trips/:tripId/tasks`; returns `TripTask`
+- `setTripTaskCompletion` (function) — PATCH `/v1/trips/:tripId/tasks/:taskId/completion`; returns `TripTask`
+- `deleteTripTask` (function) — DELETE `/v1/trips/:tripId/tasks/:taskId`
 
 ### Exports
 
-- All 36 functions above — named
+- All 40 functions above — named
 
 ---
 
@@ -456,13 +460,13 @@
 
 ### Imports
 
-- `./trips.service` — 20 trip service functions (subset of the full API tested here)
+- `./trips.service` — 24 trip service functions (subset of the full API tested here)
 - `@/services/trips.types` — response and payload types
-- `@chamuco/shared-types` — `TripRole`, `TripStatus`, `TripVisibility`
+- `@chamuco/shared-types` — `TripRole`, `TripStatus`, `TripTaskScope`, `TripVisibility`
 
 ### Definitions
 
-- (test file — Vitest suites for trip CRUD, destinations, groups, search, and announcement functions)
+- (test file — Vitest suites for trip CRUD, destinations, groups, search, announcement, and task functions)
 
 ### Exports
 
@@ -474,7 +478,7 @@
 
 ### Imports
 
-- `@chamuco/shared-types` — `MembershipStatus`, `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripVisibility`
+- `@chamuco/shared-types` — `MembershipStatus`, `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripTaskScope`, `TripVisibility`
 
 ### Definitions
 
@@ -505,6 +509,9 @@
 - `TripSearchResponse` (interface) — paginated search result wrapper
 - `SearchTripsParams` (interface) — optional query params for trip search (q, limit, offset)
 - `MyTripInvitationResponse` (interface) — pending trip invitation visible to the invited user
+- `TripTask` (interface) — trip task record; `scope` (SHARED/PERSONAL), `completed` resolved for the requesting user, `ownerId` null for SHARED
+- `CreateTripTaskPayload` (interface) — payload for create task (scope + title)
+- `SetTripTaskCompletionPayload` (interface) — payload to toggle a task's completion state
 
 ### Exports
 

@@ -7,6 +7,7 @@ import type {
   CreateDestinationPayload,
   CreateTripInvitationPayload,
   CreateTripPayload,
+  CreateTripTaskPayload,
   DestinationResponse,
   DestinationWriteResponse,
   MyTripInvitationResponse,
@@ -15,6 +16,7 @@ import type {
   PendingTripParticipantResponse,
   ReorderDestinationsPayload,
   SearchTripsParams,
+  SetTripTaskCompletionPayload,
   TransitionTripStatusPayload,
   TripAnnouncement,
   TripAnnouncementPayload,
@@ -24,6 +26,7 @@ import type {
   TripParticipantResponse,
   TripResponse,
   TripSearchResponse,
+  TripTask,
   UpdateDestinationPayload,
   UpdateParticipantRolePayload,
   UpdateTripPayload,
@@ -310,4 +313,35 @@ export async function deleteTripAnnouncement(
   announcementId: string,
 ): Promise<void> {
   await apiClient.delete(`/v1/trips/${tripId}/announcements/${announcementId}`);
+}
+
+// ─── Task methods ───────────────────────────────────────────────────────────────
+
+export async function getTripTasks(tripId: string): Promise<TripTask[]> {
+  const { data } = await apiClient.get<TripTask[]>(`/v1/trips/${tripId}/tasks`);
+  return data;
+}
+
+export async function createTripTask(
+  tripId: string,
+  payload: CreateTripTaskPayload,
+): Promise<TripTask> {
+  const { data } = await apiClient.post<TripTask>(`/v1/trips/${tripId}/tasks`, payload);
+  return data;
+}
+
+export async function setTripTaskCompletion(
+  tripId: string,
+  taskId: string,
+  payload: SetTripTaskCompletionPayload,
+): Promise<TripTask> {
+  const { data } = await apiClient.patch<TripTask>(
+    `/v1/trips/${tripId}/tasks/${taskId}/completion`,
+    payload,
+  );
+  return data;
+}
+
+export async function deleteTripTask(tripId: string, taskId: string): Promise<void> {
+  await apiClient.delete(`/v1/trips/${tripId}/tasks/${taskId}`);
 }

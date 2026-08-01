@@ -8,6 +8,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   GearSixIcon,
+  ListChecksIcon,
   MegaphoneIcon,
   UsersThreeIcon,
   AirplaneTakeoffIcon,
@@ -146,6 +147,15 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
               <MegaphoneIcon className="size-5" aria-hidden="true" />
             </Link>
           )}
+          <Link
+            href={!isDraft ? `/trips/${trip.id}/tasks` : '#'}
+            className={`inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted${isDraft ? ' pointer-events-none opacity-50' : ''}`}
+            title={t('actions.viewTasks')}
+            aria-label={t('actions.viewTasks')}
+            aria-disabled={isDraft}
+          >
+            <ListChecksIcon className="size-5" aria-hidden="true" />
+          </Link>
           {isOrganizer && (
             <Link
               href={!isTerminal ? `/trips/${trip.id}/settings` : '#'}

@@ -27,6 +27,7 @@ export * from './transient-message-type.enum';
 export * from './trip-participant-status.enum';
 export * from './trip-role.enum';
 export * from './trip-status.enum';
+export * from './trip-task-scope.enum';
 export * from './trip-visibility.enum';
 export * from './upload-type.enum';
 export * from './visa-coverage-type.enum';
