@@ -99,12 +99,15 @@ export function InviteMemberModal({ groupId, onSuccess, excludedIds }: InviteMem
       />
 
       <DialogPopup className="p-6">
-        <DialogTitle>{t('members.invite.title')}</DialogTitle>
-        <DialogDescription className="sr-only">{t('members.invite.title')}</DialogDescription>
+        <DialogTitle>
+          {results ? t('members.invite.results.title') : t('members.invite.title')}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {results ? t('members.invite.results.title') : t('members.invite.title')}
+        </DialogDescription>
 
         {results ? (
           <div className="mt-4 space-y-4">
-            <p className="text-sm font-medium">{t('members.invite.results.title')}</p>
             <ul className="space-y-2">
               {results.map((r) => (
                 <li key={r.username} className="flex items-center justify-between text-sm">

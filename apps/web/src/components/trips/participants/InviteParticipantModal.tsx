@@ -105,12 +105,15 @@ export function InviteParticipantModal({
       />
 
       <DialogPopup className="p-6">
-        <DialogTitle>{t('participants.invite.title')}</DialogTitle>
-        <DialogDescription className="sr-only">{t('participants.invite.title')}</DialogDescription>
+        <DialogTitle>
+          {results ? t('participants.invite.results.title') : t('participants.invite.title')}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {results ? t('participants.invite.results.title') : t('participants.invite.title')}
+        </DialogDescription>
 
         {results ? (
           <div className="mt-4 space-y-4">
-            <p className="text-sm font-medium">{t('participants.invite.results.title')}</p>
             <ul className="space-y-2">
               {results.map((r) => (
                 <li key={r.username} className="flex items-center justify-between text-sm">

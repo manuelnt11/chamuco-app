@@ -176,7 +176,9 @@ describe('InviteParticipantModal', () => {
       await user.click(screen.getByRole('button', { name: 'participants.invite.submit' }));
 
       await waitFor(() => {
-        expect(screen.getByText('participants.invite.results.title')).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', { name: 'participants.invite.results.title' }),
+        ).toBeInTheDocument();
         expect(screen.getByText('participants.invite.result.INVITED')).toBeInTheDocument();
         expect(screen.getByText('participants.invite.result.ALREADY_MEMBER')).toBeInTheDocument();
       });
