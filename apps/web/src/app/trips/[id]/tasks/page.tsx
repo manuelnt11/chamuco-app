@@ -161,7 +161,7 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
         {sharedTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('tasks.sharedEmpty')}</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
             {sharedTasks.map((task) => (
               <TripTaskItem
                 key={task.id}
@@ -183,7 +183,7 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
         {personalTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('tasks.personalEmpty')}</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
             {personalTasks.map((task) => (
               <TripTaskItem
                 key={task.id}
