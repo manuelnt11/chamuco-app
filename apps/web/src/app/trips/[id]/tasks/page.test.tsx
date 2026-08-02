@@ -34,10 +34,12 @@ vi.mock('@/components/ui/trip-task-item', () => ({
   TripTaskItem: ({
     task,
     onToggle,
+    onRename,
     onDelete,
   }: {
     task: { id: string; title: string; completed: boolean };
     onToggle: (completed: boolean) => Promise<void>;
+    onRename?: (title: string) => Promise<void>;
     onDelete?: () => Promise<void>;
   }) => (
     <li>
@@ -49,6 +51,15 @@ vi.mock('@/components/ui/trip-task-item', () => ({
       >
         toggle
       </button>
+      {onRename && (
+        <button
+          type="button"
+          onClick={() => void onRename(`${task.title} (renamed)`)}
+          data-testid={`rename-${task.id}`}
+        >
+          rename
+        </button>
+      )}
       {onDelete && (
         <button type="button" onClick={() => void onDelete()} data-testid={`delete-${task.id}`}>
           delete
@@ -281,6 +292,64 @@ describe('TripTasksPage', () => {
 
     await waitFor(() => screen.getByText(sharedTask.title));
     expect(screen.queryByTestId(`delete-${sharedTask.id}`)).not.toBeInTheDocument();
+  });
+
+  it('shows rename for a shared task only when organizer', async () => {
+    setupDefaultMocks({ participation: organizerParticipation });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId(`rename-${sharedTask.id}`)).toBeInTheDocument();
+    });
+  });
+
+  it('hides rename for a shared task when a regular participant', async () => {
+    setupDefaultMocks({ participation: participantParticipation });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => screen.getByText(sharedTask.title));
+    expect(screen.queryByTestId(`rename-${sharedTask.id}`)).not.toBeInTheDocument();
+  });
+
+  it('always shows rename for a personal task', async () => {
+    setupDefaultMocks({ participation: participantParticipation });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId(`rename-${personalTask.id}`)).toBeInTheDocument();
+    });
+  });
+
+  it('renames a task and updates it in the list', async () => {
+    setupDefaultMocks({ participation: organizerParticipation });
+    mocks.mockApiPatch.mockResolvedValueOnce({
+      data: { ...personalTask, title: 'Pack sunscreen (renamed)' },
+    });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => screen.getByTestId(`rename-${personalTask.id}`));
+    fireEvent.click(screen.getByTestId(`rename-${personalTask.id}`));
+
+    await waitFor(() => {
+      expect(mocks.mockApiPatch).toHaveBeenCalledWith(
+        `/v1/trips/trip-id/tasks/${personalTask.id}`,
+        { title: 'Pack sunscreen (renamed)' },
+      );
+      expect(screen.getByText('Pack sunscreen (renamed)')).toBeInTheDocument();
+    });
+  });
+
+  it('shows an error message when rename fails', async () => {
+    setupDefaultMocks({ participation: organizerParticipation });
+    mocks.mockApiPatch.mockRejectedValueOnce(new Error('Server error'));
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => screen.getByTestId(`rename-${personalTask.id}`));
+    fireEvent.click(screen.getByTestId(`rename-${personalTask.id}`));
+
+    await waitFor(() => {
+      expect(screen.getByText('tasks.renameError')).toBeInTheDocument();
+    });
   });
 
   it('always shows delete for a personal task', async () => {

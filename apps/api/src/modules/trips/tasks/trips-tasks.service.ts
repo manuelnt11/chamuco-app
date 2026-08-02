@@ -85,9 +85,9 @@ export class TripsTasksService {
     taskId: string,
     dto: UpdateTripTaskDto,
   ): Promise<TripTaskResponseDto> {
-    const task = await this.findTaskOrThrow(tripId, taskId);
     const trip = await this.assertActiveParticipant(tripId, user.id);
     this.assertTripMutable(trip);
+    const task = await this.findTaskOrThrow(tripId, taskId);
     await this.assertCanManageTask(tripId, user.id, task);
 
     const [updated] = await this.db
@@ -112,9 +112,9 @@ export class TripsTasksService {
     taskId: string,
     dto: SetTripTaskCompletionDto,
   ): Promise<TripTaskResponseDto> {
-    const task = await this.findTaskOrThrow(tripId, taskId);
     const trip = await this.assertActiveParticipant(tripId, user.id);
     this.assertTripMutable(trip);
+    const task = await this.findTaskOrThrow(tripId, taskId);
 
     if (task.ownerId !== null) {
       if (task.ownerId !== user.id) {
@@ -148,9 +148,9 @@ export class TripsTasksService {
   }
 
   async deleteTask(user: AuthenticatedUser, tripId: string, taskId: string): Promise<void> {
-    const task = await this.findTaskOrThrow(tripId, taskId);
     const trip = await this.assertActiveParticipant(tripId, user.id);
     this.assertTripMutable(trip);
+    const task = await this.findTaskOrThrow(tripId, taskId);
     await this.assertCanManageTask(tripId, user.id, task);
 
     await this.db.delete(tripTasks).where(eq(tripTasks.id, taskId));

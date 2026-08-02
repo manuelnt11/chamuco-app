@@ -210,6 +210,10 @@ export interface CreateTripTaskPayload {
   title: string;
 }
 
+export interface UpdateTripTaskPayload {
+  title: string;
+}
+
 export interface SetTripTaskCompletionPayload {
   completed: boolean;
 }

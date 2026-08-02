@@ -284,6 +284,24 @@ describe('TripsTasksService', () => {
         service.updateTaskTitle(mockUser, 'trip-uuid', 'shared-task-uuid', dto),
       ).rejects.toThrow(ForbiddenException);
     });
+
+    it('throws NotFoundException when trip does not exist, before loading the task', async () => {
+      mockTripsFindFirst.mockResolvedValue(undefined);
+
+      await expect(
+        service.updateTaskTitle(mockUser, 'trip-uuid', 'shared-task-uuid', dto),
+      ).rejects.toThrow(NotFoundException);
+      expect(mockTripTasksFindFirst).not.toHaveBeenCalled();
+    });
+
+    it('throws ForbiddenException when user is not an active participant, before loading the task', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+
+      await expect(
+        service.updateTaskTitle(mockUser, 'trip-uuid', 'shared-task-uuid', dto),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockTripTasksFindFirst).not.toHaveBeenCalled();
+    });
   });
 
   describe('setCompletion', () => {
@@ -346,6 +364,26 @@ describe('TripsTasksService', () => {
         service.setCompletion(mockUser, 'trip-uuid', 'missing-task-uuid', dto),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('throws NotFoundException when trip does not exist, before loading the task', async () => {
+      mockTripsFindFirst.mockResolvedValue(undefined);
+      const dto: SetTripTaskCompletionDto = { completed: true };
+
+      await expect(
+        service.setCompletion(mockUser, 'trip-uuid', 'shared-task-uuid', dto),
+      ).rejects.toThrow(NotFoundException);
+      expect(mockTripTasksFindFirst).not.toHaveBeenCalled();
+    });
+
+    it('throws ForbiddenException when user is not an active participant, before loading the task', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+      const dto: SetTripTaskCompletionDto = { completed: true };
+
+      await expect(
+        service.setCompletion(mockUser, 'trip-uuid', 'shared-task-uuid', dto),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockTripTasksFindFirst).not.toHaveBeenCalled();
+    });
   });
 
   describe('deleteTask', () => {
@@ -390,6 +428,24 @@ describe('TripsTasksService', () => {
       await expect(service.deleteTask(mockUser, 'trip-uuid', 'shared-task-uuid')).rejects.toThrow(
         ForbiddenException,
       );
+    });
+
+    it('throws NotFoundException when trip does not exist, before loading the task', async () => {
+      mockTripsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.deleteTask(mockUser, 'trip-uuid', 'shared-task-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockTripTasksFindFirst).not.toHaveBeenCalled();
+    });
+
+    it('throws ForbiddenException when user is not an active participant, before loading the task', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.deleteTask(mockUser, 'trip-uuid', 'shared-task-uuid')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockTripTasksFindFirst).not.toHaveBeenCalled();
     });
   });
 });

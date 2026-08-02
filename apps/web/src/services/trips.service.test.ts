@@ -23,6 +23,7 @@ import {
   updateTrip,
   updateTripAnnouncement,
   updateTripDestination,
+  updateTripTaskTitle,
 } from './trips.service';
 import type {
   DestinationResponse,
@@ -679,6 +680,34 @@ describe('createTripTask', () => {
     await expect(
       createTripTask('trip-uuid-1', { scope: TripTaskScope.SHARED, title: 'x' }),
     ).rejects.toEqual({ response: { status: 403 } });
+  });
+});
+
+describe('updateTripTaskTitle', () => {
+  it('patches /v1/trips/:tripId/tasks/:taskId and returns the task', async () => {
+    const renamedTask = { ...taskFixture, title: 'Pack reef-safe sunscreen' };
+    mockPatch.mockResolvedValueOnce({ data: renamedTask });
+    const result = await updateTripTaskTitle('trip-uuid-1', 'task-uuid-1', {
+      title: 'Pack reef-safe sunscreen',
+    });
+    expect(mockPatch).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/tasks/task-uuid-1', {
+      title: 'Pack reef-safe sunscreen',
+    });
+    expect(result).toEqual(renamedTask);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockPatch.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(updateTripTaskTitle('trip-uuid-1', 'task-uuid-1', { title: 'x' })).rejects.toEqual(
+      { response: { status: 401 } },
+    );
+  });
+
+  it('propagates 404 errors', async () => {
+    mockPatch.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(updateTripTaskTitle('trip-uuid-1', 'task-uuid-1', { title: 'x' })).rejects.toEqual(
+      { response: { status: 404 } },
+    );
   });
 });
 

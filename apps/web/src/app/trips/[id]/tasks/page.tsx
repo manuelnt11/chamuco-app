@@ -19,6 +19,7 @@ import {
   getTripParticipation,
   getTripTasks,
   setTripTaskCompletion,
+  updateTripTaskTitle,
 } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
@@ -80,6 +81,16 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
     } catch {
       setMutateError(t('tasks.toggleError'));
+    }
+  };
+
+  const handleRename = async (taskId: string, newTitle: string) => {
+    setMutateError(null);
+    try {
+      const updated = await updateTripTaskTitle(id, taskId, { title: newTitle });
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+    } catch {
+      setMutateError(t('tasks.renameError'));
     }
   };
 
@@ -156,6 +167,7 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
                 key={task.id}
                 task={task}
                 onToggle={(completed) => handleToggle(task.id, completed)}
+                onRename={isOrganizer ? (newTitle) => handleRename(task.id, newTitle) : undefined}
                 onDelete={isOrganizer ? () => handleDelete(task.id) : undefined}
               />
             ))}
@@ -177,6 +189,7 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
                 key={task.id}
                 task={task}
                 onToggle={(completed) => handleToggle(task.id, completed)}
+                onRename={(newTitle) => handleRename(task.id, newTitle)}
                 onDelete={() => handleDelete(task.id)}
               />
             ))}

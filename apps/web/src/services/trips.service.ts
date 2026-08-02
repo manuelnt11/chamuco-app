@@ -30,6 +30,7 @@ import type {
   UpdateDestinationPayload,
   UpdateParticipantRolePayload,
   UpdateTripPayload,
+  UpdateTripTaskPayload,
 } from '@/services/trips.types';
 
 // ─── Discovery methods ────────────────────────────────────────────────────────
@@ -327,6 +328,15 @@ export async function createTripTask(
   payload: CreateTripTaskPayload,
 ): Promise<TripTask> {
   const { data } = await apiClient.post<TripTask>(`/v1/trips/${tripId}/tasks`, payload);
+  return data;
+}
+
+export async function updateTripTaskTitle(
+  tripId: string,
+  taskId: string,
+  payload: UpdateTripTaskPayload,
+): Promise<TripTask> {
+  const { data } = await apiClient.patch<TripTask>(`/v1/trips/${tripId}/tasks/${taskId}`, payload);
   return data;
 }
 

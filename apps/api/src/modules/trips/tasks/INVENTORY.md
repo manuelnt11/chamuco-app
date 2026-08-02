@@ -74,7 +74,7 @@
 - `mockActiveParticipant` (const) — stub trip-participant row with `PARTICIPANT` role and `CONFIRMED` status
 - `mockSharedTask` (const) — stub `trip_tasks` row with `ownerId: null` (SHARED)
 - `mockPersonalTask` (const) — stub `trip_tasks` row owned by `mockUser`
-- `TripsTasksService` describe block — grouped tests for `listTasks`, `createTask`, `updateTaskTitle`, `setCompletion`, `deleteTask`, covering both SHARED (organizer-gated) and PERSONAL (owner-gated) branches plus the COMPLETED/CANCELLED trip-mutable gate
+- `TripsTasksService` describe block — grouped tests for `listTasks`, `createTask`, `updateTaskTitle`, `setCompletion`, `deleteTask`, covering both SHARED (organizer-gated) and PERSONAL (owner-gated) branches, the COMPLETED/CANCELLED trip-mutable gate, and (for `updateTaskTitle`/`setCompletion`/`deleteTask`) that trip-not-found/not-a-participant is rejected _before_ the task is loaded
 
 ### Exports
 
@@ -103,7 +103,7 @@
 
 ### Definitions
 
-- `TripsTasksService` (service) — injectable service exposing `listTasks`, `createTask`, `updateTaskTitle`, `setCompletion`, `deleteTask`
+- `TripsTasksService` (service) — injectable service exposing `listTasks`, `createTask`, `updateTaskTitle`, `setCompletion`, `deleteTask`. `updateTaskTitle`/`setCompletion`/`deleteTask` check `assertActiveParticipant` + `assertTripMutable` _before_ loading the task via `findTaskOrThrow`, so a non-participant never learns whether a given task exists
 - `findTaskOrThrow` (function) — private guard; fetches a `trip_tasks` row scoped to the trip or throws `NotFoundException`
 - `assertCanManageTask` (function) — private guard; SHARED tasks require `assertOrganizerRole`, PERSONAL tasks require the caller to be `ownerId`
 - `hasSharedCompletion` (function) — private helper; checks whether a `trip_task_completions` row exists for a task/user pair

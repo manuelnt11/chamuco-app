@@ -262,6 +262,7 @@
     "loadError": "Failed to load tasks.",
     "createError": "Failed to create task.",
     "toggleError": "Failed to update task.",
+    "renameError": "Failed to rename task.",
     "deleteError": "Failed to delete task.",
     "addPlaceholder": "Add a task...",
     "addButton": "Add task",

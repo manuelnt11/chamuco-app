@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsEnum, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { TripTaskScope } from '@chamuco/shared-types';
+import { sanitizeName } from '@/common/transforms/name.transform';
 
 export class CreateTripTaskDto {
   @ApiProperty({
@@ -18,5 +20,6 @@ export class CreateTripTaskDto {
   @IsString()
   @MinLength(1)
   @MaxLength(200)
+  @Transform(({ value }) => sanitizeName(value))
   title!: string;
 }

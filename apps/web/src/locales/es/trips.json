@@ -262,6 +262,7 @@
     "loadError": "Error al cargar las tareas.",
     "createError": "Error al crear la tarea.",
     "toggleError": "Error al actualizar la tarea.",
+    "renameError": "Error al renombrar la tarea.",
     "deleteError": "Error al eliminar la tarea.",
     "addPlaceholder": "Agregar una tarea...",
     "addButton": "Agregar tarea",
