@@ -299,6 +299,7 @@
 - ./trip-participant-status.enum — barrel re-export
 - ./trip-role.enum — barrel re-export
 - ./trip-status.enum — barrel re-export
+- ./trip-task-scope.enum — barrel re-export
 - ./trip-visibility.enum — barrel re-export
 - ./upload-type.enum — barrel re-export
 - ./visa-coverage-type.enum — barrel re-export
@@ -535,6 +536,22 @@
 ### Exports
 
 - TripStatus — named
+
+---
+
+## trip-task-scope.enum.ts
+
+### Imports
+
+- none
+
+### Definitions
+
+- TripTaskScope (enum) — Discriminates a trip checklist item as SHARED (organizer/co-organizer-created, visible to all active participants) or PERSONAL (owner-managed); API contract only, no PG-backed column
+
+### Exports
+
+- TripTaskScope — named
 
 ---
 

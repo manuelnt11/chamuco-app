@@ -267,6 +267,13 @@
       "when": 1784600914193,
       "tag": "0037_hard_blockbuster",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1785618630096,
+      "tag": "0038_talented_blizzard",
+      "breakpoints": true
     }
   ]
 }

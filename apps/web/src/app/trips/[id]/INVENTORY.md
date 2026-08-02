@@ -10,7 +10,7 @@
 - `next/link` — `Link` (client-side navigation component)
 - `react-i18next` — `useTranslation` (i18n hook for trips and common namespaces)
 - `@chamuco/shared-types` — `ORGANIZER_ROLES`, `TripRole`, `TripStatus`, `TripVisibility` (shared constant and enums for roles, lifecycle states, and visibility)
-- `@phosphor-icons/react` — `ArrowLeftIcon`, `ArrowRightIcon`, `GearSixIcon`, `MegaphoneIcon`, `UsersThreeIcon`, `AirplaneTakeoffIcon`, `AirplaneLandingIcon`, `UsersIcon`, `NavigationArrowIcon`, `PencilSimpleIcon`, `LinkIcon` (icon components for nav and UI)
+- `@phosphor-icons/react` — `ArrowLeftIcon`, `ArrowRightIcon`, `GearSixIcon`, `ListChecksIcon`, `MegaphoneIcon`, `UsersThreeIcon`, `AirplaneTakeoffIcon`, `AirplaneLandingIcon`, `UsersIcon`, `NavigationArrowIcon`, `PencilSimpleIcon`, `LinkIcon` (icon components for nav and UI)
 - `@/components/ui/toast` — `toast` (toast notification utility)
 - `@/services/trips.service` — `getTrip`, `getTripAnnouncements`, `getTripDestinations`, `getTripLinkedGroups`, `getTripParticipation`, `updateTrip` (API call functions for trip data)
 - `@/hooks/useAuth` — `useAuth` (authentication state hook)
@@ -25,7 +25,7 @@
 ### Definitions
 
 - `TripDetailPageProps` (interface) — Props type with `params` as a `Promise<{ id: string }>` for Next.js dynamic segment
-- `TripDetailPage` (component) — Default export; fetches trip, destinations, participation, linked groups, and announcements in parallel; renders trip header, status transitions, destination list, quick stats, linked groups, announcements preview, and inline-editable itinerary notes
+- `TripDetailPage` (component) — Default export; fetches trip, destinations, participation, linked groups, and announcements in parallel; renders trip header, nav bar (participants, announcements, tasks, settings), status transitions, destination list, quick stats, linked groups, announcements preview, and inline-editable itinerary notes
 - `handleSaveNotes` (function) — Async handler inside `TripDetailPage` that calls `updateTrip` to persist itinerary notes and exits edit mode on success
 
 ### Exports

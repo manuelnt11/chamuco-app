@@ -27,6 +27,7 @@
 - `@/modules/trips/schema/group-trips.schema` — barrel re-export
 - `@/modules/trips/schema/trip-destinations.schema` — barrel re-export
 - `@/modules/trips/schema/trip-participants.schema` — barrel re-export
+- `@/modules/trips/schema/trip-tasks.schema` — barrel re-export
 - `@/modules/trips/schema/trips.schema` — barrel re-export
 - `@/modules/users/schema/support-admin-audit-log.schema` — barrel re-export
 - `@/modules/users/schema/user-etas.schema` — barrel re-export

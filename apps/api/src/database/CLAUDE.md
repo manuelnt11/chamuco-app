@@ -31,20 +31,22 @@ Schema files live next to the module they belong to (`src/modules/<module>/schem
 
 ### Current tables
 
-| Table                     | Module            | Description                                                                                                                                               |
-| ------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `users`                   | users             | Core auth identity record                                                                                                                                 |
-| `user_preferences`        | users             | 1:1 — display/UX preferences                                                                                                                              |
-| `user_profiles`           | users             | 1:1 — personal profile, health data (JSONB), emergency contacts, loyalty programs                                                                         |
-| `user_nationalities`      | users             | 1:many — citizenships + passport documents                                                                                                                |
-| `user_visas`              | users             | 1:many — visas held, linked to a nationality record                                                                                                       |
-| `user_etas`               | users             | 1:many — electronic travel authorizations, linked to a nationality record and a specific passport                                                         |
-| `support_admin_audit_log` | users             | Append-only audit trail for all SUPPORT_ADMIN writes                                                                                                      |
-| `trips`                   | trips             | Core trip entity — status, visibility, dates, capacity, departure/landing                                                                                 |
-| `trip_destinations`       | trips             | 1:many — ordered stop list for a trip; UNIQUE `(trip_id, position)`, position ≥ 1                                                                         |
-| `group_trips`             | trips             | M:M junction — groups linked to a trip; linking triggers bulk member invitations (app logic)                                                              |
-| `trip_participants`       | trips             | M:M — one active record per user per trip; composite PK `(trip_id, user_id)`; status state machine (INVITED → ACCEPTED → CONFIRMED); `updated_at` trigger |
-| `invitation_tokens`       | invitation-tokens | Polymorphic shareable invite links (referral / trip / group); open links have a partial unique index per context; see `features/invitation-tokens.md`     |
+| Table                     | Module            | Description                                                                                                                                                              |
+| ------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `users`                   | users             | Core auth identity record                                                                                                                                                |
+| `user_preferences`        | users             | 1:1 — display/UX preferences                                                                                                                                             |
+| `user_profiles`           | users             | 1:1 — personal profile, health data (JSONB), emergency contacts, loyalty programs                                                                                        |
+| `user_nationalities`      | users             | 1:many — citizenships + passport documents                                                                                                                               |
+| `user_visas`              | users             | 1:many — visas held, linked to a nationality record                                                                                                                      |
+| `user_etas`               | users             | 1:many — electronic travel authorizations, linked to a nationality record and a specific passport                                                                        |
+| `support_admin_audit_log` | users             | Append-only audit trail for all SUPPORT_ADMIN writes                                                                                                                     |
+| `trips`                   | trips             | Core trip entity — status, visibility, dates, capacity, departure/landing                                                                                                |
+| `trip_destinations`       | trips             | 1:many — ordered stop list for a trip; UNIQUE `(trip_id, position)`, position ≥ 1                                                                                        |
+| `group_trips`             | trips             | M:M junction — groups linked to a trip; linking triggers bulk member invitations (app logic)                                                                             |
+| `trip_participants`       | trips             | M:M — one active record per user per trip; composite PK `(trip_id, user_id)`; status state machine (INVITED → ACCEPTED → CONFIRMED); `updated_at` trigger                |
+| `trip_tasks`              | trips             | Trip checklist item — shared (`owner_id` null, created by organizer/co-organizer) or personal (`owner_id` set); `completed_at` tracks completion only for personal tasks |
+| `trip_task_completions`   | trips             | M:M — per-participant completion of a shared `trip_task`; composite PK `(task_id, user_id)`; row presence = completed                                                    |
+| `invitation_tokens`       | invitation-tokens | Polymorphic shareable invite links (referral / trip / group); open links have a partial unique index per context; see `features/invitation-tokens.md`                    |
 
 ### `updated_at` triggers
 
@@ -180,6 +182,32 @@ pnpm --filter api db:migrate
 # (lint → typecheck → test → build → push image → db:migrate → deploy)
 ```
 
+### Troubleshooting silent migration failures
+
+`drizzle-kit migrate` (v0.31.10) can fail **silently** — spinner stops, process exits 1, no error text at all. This happens when a migration's SQL fails against existing data (e.g. a tightened CHECK constraint violated by an existing row). The CLI swallows the underlying Postgres error instead of printing it.
+
+To see the real error, bypass the CLI and call the underlying migrator directly:
+
+```js
+// run-migrate.mjs — run from apps/api with DATABASE_URL set
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import pg from 'pg';
+
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool);
+try {
+  await migrate(db, { migrationsFolder: './src/database/migrations' });
+  console.log('OK');
+} catch (err) {
+  console.error('MIGRATION ERROR:', err);
+} finally {
+  await pool.end();
+}
+```
+
+This prints the actual Postgres error (constraint name, violating query) instead of a bare exit code. Delete the script after diagnosing — it's a debugging tool, not part of the migration workflow.
+
 ### Destructive operations
 
 Column drops and renames require a multi-step migration strategy:
@@ -231,6 +259,7 @@ Each step is a separate migration file and a separate PR. Document the steps in 
 | 0035      | `0035_robust_snowbird.sql`      | `invitation_tokens` table; `invitation_token_context` enum; partial unique index for one open link per context                                                                                                     |
 | 0036      | `0036_shallow_vin_gonzales.sql` | `invitation_tokens.updated_at` column; `trip_destinations.itinerary` text column; unique index `idx_invitation_tokens_one_targeted_per_context` for targeted invites                                               |
 | 0037      | `0037_hard_blockbuster.sql`     | Tightened `trips_participant_capacity_min` CHECK constraint from `>= 1` to `>= 2`                                                                                                                                  |
+| 0038      | `0038_talented_blizzard.sql`    | `trip_tasks` and `trip_task_completions` tables — trip checklist (shared + personal tasks); CHECK `trip_tasks_completed_only_when_personal`                                                                        |
 
 ---
 

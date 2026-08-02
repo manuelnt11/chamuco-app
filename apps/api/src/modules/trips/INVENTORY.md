@@ -67,6 +67,7 @@
 - `@/modules/notifications/notifications.module` — `NotificationsModule` for push/email notifications
 - `./trips.controller` — `TripsController`
 - `./destinations/trips-destinations.controller` — `TripsDestinationsController`
+- `./tasks/trips-tasks.controller` — `TripsTasksController`
 - `./groups/trips-groups.controller` — `TripsGroupsController`
 - `./announcements/trip-announcements.controller` — `TripAnnouncementsController`
 - `./participants/trip-participants.controller` — `TripParticipantsController`
@@ -74,6 +75,7 @@
 - `./join-requests/trip-join-requests.controller` — `TripJoinRequestsController`
 - `./trips.service` — `TripsService`
 - `./destinations/trips-destinations.service` — `TripsDestinationsService`
+- `./tasks/trips-tasks.service` — `TripsTasksService`
 - `./groups/trips-groups.service` — `TripsGroupsService`
 - `./announcements/trip-announcements.service` — `TripAnnouncementsService`
 - `./participants/trip-participants.service` — `TripParticipantsService`

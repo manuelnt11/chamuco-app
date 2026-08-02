@@ -250,7 +250,26 @@
   "announcementsEditError": "Failed to update announcement.",
   "announcementsDeleteError": "Failed to delete announcement.",
   "actions": {
-    "editSettings": "Edit settings"
+    "editSettings": "Edit settings",
+    "viewTasks": "View tasks"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "sharedTitle": "Group tasks",
+    "personalTitle": "My tasks",
+    "sharedEmpty": "No group tasks yet.",
+    "personalEmpty": "No personal tasks yet.",
+    "loadError": "Failed to load tasks.",
+    "createError": "Failed to create task.",
+    "toggleError": "Failed to update task.",
+    "renameError": "Failed to rename task.",
+    "deleteError": "Failed to delete task.",
+    "addPlaceholder": "Add a task...",
+    "addButton": "Add task",
+    "scope": {
+      "SHARED": "Group",
+      "PERSONAL": "Personal"
+    }
   },
   "cover": {
     "label": "Cover",

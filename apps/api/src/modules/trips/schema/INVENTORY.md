@@ -142,6 +142,49 @@
 
 ---
 
+## trip-tasks.schema.ts
+
+### Imports
+
+- `drizzle-orm` — `relations`, `sql` for raw SQL in CHECK constraints
+- `drizzle-orm/pg-core` — `check`, `index`, `pgTable`, `primaryKey`, `timestamp`, `uuid`, `varchar` for table and column builders
+- `@/modules/trips/schema/trips.schema` — `trips` table reference for FK
+- `@/modules/users/schema/users.schema` — `users` table reference for FKs (`owner_id`, `created_by`, `user_id`)
+
+### Definitions
+
+- `tripTasks` (const) — Drizzle table for `trip_tasks`; UUID PK, shared task when `owner_id` is null (created by organizer/co-organizer) or personal task when `owner_id` is set, `completed_at` only meaningful for personal tasks, index on `(trip_id, owner_id)`, CHECK `trip_tasks_completed_only_when_personal`
+- `tripTaskCompletions` (const) — Drizzle table for `trip_task_completions`; composite PK on `(task_id, user_id)`; row presence records a participant's completion of a shared `trip_task`
+- `tripTasksRelations` (const) — Drizzle relations defining `trip`, `owner`, `creator`, and `completions` associations
+- `tripTaskCompletionsRelations` (const) — Drizzle relations defining `task` and `user` one-to-one associations
+
+### Exports
+
+- `tripTasks` — named
+- `tripTaskCompletions` — named
+- `tripTasksRelations` — named
+- `tripTaskCompletionsRelations` — named
+
+---
+
+## trip-tasks.schema.spec.ts
+
+### Imports
+
+- `drizzle-orm/pg-core` — `getTableConfig` for inspecting table metadata in tests
+- `./trip-tasks.schema` — `tripTaskCompletions`, `tripTasks` under test
+
+### Definitions
+
+- `describe('trip_tasks schema', ...)` (const) — test suite verifying UUID PK, index, CHECK constraint, timestamptz columns, and nullable `owner_id`
+- `describe('trip_task_completions schema', ...)` (const) — test suite verifying composite PK and `completed_at` column
+
+### Exports
+
+- _(none — test file)_
+
+---
+
 ## trips.schema.ts
 
 ### Imports

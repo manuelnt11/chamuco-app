@@ -1114,6 +1114,50 @@ None
 
 ---
 
+## trip-task-item.test.tsx
+
+### Imports
+
+- `vitest` — `describe`, `it`, `expect`, `vi`, `afterEach`
+- `@testing-library/react` — `render`, `screen`, `fireEvent`, `waitFor`
+- `@chamuco/shared-types` — `TripTaskScope`
+- `./trip-task-item` — `TripTaskItem` (subject under test)
+- `@/services/trips.types` — `TripTask` (type-only)
+
+### Definitions
+
+- Mocks `@/components/ui/edit-delete-actions` with a stub exposing `edit-btn`/`delete-btn` test IDs
+- `task` (const) — baseline `TripTask` fixture (PERSONAL, not completed)
+- Test suite covering title rendering, strike-through styling, checkbox toggle, delete gating, and a `describe('rename', ...)` block covering edit-action visibility, entering edit mode with the current title pre-filled, saving a trimmed title via `onRename`, cancelling without calling `onRename`, and saving an unchanged title as a no-op
+
+### Exports
+
+- none (test file)
+
+---
+
+## trip-task-item.tsx
+
+### Imports
+
+- `react` — `useState`
+- `react-i18next` — `useTranslation`
+- `@/components/ui/checkbox` — `Checkbox`
+- `@/components/ui/edit-delete-actions` — `EditDeleteActions`
+- `@/components/ui/input` — `Input`
+- `@/lib/utils` — `cn` class merging helper
+- `@/services/trips.types` — `TripTask` (type-only)
+
+### Definitions
+
+- `TripTaskItem` (component) — renders a checkbox bound to `task.completed`, the task title (strike-through when completed), and edit/delete actions when `onRename`/`onDelete` are provided (omit either to hide that affordance, e.g. a SHARED task for a non-organizer). When editing, swaps the row for an `Input` pre-filled with the title plus Cancel/Save buttons; Save is a no-op (no API call) when the trimmed title is empty or unchanged. Tracks local `isToggling`/`isDeleting`/`isEditing`/`isSaving` state to disable interaction mid-mutation
+
+### Exports
+
+- `TripTaskItem` — named
+
+---
+
 ## user-autocomplete.test.tsx
 
 ### Imports

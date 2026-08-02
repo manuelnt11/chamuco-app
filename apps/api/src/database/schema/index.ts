@@ -22,6 +22,7 @@ export * from '@/modules/trips/schema/trip-announcements.schema';
 export * from '@/modules/trips/schema/group-trips.schema';
 export * from '@/modules/trips/schema/trip-destinations.schema';
 export * from '@/modules/trips/schema/trip-participants.schema';
+export * from '@/modules/trips/schema/trip-tasks.schema';
 export * from '@/modules/trips/schema/trips.schema';
 export * from '@/modules/users/schema/support-admin-audit-log.schema';
 export * from '@/modules/users/schema/user-etas.schema';
