@@ -11,7 +11,7 @@ Must be on an issue branch created with `gh issue develop` (branch name format: 
 
 ## Step 1 — Run preparation script
 
-Execute the automated preparation script:
+Execute the automated preparation script (path is relative to the **repo root**, not this skill's directory):
 
 ```bash
 ./scripts/to-review.sh
@@ -105,7 +105,7 @@ Save the PR URL from the output.
 
 ## Step 6 — Update issue status to "In Review"
 
-Use the status update script:
+Use the status update script (path relative to repo root):
 
 ```bash
 ./scripts/update-project-status.sh "${ISSUE_NUMBER}" "In Review"

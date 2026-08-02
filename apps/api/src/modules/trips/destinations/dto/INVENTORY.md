@@ -30,7 +30,7 @@
 ### Definitions
 
 - `DestinationResponseDto` (class) — Response shape for a trip destination; exposes `id`, `tripId`, `position`, `countryCode`, `city`, `label`, `itinerary`, and `createdAt`
-- `DestinationWriteResponseDto` (class) — Extends `DestinationResponseDto` with `requiresConfirmation` flag that is `true` when the trip is `IN_PROGRESS` (edit requires organizer confirmation and notifies participants)
+- `DestinationWriteResponseDto` (class) — Extends `DestinationResponseDto` with `requiresConfirmation` flag that is `true` when the trip is `CONFIRMED` or `IN_PROGRESS` (informational only, no confirmation/notification enforced yet — post-MVP)
 
 ### Exports
 

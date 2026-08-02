@@ -10,7 +10,7 @@ The issue number is: $ARGUMENTS
 
 ## Execution
 
-Run the automated setup script:
+Run the automated setup script (path is relative to the **repo root**, not this skill's directory):
 
 ```bash
 ./scripts/take-issue.sh $ARGUMENTS

@@ -62,7 +62,7 @@ export class TripResponseDto {
 
   @ApiProperty({
     description:
-      'True when status is CONFIRMED or IN_PROGRESS — edits require organizer confirmation and will notify participants.',
+      'True when status is CONFIRMED or IN_PROGRESS. Informational only — no confirmation step or notification is enforced yet (post-MVP, Issues #343-354).',
     example: false,
   })
   requiresConfirmation!: boolean;
