@@ -67,7 +67,7 @@ export function TripTaskItem({ task, onToggle, onRename, onDelete }: TripTaskIte
 
   if (isEditing) {
     return (
-      <li className="flex items-center gap-2 rounded-lg border border-border bg-card p-3">
+      <li className="flex items-center gap-2 bg-card p-3">
         <Input
           value={draftTitle}
           onChange={(e) => setDraftTitle(e.target.value)}
@@ -96,7 +96,7 @@ export function TripTaskItem({ task, onToggle, onRename, onDelete }: TripTaskIte
   }
 
   return (
-    <li className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+    <li className="flex items-center gap-3 pl-3 pr-1 py-1">
       <Checkbox
         checked={task.completed}
         onCheckedChange={() => void handleToggle(!task.completed)}
