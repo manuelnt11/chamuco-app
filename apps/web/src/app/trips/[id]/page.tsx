@@ -111,8 +111,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
   const isOrganizer = callerRole !== null && ORGANIZER_ROLES.includes(callerRole);
   const isDraft = trip.status === TripStatus.DRAFT;
   const isTerminal = trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED;
-  const isDestinationEditable =
-    isOrganizer && (trip.status === TripStatus.DRAFT || trip.status === TripStatus.OPEN);
+  const isDestinationEditable = isOrganizer && !isTerminal;
 
   return (
     <div className="p-8 max-w-2xl">

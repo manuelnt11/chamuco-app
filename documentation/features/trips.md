@@ -61,14 +61,14 @@ This decision can be changed later by the organizer, but declaring it upfront en
 
 A trip progresses through the following statuses (enum: `TripStatus`):
 
-| Value         | Description                                                                                   |
-| ------------- | --------------------------------------------------------------------------------------------- |
-| `DRAFT`       | Trip is being planned. Not yet shared or open for invitations.                                |
-| `OPEN`        | Trip is open for invitations and participant confirmations.                                   |
-| `CONFIRMED`   | Trip is confirmed and edit-restricted. All strict pre-trip tasks must be resolved (post-MVP). |
-| `IN_PROGRESS` | Trip is currently happening (departure date has passed).                                      |
-| `COMPLETED`   | Trip has ended.                                                                               |
-| `CANCELLED`   | Trip was cancelled. Participants are notified.                                                |
+| Value         | Description                                                                                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DRAFT`       | Trip is being planned. Not yet shared or open for invitations.                                                                                                                    |
+| `OPEN`        | Trip is open for invitations and participant confirmations.                                                                                                                       |
+| `CONFIRMED`   | Trip is confirmed. Still editable — see [Changes While CONFIRMED or IN_PROGRESS](#changes-while-confirmed-or-in_progress). All strict pre-trip tasks must be resolved (post-MVP). |
+| `IN_PROGRESS` | Trip is currently happening (departure date has passed).                                                                                                                          |
+| `COMPLETED`   | Trip has ended.                                                                                                                                                                   |
+| `CANCELLED`   | Trip was cancelled. Participants are notified.                                                                                                                                    |
 
 ---
 
@@ -82,9 +82,11 @@ These boundaries determine when the trip transitions to `IN_PROGRESS` (start bou
 
 ---
 
-## Changes While IN_PROGRESS
+## Changes While CONFIRMED or IN_PROGRESS
 
-Once a trip enters `IN_PROGRESS` status, any modification (destinations, dates, participant list, settings) **requires explicit organizer confirmation** before it is saved. After a change is confirmed and applied, **all confirmed participants are notified** of what changed.
+Once a trip reaches `CONFIRMED` status (and while it remains `IN_PROGRESS`), it is not edit-restricted — organizers can still modify destinations, dates, participant list, and settings. The API marks these edits with `requiresConfirmation: true` so the client can flag them as sensitive changes.
+
+**Not yet implemented (post-MVP, Issues #343–#354):** an explicit organizer confirmation step before the edit is saved, and a notification to all confirmed participants after a change is applied. Until that lands, `requiresConfirmation` is informational only — edits save immediately and no notification is sent. A trip only becomes truly immutable at `COMPLETED` or `CANCELLED`.
 
 ---
 
@@ -214,7 +216,7 @@ Every trip must have at least one destination. Destinations are ordered — the 
 
 - At least one destination is required. A trip without destinations cannot be published (`OPEN`).
 - Positions must be contiguous and start at 1. Reordering destinations updates all affected `position` values atomically.
-- Destinations can be added, removed, or reordered while the trip is `DRAFT` or `OPEN`. Changes while `IN_PROGRESS` require organizer confirmation.
+- Destinations can be added, removed, or reordered while the trip is `DRAFT`, `OPEN`, `CONFIRMED`, or `IN_PROGRESS`. Changes while `CONFIRMED` or `IN_PROGRESS` are flagged via `requiresConfirmation` — see [Changes While CONFIRMED or IN_PROGRESS](#changes-while-confirmed-or-in_progress).
 
 ---
 

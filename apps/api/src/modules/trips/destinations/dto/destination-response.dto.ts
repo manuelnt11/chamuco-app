@@ -32,7 +32,7 @@ export class DestinationResponseDto {
 export class DestinationWriteResponseDto extends DestinationResponseDto {
   @ApiProperty({
     description:
-      'True when trip is IN_PROGRESS — edit requires organizer confirmation and notifies participants.',
+      'True when trip is CONFIRMED or IN_PROGRESS. Informational only — no confirmation step or notification is enforced yet (post-MVP, Issues #343-354).',
     example: false,
   })
   requiresConfirmation!: boolean;
