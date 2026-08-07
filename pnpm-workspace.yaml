@@ -21,7 +21,7 @@ catalog:
   eslint-plugin-i18next: ^6.1.5
   eslint-plugin-prettier: ^5.5.6
   prettier: ^3.9.6
-  typescript: ^6.0.3
+  typescript: ^7.0.0
   '@vitest/coverage-v8': ^4.1.10
   vitest: ^4.1.10
 minimumReleaseAgeExclude:
@@ -50,8 +50,8 @@ overrides:
   glob: '>=10.5.0'
   hono: '>=4.12.21'
   js-yaml@>=5.0.0 <=5.2.1: ^5.2.2
-  linkify-it@<=5.0.0: ^5.0.1
-  linkify-it@<=5.0.1: ^5.0.2
+  linkify-it@<=5.0.0: ^6.0.0
+  linkify-it@<=5.0.1: ^6.0.0
   lodash: '>=4.18.0'
   multer: '>=2.2.0'
   nodemailer@<=9.0.0: '>=9.0.1'
