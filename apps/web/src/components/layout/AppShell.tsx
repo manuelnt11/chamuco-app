@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Header } from '@/components/header';
 import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
 import { FeedbackButton } from '@/components/feedback/FeedbackButton';
+import { AppWallpaper } from './AppWallpaper';
 import { GroupInvitationsProvider } from '@/store/group-invitations';
 import { TripInvitationsProvider } from '@/store/trip-invitations';
 // TODO: re-enable once notifications/banners are fully designed
@@ -33,6 +34,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <GroupInvitationsProvider>
       <TripInvitationsProvider>
+        <AppWallpaper />
         <Header />
         <DesktopSideNav />
         <MobileBottomNav />
