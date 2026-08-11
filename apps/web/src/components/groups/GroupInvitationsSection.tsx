@@ -4,9 +4,18 @@ import { useTranslation } from 'react-i18next';
 import { useGroupInvitations } from '@/store/group-invitations';
 import { InvitationResponseButtons } from '@/components/groups/members/InvitationResponseButtons';
 
-export function GroupInvitationsSection() {
+interface GroupInvitationsSectionProps {
+  onSuccess?: () => void;
+}
+
+export function GroupInvitationsSection({ onSuccess }: GroupInvitationsSectionProps) {
   const { t } = useTranslation('groups');
   const { invitations, count, refresh } = useGroupInvitations();
+
+  function handleSuccess() {
+    void refresh();
+    onSuccess?.();
+  }
 
   if (count === 0) return null;
 
@@ -39,7 +48,7 @@ export function GroupInvitationsSection() {
             <div className="ml-auto shrink-0">
               <InvitationResponseButtons
                 groupId={group.id}
-                onSuccess={refresh}
+                onSuccess={handleSuccess}
                 showMessage={false}
               />
             </div>
