@@ -10,6 +10,7 @@ import { getMyTrips } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
 import { TripCard } from '@/components/trips/TripCard';
 import { TripInvitationsSection } from '@/components/trips/TripInvitationsSection';
+import { TripJoinRequestsSection } from '@/components/trips/TripJoinRequestsSection';
 import type { MyTripListItemResponse } from '@/services/trips.types';
 
 type Tab = 'upcoming' | 'past';
@@ -76,8 +77,6 @@ export default function TripsPage() {
         </div>
       </div>
 
-      <TripInvitationsSection onSuccess={fetchTrips} />
-
       <div
         role="tablist"
         aria-label={t('title')}
@@ -116,7 +115,12 @@ export default function TripsPage() {
         ))}
       </div>
 
-      <div id={`tabpanel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`}>
+      <div
+        id={`tabpanel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+        className="mb-6"
+      >
         {isLoading ? null : visibleTrips.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-lg font-medium text-foreground">{t('detail.noTrips')}</p>
@@ -136,6 +140,9 @@ export default function TripsPage() {
           </div>
         )}
       </div>
+
+      <TripInvitationsSection onSuccess={fetchTrips} />
+      <TripJoinRequestsSection />
     </div>
   );
 }

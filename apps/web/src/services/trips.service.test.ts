@@ -8,6 +8,7 @@ import {
   deleteTripAnnouncement,
   deleteTripDestination,
   deleteTripTask,
+  getMyTripJoinRequests,
   getMyTrips,
   getTrip,
   getTripAnnouncement,
@@ -28,6 +29,7 @@ import {
 import type {
   DestinationResponse,
   DestinationWriteResponse,
+  MyTripJoinRequestResponse,
   MyTripListItemResponse,
   TripAnnouncement,
   TripAnnouncementsResponse,
@@ -133,6 +135,31 @@ describe('getMyTrips', () => {
   it('propagates 404 errors', async () => {
     mockGet.mockRejectedValueOnce({ response: { status: 404 } });
     await expect(getMyTrips()).rejects.toEqual({ response: { status: 404 } });
+  });
+});
+
+describe('getMyTripJoinRequests', () => {
+  it('gets /v1/trips/join-requests/mine and returns the list', async () => {
+    const mockRequests: MyTripJoinRequestResponse[] = [
+      {
+        tripId: 'trip-uuid-1',
+        name: 'Cancún 2026',
+        coverUrl: null,
+        visibility: TripVisibility.PUBLIC,
+        startDate: '2026-12-01',
+        endDate: '2026-12-08',
+        initiatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+    mockGet.mockResolvedValueOnce({ data: mockRequests });
+    const result = await getMyTripJoinRequests();
+    expect(mockGet).toHaveBeenCalledWith('/v1/trips/join-requests/mine');
+    expect(result).toEqual(mockRequests);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(getMyTripJoinRequests()).rejects.toEqual({ response: { status: 401 } });
   });
 });
 

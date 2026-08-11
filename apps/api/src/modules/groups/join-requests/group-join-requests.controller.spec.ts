@@ -28,11 +28,13 @@ describe('GroupJoinRequestsController', () => {
   let mockSubmitJoinRequest: jest.Mock;
   let mockAcceptJoinRequest: jest.Mock;
   let mockRejectJoinRequest: jest.Mock;
+  let mockWithdrawJoinRequest: jest.Mock;
 
   beforeEach(async () => {
     mockSubmitJoinRequest = jest.fn().mockResolvedValue(undefined);
     mockAcceptJoinRequest = jest.fn().mockResolvedValue(undefined);
     mockRejectJoinRequest = jest.fn().mockResolvedValue(undefined);
+    mockWithdrawJoinRequest = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GroupJoinRequestsController],
@@ -43,6 +45,7 @@ describe('GroupJoinRequestsController', () => {
             submitJoinRequest: mockSubmitJoinRequest,
             acceptJoinRequest: mockAcceptJoinRequest,
             rejectJoinRequest: mockRejectJoinRequest,
+            withdrawJoinRequest: mockWithdrawJoinRequest,
           },
         },
       ],
@@ -67,5 +70,11 @@ describe('GroupJoinRequestsController', () => {
     await controller.rejectJoinRequest(mockAuthUser, 'group-uuid', 'user-uuid');
 
     expect(mockRejectJoinRequest).toHaveBeenCalledWith('group-uuid', 'user-uuid', mockAuthUser.id);
+  });
+
+  it('withdrawJoinRequest delegates to service', async () => {
+    await controller.withdrawJoinRequest(mockAuthUser, 'group-uuid');
+
+    expect(mockWithdrawJoinRequest).toHaveBeenCalledWith('group-uuid', mockAuthUser.id);
   });
 });

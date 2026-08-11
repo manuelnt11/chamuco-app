@@ -1,4 +1,9 @@
-import type { GroupMemberStatus, GroupMemberTier, GroupRole } from '@chamuco/shared-types';
+import type {
+  GroupMemberStatus,
+  GroupMemberTier,
+  GroupRole,
+  GroupVisibility,
+} from '@chamuco/shared-types';
 
 export type {
   Group,
@@ -32,6 +37,14 @@ export interface GroupInvitation {
     name: string;
     coverUrl: string;
   };
+  initiatedAt: string;
+}
+
+export interface MyGroupJoinRequest {
+  groupId: string;
+  name: string;
+  coverUrl: string;
+  visibility: GroupVisibility;
   initiatedAt: string;
 }
 

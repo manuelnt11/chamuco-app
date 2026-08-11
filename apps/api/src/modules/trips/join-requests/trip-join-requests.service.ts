@@ -1,5 +1,5 @@
 import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 
 import {
   NotificationChannel,
@@ -12,9 +12,13 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { isUniqueViolation } from '@/database/db-errors';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
+import { assets } from '@/modules/assets/schema/assets.schema';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { TripParticipantsService } from '@/modules/trips/participants/trip-participants.service';
 import { ACTIVE_STATUSES } from '@/modules/trips/participants/trip-participants.constants';
+import type { MyTripJoinRequestResponseDto } from './dto/my-trip-join-request-response.dto';
 
 @Injectable()
 export class TripJoinRequestsService {
@@ -24,7 +28,57 @@ export class TripJoinRequestsService {
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly tripParticipantsService: TripParticipantsService,
     private readonly notifications: NotificationsService,
+    private readonly assetResolver: AssetResolverService,
   ) {}
+
+  async listMyPendingRequests(userId: string): Promise<MyTripJoinRequestResponseDto[]> {
+    const memberships = await this.db.query.tripParticipants.findMany({
+      where: and(
+        eq(tripParticipants.userId, userId),
+        eq(tripParticipants.status, TripParticipantStatus.PENDING_REQUEST),
+      ),
+    });
+
+    if (memberships.length === 0) return [];
+
+    const tripIds = memberships.map((m) => m.tripId);
+    const initiatedAtByTripId = new Map(memberships.map((m) => [m.tripId, m.initiatedAt]));
+
+    const tripRows = await this.db.query.trips.findMany({
+      where: inArray(trips.id, tripIds),
+    });
+
+    if (tripRows.length === 0) return [];
+
+    const coverIds = tripRows.map((t) => t.cover).filter((id): id is string => id !== null);
+    const coverAssets =
+      coverIds.length > 0
+        ? await this.db.query.assets.findMany({ where: inArray(assets.id, coverIds) })
+        : [];
+    const assetMap = new Map(coverAssets.map((a) => [a.id, a]));
+
+    return Promise.all(
+      tripRows.map(async (trip) => {
+        let coverUrl: string | null = null;
+        if (trip.cover) {
+          const coverRow = assetMap.get(trip.cover);
+          if (coverRow) {
+            const resolved = await this.assetResolver.resolve(assetRowToAsset(coverRow));
+            coverUrl = resolved?.url ?? null;
+          }
+        }
+        return {
+          tripId: trip.id,
+          name: trip.name,
+          coverUrl,
+          visibility: trip.visibility,
+          startDate: trip.startDate,
+          endDate: trip.endDate,
+          initiatedAt: initiatedAtByTripId.get(trip.id)!.toISOString(),
+        };
+      }),
+    );
+  }
 
   async submitJoinRequest(tripId: string, requestingUserId: string): Promise<void> {
     const trip = await this.tripParticipantsService.assertTripExists(tripId);

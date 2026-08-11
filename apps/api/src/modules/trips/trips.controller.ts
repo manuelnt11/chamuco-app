@@ -33,6 +33,8 @@ import { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 import { TripDiscoveryService } from './discovery/trip-discovery.service';
 import { SearchTripsQueryDto } from './discovery/dto/search-trips-query.dto';
 import { TripSearchResponseDto } from './discovery/dto/trip-search-result.dto';
+import { TripJoinRequestsService } from './join-requests/trip-join-requests.service';
+import { MyTripJoinRequestResponseDto } from './join-requests/dto/my-trip-join-request-response.dto';
 
 @ApiTags('trips')
 @ApiBearerAuth()
@@ -41,6 +43,7 @@ export class TripsController {
   constructor(
     private readonly tripsService: TripsService,
     private readonly tripDiscoveryService: TripDiscoveryService,
+    private readonly tripJoinRequestsService: TripJoinRequestsService,
   ) {}
 
   @Get()
@@ -70,6 +73,18 @@ export class TripsController {
     @Body() dto: CreateTripDto,
   ): Promise<TripResponseDto> {
     return this.tripsService.createTrip(user, dto);
+  }
+
+  @Get('join-requests/mine')
+  @ApiOperation({
+    summary: "List the authenticated user's pending join requests",
+    description: 'Returns all trips where the authenticated user has a PENDING_REQUEST.',
+  })
+  @ApiResponse({ status: 200, type: [MyTripJoinRequestResponseDto] })
+  async listMyPendingJoinRequests(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<MyTripJoinRequestResponseDto[]> {
+    return this.tripJoinRequestsService.listMyPendingRequests(user.id);
   }
 
   @Get('search')

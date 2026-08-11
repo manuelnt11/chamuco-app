@@ -3,11 +3,13 @@ import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import { TripsController } from './trips.controller';
 import { TripsService } from './trips.service';
 import { TripDiscoveryService } from './discovery/trip-discovery.service';
+import { TripJoinRequestsService } from './join-requests/trip-join-requests.service';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 import type { TripResponseDto } from './dto/trip-response.dto';
 import type { MyTripListItemResponseDto } from './dto/my-trip-list-item-response.dto';
+import type { MyTripJoinRequestResponseDto } from './join-requests/dto/my-trip-join-request-response.dto';
 import { makeAuthenticatedUser } from '@/test/fixtures/user.fixture';
 
 const mockUser = makeAuthenticatedUser();
@@ -72,6 +74,7 @@ describe('TripsController', () => {
   let mockUpdateTrip: jest.Mock;
   let mockDeleteTrip: jest.Mock;
   let mockTransitionStatus: jest.Mock;
+  let mockListMyPendingRequests: jest.Mock;
 
   beforeEach(async () => {
     mockGetMyTrips = jest.fn().mockResolvedValue([mockListItemResponse]);
@@ -80,6 +83,7 @@ describe('TripsController', () => {
     mockUpdateTrip = jest.fn().mockResolvedValue(mockResponse);
     mockDeleteTrip = jest.fn().mockResolvedValue(undefined);
     mockTransitionStatus = jest.fn().mockResolvedValue(mockResponse);
+    mockListMyPendingRequests = jest.fn().mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TripsController],
@@ -98,6 +102,10 @@ describe('TripsController', () => {
         {
           provide: TripDiscoveryService,
           useValue: { searchTrips: jest.fn().mockResolvedValue({ data: [], total: 0 }) },
+        },
+        {
+          provide: TripJoinRequestsService,
+          useValue: { listMyPendingRequests: mockListMyPendingRequests },
         },
       ],
     }).compile();
@@ -162,5 +170,23 @@ describe('TripsController', () => {
 
     expect(mockTransitionStatus).toHaveBeenCalledWith(mockUser, 'trip-uuid', dto);
     expect(result).toBe(mockResponse);
+  });
+
+  it('listMyPendingJoinRequests delegates to TripJoinRequestsService', async () => {
+    const mockJoinRequest: MyTripJoinRequestResponseDto = {
+      tripId: 'trip-uuid',
+      name: 'Cancún 2026',
+      coverUrl: null,
+      visibility: TripVisibility.PUBLIC,
+      startDate: '2026-12-01',
+      endDate: '2026-12-08',
+      initiatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    mockListMyPendingRequests.mockResolvedValueOnce([mockJoinRequest]);
+
+    const result = await controller.listMyPendingJoinRequests(mockUser);
+
+    expect(mockListMyPendingRequests).toHaveBeenCalledWith(mockUser.id);
+    expect(result).toEqual([mockJoinRequest]);
   });
 });

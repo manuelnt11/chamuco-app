@@ -12,6 +12,7 @@ import type {
   GroupInvitation,
   GroupMember,
   GroupSearchResponse,
+  MyGroupJoinRequest,
   PendingGroupMember,
 } from '@/types/group';
 
@@ -71,6 +72,15 @@ export async function joinGroup(groupId: string): Promise<void> {
 
 export async function leaveGroup(groupId: string, userId: string): Promise<void> {
   await apiClient.delete(`/v1/groups/${groupId}/members/${userId}`);
+}
+
+export async function getMyGroupJoinRequests(): Promise<MyGroupJoinRequest[]> {
+  const { data } = await apiClient.get<MyGroupJoinRequest[]>('/v1/groups/join-requests/mine');
+  return data;
+}
+
+export async function withdrawGroupJoinRequest(groupId: string): Promise<void> {
+  await apiClient.delete(`/v1/groups/${groupId}/join-request`);
 }
 
 // ─── Join request methods ─────────────────────────────────────────────────────

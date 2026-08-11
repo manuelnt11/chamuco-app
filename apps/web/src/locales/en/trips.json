@@ -73,6 +73,12 @@
       "rejectError": "Failed to reject request",
       "revokeError": "Failed to revoke invitation"
     },
+    "myRequests": {
+      "titleWithCount": "Pending Requests ({{count}})",
+      "cancel": "Cancel request",
+      "cancelling": "Cancelling...",
+      "cancelError": "Failed to cancel request"
+    },
     "actions": {
       "remove": "Remove participant",
       "promote": "Promote to co-organizer",

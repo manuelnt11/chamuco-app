@@ -76,8 +76,8 @@ vi.mock('@/components/trips/TripStatusTransition', () => ({
   TripStatusTransition: () => null,
 }));
 
-vi.mock('@/components/trips/DestinationList', () => ({
-  DestinationList: ({
+vi.mock('@/components/trips/TripDestinationList', () => ({
+  TripDestinationList: ({
     initialDestinations,
   }: {
     initialDestinations: Array<{

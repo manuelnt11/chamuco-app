@@ -57,7 +57,7 @@ import type { DestinationResponse } from '@/services/trips.types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface DestinationListProps {
+interface TripDestinationListProps {
   tripId: string;
   initialDestinations: DestinationResponse[];
   isOrganizer: boolean;
@@ -387,9 +387,9 @@ function DestinationFormDialog({
   );
 }
 
-// ─── DestinationList ──────────────────────────────────────────────────────────
+// ─── TripDestinationList ──────────────────────────────────────────────────────────
 
-export function DestinationList({
+export function TripDestinationList({
   tripId,
   initialDestinations,
   isOrganizer,
@@ -398,7 +398,7 @@ export function DestinationList({
   landingCity,
   landingCountry,
   onCountChange,
-}: DestinationListProps) {
+}: TripDestinationListProps) {
   const { t } = useTranslation('trips');
   const [destinations, setDestinations] = useState<DestinationResponse[]>(initialDestinations);
   const [isSaving, setIsSaving] = useState(false);

@@ -12,6 +12,7 @@ import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { GroupJoinRequestsService } from './group-join-requests.service';
 import { GroupMembersService } from '@/modules/groups/members/group-members.service';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 
 const GROUP_ID = 'group-uuid';
 const ADMIN_ID = 'admin-uuid';
@@ -51,6 +52,10 @@ describe('GroupJoinRequestsService', () => {
   let service: GroupJoinRequestsService;
 
   let mockGroupMembersFindFirst: jest.Mock;
+  let mockGroupMembersFindMany: jest.Mock;
+  let mockGroupsFindMany: jest.Mock;
+  let mockAssetsFindMany: jest.Mock;
+  let mockAssetResolverResolve: jest.Mock;
   let mockUpdateWhere: jest.Mock;
   let mockUpdateSet: jest.Mock;
   let mockUpdate: jest.Mock;
@@ -68,7 +73,11 @@ describe('GroupJoinRequestsService', () => {
 
   beforeEach(async () => {
     mockGroupMembersFindFirst = jest.fn().mockResolvedValue(undefined);
+    mockGroupMembersFindMany = jest.fn().mockResolvedValue([]);
     mockGroupsFindFirst = jest.fn().mockResolvedValue({ name: 'Mountain Crew' });
+    mockGroupsFindMany = jest.fn().mockResolvedValue([]);
+    mockAssetsFindMany = jest.fn().mockResolvedValue([]);
+    mockAssetResolverResolve = jest.fn().mockResolvedValue(null);
 
     mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
     mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
@@ -97,8 +106,12 @@ describe('GroupJoinRequestsService', () => {
           provide: DRIZZLE_CLIENT,
           useValue: {
             query: {
-              groupMembers: { findFirst: mockGroupMembersFindFirst },
-              groups: { findFirst: mockGroupsFindFirst },
+              groupMembers: {
+                findFirst: mockGroupMembersFindFirst,
+                findMany: mockGroupMembersFindMany,
+              },
+              groups: { findFirst: mockGroupsFindFirst, findMany: mockGroupsFindMany },
+              assets: { findMany: mockAssetsFindMany },
             },
             update: mockUpdate,
             insert: mockInsert,
@@ -117,6 +130,10 @@ describe('GroupJoinRequestsService', () => {
         {
           provide: NotificationsService,
           useValue: { notify: mockNotificationsNotify },
+        },
+        {
+          provide: AssetResolverService,
+          useValue: { resolve: mockAssetResolverResolve },
         },
       ],
     }).compile();
@@ -298,6 +315,68 @@ describe('GroupJoinRequestsService', () => {
       await expect(service.withdrawJoinRequest(GROUP_ID, USER_ID)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  // ─── listMyPendingRequests ───────────────────────────────────────────────────
+
+  describe('listMyPendingRequests', () => {
+    const mockGroupRow = {
+      id: GROUP_ID,
+      name: 'Mountain Crew',
+      visibility: GroupVisibility.PUBLIC,
+      deletedAt: null,
+      cover: 'asset-uuid',
+    };
+
+    it('returns empty array when user has no pending requests', async () => {
+      mockGroupMembersFindMany.mockResolvedValueOnce([]);
+
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result).toEqual([]);
+      expect(mockGroupsFindMany).not.toHaveBeenCalled();
+    });
+
+    it('returns empty array when the pending group no longer exists', async () => {
+      mockGroupMembersFindMany.mockResolvedValueOnce([
+        { groupId: GROUP_ID, userId: USER_ID, initiatedAt: NOW },
+      ]);
+      mockGroupsFindMany.mockResolvedValueOnce([]);
+
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns mapped pending requests with resolved coverUrl', async () => {
+      mockGroupMembersFindMany.mockResolvedValueOnce([
+        { groupId: GROUP_ID, userId: USER_ID, initiatedAt: NOW },
+      ]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow]);
+      mockAssetsFindMany.mockResolvedValueOnce([{ id: 'asset-uuid', createdAt: NOW }]);
+      mockAssetResolverResolve.mockResolvedValueOnce({ url: 'https://example.com/cover.jpg' });
+
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result).toEqual([
+        {
+          groupId: GROUP_ID,
+          name: 'Mountain Crew',
+          coverUrl: 'https://example.com/cover.jpg',
+          visibility: GroupVisibility.PUBLIC,
+          initiatedAt: NOW.toISOString(),
+        },
+      ]);
+    });
+
+    it('throws NotFoundException when the group has no cover asset', async () => {
+      mockGroupMembersFindMany.mockResolvedValueOnce([
+        { groupId: GROUP_ID, userId: USER_ID, initiatedAt: NOW },
+      ]);
+      mockGroupsFindMany.mockResolvedValueOnce([{ ...mockGroupRow, cover: null }]);
+
+      await expect(service.listMyPendingRequests(USER_ID)).rejects.toThrow(NotFoundException);
     });
   });
 });

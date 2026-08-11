@@ -107,7 +107,7 @@ vi.mock('@/components/ui/rich-text-editor', () => ({
 
 // ─── Import component after mocks ────────────────────────────────────────────
 
-import { DestinationList } from './DestinationList';
+import { TripDestinationList } from './TripDestinationList';
 import type React from 'react';
 import { toast } from '@/components/ui/toast';
 
@@ -142,11 +142,11 @@ beforeEach(() => {
   mocks.onDragEnd = null;
 });
 
-describe('DestinationList', () => {
+describe('TripDestinationList', () => {
   describe('fixed departure and landing items', () => {
     it('renders departure city in participant mode', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[]}
           isOrganizer={false}
@@ -161,7 +161,7 @@ describe('DestinationList', () => {
 
     it('renders landing city in participant mode', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[]}
           isOrganizer={false}
@@ -176,7 +176,7 @@ describe('DestinationList', () => {
 
     it('renders departure and landing labels', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[]}
           isOrganizer={false}
@@ -192,7 +192,7 @@ describe('DestinationList', () => {
 
     it('renders departure and landing in organizer mode', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[]}
           isOrganizer={true}
@@ -210,7 +210,7 @@ describe('DestinationList', () => {
   describe('read-only (participant) mode', () => {
     it('renders ordered destination list', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[destA, destB]}
           isOrganizer={false}
@@ -226,7 +226,7 @@ describe('DestinationList', () => {
 
     it('renders position numbers', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[destA, destB]}
           isOrganizer={false}
@@ -243,7 +243,7 @@ describe('DestinationList', () => {
     it('renders label when present', () => {
       const dest = makeDestination({ label: 'Beach stop' });
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[dest]}
           isOrganizer={false}
@@ -258,7 +258,7 @@ describe('DestinationList', () => {
 
     it('shows empty state when no destinations', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[]}
           isOrganizer={false}
@@ -273,7 +273,7 @@ describe('DestinationList', () => {
 
     it('does not show add button', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[destA]}
           isOrganizer={false}
@@ -288,7 +288,7 @@ describe('DestinationList', () => {
 
     it('does not show edit/delete actions', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[destA]}
           isOrganizer={false}
@@ -305,7 +305,7 @@ describe('DestinationList', () => {
     describe('itinerary expand', () => {
       it('itinerary panel hidden by default', () => {
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={false}
@@ -322,7 +322,7 @@ describe('DestinationList', () => {
       it('shows noItinerary when expanded and itinerary is null', async () => {
         const user = userEvent.setup();
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={false}
@@ -340,7 +340,7 @@ describe('DestinationList', () => {
         const user = userEvent.setup();
         const dest = makeDestination({ itinerary: '## Day 1\n\nBeach time' });
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[dest]}
             isOrganizer={false}
@@ -357,7 +357,7 @@ describe('DestinationList', () => {
       it('collapses panel on second click', async () => {
         const user = userEvent.setup();
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={false}
@@ -379,7 +379,7 @@ describe('DestinationList', () => {
   describe('organizer mode', () => {
     it('shows add button', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[]}
           isOrganizer={true}
@@ -394,7 +394,7 @@ describe('DestinationList', () => {
 
     it('shows edit and delete actions per item', () => {
       render(
-        <DestinationList
+        <TripDestinationList
           tripId="trip-1"
           initialDestinations={[destA]}
           isOrganizer={true}
@@ -412,7 +412,7 @@ describe('DestinationList', () => {
       it('opens add dialog on button click', async () => {
         const user = userEvent.setup();
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[]}
             isOrganizer={true}
@@ -432,7 +432,7 @@ describe('DestinationList', () => {
         mocks.addTripDestination.mockResolvedValueOnce(writeResponse(newDest));
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[]}
             isOrganizer={true}
@@ -465,7 +465,7 @@ describe('DestinationList', () => {
         mocks.addTripDestination.mockRejectedValueOnce(new Error('network'));
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[]}
             isOrganizer={true}
@@ -491,7 +491,7 @@ describe('DestinationList', () => {
       it('opens edit dialog pre-filled with destination data', async () => {
         const user = userEvent.setup();
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}
@@ -513,7 +513,7 @@ describe('DestinationList', () => {
         mocks.updateTripDestination.mockResolvedValueOnce(writeResponse(updated));
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}
@@ -547,7 +547,7 @@ describe('DestinationList', () => {
         mocks.deleteTripDestination.mockResolvedValueOnce(undefined);
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
@@ -574,7 +574,7 @@ describe('DestinationList', () => {
         mocks.deleteTripDestination.mockRejectedValueOnce(new Error('network'));
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
@@ -600,7 +600,7 @@ describe('DestinationList', () => {
         const user = userEvent.setup();
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}
@@ -633,7 +633,7 @@ describe('DestinationList', () => {
         mocks.reorderTripDestinations.mockResolvedValueOnce(reordered);
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
@@ -659,7 +659,7 @@ describe('DestinationList', () => {
         mocks.reorderTripDestinations.mockRejectedValueOnce(new Error('network'));
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
@@ -682,7 +682,7 @@ describe('DestinationList', () => {
 
       it('does nothing when dragged to same position', async () => {
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
@@ -699,7 +699,7 @@ describe('DestinationList', () => {
 
       it('does nothing when dropped outside a valid target', async () => {
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA, destB]}
             isOrganizer={true}
@@ -718,7 +718,7 @@ describe('DestinationList', () => {
     describe('itinerary expand (organizer)', () => {
       it('itinerary panel hidden by default', () => {
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}
@@ -734,7 +734,7 @@ describe('DestinationList', () => {
       it('shows noItinerary when expanded and itinerary is null', async () => {
         const user = userEvent.setup();
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}
@@ -752,7 +752,7 @@ describe('DestinationList', () => {
         const user = userEvent.setup();
         const dest = makeDestination({ itinerary: '## Day 1\n\nBeach time' });
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[dest]}
             isOrganizer={true}
@@ -769,7 +769,7 @@ describe('DestinationList', () => {
       it('shows edit button on hover and opens editor on click', async () => {
         const user = userEvent.setup();
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}
@@ -794,7 +794,7 @@ describe('DestinationList', () => {
         });
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[dest]}
             isOrganizer={true}
@@ -831,7 +831,7 @@ describe('DestinationList', () => {
         });
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[dest]}
             isOrganizer={true}
@@ -861,7 +861,7 @@ describe('DestinationList', () => {
         mocks.updateTripDestination.mockRejectedValueOnce(new Error('network'));
 
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}
@@ -886,7 +886,7 @@ describe('DestinationList', () => {
       it('cancel dismisses editor without saving', async () => {
         const user = userEvent.setup();
         render(
-          <DestinationList
+          <TripDestinationList
             tripId="trip-1"
             initialDestinations={[destA]}
             isOrganizer={true}

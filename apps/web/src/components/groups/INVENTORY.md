@@ -196,7 +196,7 @@
 
 ---
 
-## InvitationsSection.tsx
+## GroupInvitationsSection.tsx
 
 ### Imports
 
@@ -206,8 +206,50 @@
 
 ### Definitions
 
-- `InvitationsSection` (component) — renders a bordered section listing pending group invitations; returns `null` when `count === 0`; each row shows group cover, name, formatted `initiatedAt` date, and `InvitationResponseButtons` that refresh the list on success
+- `GroupInvitationsSection` (component) — renders a bordered section listing pending group invitations; returns `null` when `count === 0`; each row shows group cover, name, formatted `initiatedAt` date, and `InvitationResponseButtons` that refresh the list on success
 
 ### Exports
 
-- `InvitationsSection` — named
+- `GroupInvitationsSection` — named
+
+---
+
+## GroupJoinRequestsSection.tsx
+
+### Imports
+
+- `react` — `useCallback`, `useEffect`, `useState` for local fetch/cancel state
+- `next/link` — `Link` to the group's page
+- `react-i18next` — `useTranslation` for i18n strings (groups namespace)
+- `@phosphor-icons/react` — `XIcon` for the cancel button
+- `@/services/groups.service` — `getMyGroupJoinRequests`, `withdrawGroupJoinRequest`
+- `@/components/ui/button` — `Button`
+- `@/types/group` — `MyGroupJoinRequest` type
+
+### Definitions
+
+- `GroupJoinRequestsSection` (component) — fetches the current user's pending group join requests and renders a bordered section listing each one with cover, name, formatted `initiatedAt` date, and an icon-only cancel button that withdraws the request; returns `null` while loading or when there are no pending requests
+
+### Exports
+
+- `GroupJoinRequestsSection` — named
+
+---
+
+## GroupJoinRequestsSection.test.tsx
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `@chamuco/shared-types` — `GroupVisibility` for fixtures
+- `@/types/group` — `MyGroupJoinRequest` type for fixtures
+- `./GroupJoinRequestsSection` — component under test
+
+### Definitions
+
+- `mockRequest` (const) — `MyGroupJoinRequest` fixture used across test cases
+
+### Exports
+
+- none

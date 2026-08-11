@@ -12,6 +12,7 @@ import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { TripJoinRequestsService } from './trip-join-requests.service';
 import { TripParticipantsService } from '@/modules/trips/participants/trip-participants.service';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 
 const TRIP_ID = 'trip-uuid';
 const ORGANIZER_ID = 'organizer-uuid';
@@ -51,7 +52,11 @@ describe('TripJoinRequestsService', () => {
   let service: TripJoinRequestsService;
 
   let mockTripParticipantsFindFirst: jest.Mock;
+  let mockTripParticipantsFindMany: jest.Mock;
   let mockTripsFindFirst: jest.Mock;
+  let mockTripsFindMany: jest.Mock;
+  let mockAssetsFindMany: jest.Mock;
+  let mockAssetResolverResolve: jest.Mock;
   let mockUpdateWhere: jest.Mock;
   let mockUpdateSet: jest.Mock;
   let mockUpdate: jest.Mock;
@@ -70,7 +75,11 @@ describe('TripJoinRequestsService', () => {
 
   beforeEach(async () => {
     mockTripParticipantsFindFirst = jest.fn().mockResolvedValue(undefined);
+    mockTripParticipantsFindMany = jest.fn().mockResolvedValue([]);
     mockTripsFindFirst = jest.fn().mockResolvedValue(mockPublicTrip);
+    mockTripsFindMany = jest.fn().mockResolvedValue([]);
+    mockAssetsFindMany = jest.fn().mockResolvedValue([]);
+    mockAssetResolverResolve = jest.fn().mockResolvedValue(null);
 
     mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
     mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
@@ -100,8 +109,12 @@ describe('TripJoinRequestsService', () => {
           provide: DRIZZLE_CLIENT,
           useValue: {
             query: {
-              tripParticipants: { findFirst: mockTripParticipantsFindFirst },
-              trips: { findFirst: mockTripsFindFirst },
+              tripParticipants: {
+                findFirst: mockTripParticipantsFindFirst,
+                findMany: mockTripParticipantsFindMany,
+              },
+              trips: { findFirst: mockTripsFindFirst, findMany: mockTripsFindMany },
+              assets: { findMany: mockAssetsFindMany },
             },
             update: mockUpdate,
             insert: mockInsert,
@@ -121,6 +134,10 @@ describe('TripJoinRequestsService', () => {
         {
           provide: NotificationsService,
           useValue: { notify: mockNotificationsNotify },
+        },
+        {
+          provide: AssetResolverService,
+          useValue: { resolve: mockAssetResolverResolve },
         },
       ],
     }).compile();
@@ -327,6 +344,73 @@ describe('TripJoinRequestsService', () => {
       await expect(service.withdrawJoinRequest(TRIP_ID, USER_ID)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  // ─── listMyPendingRequests ───────────────────────────────────────────────────
+
+  describe('listMyPendingRequests', () => {
+    const mockTripRow = {
+      id: TRIP_ID,
+      name: 'Alps Adventure',
+      visibility: TripVisibility.PUBLIC,
+      startDate: '2026-12-01',
+      endDate: '2026-12-08',
+      cover: null as string | null,
+    };
+
+    it('returns empty array when user has no pending requests', async () => {
+      mockTripParticipantsFindMany.mockResolvedValueOnce([]);
+
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result).toEqual([]);
+      expect(mockTripsFindMany).not.toHaveBeenCalled();
+    });
+
+    it('returns empty array when the pending trip no longer exists', async () => {
+      mockTripParticipantsFindMany.mockResolvedValueOnce([
+        { tripId: TRIP_ID, userId: USER_ID, initiatedAt: NOW },
+      ]);
+      mockTripsFindMany.mockResolvedValueOnce([]);
+
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns mapped pending requests with resolved coverUrl', async () => {
+      mockTripParticipantsFindMany.mockResolvedValueOnce([
+        { tripId: TRIP_ID, userId: USER_ID, initiatedAt: NOW },
+      ]);
+      mockTripsFindMany.mockResolvedValueOnce([{ ...mockTripRow, cover: 'asset-uuid' }]);
+      mockAssetsFindMany.mockResolvedValueOnce([{ id: 'asset-uuid', createdAt: NOW }]);
+      mockAssetResolverResolve.mockResolvedValueOnce({ url: 'https://example.com/cover.jpg' });
+
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result).toEqual([
+        {
+          tripId: TRIP_ID,
+          name: 'Alps Adventure',
+          coverUrl: 'https://example.com/cover.jpg',
+          visibility: TripVisibility.PUBLIC,
+          startDate: '2026-12-01',
+          endDate: '2026-12-08',
+          initiatedAt: NOW.toISOString(),
+        },
+      ]);
+    });
+
+    it('returns null coverUrl when trip has no cover asset', async () => {
+      mockTripParticipantsFindMany.mockResolvedValueOnce([
+        { tripId: TRIP_ID, userId: USER_ID, initiatedAt: NOW },
+      ]);
+      mockTripsFindMany.mockResolvedValueOnce([mockTripRow]);
+
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result[0]!.coverUrl).toBeNull();
     });
   });
 });

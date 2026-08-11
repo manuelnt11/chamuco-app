@@ -256,3 +256,13 @@ export interface MyTripInvitationResponse {
   };
   initiatedAt: string;
 }
+
+export interface MyTripJoinRequestResponse {
+  tripId: string;
+  name: string;
+  coverUrl: string | null;
+  visibility: TripVisibility;
+  startDate: string;
+  endDate: string;
+  initiatedAt: string;
+}

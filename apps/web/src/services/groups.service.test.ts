@@ -14,11 +14,13 @@ import {
   getGroupMembership,
   getGroups,
   getMyGroupInvitations,
+  getMyGroupJoinRequests,
   getPendingGroupMembers,
   inviteGroupMembers,
   joinGroup,
   leaveGroup,
   rejectJoinRequest,
+  withdrawGroupJoinRequest,
   removeGroupMember,
   searchGroups,
   updateAnnouncement,
@@ -37,6 +39,7 @@ import type {
   GroupInvitation,
   GroupMember,
   GroupSearchResponse,
+  MyGroupJoinRequest,
   PendingGroupMember,
 } from '@/types/group';
 import {
@@ -375,6 +378,51 @@ describe('leaveGroup', () => {
     mockDelete.mockRejectedValueOnce({ response: { status: 404 } });
     await expect(leaveGroup('group-uuid-1', 'user-uuid-1')).rejects.toEqual({
       response: { status: 404 },
+    });
+  });
+});
+
+describe('getMyGroupJoinRequests', () => {
+  it('gets /v1/groups/join-requests/mine and returns the list', async () => {
+    const mockRequests: MyGroupJoinRequest[] = [
+      {
+        groupId: 'group-uuid-1',
+        name: 'Mountain Crew',
+        coverUrl: 'https://cdn.example.com/cover.jpg',
+        visibility: GroupVisibility.PUBLIC,
+        initiatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+    mockGet.mockResolvedValueOnce({ data: mockRequests });
+    const result = await getMyGroupJoinRequests();
+    expect(mockGet).toHaveBeenCalledWith('/v1/groups/join-requests/mine');
+    expect(result).toEqual(mockRequests);
+  });
+
+  it('propagates 401 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(getMyGroupJoinRequests()).rejects.toEqual({ response: { status: 401 } });
+  });
+});
+
+describe('withdrawGroupJoinRequest', () => {
+  it('deletes /v1/groups/:groupId/join-request', async () => {
+    mockDelete.mockResolvedValueOnce({});
+    await withdrawGroupJoinRequest('group-uuid-1');
+    expect(mockDelete).toHaveBeenCalledWith('/v1/groups/group-uuid-1/join-request');
+  });
+
+  it('propagates 401 errors', async () => {
+    mockDelete.mockRejectedValueOnce({ response: { status: 401 } });
+    await expect(withdrawGroupJoinRequest('group-uuid-1')).rejects.toEqual({
+      response: { status: 401 },
+    });
+  });
+
+  it('propagates 409 errors', async () => {
+    mockDelete.mockRejectedValueOnce({ response: { status: 409 } });
+    await expect(withdrawGroupJoinRequest('group-uuid-1')).rejects.toEqual({
+      response: { status: 409 },
     });
   });
 });

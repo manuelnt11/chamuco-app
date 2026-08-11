@@ -20,10 +20,7 @@ export function TripInvitationsSection({ onSuccess }: TripInvitationsSectionProp
   if (count === 0) return null;
 
   return (
-    <section
-      aria-labelledby="trip-invitations-heading"
-      className="mb-8 pb-8 border-b border-border"
-    >
+    <section aria-labelledby="trip-invitations-heading" className="mb-6">
       <h2
         id="trip-invitations-heading"
         className="mb-3 text-sm font-semibold uppercase tracking-wide text-orange-500"
