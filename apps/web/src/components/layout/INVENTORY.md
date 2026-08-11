@@ -31,6 +31,7 @@
 
 ### Imports
 
+- `react` — `useEffect`, `useMemo`, `useState`
 - `@phosphor-icons/react` — `AirplaneTiltIcon`, `MapPinIcon`, `CompassIcon`, `UsersThreeIcon`, `SuitcaseRollingIcon`, `GlobeHemisphereWestIcon`, `TentIcon`, `BackpackIcon`, `CameraIcon`, `IslandIcon`, `BinocularsIcon`, `MountainsIcon`, `MapTrifoldIcon`, `UmbrellaIcon` (travel/group icon set for the pattern)
 
 ### Definitions
@@ -40,9 +41,12 @@
 - `SIZES` (const) — Fixed set of Tailwind `size-*` classes for per-tile icon size variety
 - `JITTERS` (const) — Fixed set of small Tailwind translate classes for per-tile position variety
 - `hash` (function) — Deterministic integer hash (SSR-safe — no `Math.random`/`Date.now`) used to pick each tile's icon/rotation/size/jitter independently
-- `TILE_COUNT` (const) — Number of icon tiles generated (540), sized to cover up to ~4K desktop displays
-- `wallpaperTiles` (const) — Precomputed array of `{ Icon, rotation, size, jitter }` tile definitions, one per grid cell
-- `AppWallpaper` (component) — Renders two fixed, `aria-hidden`, desktop-only (`md:block`) layers behind the shell: a repeating icon-pattern grid (`-z-20`) filling the full viewport, and a `bg-background` mask (`-z-10`) spanning the shell's own centered column (`left-app-edge`/`right-app-edge`) so the pattern only shows in the side gutters
+- `TILE_SIZE` (const) — Pixel size of one grid cell (72); must match the `grid-cols`/`auto-rows` classes on the pattern grid
+- `DESKTOP_BREAKPOINT` (const) — Tailwind's `md` breakpoint (768); below this the hook reports 0 tiles so the pattern never mounts on mobile
+- `BUFFER_ROWS` (const) — Extra rows added to the computed row count so a stale measurement still overflows the viewport rather than under-filling it
+- `useWallpaperTileCount` (hook) — Measures `window.innerWidth`/`innerHeight` on mount and on `resize` to compute exactly how many tiles are needed to cover the current viewport at `TILE_SIZE` (0 below `DESKTOP_BREAKPOINT`)
+- `buildWallpaperTiles` (function) — Builds an array of `{ Icon, rotation, size, jitter }` tile definitions for a given tile count. Non-null assertions are safe: `hash(...) % array.length` is always a valid index
+- `AppWallpaper` (component) — Renders two fixed, `aria-hidden`, desktop-only (`md:block`) layers behind the shell: a repeating icon-pattern grid (`-z-20`) sized to the viewport via `useWallpaperTileCount`, and a `bg-background` mask (`-z-10`) spanning the shell's own centered column (`left-app-edge`/`right-app-edge`) so the pattern only shows in the side gutters
 
 ### Exports
 
