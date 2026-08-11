@@ -23,6 +23,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 import { LanguageToggle } from './LanguageToggle';
+import { toast } from '@/components/ui/toast';
 
 const fakeUser = { uid: 'uid-123' } as User;
 
@@ -116,6 +117,20 @@ describe('LanguageToggle', () => {
     await user.click(screen.getByRole('button'));
 
     expect(mocks.mockPatch).not.toHaveBeenCalled();
+  });
+
+  it('reverts to the previous language and shows an error toast when persisting fails', async () => {
+    mocks.mockUseAuth.mockReturnValue({ currentUser: fakeUser });
+    mocks.mockPatch.mockRejectedValueOnce(new Error('network error'));
+    const user = userEvent.setup();
+    render(<LanguageToggle />);
+
+    await waitFor(() => expect(screen.getByText('EN')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button'));
+
+    await waitFor(() => expect(mocks.mockChangeLanguage).toHaveBeenNthCalledWith(2, 'en'));
+    expect(vi.mocked(toast.error)).toHaveBeenCalled();
   });
 
   it('has accessible label', async () => {

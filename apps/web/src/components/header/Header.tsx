@@ -4,6 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Logo } from './Logo';
 import { UserAvatar } from './UserAvatar';
 import { NotificationBell } from './NotificationBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageToggle } from '@/components/LanguageToggle';
 
 export function Header() {
   const { currentUser } = useAuth();
@@ -15,7 +17,14 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <UserAvatar />
-          {currentUser && <NotificationBell />}
+          {currentUser ? (
+            <NotificationBell />
+          ) : (
+            <>
+              <LanguageToggle />
+              <ThemeToggle />
+            </>
+          )}
         </div>
       </div>
     </header>

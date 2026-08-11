@@ -17,6 +17,16 @@ vi.mock('./NotificationBell', () => ({
   NotificationBell: () => <button data-testid="notification-bell">Notification Bell</button>,
 }));
 
+// Mock the ThemeToggle component
+vi.mock('@/components/ThemeToggle', () => ({
+  ThemeToggle: () => <button data-testid="theme-toggle">Theme Toggle</button>,
+}));
+
+// Mock the LanguageToggle component
+vi.mock('@/components/LanguageToggle', () => ({
+  LanguageToggle: () => <button data-testid="language-toggle">Language Toggle</button>,
+}));
+
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }));
@@ -72,6 +82,19 @@ describe('Header', () => {
     vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: null }));
     render(<Header />);
     expect(screen.queryByTestId('notification-bell')).not.toBeInTheDocument();
+  });
+
+  it('shows standalone theme/language toggles when user is not authenticated', () => {
+    vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: null }));
+    render(<Header />);
+    expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
+    expect(screen.getByTestId('language-toggle')).toBeInTheDocument();
+  });
+
+  it('hides standalone theme/language toggles when user is authenticated', () => {
+    render(<Header />);
+    expect(screen.queryByTestId('theme-toggle')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('language-toggle')).not.toBeInTheDocument();
   });
 
   it('has correct layout structure', () => {

@@ -12,6 +12,8 @@ const mocks = vi.hoisted(() => ({
   mockSignOut: vi.fn(),
   mockChangeLanguage: vi.fn(),
   mockPatch: vi.fn(),
+  mockSetTheme: vi.fn(),
+  mockUseTheme: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -25,6 +27,10 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('@/hooks/useUser', () => ({
   useUser: vi.fn(),
+}));
+
+vi.mock('next-themes', () => ({
+  useTheme: () => mocks.mockUseTheme(),
 }));
 
 vi.mock('@/lib/i18n/client', () => ({
@@ -88,6 +94,9 @@ function makeAppUser(
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockSignOut.mockResolvedValue(undefined);
+  mocks.mockChangeLanguage.mockResolvedValue(undefined);
+  mocks.mockPatch.mockResolvedValue({});
+  mocks.mockUseTheme.mockReturnValue({ theme: 'light', setTheme: mocks.mockSetTheme });
   vi.mocked(useUser).mockReturnValue({
     appUser: null,
     isLoading: false,
@@ -226,12 +235,26 @@ describe('UserAvatar', () => {
       expect(mocks.mockRouterPush).toHaveBeenCalledWith('/profile');
     });
 
-    it('cycles language when the language item is clicked', async () => {
+    it('cycles theme and persists it when the Theme item is clicked', async () => {
+      const user = userEvent.setup();
+      render(<UserAvatar />);
+      const items = screen.getAllByRole('menuitem');
+      await user.click(items[1]!);
+      expect(mocks.mockSetTheme).toHaveBeenCalledWith('dark');
+      expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/preferences', { theme: 'DARK' });
+    });
+
+    it('cycles language and persists it when the Language item is clicked', async () => {
       const user = userEvent.setup();
       render(<UserAvatar />);
       const items = screen.getAllByRole('menuitem');
       await user.click(items[2]!);
-      expect(mocks.mockChangeLanguage).toHaveBeenCalled();
+      expect(mocks.mockChangeLanguage).toHaveBeenCalledWith('es');
+      await waitFor(() =>
+        expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/preferences', {
+          language: 'ES',
+        }),
+      );
     });
 
     it('calls signOut and redirects to /sign-in when Sign out is clicked', async () => {

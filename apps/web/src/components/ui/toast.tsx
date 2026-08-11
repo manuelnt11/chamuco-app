@@ -81,7 +81,7 @@ function Toaster() {
   return (
     <ToastPrimitive.Viewport
       className={cn(
-        'fixed bottom-0 right-0 z-100 flex max-h-screen w-full flex-col gap-2 p-4 md:max-w-sm',
+        'fixed bottom-0 right-app-edge z-100 flex max-h-screen w-full flex-col gap-2 p-4 md:max-w-sm',
         'pb-safe-bottom pointer-events-none',
       )}
     >

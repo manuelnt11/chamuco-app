@@ -10,10 +10,12 @@
 - `./Logo` — `Logo` component
 - `./UserAvatar` — `UserAvatar` component
 - `./NotificationBell` — `NotificationBell` component
+- `@/components/ThemeToggle` — `ThemeToggle` component (shown only when signed out)
+- `@/components/LanguageToggle` — `LanguageToggle` component (shown only when signed out)
 
 ### Definitions
 
-- `Header` (component) — Fixed top app bar rendering Logo, UserAvatar, and conditional NotificationBell (authenticated only); theme and language controls live inside `UserAvatar`'s dropdown
+- `Header` (component) — Fixed top app bar rendering Logo and UserAvatar; shows `NotificationBell` when authenticated, or standalone `LanguageToggle`+`ThemeToggle` when not (signed-in theme/language controls live inside `UserAvatar`'s dropdown instead)
 
 ### Exports
 
@@ -30,7 +32,7 @@
 - `firebase/auth` — `User` type
 - `@/store/auth` — `AuthContextValue` type
 - `./Header` — `Header` component under test
-- `./Logo`, `./UserAvatar`, `./NotificationBell`, `@/hooks/useAuth` — mocked dependencies
+- `./Logo`, `./UserAvatar`, `./NotificationBell`, `@/components/ThemeToggle`, `@/components/LanguageToggle`, `@/hooks/useAuth` — mocked dependencies
 
 ### Definitions
 
@@ -169,24 +171,19 @@
 
 - `next/navigation` — `useRouter` for navigation on sign-out and profile clicks
 - `react-i18next` — `useTranslation` for i18n strings across `common`, `auth`, and `errors` namespaces
-- `next-themes` — `useTheme` hook for reading/setting the current theme
 - `@phosphor-icons/react` — `UserCircleIcon`, `SignOutIcon`, `UserIcon`, `SunDimIcon`, `MoonIcon`, `DesktopIcon`, `TranslateIcon` icons
-- `@chamuco/shared-types` — `AppLanguage`, `AppTheme` types
 - `@/hooks/useAuth` — `useAuth` hook for `currentUser`, `isLoading`, `signOut`
 - `@/hooks/useUser` — `useUser` hook for `appUser` and `isLoading`
+- `@/hooks/useThemeCycle` — `useThemeCycle` for theme state + cycle-and-persist behavior
+- `@/hooks/useLanguageCycle` — `useLanguageCycle` for language state + cycle-and-persist behavior
 - `@/components/ui/menu` — `MenuRoot`, `MenuTrigger`, `MenuPopup`, `MenuItem`, `MenuSeparator`, `MenuLabel` primitives
 - `@/components/ui/toast` — `toast` utility for error notifications
 - `@/lib/name-utils` — `getInitials` for deriving avatar fallback text
-- `@/components/ThemeToggle` — `getNextTheme` helper for cycling theme
-- `@/lib/i18n/utils` — `getNextLanguage` helper for cycling language
-- `@/lib/i18n/client` — `changeLanguage` to apply the language switch
-- `@/lib/i18n/config` — `SupportedLanguage` type
-- `@/services/users.service` — `updateMyPreferences` to persist theme/language choice for signed-in users
 
 ### Definitions
 
 - `THEME_ICONS` (const) — lookup map from each theme value (`light`/`dark`/`system`) to its Phosphor icon component
-- `UserAvatar` (component) — Three-state component: loading placeholder (non-interactive icon), unauthenticated state (sign-in button), and authenticated state (avatar/initials trigger with dropdown menu showing profile info, "Profile" navigation, theme cycle item, language cycle item, and "Sign out" action)
+- `UserAvatar` (component) — Three-state component: loading placeholder (non-interactive icon), unauthenticated state (sign-in button), and authenticated state (avatar/initials trigger with dropdown menu showing profile info, "Profile" navigation, theme cycle item, language cycle item, and "Sign out" action). Theme/language cycling and persistence come from `useThemeCycle`/`useLanguageCycle`; the two menu items show a neutral icon-only placeholder until both hooks report `mounted`
 
 ### Exports
 
@@ -205,12 +202,12 @@
 - `@chamuco/shared-types` — `ProfileVisibility` enum
 - `@/store/auth` — `AuthContextValue` type
 - `@/store/user` — `UserContextValue` type
-- `@/hooks/useAuth`, `@/hooks/useUser`, `@/components/ui/toast`, `react-i18next`, `next/navigation`, `@/components/ui/menu`, `@/lib/i18n/client`, `@/services/api-client` — mocked dependencies
+- `@/hooks/useAuth`, `@/hooks/useUser`, `@/components/ui/toast`, `react-i18next`, `next/navigation`, `@/components/ui/menu`, `next-themes`, `@/lib/i18n/client`, `@/services/api-client` — mocked dependencies
 - `./UserAvatar` — component under test
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock state holding `mockRouterReplace`, `mockRouterPush`, `mockSignOut`, `mockChangeLanguage`, `mockPatch`
+- `mocks` (const) — hoisted vi mock state holding `mockRouterReplace`, `mockRouterPush`, `mockSignOut`, `mockChangeLanguage`, `mockPatch`, `mockSetTheme`, `mockUseTheme`
 - `makeAuth` (function) — factory building a complete `AuthContextValue` with safe defaults
 - `makeAppUser` (function) — factory building a `UserContextValue` with a populated `appUser` and optional overrides
 - `makeFirebaseUser` (function) — factory building a minimal Firebase `User` stub with optional overrides

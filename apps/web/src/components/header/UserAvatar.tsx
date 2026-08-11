@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from 'next-themes';
 import {
   UserCircleIcon,
   SignOutIcon,
@@ -12,10 +11,11 @@ import {
   DesktopIcon,
   TranslateIcon,
 } from '@phosphor-icons/react';
-import type { AppLanguage, AppTheme } from '@chamuco/shared-types';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
+import { useThemeCycle } from '@/hooks/useThemeCycle';
+import { useLanguageCycle } from '@/hooks/useLanguageCycle';
 import {
   MenuRoot,
   MenuTrigger,
@@ -26,11 +26,6 @@ import {
 } from '@/components/ui/menu';
 import { toast } from '@/components/ui/toast';
 import { getInitials } from '@/lib/name-utils';
-import { getNextTheme } from '@/components/ThemeToggle';
-import { getNextLanguage } from '@/lib/i18n/utils';
-import { changeLanguage } from '@/lib/i18n/client';
-import type { SupportedLanguage } from '@/lib/i18n/config';
-import { updateMyPreferences } from '@/services/users.service';
 
 const THEME_ICONS = {
   light: SunDimIcon,
@@ -39,31 +34,16 @@ const THEME_ICONS = {
 } as const;
 
 export function UserAvatar() {
-  const { t, i18n } = useTranslation(['common', 'auth', 'errors']);
+  const { t } = useTranslation(['common', 'auth', 'errors']);
   const router = useRouter();
   const { currentUser, isLoading: authLoading, signOut } = useAuth();
   const { appUser, isLoading: userLoading } = useUser();
-  const { theme, setTheme } = useTheme();
+  const { theme, mounted: themeMounted, cycleTheme } = useThemeCycle();
+  const { language, mounted: languageMounted, cycleLanguage } = useLanguageCycle();
 
   const currentThemeKey = (theme as keyof typeof THEME_ICONS) ?? 'system';
   const ThemeIcon = THEME_ICONS[currentThemeKey] ?? DesktopIcon;
-  const currentLanguage = i18n.language as SupportedLanguage;
-
-  function cycleTheme() {
-    const next = getNextTheme(theme);
-    setTheme(next);
-    if (currentUser) {
-      void updateMyPreferences({ theme: next.toUpperCase() as AppTheme });
-    }
-  }
-
-  async function cycleLanguage() {
-    const next = getNextLanguage(currentLanguage);
-    await changeLanguage(next);
-    if (currentUser) {
-      void updateMyPreferences({ language: next.toUpperCase() as AppLanguage });
-    }
-  }
+  const preferencesMounted = themeMounted && languageMounted;
 
   async function handleSignOut() {
     try {
@@ -141,13 +121,25 @@ export function UserAvatar() {
         <MenuSeparator />
 
         <MenuItem onClick={cycleTheme} closeOnClick={false}>
-          <ThemeIcon className="size-4 shrink-0" aria-hidden="true" />
-          {t(`common:preferences.theme.${currentThemeKey}`)}
+          {preferencesMounted ? (
+            <>
+              <ThemeIcon className="size-4 shrink-0" aria-hidden="true" />
+              {t(`common:preferences.theme.${currentThemeKey}`)}
+            </>
+          ) : (
+            <DesktopIcon className="size-4 shrink-0" aria-hidden="true" />
+          )}
         </MenuItem>
 
         <MenuItem onClick={cycleLanguage} closeOnClick={false}>
-          <TranslateIcon className="size-4 shrink-0" aria-hidden="true" />
-          {t(`common:preferences.language.${currentLanguage}`)}
+          {preferencesMounted ? (
+            <>
+              <TranslateIcon className="size-4 shrink-0" aria-hidden="true" />
+              {t(`common:preferences.language.${language}`)}
+            </>
+          ) : (
+            <TranslateIcon className="size-4 shrink-0" aria-hidden="true" />
+          )}
         </MenuItem>
 
         <MenuSeparator />

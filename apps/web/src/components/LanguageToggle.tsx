@@ -1,14 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { TranslateIcon } from '@phosphor-icons/react';
-import type { AppLanguage } from '@chamuco/shared-types';
 import type { SupportedLanguage } from '@/lib/i18n/config';
-import { getNextLanguage } from '@/lib/i18n/utils';
-import { changeLanguage } from '@/lib/i18n/client';
-import { useAuth } from '@/hooks/useAuth';
-import { updateMyPreferences } from '@/services/users.service';
+import { useLanguageCycle } from '@/hooks/useLanguageCycle';
 
 const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
   en: 'English',
@@ -16,13 +10,7 @@ const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
 };
 
 export function LanguageToggle() {
-  const [mounted, setMounted] = useState(false);
-  const { i18n } = useTranslation();
-  const { currentUser } = useAuth();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const { language, mounted, cycleLanguage } = useLanguageCycle();
 
   if (!mounted) {
     return (
@@ -35,16 +23,7 @@ export function LanguageToggle() {
     );
   }
 
-  const currentLanguage = i18n.language as SupportedLanguage;
-  const currentLabel = LANGUAGE_LABELS[currentLanguage] || 'English';
-
-  const cycleLanguage = async () => {
-    const nextLang = getNextLanguage(currentLanguage);
-    await changeLanguage(nextLang);
-    if (currentUser) {
-      void updateMyPreferences({ language: nextLang.toUpperCase() as AppLanguage });
-    }
-  };
+  const currentLabel = LANGUAGE_LABELS[language] || 'English';
 
   return (
     <button
@@ -54,7 +33,7 @@ export function LanguageToggle() {
       title={`Language: ${currentLabel}`}
     >
       <TranslateIcon className="w-5 h-5" weight="regular" />
-      <span className="text-sm font-medium">{currentLanguage.toUpperCase()}</span>
+      <span className="text-sm font-medium">{language.toUpperCase()}</span>
     </button>
   );
 }

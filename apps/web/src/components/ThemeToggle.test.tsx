@@ -23,6 +23,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 import { ThemeToggle, getNextTheme } from './ThemeToggle';
+import { toast } from '@/components/ui/toast';
 
 const fakeUser = { uid: 'uid-123' } as User;
 
@@ -156,6 +157,21 @@ describe('ThemeToggle', () => {
 
     await user.click(screen.getByRole('button'));
     expect(mocks.mockPatch).not.toHaveBeenCalled();
+  });
+
+  it('rolls back to the previous theme and shows an error toast when persisting fails', async () => {
+    const user = userEvent.setup();
+    mocks.mockUseAuth.mockReturnValue({ currentUser: fakeUser });
+    mocks.mockUseTheme.mockReturnValue({ theme: 'light', setTheme: mocks.mockSetTheme });
+    mocks.mockPatch.mockRejectedValueOnce(new Error('network error'));
+
+    render(<ThemeToggle />);
+    await waitFor(() => expect(screen.getByRole('button')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button'));
+
+    await waitFor(() => expect(mocks.mockSetTheme).toHaveBeenNthCalledWith(2, 'light'));
+    expect(vi.mocked(toast.error)).toHaveBeenCalled();
   });
 
   it('renders placeholder during SSR (not mounted)', () => {

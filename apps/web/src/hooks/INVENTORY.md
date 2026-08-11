@@ -161,6 +161,50 @@
 
 ---
 
+## useLanguageCycle.ts
+
+### Imports
+
+- `react` — `useEffect`, `useState`
+- `react-i18next` — `useTranslation` for `i18n.language` and the `errors` namespace error toast
+- `@chamuco/shared-types` — `AppLanguage` type
+- `@/lib/i18n/config` — `SupportedLanguage` type
+- `@/lib/i18n/utils` — `getNextLanguage` cycle helper
+- `@/lib/i18n/client` — `changeLanguage` to apply the switch
+- `@/hooks/useAuth` — `useAuth` to gate persistence on a signed-in user
+- `@/services/users.service` — `updateMyPreferences` to persist the choice
+- `@/components/ui/toast` — `toast.error` shown when persistence fails
+
+### Definitions
+
+- `useLanguageCycle` (hook) — shared language-cycling behavior for `LanguageToggle` and the `UserAvatar` dropdown; `cycleLanguage()` applies the next language optimistically, persists it for signed-in users, and rolls back + shows an error toast if the persist call fails; returns `{ language, mounted, cycleLanguage }`
+
+### Exports
+
+- `useLanguageCycle` — named
+
+---
+
+## useLanguageCycle.test.ts
+
+### Imports
+
+- `@testing-library/react` — `renderHook`, `act`
+- `firebase/auth` — `User` type
+- `@/components/ui/toast` — `toast` (mocked)
+- `@/lib/i18n/client`, `@/services/api-client`, `@/hooks/useAuth` — mocked dependencies
+- `./useLanguageCycle` — hook under test
+
+### Definitions
+
+- No substantial non-test definitions.
+
+### Exports
+
+- None
+
+---
+
 ## useNotifications.ts
 
 ### Imports
@@ -240,6 +284,51 @@
 ### Definitions
 
 - `setupBrowserEnv` (function) — test helper that stubs `window.Notification` and `navigator.serviceWorker` with a configurable permission result
+
+### Exports
+
+- None
+
+---
+
+## useThemeCycle.ts
+
+### Imports
+
+- `react` — `useEffect`, `useState`
+- `next-themes` — `useTheme` for reading/setting the current theme
+- `react-i18next` — `useTranslation` for the `errors` namespace error toast
+- `@chamuco/shared-types` — `AppTheme` type
+- `@/hooks/useAuth` — `useAuth` to gate persistence on a signed-in user
+- `@/services/users.service` — `updateMyPreferences` to persist the choice
+- `@/components/ui/toast` — `toast.error` shown when persistence fails
+
+### Definitions
+
+- `THEME_CYCLE` (const) — light → dark → system → light lookup map
+- `getNextTheme` (function) — returns the next theme in the cycle for a given current value, defaulting to `'light'`
+- `useThemeCycle` (hook) — shared theme-cycling behavior for `ThemeToggle` and the `UserAvatar` dropdown; `cycleTheme()` applies the next theme optimistically, persists it for signed-in users, and rolls back + shows an error toast if the persist call fails; returns `{ theme, mounted, cycleTheme }`
+
+### Exports
+
+- `getNextTheme` — named
+- `useThemeCycle` — named
+
+---
+
+## useThemeCycle.test.ts
+
+### Imports
+
+- `@testing-library/react` — `renderHook`, `act`
+- `firebase/auth` — `User` type
+- `@/components/ui/toast` — `toast` (mocked)
+- `next-themes`, `@/services/api-client`, `@/hooks/useAuth` — mocked dependencies
+- `./useThemeCycle` — `useThemeCycle`, `getNextTheme` under test
+
+### Definitions
+
+- No substantial non-test definitions.
 
 ### Exports
 
