@@ -50,10 +50,13 @@
 ### Imports
 
 - `next/link` — `Link` component for client-side navigation
+- `@/lib/utils` — `cn` utility for conditional class names
 
 ### Definitions
 
-- `Logo` (component) — Renders a linked logo consisting of the `logo-icon.svg` image and the stacked "CHAMUCO / TRAVEL" wordmark; links to `/`
+- `LogoSize` (type) — `'sm' | 'lg'`
+- `ICON_SIZE`, `CHAMUCO_TEXT_SIZE`, `TRAVEL_TEXT_SIZE` (const) — per-size Tailwind class lookup maps
+- `Logo` (component) — Renders a linked logo consisting of the `logo-icon.svg` image and the stacked "CHAMUCO / TRAVEL" wordmark; links to `/`. Accepts an optional `size` prop (`'sm'` default, `'lg'` for standalone contexts like the sign-in page)
 
 ### Exports
 

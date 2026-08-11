@@ -147,7 +147,7 @@ export default function SignInPage() {
         <ThemeToggle />
       </div>
 
-      <Logo />
+      <Logo size="lg" />
 
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-1 text-center">
