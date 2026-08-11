@@ -12,7 +12,6 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { isUniqueViolation } from '@/database/db-errors';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
-import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
@@ -46,38 +45,26 @@ export class TripJoinRequestsService {
 
     const tripRows = await this.db.query.trips.findMany({
       where: inArray(trips.id, tripIds),
+      with: { coverAsset: true },
     });
 
     if (tripRows.length === 0) return [];
 
-    const coverIds = tripRows.map((t) => t.cover).filter((id): id is string => id !== null);
-    const coverAssets =
-      coverIds.length > 0
-        ? await this.db.query.assets.findMany({ where: inArray(assets.id, coverIds) })
-        : [];
-    const assetMap = new Map(coverAssets.map((a) => [a.id, a]));
-
-    return Promise.all(
-      tripRows.map(async (trip) => {
-        let coverUrl: string | null = null;
-        if (trip.cover) {
-          const coverRow = assetMap.get(trip.cover);
-          if (coverRow) {
-            const resolved = await this.assetResolver.resolve(assetRowToAsset(coverRow));
-            coverUrl = resolved?.url ?? null;
-          }
-        }
-        return {
-          tripId: trip.id,
-          name: trip.name,
-          coverUrl,
-          visibility: trip.visibility,
-          startDate: trip.startDate,
-          endDate: trip.endDate,
-          initiatedAt: initiatedAtByTripId.get(trip.id)!.toISOString(),
-        };
-      }),
+    const resolvedCovers = await Promise.all(
+      tripRows.map((trip) =>
+        trip.coverAsset ? this.assetResolver.resolve(assetRowToAsset(trip.coverAsset)) : null,
+      ),
     );
+
+    return tripRows.map((trip, i) => ({
+      tripId: trip.id,
+      name: trip.name,
+      coverUrl: resolvedCovers[i]?.url ?? null,
+      visibility: trip.visibility,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      initiatedAt: initiatedAtByTripId.get(trip.id)!.toISOString(),
+    }));
   }
 
   async submitJoinRequest(tripId: string, requestingUserId: string): Promise<void> {
@@ -204,19 +191,19 @@ export class TripJoinRequestsService {
   }
 
   async withdrawJoinRequest(tripId: string, requestingUserId: string): Promise<void> {
-    const participation = await this.tripParticipantsService.findParticipantOrThrow(
-      tripId,
-      requestingUserId,
-    );
+    await this.tripParticipantsService.findParticipantOrThrow(tripId, requestingUserId);
 
-    if (participation.status !== TripParticipantStatus.PENDING_REQUEST) {
-      throw new ConflictException('No pending join request to withdraw');
-    }
-
-    await this.db
+    const [deleted] = await this.db
       .delete(tripParticipants)
       .where(
-        and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, requestingUserId)),
-      );
+        and(
+          eq(tripParticipants.tripId, tripId),
+          eq(tripParticipants.userId, requestingUserId),
+          eq(tripParticipants.status, TripParticipantStatus.PENDING_REQUEST),
+        ),
+      )
+      .returning();
+
+    if (!deleted) throw new ConflictException('No pending join request to withdraw');
   }
 }

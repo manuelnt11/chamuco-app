@@ -43,7 +43,7 @@ vi.mock('@dnd-kit/core', () => ({
     children,
     onDragEnd,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     onDragEnd?: (event: { active: { id: string }; over: { id: string } | null }) => void;
   }) => {
     mocks.onDragEnd = onDragEnd ?? null;
@@ -57,7 +57,7 @@ vi.mock('@dnd-kit/core', () => ({
 }));
 
 vi.mock('@dnd-kit/sortable', () => ({
-  SortableContext: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SortableContext: ({ children }: { children: ReactNode }) => <>{children}</>,
   sortableKeyboardCoordinates: vi.fn(),
   useSortable: (opts: { id: string }) => ({
     attributes: { 'data-id': opts.id },
@@ -110,6 +110,7 @@ vi.mock('@/components/ui/rich-text-editor', () => ({
 import { TripDestinationList } from './TripDestinationList';
 import type React from 'react';
 import { toast } from '@/components/ui/toast';
+import { ReactNode } from 'react';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

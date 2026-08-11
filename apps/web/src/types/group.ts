@@ -43,7 +43,7 @@ export interface GroupInvitation {
 export interface MyGroupJoinRequest {
   groupId: string;
   name: string;
-  coverUrl: string;
+  coverUrl: string | null;
   visibility: GroupVisibility;
   initiatedAt: string;
 }

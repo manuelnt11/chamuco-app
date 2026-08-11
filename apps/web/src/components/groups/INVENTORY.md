@@ -218,17 +218,15 @@
 
 ### Imports
 
-- `react` — `useCallback`, `useEffect`, `useState` for local fetch/cancel state
-- `next/link` — `Link` to the group's page
 - `react-i18next` — `useTranslation` for i18n strings (groups namespace)
-- `@phosphor-icons/react` — `XIcon` for the cancel button
 - `@/services/groups.service` — `getMyGroupJoinRequests`, `withdrawGroupJoinRequest`
-- `@/components/ui/button` — `Button`
+- `@/hooks/usePendingJoinRequests` — `usePendingJoinRequests` (shared fetch/cancel/error state)
+- `@/components/shared/PendingJoinRequestsSection` — `PendingJoinRequestsSection` (shared presentational list)
 - `@/types/group` — `MyGroupJoinRequest` type
 
 ### Definitions
 
-- `GroupJoinRequestsSection` (component) — fetches the current user's pending group join requests and renders a bordered section listing each one with cover, name, formatted `initiatedAt` date, and an icon-only cancel button that withdraws the request; returns `null` while loading or when there are no pending requests
+- `GroupJoinRequestsSection` (component) — thin wrapper wiring `usePendingJoinRequests` to the group join-request service functions and rendering the shared `PendingJoinRequestsSection` with group-specific field mappers (`/groups/:id` href, `members.myRequests.*` i18n keys); returns `null` while loading or when there are no pending requests
 
 ### Exports
 
@@ -240,11 +238,10 @@
 
 ### Imports
 
-- `@testing-library/react` — `render`, `screen`, `waitFor`
-- `@testing-library/user-event` — `userEvent`
+- `@testing-library/react` — `render`, `screen`
 - `@chamuco/shared-types` — `GroupVisibility` for fixtures
 - `@/types/group` — `MyGroupJoinRequest` type for fixtures
-- `./GroupJoinRequestsSection` — component under test
+- `./GroupJoinRequestsSection` — component under test (mocks `usePendingJoinRequests` and `PendingJoinRequestsSection` to verify wiring only)
 
 ### Definitions
 

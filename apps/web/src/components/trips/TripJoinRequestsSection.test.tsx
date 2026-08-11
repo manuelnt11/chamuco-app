@@ -1,16 +1,44 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { TripVisibility } from '@chamuco/shared-types';
 import type { MyTripJoinRequestResponse } from '@/services/trips.types';
 
 const mocks = vi.hoisted(() => ({
   mockGetMyTripJoinRequests: vi.fn(),
   mockWithdrawJoinRequest: vi.fn(),
+  mockUsePendingJoinRequests: vi.fn(),
 }));
 
 vi.mock('@/services/trips.service', () => ({
   getMyTripJoinRequests: mocks.mockGetMyTripJoinRequests,
   withdrawJoinRequest: mocks.mockWithdrawJoinRequest,
+}));
+
+vi.mock('@/hooks/usePendingJoinRequests', () => ({
+  usePendingJoinRequests: mocks.mockUsePendingJoinRequests,
+}));
+
+vi.mock('@/components/shared/PendingJoinRequestsSection', () => ({
+  PendingJoinRequestsSection: (props: {
+    titleText: string;
+    items: MyTripJoinRequestResponse[];
+    getId: (item: MyTripJoinRequestResponse) => string;
+    getHref: (item: MyTripJoinRequestResponse) => string;
+    cancelLabel: string;
+    cancelErrorLabel: string;
+    locale: string;
+  }) => (
+    <div data-testid="pending-section">
+      <span data-testid="title">{props.titleText}</span>
+      <span data-testid="cancel-label">{props.cancelLabel}</span>
+      <span data-testid="cancel-error-label">{props.cancelErrorLabel}</span>
+      <span data-testid="locale">{props.locale}</span>
+      {props.items.map((item) => (
+        <span key={props.getId(item)} data-testid="href">
+          {props.getHref(item)}
+        </span>
+      ))}
+    </div>
+  ),
 }));
 
 import { TripJoinRequestsSection } from './TripJoinRequestsSection';
@@ -27,110 +55,82 @@ const mockRequest: MyTripJoinRequestResponse = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.mockWithdrawJoinRequest.mockResolvedValue(undefined);
 });
 
 describe('TripJoinRequestsSection', () => {
   it('renders nothing while loading', () => {
-    mocks.mockGetMyTripJoinRequests.mockReturnValue(new Promise(() => {}));
-
-    const { container } = render(<TripJoinRequestsSection />);
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('renders nothing when there are no pending requests', async () => {
-    mocks.mockGetMyTripJoinRequests.mockResolvedValue([]);
-
-    const { container } = render(<TripJoinRequestsSection />);
-    await waitFor(() => expect(mocks.mockGetMyTripJoinRequests).toHaveBeenCalled());
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('renders nothing when the fetch fails', async () => {
-    mocks.mockGetMyTripJoinRequests.mockRejectedValue(new Error('network'));
-
-    const { container } = render(<TripJoinRequestsSection />);
-    await waitFor(() => expect(mocks.mockGetMyTripJoinRequests).toHaveBeenCalled());
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('renders the trip name, cover, and cancel button', async () => {
-    mocks.mockGetMyTripJoinRequests.mockResolvedValue([mockRequest]);
-
-    const { container } = render(<TripJoinRequestsSection />);
-
-    expect(await screen.findByText('Cancún 2026')).toBeInTheDocument();
-    const img = container.querySelector('img');
-    expect(img).toHaveAttribute('src', 'https://cdn.example.com/cover.jpg');
-    expect(
-      screen.getByRole('button', { name: 'participants.myRequests.cancel' }),
-    ).toBeInTheDocument();
-  });
-
-  it('omits the cover image when coverUrl is null', async () => {
-    mocks.mockGetMyTripJoinRequests.mockResolvedValue([{ ...mockRequest, coverUrl: null }]);
-
-    const { container } = render(<TripJoinRequestsSection />);
-
-    await screen.findByText('Cancún 2026');
-    expect(container.querySelector('img')).not.toBeInTheDocument();
-  });
-
-  it('links to the trip page', async () => {
-    mocks.mockGetMyTripJoinRequests.mockResolvedValue([mockRequest]);
-
-    render(<TripJoinRequestsSection />);
-
-    const link = await screen.findByText('Cancún 2026');
-    expect(link.closest('a')).toHaveAttribute('href', '/trips/trip-1');
-  });
-
-  it('withdraws the request and removes it from the list on cancel', async () => {
-    mocks.mockGetMyTripJoinRequests.mockResolvedValue([mockRequest]);
-    const user = userEvent.setup();
-
-    render(<TripJoinRequestsSection />);
-    await screen.findByText('Cancún 2026');
-
-    await user.click(screen.getByRole('button', { name: 'participants.myRequests.cancel' }));
-
-    await waitFor(() => {
-      expect(mocks.mockWithdrawJoinRequest).toHaveBeenCalledWith('trip-1');
+    mocks.mockUsePendingJoinRequests.mockReturnValue({
+      requests: [],
+      isLoading: true,
+      cancellingIds: new Set(),
+      errorIds: new Set(),
+      cancel: vi.fn(),
     });
-    await waitFor(() => {
-      expect(screen.queryByText('Cancún 2026')).not.toBeInTheDocument();
+
+    const { container } = render(<TripJoinRequestsSection />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('renders nothing when there are no pending requests', () => {
+    mocks.mockUsePendingJoinRequests.mockReturnValue({
+      requests: [],
+      isLoading: false,
+      cancellingIds: new Set(),
+      errorIds: new Set(),
+      cancel: vi.fn(),
     });
+
+    const { container } = render(<TripJoinRequestsSection />);
+    expect(container.firstChild).toBeNull();
   });
 
-  it('shows an error message when withdrawing fails', async () => {
-    mocks.mockGetMyTripJoinRequests.mockResolvedValue([mockRequest]);
-    mocks.mockWithdrawJoinRequest.mockRejectedValueOnce(new Error('fail'));
-    const user = userEvent.setup();
-
-    render(<TripJoinRequestsSection />);
-    await screen.findByText('Cancún 2026');
-
-    await user.click(screen.getByRole('button', { name: 'participants.myRequests.cancel' }));
-
-    expect(await screen.findByText('participants.myRequests.cancelError')).toBeInTheDocument();
-    expect(screen.getByText('Cancún 2026')).toBeInTheDocument();
-  });
-
-  it('renders multiple pending requests', async () => {
-    const second: MyTripJoinRequestResponse = {
-      tripId: 'trip-2',
-      name: 'Bacalar Trip',
-      coverUrl: null,
-      visibility: TripVisibility.PUBLIC,
-      startDate: '2026-03-01',
-      endDate: '2026-03-05',
-      initiatedAt: '2026-02-01T00:00:00.000Z',
-    };
-    mocks.mockGetMyTripJoinRequests.mockResolvedValue([mockRequest, second]);
+  it('wires usePendingJoinRequests to the trip service functions', () => {
+    mocks.mockUsePendingJoinRequests.mockReturnValue({
+      requests: [mockRequest],
+      isLoading: false,
+      cancellingIds: new Set(),
+      errorIds: new Set(),
+      cancel: vi.fn(),
+    });
 
     render(<TripJoinRequestsSection />);
 
-    expect(await screen.findByText('Cancún 2026')).toBeInTheDocument();
-    expect(screen.getByText('Bacalar Trip')).toBeInTheDocument();
+    const options = mocks.mockUsePendingJoinRequests.mock.calls[0]![0];
+    expect(options.fetchRequests).toBe(mocks.mockGetMyTripJoinRequests);
+    expect(options.cancelRequest).toBe(mocks.mockWithdrawJoinRequest);
+    expect(options.getId(mockRequest)).toBe('trip-1');
+  });
+
+  it('passes the trip i18n keys and app locale to the shared section', () => {
+    mocks.mockUsePendingJoinRequests.mockReturnValue({
+      requests: [mockRequest],
+      isLoading: false,
+      cancellingIds: new Set(),
+      errorIds: new Set(),
+      cancel: vi.fn(),
+    });
+
+    render(<TripJoinRequestsSection />);
+
+    expect(screen.getByTestId('title')).toHaveTextContent('participants.myRequests.titleWithCount');
+    expect(screen.getByTestId('cancel-label')).toHaveTextContent('participants.myRequests.cancel');
+    expect(screen.getByTestId('cancel-error-label')).toHaveTextContent(
+      'participants.myRequests.cancelError',
+    );
+    expect(screen.getByTestId('locale')).toHaveTextContent('en');
+  });
+
+  it('builds a /trips/:id href for each request', () => {
+    mocks.mockUsePendingJoinRequests.mockReturnValue({
+      requests: [mockRequest],
+      isLoading: false,
+      cancellingIds: new Set(),
+      errorIds: new Set(),
+      cancel: vi.fn(),
+    });
+
+    render(<TripJoinRequestsSection />);
+
+    expect(screen.getByTestId('href')).toHaveTextContent('/trips/trip-1');
   });
 });

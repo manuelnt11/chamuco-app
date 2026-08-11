@@ -286,11 +286,10 @@
 
 ### Imports
 
-- `@testing-library/react` — `render`, `screen`, `waitFor`
-- `@testing-library/user-event` — `userEvent`
+- `@testing-library/react` — `render`, `screen`
 - `@chamuco/shared-types` — `TripVisibility` for fixtures
 - `@/services/trips.types` — `MyTripJoinRequestResponse` type for fixtures
-- `./TripJoinRequestsSection` — component under test
+- `./TripJoinRequestsSection` — component under test (mocks `usePendingJoinRequests` and `PendingJoinRequestsSection` to verify wiring only)
 
 ### Definitions
 
@@ -306,17 +305,15 @@
 
 ### Imports
 
-- `react` — `useCallback`, `useEffect`, `useState` for local fetch/cancel state
-- `next/link` — `Link` to the trip's page
 - `react-i18next` — `useTranslation` for i18n strings (trips namespace)
-- `@phosphor-icons/react` — `XIcon` for the cancel button
 - `@/services/trips.service` — `getMyTripJoinRequests`, `withdrawJoinRequest`
-- `@/components/ui/button` — `Button`
+- `@/hooks/usePendingJoinRequests` — `usePendingJoinRequests` (shared fetch/cancel/error state)
+- `@/components/shared/PendingJoinRequestsSection` — `PendingJoinRequestsSection` (shared presentational list)
 - `@/services/trips.types` — `MyTripJoinRequestResponse` type
 
 ### Definitions
 
-- `TripJoinRequestsSection` (component) — fetches the current user's pending trip join requests and renders a bordered section listing each one with cover, name, formatted `initiatedAt` date, and an icon-only cancel button that withdraws the request; returns `null` while loading or when there are no pending requests
+- `TripJoinRequestsSection` (component) — thin wrapper wiring `usePendingJoinRequests` to the trip join-request service functions and rendering the shared `PendingJoinRequestsSection` with trip-specific field mappers (`/trips/:id` href, `participants.myRequests.*` i18n keys); returns `null` while loading or when there are no pending requests
 
 ### Exports
 

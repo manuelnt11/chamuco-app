@@ -54,11 +54,11 @@ describe('GroupJoinRequestsService', () => {
   let mockGroupMembersFindFirst: jest.Mock;
   let mockGroupMembersFindMany: jest.Mock;
   let mockGroupsFindMany: jest.Mock;
-  let mockAssetsFindMany: jest.Mock;
   let mockAssetResolverResolve: jest.Mock;
   let mockUpdateWhere: jest.Mock;
   let mockUpdateSet: jest.Mock;
   let mockUpdate: jest.Mock;
+  let mockDeleteReturning: jest.Mock;
   let mockDeleteWhere: jest.Mock;
   let mockDelete: jest.Mock;
   let mockInsertOnConflict: jest.Mock;
@@ -76,14 +76,14 @@ describe('GroupJoinRequestsService', () => {
     mockGroupMembersFindMany = jest.fn().mockResolvedValue([]);
     mockGroupsFindFirst = jest.fn().mockResolvedValue({ name: 'Mountain Crew' });
     mockGroupsFindMany = jest.fn().mockResolvedValue([]);
-    mockAssetsFindMany = jest.fn().mockResolvedValue([]);
     mockAssetResolverResolve = jest.fn().mockResolvedValue(null);
 
     mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
     mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
     mockUpdate = jest.fn().mockReturnValue({ set: mockUpdateSet });
 
-    mockDeleteWhere = jest.fn().mockResolvedValue(undefined);
+    mockDeleteReturning = jest.fn().mockResolvedValue([{ groupId: GROUP_ID, userId: USER_ID }]);
+    mockDeleteWhere = jest.fn().mockReturnValue({ returning: mockDeleteReturning });
     mockDelete = jest.fn().mockReturnValue({ where: mockDeleteWhere });
 
     mockInsertOnConflict = jest.fn().mockResolvedValue(undefined);
@@ -111,7 +111,6 @@ describe('GroupJoinRequestsService', () => {
                 findMany: mockGroupMembersFindMany,
               },
               groups: { findFirst: mockGroupsFindFirst, findMany: mockGroupsFindMany },
-              assets: { findMany: mockAssetsFindMany },
             },
             update: mockUpdate,
             insert: mockInsert,
@@ -299,14 +298,28 @@ describe('GroupJoinRequestsService', () => {
 
       expect(mockDelete).toHaveBeenCalled();
       expect(mockDeleteWhere).toHaveBeenCalled();
+      expect(mockDeleteReturning).toHaveBeenCalled();
     });
 
     it('throws ConflictException when no REQUEST exists', async () => {
       mockFindMemberOrThrow.mockResolvedValue(activeMembership);
+      mockDeleteReturning.mockResolvedValueOnce([]);
 
       await expect(service.withdrawJoinRequest(GROUP_ID, USER_ID)).rejects.toThrow(
         ConflictException,
       );
+    });
+
+    it('throws ConflictException when the request was accepted concurrently (delete matches zero rows)', async () => {
+      // findMemberOrThrow still sees REQUEST (read before the race), but the atomic
+      // delete's status filter matches nothing because acceptJoinRequest committed first.
+      mockFindMemberOrThrow.mockResolvedValue(requestMembership);
+      mockDeleteReturning.mockResolvedValueOnce([]);
+
+      await expect(service.withdrawJoinRequest(GROUP_ID, USER_ID)).rejects.toThrow(
+        ConflictException,
+      );
+      expect(mockDelete).toHaveBeenCalled();
     });
 
     it('throws NotFoundException when membership not found', async () => {
@@ -321,12 +334,14 @@ describe('GroupJoinRequestsService', () => {
   // ─── listMyPendingRequests ───────────────────────────────────────────────────
 
   describe('listMyPendingRequests', () => {
+    const mockCoverAsset = { id: 'asset-uuid', createdAt: NOW };
     const mockGroupRow = {
       id: GROUP_ID,
       name: 'Mountain Crew',
       visibility: GroupVisibility.PUBLIC,
       deletedAt: null,
       cover: 'asset-uuid',
+      coverAsset: mockCoverAsset,
     };
 
     it('returns empty array when user has no pending requests', async () => {
@@ -354,7 +369,6 @@ describe('GroupJoinRequestsService', () => {
         { groupId: GROUP_ID, userId: USER_ID, initiatedAt: NOW },
       ]);
       mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow]);
-      mockAssetsFindMany.mockResolvedValueOnce([{ id: 'asset-uuid', createdAt: NOW }]);
       mockAssetResolverResolve.mockResolvedValueOnce({ url: 'https://example.com/cover.jpg' });
 
       const result = await service.listMyPendingRequests(USER_ID);
@@ -370,13 +384,30 @@ describe('GroupJoinRequestsService', () => {
       ]);
     });
 
-    it('throws NotFoundException when the group has no cover asset', async () => {
+    it('returns null coverUrl when the group has no cover asset', async () => {
       mockGroupMembersFindMany.mockResolvedValueOnce([
         { groupId: GROUP_ID, userId: USER_ID, initiatedAt: NOW },
       ]);
-      mockGroupsFindMany.mockResolvedValueOnce([{ ...mockGroupRow, cover: null }]);
+      mockGroupsFindMany.mockResolvedValueOnce([
+        { ...mockGroupRow, cover: null, coverAsset: null },
+      ]);
 
-      await expect(service.listMyPendingRequests(USER_ID)).rejects.toThrow(NotFoundException);
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result[0]!.coverUrl).toBeNull();
+      expect(mockAssetResolverResolve).not.toHaveBeenCalled();
+    });
+
+    it('returns null coverUrl when the cover asset fails to resolve', async () => {
+      mockGroupMembersFindMany.mockResolvedValueOnce([
+        { groupId: GROUP_ID, userId: USER_ID, initiatedAt: NOW },
+      ]);
+      mockGroupsFindMany.mockResolvedValueOnce([mockGroupRow]);
+      mockAssetResolverResolve.mockResolvedValueOnce(null);
+
+      const result = await service.listMyPendingRequests(USER_ID);
+
+      expect(result[0]!.coverUrl).toBeNull();
     });
   });
 });

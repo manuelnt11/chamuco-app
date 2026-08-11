@@ -78,7 +78,6 @@
     "myRequests": {
       "titleWithCount": "Solicitudes pendientes ({{count}})",
       "cancel": "Cancelar solicitud",
-      "cancelling": "Cancelando...",
       "cancelError": "Error al cancelar la solicitud"
     },
     "actions": {
