@@ -2,10 +2,20 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { UserCircleIcon, SignOutIcon, UserIcon } from '@phosphor-icons/react';
+import {
+  UserCircleIcon,
+  SignOutIcon,
+  UserIcon,
+  SunDimIcon,
+  MoonIcon,
+  DesktopIcon,
+  TranslateIcon,
+} from '@phosphor-icons/react';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
+import { useThemeCycle } from '@/hooks/useThemeCycle';
+import { useLanguageCycle } from '@/hooks/useLanguageCycle';
 import {
   MenuRoot,
   MenuTrigger,
@@ -17,11 +27,23 @@ import {
 import { toast } from '@/components/ui/toast';
 import { getInitials } from '@/lib/name-utils';
 
+const THEME_ICONS = {
+  light: SunDimIcon,
+  dark: MoonIcon,
+  system: DesktopIcon,
+} as const;
+
 export function UserAvatar() {
   const { t } = useTranslation(['common', 'auth', 'errors']);
   const router = useRouter();
   const { currentUser, isLoading: authLoading, signOut } = useAuth();
   const { appUser, isLoading: userLoading } = useUser();
+  const { theme, mounted: themeMounted, cycleTheme } = useThemeCycle();
+  const { language, mounted: languageMounted, cycleLanguage } = useLanguageCycle();
+
+  const currentThemeKey = (theme as keyof typeof THEME_ICONS) ?? 'system';
+  const ThemeIcon = THEME_ICONS[currentThemeKey] ?? DesktopIcon;
+  const preferencesMounted = themeMounted && languageMounted;
 
   async function handleSignOut() {
     try {
@@ -94,6 +116,30 @@ export function UserAvatar() {
         <MenuItem onClick={() => router.push('/profile')}>
           <UserIcon className="size-4 shrink-0" aria-hidden="true" />
           {t('common:navigation.profile')}
+        </MenuItem>
+
+        <MenuSeparator />
+
+        <MenuItem onClick={cycleTheme} closeOnClick={false}>
+          {preferencesMounted ? (
+            <>
+              <ThemeIcon className="size-4 shrink-0" aria-hidden="true" />
+              {t(`common:preferences.theme.${currentThemeKey}`)}
+            </>
+          ) : (
+            <DesktopIcon className="size-4 shrink-0" aria-hidden="true" />
+          )}
+        </MenuItem>
+
+        <MenuItem onClick={cycleLanguage} closeOnClick={false}>
+          {preferencesMounted ? (
+            <>
+              <TranslateIcon className="size-4 shrink-0" aria-hidden="true" />
+              {t(`common:preferences.language.${language}`)}
+            </>
+          ) : (
+            <TranslateIcon className="size-4 shrink-0" aria-hidden="true" />
+          )}
         </MenuItem>
 
         <MenuSeparator />

@@ -48,7 +48,7 @@ describe('Header', () => {
   it('has fixed positioning and correct z-index', () => {
     const { container } = render(<Header />);
     const header = container.querySelector('header');
-    expect(header).toHaveClass('fixed', 'top-0', 'left-0', 'right-0', 'z-50');
+    expect(header).toHaveClass('fixed', 'top-0', 'left-app-edge', 'right-app-edge', 'z-50');
   });
 
   it('has correct height', () => {
@@ -84,14 +84,17 @@ describe('Header', () => {
     expect(screen.queryByTestId('notification-bell')).not.toBeInTheDocument();
   });
 
-  it('renders LanguageToggle component', () => {
+  it('shows standalone theme/language toggles when user is not authenticated', () => {
+    vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: null }));
     render(<Header />);
+    expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
     expect(screen.getByTestId('language-toggle')).toBeInTheDocument();
   });
 
-  it('renders ThemeToggle component', () => {
+  it('hides standalone theme/language toggles when user is authenticated', () => {
     render(<Header />);
-    expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
+    expect(screen.queryByTestId('theme-toggle')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('language-toggle')).not.toBeInTheDocument();
   });
 
   it('has correct layout structure', () => {

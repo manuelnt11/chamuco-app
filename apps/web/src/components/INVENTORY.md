@@ -90,20 +90,14 @@
 
 ### Imports
 
-- `react` — `useEffect`, `useState`
-- `react-i18next` — `useTranslation` (accesses `i18n.language`)
 - `@phosphor-icons/react` — `TranslateIcon`
-- `@chamuco/shared-types` — `AppLanguage` (enum for persisting language to backend)
 - `@/lib/i18n/config` — `SupportedLanguage` (union type for supported locale codes)
-- `@/lib/i18n/utils` — `getNextLanguage` (cycles through supported languages)
-- `@/lib/i18n/client` — `changeLanguage` (applies language change and persists to localStorage)
-- `@/hooks/useAuth` — `useAuth` (detects authenticated user)
-- `@/services/users.service` — `updateMyPreferences` (persists language preference to backend)
+- `@/hooks/useLanguageCycle` — `useLanguageCycle` (shared cycle-and-persist behavior)
 
 ### Definitions
 
 - `LANGUAGE_LABELS` (const) — maps `SupportedLanguage` codes to display names (`'English'`, `'Español'`)
-- `LanguageToggle` (component) — icon button that cycles the app language; persists to DB when authenticated; renders a placeholder during SSR to avoid hydration mismatch
+- `LanguageToggle` (component) — thin presentational wrapper around `useLanguageCycle`; icon button that cycles the app language; renders a placeholder until the hook reports `mounted`
 
 ### Exports
 
@@ -121,10 +115,11 @@
 - `@/lib/i18n/config` — `LANGUAGE_STORAGE_KEY`
 - `firebase/auth` — `User` (type for fake user fixture)
 - `./LanguageToggle` — `LanguageToggle`
+- `@/components/ui/toast` — `toast` (asserted on the persist-failure rollback test)
 
 ### Definitions
 
-- `describe('LanguageToggle', ...)` (const) — test suite covering: SSR placeholder, language display, icon presence, cycling, localStorage persistence, DB save when authenticated, no-API when unauthenticated, accessible label and title
+- `describe('LanguageToggle', ...)` (const) — test suite covering: SSR placeholder, language display, icon presence, cycling, localStorage persistence, DB save when authenticated, no-API when unauthenticated, rollback + error toast on persist failure, accessible label and title
 
 ### Exports
 
@@ -247,22 +242,16 @@
 
 ### Imports
 
-- `@chamuco/shared-types` — `AppTheme` (enum used when persisting theme to backend)
-- `next-themes` — `useTheme`
-- `react` — `useEffect`, `useState`
 - `@phosphor-icons/react` — `SunDimIcon`, `MoonIcon`, `DesktopIcon`
-- `@/hooks/useAuth` — `useAuth`
-- `@/services/users.service` — `updateMyPreferences`
+- `@/hooks/useThemeCycle` — `useThemeCycle` (shared cycle-and-persist behavior); re-exports its `getNextTheme` helper
 
 ### Definitions
 
-- `THEME_CYCLE` (const) — maps current theme to next: `light → dark → system → light`
-- `getNextTheme` (function) — returns the next theme in the cycle given the current theme string; defaults to `'light'` for unknown values
-- `ThemeToggle` (component) — icon button that cycles through light/dark/system themes; persists to DB when authenticated; renders a placeholder during SSR to avoid hydration mismatch
+- `ThemeToggle` (component) — thin presentational wrapper around `useThemeCycle`; icon button that cycles through light/dark/system themes; renders a placeholder until the hook reports `mounted`
 
 ### Exports
 
-- `getNextTheme` — named
+- `getNextTheme` — named (re-exported from `@/hooks/useThemeCycle`)
 - `ThemeToggle` — named
 
 ---
@@ -276,11 +265,12 @@
 - `vitest` — `describe`, `it`, `expect`, `vi`, `beforeEach`
 - `firebase/auth` — `User` (type for fake user fixture)
 - `./ThemeToggle` — `ThemeToggle`, `getNextTheme`
+- `@/components/ui/toast` — `toast` (asserted on the persist-failure rollback test)
 
 ### Definitions
 
 - `describe('getNextTheme', ...)` (const) — unit tests for the cycle helper (all transitions + edge cases)
-- `describe('ThemeToggle', ...)` (const) — test suite covering: icon per theme, cycling on click, DB save when authenticated, no-API when unauthenticated, SSR placeholder, hover styles
+- `describe('ThemeToggle', ...)` (const) — test suite covering: icon per theme, cycling on click, DB save when authenticated, no-API when unauthenticated, rollback + error toast on persist failure, SSR placeholder, hover styles
 
 ### Exports
 

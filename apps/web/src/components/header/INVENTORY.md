@@ -10,12 +10,12 @@
 - `./Logo` — `Logo` component
 - `./UserAvatar` — `UserAvatar` component
 - `./NotificationBell` — `NotificationBell` component
-- `@/components/ThemeToggle` — `ThemeToggle` component
-- `@/components/LanguageToggle` — `LanguageToggle` component
+- `@/components/ThemeToggle` — `ThemeToggle` component (shown only when signed out)
+- `@/components/LanguageToggle` — `LanguageToggle` component (shown only when signed out)
 
 ### Definitions
 
-- `Header` (component) — Fixed top app bar rendering Logo, UserAvatar, conditional NotificationBell (authenticated only), LanguageToggle, and ThemeToggle
+- `Header` (component) — Fixed top app bar rendering Logo and UserAvatar; shows `NotificationBell` when authenticated, or standalone `LanguageToggle`+`ThemeToggle` when not (signed-in theme/language controls live inside `UserAvatar`'s dropdown instead)
 
 ### Exports
 
@@ -50,10 +50,13 @@
 ### Imports
 
 - `next/link` — `Link` component for client-side navigation
+- `@/lib/utils` — `cn` utility for conditional class names
 
 ### Definitions
 
-- `Logo` (component) — Renders a linked logo consisting of the `logo-icon.svg` image and the stacked "CHAMUCO / TRAVEL" wordmark; links to `/`
+- `LogoSize` (type) — `'sm' | 'lg'`
+- `ICON_SIZE`, `CHAMUCO_TEXT_SIZE`, `TRAVEL_TEXT_SIZE` (const) — per-size Tailwind class lookup maps
+- `Logo` (component) — Renders a linked logo consisting of the `logo-icon.svg` image and the stacked "CHAMUCO / TRAVEL" wordmark; links to `/`. Accepts an optional `size` prop (`'sm'` default, `'lg'` for standalone contexts like the sign-in page)
 
 ### Exports
 
@@ -171,16 +174,19 @@
 
 - `next/navigation` — `useRouter` for navigation on sign-out and profile clicks
 - `react-i18next` — `useTranslation` for i18n strings across `common`, `auth`, and `errors` namespaces
-- `@phosphor-icons/react` — `UserCircleIcon`, `SignOutIcon`, `UserIcon` icons
+- `@phosphor-icons/react` — `UserCircleIcon`, `SignOutIcon`, `UserIcon`, `SunDimIcon`, `MoonIcon`, `DesktopIcon`, `TranslateIcon` icons
 - `@/hooks/useAuth` — `useAuth` hook for `currentUser`, `isLoading`, `signOut`
 - `@/hooks/useUser` — `useUser` hook for `appUser` and `isLoading`
+- `@/hooks/useThemeCycle` — `useThemeCycle` for theme state + cycle-and-persist behavior
+- `@/hooks/useLanguageCycle` — `useLanguageCycle` for language state + cycle-and-persist behavior
 - `@/components/ui/menu` — `MenuRoot`, `MenuTrigger`, `MenuPopup`, `MenuItem`, `MenuSeparator`, `MenuLabel` primitives
 - `@/components/ui/toast` — `toast` utility for error notifications
 - `@/lib/name-utils` — `getInitials` for deriving avatar fallback text
 
 ### Definitions
 
-- `UserAvatar` (component) — Three-state component: loading placeholder (non-interactive icon), unauthenticated state (sign-in button), and authenticated state (avatar/initials trigger with dropdown menu showing profile info, "Profile" navigation, and "Sign out" action)
+- `THEME_ICONS` (const) — lookup map from each theme value (`light`/`dark`/`system`) to its Phosphor icon component
+- `UserAvatar` (component) — Three-state component: loading placeholder (non-interactive icon), unauthenticated state (sign-in button), and authenticated state (avatar/initials trigger with dropdown menu showing profile info, "Profile" navigation, theme cycle item, language cycle item, and "Sign out" action). Theme/language cycling and persistence come from `useThemeCycle`/`useLanguageCycle`; the two menu items show a neutral icon-only placeholder until both hooks report `mounted`
 
 ### Exports
 
@@ -199,12 +205,12 @@
 - `@chamuco/shared-types` — `ProfileVisibility` enum
 - `@/store/auth` — `AuthContextValue` type
 - `@/store/user` — `UserContextValue` type
-- `@/hooks/useAuth`, `@/hooks/useUser`, `@/components/ui/toast`, `react-i18next`, `next/navigation`, `@/components/ui/menu` — mocked dependencies
+- `@/hooks/useAuth`, `@/hooks/useUser`, `@/components/ui/toast`, `react-i18next`, `next/navigation`, `@/components/ui/menu`, `next-themes`, `@/lib/i18n/client`, `@/services/api-client` — mocked dependencies
 - `./UserAvatar` — component under test
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock state holding `mockRouterReplace`, `mockRouterPush`, `mockSignOut`, `mockToastError`
+- `mocks` (const) — hoisted vi mock state holding `mockRouterReplace`, `mockRouterPush`, `mockSignOut`, `mockChangeLanguage`, `mockPatch`, `mockSetTheme`, `mockUseTheme`
 - `makeAuth` (function) — factory building a complete `AuthContextValue` with safe defaults
 - `makeAppUser` (function) — factory building a `UserContextValue` with a populated `appUser` and optional overrides
 - `makeFirebaseUser` (function) — factory building a minimal Firebase `User` stub with optional overrides

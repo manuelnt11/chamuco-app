@@ -18,7 +18,7 @@ export function DesktopSideNav() {
   return (
     <nav
       className={cn(
-        'fixed left-0 top-header bottom-0 z-30 bg-card border-r border-border',
+        'fixed left-app-edge top-header bottom-0 z-30 bg-card border-r border-border',
         'hidden md:flex md:flex-col',
         'overflow-hidden',
         'transition-[width] duration-200 ease-in-out',

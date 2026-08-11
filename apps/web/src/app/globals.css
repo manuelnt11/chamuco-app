@@ -76,6 +76,28 @@
   padding-left: var(--layout-sidebar-width);
 }
 
+/* App shell total width — caps header/sidebar/main together so the whole shell
+   centers with even gutters on wide screens (X/Twitter-style), instead of only
+   the content column centering while chrome stays pinned to viewport edges. */
+@utility max-w-app {
+  max-width: var(--layout-app-max-width);
+}
+
+@utility left-app-edge {
+  left: max(0px, calc(50% - (var(--layout-app-max-width) / 2)));
+}
+
+@utility right-app-edge {
+  right: max(0px, calc(50% - (var(--layout-app-max-width) / 2)));
+}
+
+/* Inset variant of right-app-edge — same shell-aware edge, offset inward by 1.5rem
+   (right-6). Used by floating UI (feedback FAB) that needs a fixed margin from the
+   shell's edge on every screen size, not just an edge-flush element. */
+@utility right-app-edge-6 {
+  right: max(1.5rem, calc(50% - (var(--layout-app-max-width) / 2) + 1.5rem));
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -84,6 +106,7 @@
   /* App shell layout dimensions — single source of truth */
   --layout-header-height: 4rem;   /* h-16 / 64px */
   --layout-sidebar-width: 10rem;  /* w-40 / 160px */
+  --layout-app-max-width: 50rem;  /* 800px — total shell width, centered like X */
   /* iOS PWA safe area: header extends under notch, nav extends under home indicator (half inset) */
   --layout-header-safe: calc(var(--layout-header-height) + env(safe-area-inset-top, 0px));
   --layout-nav-inset: calc(env(safe-area-inset-bottom, 0px) / 2);

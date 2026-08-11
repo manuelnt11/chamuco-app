@@ -1,35 +1,13 @@
 'use client';
 
-import type { AppTheme } from '@chamuco/shared-types';
-import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
 import { SunDimIcon, MoonIcon, DesktopIcon } from '@phosphor-icons/react';
 
-import { useAuth } from '@/hooks/useAuth';
-import { updateMyPreferences } from '@/services/users.service';
+import { useThemeCycle } from '@/hooks/useThemeCycle';
 
-const THEME_CYCLE = {
-  light: 'dark',
-  dark: 'system',
-  system: 'light',
-} as const;
-
-/**
- * Gets the next theme in the cycle: light → dark → system → light
- */
-export const getNextTheme = (current: string | undefined): string => {
-  if (!current) return 'light';
-  return THEME_CYCLE[current as keyof typeof THEME_CYCLE] || 'light';
-};
+export { getNextTheme } from '@/hooks/useThemeCycle';
 
 export function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const { currentUser } = useAuth();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const { theme, mounted, cycleTheme } = useThemeCycle();
 
   if (!mounted) {
     return (
@@ -41,14 +19,6 @@ export function ThemeToggle() {
       </button>
     );
   }
-
-  const cycleTheme = () => {
-    const next = getNextTheme(theme);
-    setTheme(next);
-    if (currentUser) {
-      void updateMyPreferences({ theme: next.toUpperCase() as AppTheme });
-    }
-  };
 
   return (
     <button

@@ -33,4 +33,16 @@ describe('Logo', () => {
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('aria-label', 'Chamuco Travel home');
   });
+
+  it('renders the small icon size by default', () => {
+    render(<Logo />);
+    const images = document.querySelectorAll('img');
+    expect(images[0]).toHaveClass('h-10', 'w-10');
+  });
+
+  it('renders a larger icon when size="lg"', () => {
+    render(<Logo size="lg" />);
+    const images = document.querySelectorAll('img');
+    expect(images[0]).toHaveClass('h-16', 'w-16');
+  });
 });
