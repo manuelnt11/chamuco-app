@@ -2,63 +2,6 @@
 
 ---
 
-## `DestinationList.test.tsx`
-
-### Imports
-
-- `@testing-library/react` — `render`, `screen`, `waitFor`
-- `@testing-library/user-event` — `userEvent`
-- `@/services/trips.types` — `DestinationResponse`, `DestinationWriteResponse`
-- `./DestinationList` — `DestinationList`
-- `react` — `React` (type, referenced in dnd-kit mock)
-
-### Definitions
-
-- `makeDestination` (function) — test fixture factory producing a `DestinationResponse` with overridable fields
-
-### Exports
-
-- None
-
----
-
-## `DestinationList.tsx`
-
-### Imports
-
-- `react` — `useEffect`, `useState`, `SubmitEvent`
-- `react-i18next` — `useTranslation`
-- `@dnd-kit/core` — `DndContext`, `PointerSensor`, `KeyboardSensor`, `closestCenter`, `useSensor`, `useSensors`, `DragEndEvent`
-- `@dnd-kit/sortable` — `SortableContext`, `sortableKeyboardCoordinates`, `useSortable`, `verticalListSortingStrategy`, `arrayMove`
-- `@dnd-kit/utilities` — `CSS`
-- `@phosphor-icons/react` — `AirplaneLandingIcon`, `AirplaneTakeoffIcon`, `CaretDownIcon`, `DotsSixVerticalIcon`, `PencilSimpleIcon`, `PlusIcon`
-- `axios` — default import for `isAxiosError` check
-- `@/components/ui/button` — `Button`
-- `@/components/ui/input` — `Input`
-- `@/components/ui/label` — `Label`
-- `@/components/ui/country-combobox` — `CountryCombobox`
-- `@/components/ui/city-combobox` — `CityCombobox`
-- `@/components/ui/edit-delete-actions` — `EditDeleteActions`
-- `@/components/ui/toast` — `toast`
-- `@/components/ui/dialog` — `Dialog`, `DialogPopup`, `DialogHeader`, `DialogTitle`, `DialogClose`, `DialogFooter`
-- `@/components/ui/markdown-content` — `MarkdownContent`
-- `@/components/ui/rich-text-editor` — `RichTextEditor`
-- `@/services/trips.service` — `addTripDestination`, `updateTripDestination`, `deleteTripDestination`, `reorderTripDestinations`
-- `@/services/trips.types` — `DestinationResponse`
-
-### Definitions
-
-- `DestinationReadItem` (component) — collapsible row for participant view; clicking the row expands an itinerary panel (`MarkdownContent` or "no itinerary" fallback); not exported
-- `SortableItem` (component) — drag-handle collapsible row for organizer view; main content area is an expand button; expanded panel shows itinerary read mode with inline pencil edit → `RichTextEditor` with save/cancel; not exported
-- `DestinationFormDialog` (component) — modal dialog for adding or editing a destination with country, city, and optional label fields; not exported
-- `DestinationList` (component) — sortable trip destination list; organizers can drag-reorder, add, edit, and delete, and edit per-destination itinerary inline; non-organizers see a collapsible read-only ordered list
-
-### Exports
-
-- `DestinationList` — named
-
----
-
 ## `TripCard.test.tsx`
 
 ### Imports
@@ -142,6 +85,63 @@
 ### Exports
 
 - `TripCoverEditor` — named
+
+---
+
+## `TripDestinationList.test.tsx`
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen`, `waitFor`
+- `@testing-library/user-event` — `userEvent`
+- `@/services/trips.types` — `DestinationResponse`, `DestinationWriteResponse`
+- `./TripDestinationList` — `TripDestinationList`
+- `react` — `React` (type, referenced in dnd-kit mock)
+
+### Definitions
+
+- `makeDestination` (function) — test fixture factory producing a `DestinationResponse` with overridable fields
+
+### Exports
+
+- None
+
+---
+
+## `TripDestinationList.tsx`
+
+### Imports
+
+- `react` — `useEffect`, `useState`, `SubmitEvent`
+- `react-i18next` — `useTranslation`
+- `@dnd-kit/core` — `DndContext`, `PointerSensor`, `KeyboardSensor`, `closestCenter`, `useSensor`, `useSensors`, `DragEndEvent`
+- `@dnd-kit/sortable` — `SortableContext`, `sortableKeyboardCoordinates`, `useSortable`, `verticalListSortingStrategy`, `arrayMove`
+- `@dnd-kit/utilities` — `CSS`
+- `@phosphor-icons/react` — `AirplaneLandingIcon`, `AirplaneTakeoffIcon`, `CaretDownIcon`, `DotsSixVerticalIcon`, `PencilSimpleIcon`, `PlusIcon`
+- `axios` — default import for `isAxiosError` check
+- `@/components/ui/button` — `Button`
+- `@/components/ui/input` — `Input`
+- `@/components/ui/label` — `Label`
+- `@/components/ui/country-combobox` — `CountryCombobox`
+- `@/components/ui/city-combobox` — `CityCombobox`
+- `@/components/ui/edit-delete-actions` — `EditDeleteActions`
+- `@/components/ui/toast` — `toast`
+- `@/components/ui/dialog` — `Dialog`, `DialogPopup`, `DialogHeader`, `DialogTitle`, `DialogClose`, `DialogFooter`
+- `@/components/ui/markdown-content` — `MarkdownContent`
+- `@/components/ui/rich-text-editor` — `RichTextEditor`
+- `@/services/trips.service` — `addTripDestination`, `updateTripDestination`, `deleteTripDestination`, `reorderTripDestinations`
+- `@/services/trips.types` — `DestinationResponse`
+
+### Definitions
+
+- `DestinationReadItem` (component) — collapsible row for participant view; clicking the row expands an itinerary panel (`MarkdownContent` or "no itinerary" fallback); not exported
+- `SortableItem` (component) — drag-handle collapsible row for organizer view; main content area is an expand button; expanded panel shows itinerary read mode with inline pencil edit → `RichTextEditor` with save/cancel; not exported
+- `DestinationFormDialog` (component) — modal dialog for adding or editing a destination with country, city, and optional label fields; not exported
+- `TripDestinationList` (component) — sortable trip destination list; organizers can drag-reorder, add, edit, and delete, and edit per-destination itinerary inline; non-organizers see a collapsible read-only ordered list
+
+### Exports
+
+- `TripDestinationList` — named
 
 ---
 
@@ -279,6 +279,45 @@
 ### Exports
 
 - `TripInvitationsSection` — named
+
+---
+
+## `TripJoinRequestsSection.test.tsx`
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen`
+- `@chamuco/shared-types` — `TripVisibility` for fixtures
+- `@/services/trips.types` — `MyTripJoinRequestResponse` type for fixtures
+- `./TripJoinRequestsSection` — component under test (mocks `usePendingJoinRequests` and `PendingJoinRequestsSection` to verify wiring only)
+
+### Definitions
+
+- `mockRequest` (const) — `MyTripJoinRequestResponse` fixture used across test cases
+
+### Exports
+
+- none
+
+---
+
+## `TripJoinRequestsSection.tsx`
+
+### Imports
+
+- `react-i18next` — `useTranslation` for i18n strings (trips namespace)
+- `@/services/trips.service` — `getMyTripJoinRequests`, `withdrawJoinRequest`
+- `@/hooks/usePendingJoinRequests` — `usePendingJoinRequests` (shared fetch/cancel/error state)
+- `@/components/shared/PendingJoinRequestsSection` — `PendingJoinRequestsSection` (shared presentational list)
+- `@/services/trips.types` — `MyTripJoinRequestResponse` type
+
+### Definitions
+
+- `TripJoinRequestsSection` (component) — thin wrapper wiring `usePendingJoinRequests` to the trip join-request service functions and rendering the shared `PendingJoinRequestsSection` with trip-specific field mappers (`/trips/:id` href, `participants.myRequests.*` i18n keys); returns `null` while loading or when there are no pending requests
+
+### Exports
+
+- `TripJoinRequestsSection` — named
 
 ---
 

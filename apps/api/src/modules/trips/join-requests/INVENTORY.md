@@ -52,15 +52,18 @@
 ### Imports
 
 - `@nestjs/common` — `ConflictException`, `Inject`, `Injectable`, `Logger`
-- `drizzle-orm` — `and`, `eq`
+- `drizzle-orm` — `and`, `eq`, `inArray`
 - `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripParticipantStatus`, `TripRole`, `TripVisibility`
 - `@/database/drizzle.provider` — `DRIZZLE_CLIENT`, `DrizzleClient`
 - `@/database/db-errors` — `isUniqueViolation`
-- `@/modules/trips/schema/trips.schema` — `trips`
+- `@/modules/trips/schema/trips.schema` — `trips` (Drizzle table reference; its `coverAsset` relation is used via `with:` in `listMyPendingRequests`)
 - `@/modules/trips/schema/trip-participants.schema` — `tripParticipants`
+- `@/modules/assets/asset-resolver.service` — `AssetResolverService` (resolves cover asset rows to ready-to-use URLs)
+- `@/modules/assets/asset.utils` — `assetRowToAsset` (converts a raw asset row into the `Asset` domain shape)
 - `@/modules/notifications/notifications.service` — `NotificationsService`
 - `@/modules/trips/participants/trip-participants.service` — `TripParticipantsService`
 - `@/modules/trips/participants/trip-participants.constants` — `ACTIVE_STATUSES`
+- `./dto/my-trip-join-request-response.dto` — `MyTripJoinRequestResponseDto` (type-only import for `listMyPendingRequests`' return shape)
 
 ### Definitions
 
@@ -68,7 +71,8 @@
 - `submitJoinRequest` (function) — validates trip visibility, checks for existing participation, inserts or resets a `PENDING_REQUEST` record; handles concurrent unique-violation race condition
 - `acceptJoinRequest` (function) — asserts organizer role, validates `PENDING_REQUEST` status and capacity, transitions to `ACCEPTED`, sends `TRIP_JOIN_ACCEPTED` push notification (errors swallowed with logging)
 - `rejectJoinRequest` (function) — asserts organizer role, validates `PENDING_REQUEST` status, transitions to `DECLINED`
-- `withdrawJoinRequest` (function) — validates `PENDING_REQUEST` status and deletes the participant row
+- `withdrawJoinRequest` (function) — atomic delete filtered by `PENDING_REQUEST` status; a zero-row `.returning()` result means the request was already accepted/rejected concurrently, surfaced as `ConflictException` rather than racing
+- `listMyPendingRequests` (function) — lists the authenticated user's own pending `PENDING_REQUEST`s across trips, with `coverUrl` resolved via the relational `coverAsset` join and defaulted to `null` — never thrown — when the cover can't be resolved
 
 ### Exports
 
@@ -88,6 +92,7 @@
 - `./trip-join-requests.service` — `TripJoinRequestsService`
 - `@/modules/trips/participants/trip-participants.service` — `TripParticipantsService`
 - `@/modules/notifications/notifications.service` — `NotificationsService`
+- `@/modules/assets/asset-resolver.service` — `AssetResolverService` (mocked dependency)
 
 ### Definitions
 
@@ -96,7 +101,25 @@
 - `invitedParticipation` (const) — fixture with status `INVITED`
 - `activeParticipation` (const) — fixture with status `CONFIRMED`
 - `declinedParticipation` (const) — fixture with status `DECLINED`
+- `TripJoinRequestsService` test suite (class) — includes coverage of the concurrent-accept race in `withdrawJoinRequest` (zero-row atomic delete) and the null-coverUrl/failed-resolve paths in `listMyPendingRequests`
 
 ### Exports
 
 - none
+
+---
+
+## `dto/my-trip-join-request-response.dto.ts`
+
+### Imports
+
+- `@nestjs/swagger` — `ApiProperty` (OpenAPI field documentation)
+- `@chamuco/shared-types` — `TripVisibility` (enum for the `visibility` field)
+
+### Definitions
+
+- `MyTripJoinRequestResponseDto` (class) — response shape for `GET /v1/trips/join-requests/mine`: `tripId`, `name`, `coverUrl` (nullable), `visibility`, `startDate`, `endDate`, `initiatedAt`
+
+### Exports
+
+- `MyTripJoinRequestResponseDto` — named

@@ -1,5 +1,5 @@
 import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 
 import {
   NotificationChannel,
@@ -12,9 +12,12 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { isUniqueViolation } from '@/database/db-errors';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { TripParticipantsService } from '@/modules/trips/participants/trip-participants.service';
 import { ACTIVE_STATUSES } from '@/modules/trips/participants/trip-participants.constants';
+import type { MyTripJoinRequestResponseDto } from './dto/my-trip-join-request-response.dto';
 
 @Injectable()
 export class TripJoinRequestsService {
@@ -24,7 +27,45 @@ export class TripJoinRequestsService {
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly tripParticipantsService: TripParticipantsService,
     private readonly notifications: NotificationsService,
+    private readonly assetResolver: AssetResolverService,
   ) {}
+
+  async listMyPendingRequests(userId: string): Promise<MyTripJoinRequestResponseDto[]> {
+    const memberships = await this.db.query.tripParticipants.findMany({
+      where: and(
+        eq(tripParticipants.userId, userId),
+        eq(tripParticipants.status, TripParticipantStatus.PENDING_REQUEST),
+      ),
+    });
+
+    if (memberships.length === 0) return [];
+
+    const tripIds = memberships.map((m) => m.tripId);
+    const initiatedAtByTripId = new Map(memberships.map((m) => [m.tripId, m.initiatedAt]));
+
+    const tripRows = await this.db.query.trips.findMany({
+      where: inArray(trips.id, tripIds),
+      with: { coverAsset: true },
+    });
+
+    if (tripRows.length === 0) return [];
+
+    const resolvedCovers = await Promise.all(
+      tripRows.map((trip) =>
+        trip.coverAsset ? this.assetResolver.resolve(assetRowToAsset(trip.coverAsset)) : null,
+      ),
+    );
+
+    return tripRows.map((trip, i) => ({
+      tripId: trip.id,
+      name: trip.name,
+      coverUrl: resolvedCovers[i]?.url ?? null,
+      visibility: trip.visibility,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      initiatedAt: initiatedAtByTripId.get(trip.id)!.toISOString(),
+    }));
+  }
 
   async submitJoinRequest(tripId: string, requestingUserId: string): Promise<void> {
     const trip = await this.tripParticipantsService.assertTripExists(tripId);
@@ -150,19 +191,19 @@ export class TripJoinRequestsService {
   }
 
   async withdrawJoinRequest(tripId: string, requestingUserId: string): Promise<void> {
-    const participation = await this.tripParticipantsService.findParticipantOrThrow(
-      tripId,
-      requestingUserId,
-    );
+    await this.tripParticipantsService.findParticipantOrThrow(tripId, requestingUserId);
 
-    if (participation.status !== TripParticipantStatus.PENDING_REQUEST) {
-      throw new ConflictException('No pending join request to withdraw');
-    }
-
-    await this.db
+    const [deleted] = await this.db
       .delete(tripParticipants)
       .where(
-        and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, requestingUserId)),
-      );
+        and(
+          eq(tripParticipants.tripId, tripId),
+          eq(tripParticipants.userId, requestingUserId),
+          eq(tripParticipants.status, TripParticipantStatus.PENDING_REQUEST),
+        ),
+      )
+      .returning();
+
+    if (!deleted) throw new ConflictException('No pending join request to withdraw');
   }
 }

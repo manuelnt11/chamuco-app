@@ -8,11 +8,13 @@ import {
 import { GroupsController } from './groups.controller';
 import { GroupsService } from './groups.service';
 import { GroupsDiscoveryService } from './discovery/groups-discovery.service';
+import { GroupJoinRequestsService } from './join-requests/group-join-requests.service';
 import type { CreateGroupDto } from './dto/create-group.dto';
 import type { UpdateGroupDto } from './dto/update-group.dto';
 import type { GroupResponseDto } from './dto/group-response.dto';
 import type { GroupSearchResponseDto } from './dto/group-search-result.dto';
 import type { SearchGroupsQueryDto } from './dto/search-groups-query.dto';
+import type { MyGroupJoinRequestResponseDto } from './join-requests/dto/my-group-join-request-response.dto';
 import type { AuthenticatedUser } from '@/types/express';
 
 const NOW = new Date('2026-01-01T00:00:00.000Z');
@@ -50,6 +52,7 @@ let mockUpdateGroup: jest.Mock;
 let mockDeleteGroup: jest.Mock;
 let mockListMyGroups: jest.Mock;
 let mockSearchGroups: jest.Mock;
+let mockListMyPendingRequests: jest.Mock;
 
 describe('GroupsController', () => {
   let controller: GroupsController;
@@ -63,6 +66,7 @@ describe('GroupsController', () => {
     mockSearchGroups = jest
       .fn()
       .mockResolvedValue({ data: [mockGroupResponse], total: 1 } as GroupSearchResponseDto);
+    mockListMyPendingRequests = jest.fn().mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GroupsController],
@@ -82,6 +86,10 @@ describe('GroupsController', () => {
             listMyGroups: mockListMyGroups,
             searchGroups: mockSearchGroups,
           },
+        },
+        {
+          provide: GroupJoinRequestsService,
+          useValue: { listMyPendingRequests: mockListMyPendingRequests },
         },
       ],
     }).compile();
@@ -149,6 +157,24 @@ describe('GroupsController', () => {
       await controller.deleteGroup(mockAuthUser, 'group-uuid');
 
       expect(mockDeleteGroup).toHaveBeenCalledWith(mockAuthUser, 'group-uuid');
+    });
+  });
+
+  describe('GET /v1/groups/join-requests/mine', () => {
+    it('delegates to GroupJoinRequestsService.listMyPendingRequests and returns the list', async () => {
+      const mockJoinRequest: MyGroupJoinRequestResponseDto = {
+        groupId: 'group-uuid',
+        name: 'Mountain Crew',
+        coverUrl: 'https://twemoji.cdn/emoji.svg',
+        visibility: GroupVisibility.PUBLIC,
+        initiatedAt: '2026-01-01T00:00:00.000Z',
+      };
+      mockListMyPendingRequests.mockResolvedValueOnce([mockJoinRequest]);
+
+      const result = await controller.listMyPendingJoinRequests(mockAuthUser);
+
+      expect(mockListMyPendingRequests).toHaveBeenCalledWith(mockAuthUser.id);
+      expect(result).toEqual([mockJoinRequest]);
     });
   });
 });

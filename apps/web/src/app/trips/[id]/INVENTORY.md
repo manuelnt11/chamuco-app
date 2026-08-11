@@ -17,7 +17,7 @@
 - `@/components/ui/announcement-card` — `AnnouncementCard` (renders a single announcement item)
 - `@/components/trips/TripStatusBadge` — `TripStatusBadge` (badge component showing trip status)
 - `@/components/trips/TripStatusTransition` — `TripStatusTransition` (organizer-facing status transition controls)
-- `@/components/trips/DestinationList` — `DestinationList` (ordered list of trip destinations with edit support)
+- `@/components/trips/TripDestinationList` — `TripDestinationList` (ordered list of trip destinations with edit support)
 - `@/components/ui/markdown-content` — `MarkdownContent` (renders markdown as HTML)
 - `@/components/ui/rich-text-editor` — `RichTextEditor` (rich text editor for itinerary notes)
 - `@/services/trips.types` — `TripAnnouncement`, `TripResponse`, `DestinationResponse`, `TripLinkedGroup` (local DTO types for trip API responses)

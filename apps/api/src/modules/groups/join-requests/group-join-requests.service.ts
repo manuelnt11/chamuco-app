@@ -1,5 +1,5 @@
 import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import {
   GroupMemberStatus,
   GroupRole,
@@ -10,8 +10,11 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { groupMembers } from '@/modules/groups/schema/group-members.schema';
 import { groupMemberStats } from '@/modules/groups/schema/group-member-stats.schema';
 import { groups } from '@/modules/groups/schema/groups.schema';
+import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
+import { assetRowToAsset } from '@/modules/assets/asset.utils';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { GroupMembersService } from '@/modules/groups/members/group-members.service';
+import type { MyGroupJoinRequestResponseDto } from './dto/my-group-join-request-response.dto';
 
 @Injectable()
 export class GroupJoinRequestsService {
@@ -21,7 +24,43 @@ export class GroupJoinRequestsService {
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly groupMembersService: GroupMembersService,
     private readonly notifications: NotificationsService,
+    private readonly assetResolver: AssetResolverService,
   ) {}
+
+  async listMyPendingRequests(userId: string): Promise<MyGroupJoinRequestResponseDto[]> {
+    const memberships = await this.db.query.groupMembers.findMany({
+      where: and(
+        eq(groupMembers.userId, userId),
+        eq(groupMembers.status, GroupMemberStatus.REQUEST),
+      ),
+    });
+
+    if (memberships.length === 0) return [];
+
+    const groupIds = memberships.map((m) => m.groupId);
+    const initiatedAtByGroupId = new Map(memberships.map((m) => [m.groupId, m.initiatedAt]));
+
+    const groupRows = await this.db.query.groups.findMany({
+      where: and(inArray(groups.id, groupIds), isNull(groups.deletedAt)),
+      with: { coverAsset: true },
+    });
+
+    if (groupRows.length === 0) return [];
+
+    const resolvedCovers = await Promise.all(
+      groupRows.map((group) =>
+        group.coverAsset ? this.assetResolver.resolve(assetRowToAsset(group.coverAsset)) : null,
+      ),
+    );
+
+    return groupRows.map((group, i) => ({
+      groupId: group.id,
+      name: group.name,
+      coverUrl: resolvedCovers[i]?.url ?? null,
+      visibility: group.visibility,
+      initiatedAt: initiatedAtByGroupId.get(group.id)!.toISOString(),
+    }));
+  }
 
   async submitJoinRequest(groupId: string, requestingUserId: string): Promise<void> {
     const group = await this.groupMembersService.assertGroupExists(groupId);
@@ -123,14 +162,19 @@ export class GroupJoinRequestsService {
   }
 
   async withdrawJoinRequest(groupId: string, requestingUserId: string): Promise<void> {
-    const membership = await this.groupMembersService.findMemberOrThrow(groupId, requestingUserId);
+    await this.groupMembersService.findMemberOrThrow(groupId, requestingUserId);
 
-    if (membership.status !== GroupMemberStatus.REQUEST) {
-      throw new ConflictException('No pending join request to withdraw');
-    }
-
-    await this.db
+    const [deleted] = await this.db
       .delete(groupMembers)
-      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, requestingUserId)));
+      .where(
+        and(
+          eq(groupMembers.groupId, groupId),
+          eq(groupMembers.userId, requestingUserId),
+          eq(groupMembers.status, GroupMemberStatus.REQUEST),
+        ),
+      )
+      .returning();
+
+    if (!deleted) throw new ConflictException('No pending join request to withdraw');
   }
 }

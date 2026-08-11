@@ -196,7 +196,7 @@
 
 ---
 
-## InvitationsSection.tsx
+## GroupInvitationsSection.tsx
 
 ### Imports
 
@@ -206,8 +206,47 @@
 
 ### Definitions
 
-- `InvitationsSection` (component) — renders a bordered section listing pending group invitations; returns `null` when `count === 0`; each row shows group cover, name, formatted `initiatedAt` date, and `InvitationResponseButtons` that refresh the list on success
+- `GroupInvitationsSection` (component) — renders a bordered section listing pending group invitations; returns `null` when `count === 0`; each row shows group cover, name, formatted `initiatedAt` date, and `InvitationResponseButtons` that refresh the list on success
 
 ### Exports
 
-- `InvitationsSection` — named
+- `GroupInvitationsSection` — named
+
+---
+
+## GroupJoinRequestsSection.tsx
+
+### Imports
+
+- `react-i18next` — `useTranslation` for i18n strings (groups namespace)
+- `@/services/groups.service` — `getMyGroupJoinRequests`, `withdrawGroupJoinRequest`
+- `@/hooks/usePendingJoinRequests` — `usePendingJoinRequests` (shared fetch/cancel/error state)
+- `@/components/shared/PendingJoinRequestsSection` — `PendingJoinRequestsSection` (shared presentational list)
+- `@/types/group` — `MyGroupJoinRequest` type
+
+### Definitions
+
+- `GroupJoinRequestsSection` (component) — thin wrapper wiring `usePendingJoinRequests` to the group join-request service functions and rendering the shared `PendingJoinRequestsSection` with group-specific field mappers (`/groups/:id` href, `members.myRequests.*` i18n keys); returns `null` while loading or when there are no pending requests
+
+### Exports
+
+- `GroupJoinRequestsSection` — named
+
+---
+
+## GroupJoinRequestsSection.test.tsx
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen`
+- `@chamuco/shared-types` — `GroupVisibility` for fixtures
+- `@/types/group` — `MyGroupJoinRequest` type for fixtures
+- `./GroupJoinRequestsSection` — component under test (mocks `usePendingJoinRequests` and `PendingJoinRequestsSection` to verify wiring only)
+
+### Definitions
+
+- `mockRequest` (const) — `MyGroupJoinRequest` fixture used across test cases
+
+### Exports
+
+- none

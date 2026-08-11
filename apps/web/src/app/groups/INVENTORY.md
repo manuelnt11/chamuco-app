@@ -13,12 +13,13 @@
 - `@/services/groups.service` — `getGroups` (fetches the authenticated user's groups from the API)
 - `@/hooks/useAuth` — `useAuth` (provides auth state including `isLoading`)
 - `@/components/groups/GroupCard` — `GroupCard` (renders a single group list item)
-- `@/components/groups/InvitationsSection` — `InvitationsSection` (renders pending group invitations)
+- `@/components/groups/GroupInvitationsSection` — `GroupInvitationsSection` (renders pending group invitations)
+- `@/components/groups/GroupJoinRequestsSection` — `GroupJoinRequestsSection` (renders the current user's pending group join requests with cancel action)
 - `@/types/group` — `Group` (TypeScript type for a group entity)
 
 ### Definitions
 
-- `GroupsPage` (component) — Client component that fetches and lists the current user's groups; shows a search link, a create-group link, pending invitations via `InvitationsSection`, an empty state with a create CTA, or a scrollable list of `GroupCard` items
+- `GroupsPage` (component) — Client component that fetches and lists the current user's groups; shows a search link, a create-group link, pending invitations via `GroupInvitationsSection`, the user's own pending join requests via `GroupJoinRequestsSection`, an empty state with a create CTA, or a scrollable list of `GroupCard` items
 
 ### Exports
 

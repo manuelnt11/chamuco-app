@@ -11,6 +11,7 @@ import type {
   DestinationResponse,
   DestinationWriteResponse,
   MyTripInvitationResponse,
+  MyTripJoinRequestResponse,
   MyTripListItemResponse,
   MyTripParticipationResponse,
   PendingTripParticipantResponse,
@@ -224,6 +225,11 @@ export async function submitJoinRequest(id: string): Promise<void> {
 
 export async function withdrawJoinRequest(id: string): Promise<void> {
   await apiClient.delete(`/v1/trips/${id}/join-request`);
+}
+
+export async function getMyTripJoinRequests(): Promise<MyTripJoinRequestResponse[]> {
+  const { data } = await apiClient.get<MyTripJoinRequestResponse[]>('/v1/trips/join-requests/mine');
+  return data;
 }
 
 export async function toggleTripParticipantConfirmation(id: string, userId: string): Promise<void> {

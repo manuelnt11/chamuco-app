@@ -73,6 +73,11 @@
       "rejectError": "Error al rechazar la solicitud",
       "revokeError": "Error al revocar la invitación"
     },
+    "myRequests": {
+      "titleWithCount": "Solicitudes pendientes ({{count}})",
+      "cancel": "Cancelar solicitud",
+      "cancelError": "Error al cancelar la solicitud"
+    },
     "actions": {
       "remove": "Eliminar participante",
       "promote": "Promover a co-organizador",

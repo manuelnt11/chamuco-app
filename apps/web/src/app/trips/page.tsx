@@ -10,6 +10,7 @@ import { getMyTrips } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
 import { TripCard } from '@/components/trips/TripCard';
 import { TripInvitationsSection } from '@/components/trips/TripInvitationsSection';
+import { TripJoinRequestsSection } from '@/components/trips/TripJoinRequestsSection';
 import type { MyTripListItemResponse } from '@/services/trips.types';
 
 type Tab = 'upcoming' | 'past';
@@ -54,7 +55,7 @@ export default function TripsPage() {
 
   return (
     <div className="p-8 max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2">
         <h1 className="text-3xl font-bold">{t('title')}</h1>
         <div className="flex items-center gap-2">
           <Link
@@ -75,8 +76,6 @@ export default function TripsPage() {
           </Link>
         </div>
       </div>
-
-      <TripInvitationsSection onSuccess={fetchTrips} />
 
       <div
         role="tablist"
@@ -116,7 +115,12 @@ export default function TripsPage() {
         ))}
       </div>
 
-      <div id={`tabpanel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`}>
+      <div
+        id={`tabpanel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+        className="mb-6"
+      >
         {isLoading ? null : visibleTrips.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-lg font-medium text-foreground">{t('detail.noTrips')}</p>
@@ -136,6 +140,9 @@ export default function TripsPage() {
           </div>
         )}
       </div>
+
+      <TripInvitationsSection onSuccess={fetchTrips} />
+      <TripJoinRequestsSection />
     </div>
   );
 }

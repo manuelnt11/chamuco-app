@@ -32,7 +32,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { AnnouncementCard } from '@/components/ui/announcement-card';
 import { TripStatusBadge } from '@/components/trips/TripStatusBadge';
 import { TripStatusTransition } from '@/components/trips/TripStatusTransition';
-import { DestinationList } from '@/components/trips/DestinationList';
+import { TripDestinationList } from '@/components/trips/TripDestinationList';
 import { MarkdownContent } from '@/components/ui/markdown-content';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import type {
@@ -264,7 +264,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           <h2 className="text-sm font-semibold">{t('detail.destinations')}</h2>
         </div>
 
-        <DestinationList
+        <TripDestinationList
           tripId={id}
           initialDestinations={destinations}
           isOrganizer={isDestinationEditable}

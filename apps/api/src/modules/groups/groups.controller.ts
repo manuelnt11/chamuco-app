@@ -28,11 +28,13 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/types/express';
 import { GroupsService } from './groups.service';
 import { GroupsDiscoveryService } from './discovery/groups-discovery.service';
+import { GroupJoinRequestsService } from './join-requests/group-join-requests.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupResponseDto } from './dto/group-response.dto';
 import { SearchGroupsQueryDto } from './dto/search-groups-query.dto';
 import { GroupSearchResponseDto } from './dto/group-search-result.dto';
+import { MyGroupJoinRequestResponseDto } from './join-requests/dto/my-group-join-request-response.dto';
 
 @ApiTags('groups')
 @ApiBearerAuth()
@@ -41,6 +43,7 @@ export class GroupsController {
   constructor(
     private readonly groupsService: GroupsService,
     private readonly groupsDiscoveryService: GroupsDiscoveryService,
+    private readonly groupJoinRequestsService: GroupJoinRequestsService,
   ) {}
 
   @Post()
@@ -72,6 +75,19 @@ export class GroupsController {
   @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
   async listMyGroups(@CurrentUser() user: AuthenticatedUser): Promise<GroupResponseDto[]> {
     return this.groupsDiscoveryService.listMyGroups(user.id);
+  }
+
+  @Get('join-requests/mine')
+  @ApiOperation({
+    summary: "List the authenticated user's pending join requests",
+    description: 'Returns all groups where the authenticated user has a pending REQUEST.',
+  })
+  @ApiResponse({ status: 200, type: [MyGroupJoinRequestResponseDto] })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
+  async listMyPendingJoinRequests(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<MyGroupJoinRequestResponseDto[]> {
+    return this.groupJoinRequestsService.listMyPendingRequests(user.id);
   }
 
   @Get('search')

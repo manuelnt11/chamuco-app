@@ -8,7 +8,8 @@ import { MagnifyingGlassIcon, PlusIcon } from '@phosphor-icons/react';
 import { getGroups } from '@/services/groups.service';
 import { useAuth } from '@/hooks/useAuth';
 import { GroupCard } from '@/components/groups/GroupCard';
-import { InvitationsSection } from '@/components/groups/InvitationsSection';
+import { GroupInvitationsSection } from '@/components/groups/GroupInvitationsSection';
+import { GroupJoinRequestsSection } from '@/components/groups/GroupJoinRequestsSection';
 import type { Group } from '@/types/group';
 
 export default function GroupsPage() {
@@ -53,10 +54,8 @@ export default function GroupsPage() {
         </div>
       </div>
 
-      <InvitationsSection />
-
       {isLoading ? null : groups.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="flex flex-col items-center justify-center py-20 text-center mb-6">
           <p className="text-lg font-medium text-foreground">{t('detail.noGroups')}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t('detail.createFirst')}</p>
           <Link
@@ -67,12 +66,15 @@ export default function GroupsPage() {
           </Link>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 mb-6">
           {groups.map((group) => (
             <GroupCard key={group.id} group={group} />
           ))}
         </div>
       )}
+
+      <GroupInvitationsSection />
+      <GroupJoinRequestsSection />
     </div>
   );
 }

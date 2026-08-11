@@ -15,13 +15,14 @@
 - `@/hooks/useAuth` — `useAuth` to gate the fetch behind auth loading state
 - `@/components/trips/TripCard` — `TripCard` component to render each trip row
 - `@/components/trips/TripInvitationsSection` — `TripInvitationsSection` component to display pending invitations
+- `@/components/trips/TripJoinRequestsSection` — `TripJoinRequestsSection` component to display the current user's pending join requests with cancel action
 - `@/services/trips.types` — `MyTripListItemResponse` type for trip list items
 
 ### Definitions
 
 - `Tab` (type) — Union type `'upcoming' | 'past'` representing the two tab options
 - `UPCOMING_STATUSES` (const) — Array of `TripStatus` values (`DRAFT`, `OPEN`, `CONFIRMED`, `IN_PROGRESS`) used to classify upcoming vs. past trips
-- `TripsPage` (component) — Page component that fetches the user's trips, renders a tabbed list (upcoming/past), shows `TripInvitationsSection`, and displays an empty state with a create CTA when no trips match the active tab
+- `TripsPage` (component) — Page component that fetches the user's trips, renders a tabbed list (upcoming/past), shows `TripInvitationsSection` and `TripJoinRequestsSection`, and displays an empty state with a create CTA when no trips match the active tab
 
 ### Exports
 

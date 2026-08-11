@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   HttpCode,
   HttpStatus,
   Param,
@@ -89,5 +90,23 @@ export class GroupJoinRequestsController {
     @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<void> {
     return this.groupJoinRequestsService.rejectJoinRequest(id, userId, user.id);
+  }
+
+  @Delete('join-request')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Withdraw a join request',
+    description: "Withdraws the authenticated user's pending join request.",
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Group UUID' })
+  @ApiResponse({ status: 204, description: 'Join request withdrawn.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthenticated.' })
+  @ApiConflictResponse({ description: 'No pending join request to withdraw.' })
+  @ApiNotFoundResponse({ description: 'Group or membership not found.' })
+  async withdrawJoinRequest(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<void> {
+    return this.groupJoinRequestsService.withdrawJoinRequest(id, user.id);
   }
 }

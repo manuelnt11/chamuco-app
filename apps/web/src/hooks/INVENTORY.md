@@ -245,6 +245,39 @@
 
 ---
 
+## usePendingJoinRequests.ts
+
+### Imports
+
+- `react` — `useCallback`, `useEffect`, `useState`
+
+### Definitions
+
+- `usePendingJoinRequests` (hook, generic `<T>`) — fetch/cancel/error state for a "my pending join requests" list, parameterized by `fetchRequests`, `cancelRequest`, and `getId`; tracks in-flight cancels and per-item errors as `Set<string>` (not a single shared id) so concurrent cancels on different rows track independently; returns `{ requests, isLoading, cancellingIds, errorIds, cancel, refresh }`. Shared by `GroupJoinRequestsSection` and `TripJoinRequestsSection`.
+
+### Exports
+
+- `usePendingJoinRequests` — named
+
+---
+
+## usePendingJoinRequests.test.ts
+
+### Imports
+
+- `@testing-library/react` — `renderHook`, `act`, `waitFor`
+- `./usePendingJoinRequests` — `usePendingJoinRequests` under test
+
+### Definitions
+
+- `makeOptions` (function) — builds default hook options with overridable `fetchRequests`/`cancelRequest`
+
+### Exports
+
+- None
+
+---
+
 ## usePushNotifications.ts
 
 ### Imports

@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useGroupInvitations } from '@/store/group-invitations';
 import { InvitationResponseButtons } from '@/components/groups/members/InvitationResponseButtons';
 
-export function InvitationsSection() {
+export function GroupInvitationsSection() {
   const { t } = useTranslation('groups');
   const { invitations, count, refresh } = useGroupInvitations();
 
   if (count === 0) return null;
 
   return (
-    <section aria-labelledby="invitations-heading" className="mb-8 pb-8 border-b border-border">
+    <section aria-labelledby="invitations-heading" className="mb-6">
       <h2
         id="invitations-heading"
         className="mb-3 text-sm font-semibold uppercase tracking-wide text-orange-500"
