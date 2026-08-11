@@ -73,7 +73,7 @@ export default function GroupsPage() {
         </div>
       )}
 
-      <GroupInvitationsSection />
+      <GroupInvitationsSection onSuccess={fetchGroups} />
       <GroupJoinRequestsSection />
     </div>
   );
