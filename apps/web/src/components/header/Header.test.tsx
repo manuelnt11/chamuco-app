@@ -17,16 +17,6 @@ vi.mock('./NotificationBell', () => ({
   NotificationBell: () => <button data-testid="notification-bell">Notification Bell</button>,
 }));
 
-// Mock the ThemeToggle component
-vi.mock('@/components/ThemeToggle', () => ({
-  ThemeToggle: () => <button data-testid="theme-toggle">Theme Toggle</button>,
-}));
-
-// Mock the LanguageToggle component
-vi.mock('@/components/LanguageToggle', () => ({
-  LanguageToggle: () => <button data-testid="language-toggle">Language Toggle</button>,
-}));
-
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }));
@@ -48,7 +38,7 @@ describe('Header', () => {
   it('has fixed positioning and correct z-index', () => {
     const { container } = render(<Header />);
     const header = container.querySelector('header');
-    expect(header).toHaveClass('fixed', 'top-0', 'left-0', 'right-0', 'z-50');
+    expect(header).toHaveClass('fixed', 'top-0', 'left-app-edge', 'right-app-edge', 'z-50');
   });
 
   it('has correct height', () => {
@@ -82,16 +72,6 @@ describe('Header', () => {
     vi.mocked(useAuth).mockReturnValue(makeAuth({ currentUser: null }));
     render(<Header />);
     expect(screen.queryByTestId('notification-bell')).not.toBeInTheDocument();
-  });
-
-  it('renders LanguageToggle component', () => {
-    render(<Header />);
-    expect(screen.getByTestId('language-toggle')).toBeInTheDocument();
-  });
-
-  it('renders ThemeToggle component', () => {
-    render(<Header />);
-    expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
   });
 
   it('has correct layout structure', () => {

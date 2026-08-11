@@ -65,7 +65,7 @@ describe('DesktopSideNav', () => {
   it('has correct positioning and z-index', () => {
     const { container } = render(<DesktopSideNav />);
     const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('fixed', 'left-0', 'top-header', 'bottom-0', 'z-30');
+    expect(nav).toHaveClass('fixed', 'left-app-edge', 'top-header', 'bottom-0', 'z-30');
   });
 
   it('has correct width class', () => {

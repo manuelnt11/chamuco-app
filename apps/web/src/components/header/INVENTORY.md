@@ -10,12 +10,10 @@
 - `./Logo` — `Logo` component
 - `./UserAvatar` — `UserAvatar` component
 - `./NotificationBell` — `NotificationBell` component
-- `@/components/ThemeToggle` — `ThemeToggle` component
-- `@/components/LanguageToggle` — `LanguageToggle` component
 
 ### Definitions
 
-- `Header` (component) — Fixed top app bar rendering Logo, UserAvatar, conditional NotificationBell (authenticated only), LanguageToggle, and ThemeToggle
+- `Header` (component) — Fixed top app bar rendering Logo, UserAvatar, and conditional NotificationBell (authenticated only); theme and language controls live inside `UserAvatar`'s dropdown
 
 ### Exports
 
@@ -32,7 +30,7 @@
 - `firebase/auth` — `User` type
 - `@/store/auth` — `AuthContextValue` type
 - `./Header` — `Header` component under test
-- `./Logo`, `./UserAvatar`, `./NotificationBell`, `@/components/ThemeToggle`, `@/components/LanguageToggle`, `@/hooks/useAuth` — mocked dependencies
+- `./Logo`, `./UserAvatar`, `./NotificationBell`, `@/hooks/useAuth` — mocked dependencies
 
 ### Definitions
 
@@ -171,16 +169,24 @@
 
 - `next/navigation` — `useRouter` for navigation on sign-out and profile clicks
 - `react-i18next` — `useTranslation` for i18n strings across `common`, `auth`, and `errors` namespaces
-- `@phosphor-icons/react` — `UserCircleIcon`, `SignOutIcon`, `UserIcon` icons
+- `next-themes` — `useTheme` hook for reading/setting the current theme
+- `@phosphor-icons/react` — `UserCircleIcon`, `SignOutIcon`, `UserIcon`, `SunDimIcon`, `MoonIcon`, `DesktopIcon`, `TranslateIcon` icons
+- `@chamuco/shared-types` — `AppLanguage`, `AppTheme` types
 - `@/hooks/useAuth` — `useAuth` hook for `currentUser`, `isLoading`, `signOut`
 - `@/hooks/useUser` — `useUser` hook for `appUser` and `isLoading`
 - `@/components/ui/menu` — `MenuRoot`, `MenuTrigger`, `MenuPopup`, `MenuItem`, `MenuSeparator`, `MenuLabel` primitives
 - `@/components/ui/toast` — `toast` utility for error notifications
 - `@/lib/name-utils` — `getInitials` for deriving avatar fallback text
+- `@/components/ThemeToggle` — `getNextTheme` helper for cycling theme
+- `@/lib/i18n/utils` — `getNextLanguage` helper for cycling language
+- `@/lib/i18n/client` — `changeLanguage` to apply the language switch
+- `@/lib/i18n/config` — `SupportedLanguage` type
+- `@/services/users.service` — `updateMyPreferences` to persist theme/language choice for signed-in users
 
 ### Definitions
 
-- `UserAvatar` (component) — Three-state component: loading placeholder (non-interactive icon), unauthenticated state (sign-in button), and authenticated state (avatar/initials trigger with dropdown menu showing profile info, "Profile" navigation, and "Sign out" action)
+- `THEME_ICONS` (const) — lookup map from each theme value (`light`/`dark`/`system`) to its Phosphor icon component
+- `UserAvatar` (component) — Three-state component: loading placeholder (non-interactive icon), unauthenticated state (sign-in button), and authenticated state (avatar/initials trigger with dropdown menu showing profile info, "Profile" navigation, theme cycle item, language cycle item, and "Sign out" action)
 
 ### Exports
 
@@ -199,12 +205,12 @@
 - `@chamuco/shared-types` — `ProfileVisibility` enum
 - `@/store/auth` — `AuthContextValue` type
 - `@/store/user` — `UserContextValue` type
-- `@/hooks/useAuth`, `@/hooks/useUser`, `@/components/ui/toast`, `react-i18next`, `next/navigation`, `@/components/ui/menu` — mocked dependencies
+- `@/hooks/useAuth`, `@/hooks/useUser`, `@/components/ui/toast`, `react-i18next`, `next/navigation`, `@/components/ui/menu`, `@/lib/i18n/client`, `@/services/api-client` — mocked dependencies
 - `./UserAvatar` — component under test
 
 ### Definitions
 
-- `mocks` (const) — hoisted vi mock state holding `mockRouterReplace`, `mockRouterPush`, `mockSignOut`, `mockToastError`
+- `mocks` (const) — hoisted vi mock state holding `mockRouterReplace`, `mockRouterPush`, `mockSignOut`, `mockChangeLanguage`, `mockPatch`
 - `makeAuth` (function) — factory building a complete `AuthContextValue` with safe defaults
 - `makeAppUser` (function) — factory building a `UserContextValue` with a populated `appUser` and optional overrides
 - `makeFirebaseUser` (function) — factory building a minimal Firebase `User` stub with optional overrides

@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   mockRouterReplace: vi.fn(),
   mockRouterPush: vi.fn(),
   mockSignOut: vi.fn(),
+  mockChangeLanguage: vi.fn(),
+  mockPatch: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -23,6 +25,14 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('@/hooks/useUser', () => ({
   useUser: vi.fn(),
+}));
+
+vi.mock('@/lib/i18n/client', () => ({
+  changeLanguage: mocks.mockChangeLanguage,
+}));
+
+vi.mock('@/services/api-client', () => ({
+  apiClient: { patch: mocks.mockPatch },
 }));
 
 // Menu primitives use portals — stub them so assertions work in jsdom
@@ -202,10 +212,10 @@ describe('UserAvatar', () => {
       expect(screen.getByTestId('menu-label')).toHaveTextContent('Firebase Name');
     });
 
-    it('renders Profile and Sign out menu items', () => {
+    it('renders Profile, Theme, Language and Sign out menu items', () => {
       render(<UserAvatar />);
       const items = screen.getAllByRole('menuitem');
-      expect(items).toHaveLength(2);
+      expect(items).toHaveLength(4);
     });
 
     it('navigates to /profile when Profile item is clicked', async () => {
@@ -216,11 +226,19 @@ describe('UserAvatar', () => {
       expect(mocks.mockRouterPush).toHaveBeenCalledWith('/profile');
     });
 
+    it('cycles language when the language item is clicked', async () => {
+      const user = userEvent.setup();
+      render(<UserAvatar />);
+      const items = screen.getAllByRole('menuitem');
+      await user.click(items[2]!);
+      expect(mocks.mockChangeLanguage).toHaveBeenCalled();
+    });
+
     it('calls signOut and redirects to /sign-in when Sign out is clicked', async () => {
       const user = userEvent.setup();
       render(<UserAvatar />);
       const items = screen.getAllByRole('menuitem');
-      await user.click(items[1]!);
+      await user.click(items[3]!);
       await waitFor(() => expect(mocks.mockSignOut).toHaveBeenCalledOnce());
       expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/sign-in');
     });
@@ -230,7 +248,7 @@ describe('UserAvatar', () => {
       const user = userEvent.setup();
       render(<UserAvatar />);
       const items = screen.getAllByRole('menuitem');
-      await user.click(items[1]!);
+      await user.click(items[3]!);
       await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalled());
     });
   });

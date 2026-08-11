@@ -37,7 +37,7 @@ export function AppShell({ children }: AppShellProps) {
         <DesktopSideNav />
         <MobileBottomNav />
         {/* <div className="md:pl-sidebar"><ProfileCompletionBanner /></div> */}
-        <main className="relative pt-header-safe pb-nav-safe md:pb-0 md:pl-sidebar md:transition-[padding-left] md:duration-200 md:ease-in-out min-h-screen">
+        <main className="relative mx-auto max-w-app pt-header-safe pb-nav-safe md:pb-0 md:pl-sidebar md:transition-[padding-left] md:duration-200 md:ease-in-out min-h-screen">
           {children}
         </main>
         <FeedbackButton />

@@ -2,7 +2,17 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { UserCircleIcon, SignOutIcon, UserIcon } from '@phosphor-icons/react';
+import { useTheme } from 'next-themes';
+import {
+  UserCircleIcon,
+  SignOutIcon,
+  UserIcon,
+  SunDimIcon,
+  MoonIcon,
+  DesktopIcon,
+  TranslateIcon,
+} from '@phosphor-icons/react';
+import type { AppLanguage, AppTheme } from '@chamuco/shared-types';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
@@ -16,12 +26,44 @@ import {
 } from '@/components/ui/menu';
 import { toast } from '@/components/ui/toast';
 import { getInitials } from '@/lib/name-utils';
+import { getNextTheme } from '@/components/ThemeToggle';
+import { getNextLanguage } from '@/lib/i18n/utils';
+import { changeLanguage } from '@/lib/i18n/client';
+import type { SupportedLanguage } from '@/lib/i18n/config';
+import { updateMyPreferences } from '@/services/users.service';
+
+const THEME_ICONS = {
+  light: SunDimIcon,
+  dark: MoonIcon,
+  system: DesktopIcon,
+} as const;
 
 export function UserAvatar() {
-  const { t } = useTranslation(['common', 'auth', 'errors']);
+  const { t, i18n } = useTranslation(['common', 'auth', 'errors']);
   const router = useRouter();
   const { currentUser, isLoading: authLoading, signOut } = useAuth();
   const { appUser, isLoading: userLoading } = useUser();
+  const { theme, setTheme } = useTheme();
+
+  const currentThemeKey = (theme as keyof typeof THEME_ICONS) ?? 'system';
+  const ThemeIcon = THEME_ICONS[currentThemeKey] ?? DesktopIcon;
+  const currentLanguage = i18n.language as SupportedLanguage;
+
+  function cycleTheme() {
+    const next = getNextTheme(theme);
+    setTheme(next);
+    if (currentUser) {
+      void updateMyPreferences({ theme: next.toUpperCase() as AppTheme });
+    }
+  }
+
+  async function cycleLanguage() {
+    const next = getNextLanguage(currentLanguage);
+    await changeLanguage(next);
+    if (currentUser) {
+      void updateMyPreferences({ language: next.toUpperCase() as AppLanguage });
+    }
+  }
 
   async function handleSignOut() {
     try {
@@ -94,6 +136,18 @@ export function UserAvatar() {
         <MenuItem onClick={() => router.push('/profile')}>
           <UserIcon className="size-4 shrink-0" aria-hidden="true" />
           {t('common:navigation.profile')}
+        </MenuItem>
+
+        <MenuSeparator />
+
+        <MenuItem onClick={cycleTheme} closeOnClick={false}>
+          <ThemeIcon className="size-4 shrink-0" aria-hidden="true" />
+          {t(`common:preferences.theme.${currentThemeKey}`)}
+        </MenuItem>
+
+        <MenuItem onClick={cycleLanguage} closeOnClick={false}>
+          <TranslateIcon className="size-4 shrink-0" aria-hidden="true" />
+          {t(`common:preferences.language.${currentLanguage}`)}
         </MenuItem>
 
         <MenuSeparator />

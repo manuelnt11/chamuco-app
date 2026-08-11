@@ -43,6 +43,17 @@
     "collapseSidebar": "Contraer",
     "expandSidebar": "Expandir"
   },
+  "preferences": {
+    "theme": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    },
+    "language": {
+      "en": "English",
+      "es": "Español"
+    }
+  },
   "status": {
     "success": "Éxito",
     "error": "Error",
