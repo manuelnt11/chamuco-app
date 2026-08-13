@@ -48,12 +48,13 @@
 - `reflect-metadata` — polyfill required by NestJS decorators
 - `@nestjs/core` — `NestFactory` for bootstrapping the application
 - `@nestjs/common` — `ValidationPipe` for global request validation
-- `@nestjs/swagger` — `SwaggerModule`, `DocumentBuilder` for OpenAPI docs
+- `@nestjs/swagger` — `SwaggerModule`, `DocumentBuilder` for OpenAPI doc generation
+- `@scalar/nestjs-api-reference` — `apiReference` middleware, renders the OpenAPI doc as the Scalar UI
 - `@/app.module` — `AppModule` root module
 
 ### Definitions
 
-- `bootstrap` (function) — Async entry point; creates the NestJS app, configures CORS from `CORS_ORIGIN` env var, registers a global `ValidationPipe` (whitelist + transform), conditionally mounts Swagger UI at `/docs` when `SWAGGER_ENABLED=true`, and starts the HTTP server on `PORT` (default 3000).
+- `bootstrap` (function) — Async entry point; creates the NestJS app, configures CORS from `CORS_ORIGIN` env var, registers a global `ValidationPipe` (whitelist + transform), conditionally mounts the Scalar API reference UI at `/docs` when `SWAGGER_ENABLED=true`, and starts the HTTP server on `PORT` (default 3000).
 
 ### Exports
 

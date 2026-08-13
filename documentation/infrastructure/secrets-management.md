@@ -34,13 +34,13 @@ This document describes how to manage sensitive configuration and credentials us
 
 ## Current Secrets
 
-| Secret Name         | Purpose                                    | Used By     |
-| ------------------- | ------------------------------------------ | ----------- |
-| `DATABASE_URL`      | PostgreSQL connection string (unix socket) | chamuco-api |
-| `DATABASE_POOL_MIN` | Minimum database connections (2)           | chamuco-api |
-| `DATABASE_POOL_MAX` | Maximum database connections (10)          | chamuco-api |
-| `NODE_ENV`          | Node.js environment (production)           | chamuco-api |
-| `SWAGGER_ENABLED`   | Enable Swagger UI (false in production)    | chamuco-api |
+| Secret Name         | Purpose                                           | Used By     |
+| ------------------- | ------------------------------------------------- | ----------- |
+| `DATABASE_URL`      | PostgreSQL connection string (unix socket)        | chamuco-api |
+| `DATABASE_POOL_MIN` | Minimum database connections (2)                  | chamuco-api |
+| `DATABASE_POOL_MAX` | Maximum database connections (10)                 | chamuco-api |
+| `NODE_ENV`          | Node.js environment (production)                  | chamuco-api |
+| `SWAGGER_ENABLED`   | Enable API docs UI / Scalar (false in production) | chamuco-api |
 
 **Placeholder secrets (not yet populated):**
 

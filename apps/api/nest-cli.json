@@ -13,6 +13,10 @@
       {
         "include": "modules/email/templates/**/*.hbs",
         "watchAssets": true
+      },
+      {
+        "include": "public/**/*",
+        "watchAssets": true
       }
     ]
   }

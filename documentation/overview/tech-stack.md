@@ -19,15 +19,15 @@ Chamuco App uses a modern, Node.js-first stack optimized for modular backend dev
 
 ## Backend
 
-| Concern           | Technology                          | Rationale                                                                                                                                |
-| ----------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime           | Node.js                             | Defined project requirement                                                                                                              |
-| Framework         | NestJS                              | Modular architecture, decorator-driven, built-in DI container, strong TypeScript support, aligns with domain-driven modular design goals |
-| API Style         | REST (primary)                      | Standard, well-understood; GraphQL can be evaluated later if query flexibility becomes a need                                            |
-| Validation        | class-validator + class-transformer | Native to NestJS ecosystem                                                                                                               |
-| ORM               | Drizzle ORM                         | See rationale below                                                                                                                      |
-| Migrations        | drizzle-kit                         | Generates auditable `.sql` migration files versioned in Git                                                                              |
-| API documentation | `@nestjs/swagger`                   | OpenAPI 3.0 spec auto-generated from decorators; Swagger UI served at `/docs`                                                            |
+| Concern           | Technology                                         | Rationale                                                                                                                                |
+| ----------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime           | Node.js                                            | Defined project requirement                                                                                                              |
+| Framework         | NestJS                                             | Modular architecture, decorator-driven, built-in DI container, strong TypeScript support, aligns with domain-driven modular design goals |
+| API Style         | REST (primary)                                     | Standard, well-understood; GraphQL can be evaluated later if query flexibility becomes a need                                            |
+| Validation        | class-validator + class-transformer                | Native to NestJS ecosystem                                                                                                               |
+| ORM               | Drizzle ORM                                        | See rationale below                                                                                                                      |
+| Migrations        | drizzle-kit                                        | Generates auditable `.sql` migration files versioned in Git                                                                              |
+| API documentation | `@nestjs/swagger` + `@scalar/nestjs-api-reference` | OpenAPI 3.0 spec auto-generated from decorators; Scalar UI served at `/docs`                                                             |
 
 ### Drizzle ORM
 
