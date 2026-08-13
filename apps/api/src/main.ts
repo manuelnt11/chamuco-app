@@ -1,11 +1,15 @@
 import 'reflect-metadata';
+import { join } from 'path';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { apiReference } from '@scalar/nestjs-api-reference';
 import { AppModule } from '@/app.module';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useStaticAssets(join(__dirname, 'public'));
 
   // Enable CORS — restrict to configured origins in production.
   // CORS_ORIGIN is a comma-separated list of https URLs. Unset locally to allow all origins.
@@ -64,7 +68,18 @@ async function bootstrap(): Promise<void> {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document);
+    app.use(
+      '/docs',
+      apiReference({
+        content: document,
+        favicon: '/favicon.ico',
+        metaData: {
+          title: 'Chamuco Travel API',
+          ogTitle: 'Chamuco Travel API',
+          ogImage: '/logo.png',
+        },
+      }),
+    );
   }
 
   // Start server
@@ -73,7 +88,7 @@ async function bootstrap(): Promise<void> {
 
   console.log(`Application is running on: http://localhost:${port}`);
   if (swaggerEnabled) {
-    console.log(`Swagger UI available at: http://localhost:${port}/docs`);
+    console.log(`API docs (Scalar) available at: http://localhost:${port}/docs`);
   }
 }
 

@@ -106,7 +106,7 @@ These are handled in the `common/` folder and applied globally or selectively vi
 | Error handling         | Global `HttpExceptionFilter`                                                                                                                                          |
 | Support admin audit    | `SupportAdminAuditInterceptor` — logs every write performed by a `SUPPORT_ADMIN` user to `support_admin_audit_log`.                                                   |
 | Pagination             | Shared pagination DTO and utility                                                                                                                                     |
-| API documentation      | `@nestjs/swagger` — OpenAPI spec + Swagger UI                                                                                                                         |
+| API documentation      | `@nestjs/swagger` — OpenAPI spec + Scalar UI                                                                                                                          |
 
 ---
 
@@ -137,7 +137,7 @@ Error responses:
 
 ---
 
-## API Documentation (OpenAPI / Swagger)
+## API Documentation (OpenAPI / Scalar)
 
 The entire API surface is documented following the **OpenAPI 3.0** standard, enforced through `@nestjs/swagger`.
 
@@ -145,21 +145,21 @@ The entire API surface is documented following the **OpenAPI 3.0** standard, enf
 
 `@nestjs/swagger` reads NestJS decorators (`@Controller`, `@Get`, `@Body`, `@Param`, etc.) and class-validator annotations on DTOs to generate the OpenAPI spec automatically. Additional metadata is added via dedicated Swagger decorators where needed:
 
-- `@ApiTags('trips')` — groups endpoints by domain in the Swagger UI.
+- `@ApiTags('trips')` — groups endpoints by domain in the docs UI.
 - `@ApiOperation({ summary: '...' })` — describes what the endpoint does.
 - `@ApiResponse({ status: 201, type: TripResponseDto })` — documents possible responses.
 - `@ApiProperty()` on DTO fields — documents field types, constraints, and examples.
 - `@ApiBearerAuth()` — marks endpoints that require a JWT token.
 
-### Swagger UI
+### Scalar UI
 
-The interactive documentation interface is served at `/docs` in non-production environments. It allows any developer or reviewer to:
+The interactive documentation interface is served at `/docs` in non-production environments via `@scalar/nestjs-api-reference`, rendering the same OpenAPI document `@nestjs/swagger` generates. It allows any developer or reviewer to:
 
 - Browse all available endpoints grouped by module.
 - See full request/response schemas with field-level descriptions.
 - Execute requests directly from the browser (with authentication).
 
-In production, the Swagger UI is **disabled by default**. It can be re-enabled via an environment variable (`SWAGGER_ENABLED=true`) for internal or staging use.
+In production, the Scalar UI is **disabled by default**. It can be re-enabled via an environment variable (`SWAGGER_ENABLED=true`) for internal or staging use.
 
 ### DTO as the contract
 

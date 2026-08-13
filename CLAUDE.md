@@ -38,7 +38,7 @@ Covers the full lifecycle of group travel: planning, itinerary, participants, sh
 | Real-time messaging | Firestore (Firebase) — **post-MVP only**                                                    |
 | Authentication      | Firebase Authentication (Google Sign-In + Facebook Sign-In)                                 |
 | Push notifications  | Firebase Cloud Messaging (FCM)                                                              |
-| API documentation   | `@nestjs/swagger` — OpenAPI 3.0, Swagger UI at `/api/docs`                                  |
+| API documentation   | `@nestjs/swagger` — OpenAPI 3.0, `@scalar/nestjs-api-reference` UI at `/docs`               |
 | Backend testing     | Jest + `@swc/jest`                                                                          |
 | Frontend testing    | Vitest + React Testing Library                                                              |
 | E2E testing         | Playwright                                                                                  |
