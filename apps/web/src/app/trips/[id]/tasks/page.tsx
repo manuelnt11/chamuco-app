@@ -156,7 +156,12 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
       <section className="mb-6">
         <div className="mb-3 flex items-center gap-2">
           <UsersThreeIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-          <h2 className="text-sm font-semibold">{t('tasks.sharedTitle')}</h2>
+          <h2 className="text-sm font-semibold">
+            {t('tasks.sharedTitle', {
+              completed: sharedTasks.filter((task) => task.completed).length,
+              total: sharedTasks.length,
+            })}
+          </h2>
         </div>
         {sharedTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('tasks.sharedEmpty')}</p>
@@ -178,7 +183,12 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
       <section className="mb-6">
         <div className="mb-3 flex items-center gap-2">
           <UserIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-          <h2 className="text-sm font-semibold">{t('tasks.personalTitle')}</h2>
+          <h2 className="text-sm font-semibold">
+            {t('tasks.personalTitle', {
+              completed: personalTasks.filter((task) => task.completed).length,
+              total: personalTasks.length,
+            })}
+          </h2>
         </div>
         {personalTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('tasks.personalEmpty')}</p>

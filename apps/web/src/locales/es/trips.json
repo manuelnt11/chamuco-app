@@ -260,8 +260,8 @@
   },
   "tasks": {
     "title": "Tareas",
-    "sharedTitle": "Tareas grupales",
-    "personalTitle": "Mis tareas",
+    "sharedTitle": "Tareas grupales ({{completed}}/{{total}})",
+    "personalTitle": "Mis tareas ({{completed}}/{{total}})",
     "sharedEmpty": "Aún no hay tareas grupales.",
     "personalEmpty": "Aún no hay tareas personales.",
     "loadError": "Error al cargar las tareas.",

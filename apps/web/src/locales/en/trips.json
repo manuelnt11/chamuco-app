@@ -260,8 +260,8 @@
   },
   "tasks": {
     "title": "Tasks",
-    "sharedTitle": "Group tasks",
-    "personalTitle": "My tasks",
+    "sharedTitle": "Group tasks ({{completed}}/{{total}})",
+    "personalTitle": "My tasks ({{completed}}/{{total}})",
     "sharedEmpty": "No group tasks yet.",
     "personalEmpty": "No personal tasks yet.",
     "loadError": "Failed to load tasks.",
