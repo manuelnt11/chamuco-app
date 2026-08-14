@@ -230,6 +230,8 @@ Currently cataloged: `@types/node`, `@typescript-eslint/eslint-plugin`, `@typesc
 
 See `documentation/architecture/monorepo-structure.md` — "pnpm Catalog" section.
 
+**Auditing `overrides:`** — `pnpm-workspace.yaml` also has an `overrides:` block (security-advisory pins for transitive deps). No pnpm command checks whether an override is still needed. Run `scripts/check-overrides.sh` — it copies the repo, strips the overrides block, resolves dependencies fresh, and reports whether the vulnerable version still gets pulled naturally. Drop any override the script shows as redundant.
+
 ### 7. Cloud Storage — always delete replaced or removed assets
 
 Assets are normalized records in the `assets` table. Entity tables hold a `UUID FK → assets.id`, never a raw URL. When replacing an asset:
