@@ -162,9 +162,10 @@
 - `TripsService.getTrip` (function) — fetches a single trip by ID and returns the mapped response DTO
 - `TripsService.updateTrip` (function) — patches trip fields with organizer/co-organizer guard; handles cover asset replacement with GCS cleanup
 - `TripsService.deleteTrip` (function) — hard-deletes trip and announcements in a transaction; ORGANIZER restricted to DRAFT, SUPPORT_ADMIN unrestricted
-- `TripsService.transitionStatus` (function) — validates and applies trip status transitions; on DRAFT→OPEN auto-invites linked group members
+- `TripsService.transitionStatus` (function) — validates and applies trip status transitions; on DRAFT→OPEN auto-invites linked group members, on →COMPLETED fires `notifyTripCompleted` (excluding the caller)
 - `TripsService.assertOrganizerRole` (function) — shared guard asserting the user holds ORGANIZER (or optionally CO_ORGANIZER) role on the trip
 - `TripsService.inviteLinkedGroupMembers` (function) — private; queries linked groups, inserts INVITED participants, and fires TRIP_INVITATION notifications
+- `TripsService.notifyTripCompleted` (function) — private; notifies the trip's `ACTIVE_STATUSES` participants (optionally excluding one user) of `TRIP_COMPLETED` via `notifyMany`, logging (not throwing) on failure
 - `TripsService.fetchAndMapTrip` (function) — private; fetches trip with coverAsset relation and maps to `TripResponseDto`
 - `TripsService.mapTrip` (function) — private; converts a raw trip row to `TripResponseDto`, computing `requiresConfirmation` and `feedbackOpenUntil`
 

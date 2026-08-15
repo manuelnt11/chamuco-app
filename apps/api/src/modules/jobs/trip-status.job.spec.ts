@@ -5,6 +5,7 @@ import { TripStatusJob } from './trip-status.job';
 
 describe('TripStatusJob', () => {
   let job: TripStatusJob;
+  let mockUpdateReturning: jest.Mock;
   let mockUpdateWhere: jest.Mock;
   let mockUpdateSet: jest.Mock;
   let mockUpdate: jest.Mock;
@@ -22,8 +23,13 @@ describe('TripStatusJob', () => {
     });
   }
 
+  function queueUpdateResult(rows: unknown[]): void {
+    mockUpdateReturning.mockResolvedValueOnce(rows);
+  }
+
   beforeEach(async () => {
-    mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
+    mockUpdateReturning = jest.fn().mockResolvedValue([{ id: 'trip-1' }]);
+    mockUpdateWhere = jest.fn().mockReturnValue({ returning: mockUpdateReturning });
     mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
     mockUpdate = jest.fn().mockReturnValue({ set: mockUpdateSet });
     mockSelect = jest.fn();
@@ -46,15 +52,14 @@ describe('TripStatusJob', () => {
     job = module.get<TripStatusJob>(TripStatusJob);
   });
 
-  it('runs bulk update for IN_PROGRESS trips past end_date and notifies participants', async () => {
+  it('completes each due trip individually and notifies its confirmed participants', async () => {
     queueSelectResult(dueTrips);
     queueSelectResult(participantRows);
 
     await job.runTripAutoComplete();
 
     expect(mockUpdate).toHaveBeenCalledTimes(1);
-    expect(mockUpdateSet).toHaveBeenCalledTimes(1);
-    expect(mockUpdateWhere).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSet).toHaveBeenCalledWith({ status: 'COMPLETED' });
     expect(notifyMany).toHaveBeenCalledWith(
       ['user-1', 'user-2'],
       'TRIP_COMPLETED',
@@ -63,12 +68,22 @@ describe('TripStatusJob', () => {
     );
   });
 
-  it('skips update and notifications when no trips are due', async () => {
+  it('does nothing when no trips are due', async () => {
     queueSelectResult([]);
 
     await job.runTripAutoComplete();
 
     expect(mockUpdate).not.toHaveBeenCalled();
+    expect(notifyMany).not.toHaveBeenCalled();
+  });
+
+  it('skips notification when the per-trip UPDATE matches no row (status changed concurrently)', async () => {
+    queueSelectResult(dueTrips);
+    queueUpdateResult([]); // e.g. organizer cancelled the trip between the SELECT and this UPDATE
+
+    await job.runTripAutoComplete();
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
     expect(notifyMany).not.toHaveBeenCalled();
   });
 
@@ -101,6 +116,27 @@ describe('TripStatusJob', () => {
     const loggerSpy = jest.spyOn(job['logger'], 'error').mockImplementation(() => undefined);
 
     await expect(job.runTripAutoComplete()).resolves.toBeUndefined();
-    expect(loggerSpy).toHaveBeenCalled();
+    expect(loggerSpy).toHaveBeenCalledWith('Trip auto-complete job failed', expect.any(Error));
+  });
+
+  it('processes trips independently: one failing UPDATE does not block the next trip', async () => {
+    queueSelectResult([
+      { id: 'trip-1', name: 'Trip One' },
+      { id: 'trip-2', name: 'Trip Two' },
+    ]);
+    queueUpdateResult([]); // trip-1 lost the race
+    queueUpdateResult([{ id: 'trip-2' }]); // trip-2 completes normally
+    queueSelectResult([{ userId: 'user-3' }]); // trip-2 participants
+
+    await job.runTripAutoComplete();
+
+    expect(mockUpdate).toHaveBeenCalledTimes(2);
+    expect(notifyMany).toHaveBeenCalledTimes(1);
+    expect(notifyMany).toHaveBeenCalledWith(
+      ['user-3'],
+      'TRIP_COMPLETED',
+      { tripId: 'trip-2', tripName: 'Trip Two' },
+      ['PUSH'],
+    );
   });
 });

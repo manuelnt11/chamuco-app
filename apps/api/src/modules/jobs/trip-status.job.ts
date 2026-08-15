@@ -2,18 +2,12 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { and, eq, inArray, lt, sql } from 'drizzle-orm';
 
-import {
-  NotificationChannel,
-  NotificationType,
-  TripParticipantStatus,
-  TripStatus,
-} from '@chamuco/shared-types';
+import { NotificationChannel, NotificationType, TripStatus } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { ACTIVE_STATUSES } from '@/modules/trips/participants/trip-participants.constants';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
-
-const READER_STATUSES = [TripParticipantStatus.ACCEPTED, TripParticipantStatus.CONFIRMED] as const;
 
 @Injectable()
 export class TripStatusJob {
@@ -41,21 +35,31 @@ export class TripStatusJob {
       .from(trips)
       .where(and(eq(trips.status, TripStatus.IN_PROGRESS), lt(trips.endDate, sql`CURRENT_DATE`)));
 
-    if (dueTrips.length === 0) return;
+    for (const trip of dueTrips) {
+      await this.completeTrip(trip.id, trip.name);
+    }
+  }
 
-    await this.db
+  private async completeTrip(tripId: string, tripName: string): Promise<void> {
+    // Re-check status/end_date at write time (not just at the earlier SELECT) so a
+    // trip cancelled in between isn't silently flipped back to COMPLETED, and so a
+    // crash mid-loop only ever leaves the trip currently being processed unnotified —
+    // trips not yet reached stay IN_PROGRESS and get retried on the next run.
+    const [updated] = await this.db
       .update(trips)
       .set({ status: TripStatus.COMPLETED })
       .where(
-        inArray(
-          trips.id,
-          dueTrips.map((t) => t.id),
+        and(
+          eq(trips.id, tripId),
+          eq(trips.status, TripStatus.IN_PROGRESS),
+          lt(trips.endDate, sql`CURRENT_DATE`),
         ),
-      );
+      )
+      .returning({ id: trips.id });
 
-    for (const trip of dueTrips) {
-      await this.notifyTripCompleted(trip.id, trip.name);
-    }
+    if (!updated) return;
+
+    await this.notifyTripCompleted(tripId, tripName);
   }
 
   private async notifyTripCompleted(tripId: string, tripName: string): Promise<void> {
@@ -65,7 +69,7 @@ export class TripStatusJob {
       .where(
         and(
           eq(tripParticipants.tripId, tripId),
-          inArray(tripParticipants.status, [...READER_STATUSES]),
+          inArray(tripParticipants.status, [...ACTIVE_STATUSES]),
         ),
       );
 

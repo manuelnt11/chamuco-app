@@ -374,13 +374,7 @@ export class TripsService {
       .select({ userId: tripParticipants.userId })
       .from(tripParticipants)
       .where(
-        and(
-          eq(tripParticipants.tripId, tripId),
-          inArray(tripParticipants.status, [
-            TripParticipantStatus.ACCEPTED,
-            TripParticipantStatus.CONFIRMED,
-          ]),
-        ),
+        and(eq(tripParticipants.tripId, tripId), inArray(tripParticipants.status, ACTIVE_STATUSES)),
       );
 
     const userIds = participantRows.map((r) => r.userId).filter((uid) => uid !== excludeUserId);
