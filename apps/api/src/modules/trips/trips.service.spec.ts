@@ -513,6 +513,7 @@ describe('TripsService', () => {
           status: TripStatus.COMPLETED,
           endDate: '2026-12-08',
         }); // fetchAndMapTrip
+      mockSelectWhere.mockResolvedValueOnce([]); // TRIP_COMPLETED participant fan-out
       const dto: TransitionTripStatusDto = { status: TripStatus.COMPLETED };
 
       const result = await service.transitionStatus(mockUser, 'trip-uuid', dto);
@@ -521,6 +522,40 @@ describe('TripsService', () => {
       expect(new Date(result.feedbackOpenUntil!).getTime()).toBeGreaterThan(
         new Date('2026-12-08').getTime(),
       );
+    });
+
+    it('notifies confirmed participants, excluding the caller, on IN_PROGRESS→COMPLETED', async () => {
+      mockTripsFindFirst
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS })
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS })
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.COMPLETED });
+      mockSelectWhere.mockResolvedValueOnce([
+        { userId: mockUser.id },
+        { userId: 'participant-uuid' },
+      ]);
+      const dto: TransitionTripStatusDto = { status: TripStatus.COMPLETED };
+
+      await service.transitionStatus(mockUser, 'trip-uuid', dto);
+
+      expect(mockNotificationsService.notifyMany).toHaveBeenCalledWith(
+        ['participant-uuid'],
+        NotificationType.TRIP_COMPLETED,
+        { tripId: 'trip-uuid', tripName: 'Cancún 2026' },
+        [NotificationChannel.PUSH],
+      );
+    });
+
+    it('skips TRIP_COMPLETED notification when no confirmed participants remain', async () => {
+      mockTripsFindFirst
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS })
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS })
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.COMPLETED });
+      mockSelectWhere.mockResolvedValueOnce([{ userId: mockUser.id }]);
+      const dto: TransitionTripStatusDto = { status: TripStatus.COMPLETED };
+
+      await service.transitionStatus(mockUser, 'trip-uuid', dto);
+
+      expect(mockNotificationsService.notifyMany).not.toHaveBeenCalled();
     });
 
     it('invites active group members when transitioning DRAFT→OPEN', async () => {

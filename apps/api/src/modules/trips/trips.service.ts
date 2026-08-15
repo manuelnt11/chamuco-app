@@ -358,7 +358,41 @@ export class TripsService {
       }
     }
 
+    if (dto.status === TripStatus.COMPLETED) {
+      await this.notifyTripCompleted(id, trip.name, user.id);
+    }
+
     return this.fetchAndMapTrip(id);
+  }
+
+  private async notifyTripCompleted(
+    tripId: string,
+    tripName: string,
+    excludeUserId?: string,
+  ): Promise<void> {
+    const participantRows = await this.db
+      .select({ userId: tripParticipants.userId })
+      .from(tripParticipants)
+      .where(
+        and(
+          eq(tripParticipants.tripId, tripId),
+          inArray(tripParticipants.status, [
+            TripParticipantStatus.ACCEPTED,
+            TripParticipantStatus.CONFIRMED,
+          ]),
+        ),
+      );
+
+    const userIds = participantRows.map((r) => r.userId).filter((uid) => uid !== excludeUserId);
+    if (userIds.length === 0) return;
+
+    await this.notifications
+      .notifyMany(userIds, NotificationType.TRIP_COMPLETED, { tripId, tripName }, [
+        NotificationChannel.PUSH,
+      ])
+      .catch((err: unknown) => {
+        this.logger.error('Failed to send TRIP_COMPLETED notification', err);
+      });
   }
 
   private async inviteLinkedGroupMembers(

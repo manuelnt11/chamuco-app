@@ -27,16 +27,31 @@ function buildNotificationUrl(
 ): string | null {
   switch (type) {
     case NotificationType.GROUP_INVITATION:
-      return '/groups';
     case NotificationType.GROUP_MEMBER_REMOVED:
       return '/groups';
     case NotificationType.GROUP_INVITATION_ACCEPTED:
+      return typeof payload.groupId === 'string' ? `/groups/${payload.groupId}/members` : null;
     case NotificationType.GROUP_JOIN_ACCEPTED:
+      return typeof payload.groupId === 'string' ? `/groups/${payload.groupId}` : null;
     case NotificationType.GROUP_ANNOUNCEMENT:
+      return typeof payload.groupId === 'string'
+        ? `/groups/${payload.groupId}/announcements`
+        : null;
     case NotificationType.GROUP_MEMBER_PROMOTED:
     case NotificationType.GROUP_MEMBER_DEMOTED:
-      return typeof payload.groupId === 'string' ? `/groups/${payload.groupId}` : null;
+      return typeof payload.groupId === 'string' ? `/groups/${payload.groupId}/members` : null;
+    case NotificationType.TRIP_PARTICIPANT_REMOVED:
+      return '/trips';
+    case NotificationType.TRIP_INVITATION_ACCEPTED:
+      return typeof payload.tripId === 'string' ? `/trips/${payload.tripId}/participants` : null;
+    case NotificationType.TRIP_JOIN_ACCEPTED:
+      return typeof payload.tripId === 'string' ? `/trips/${payload.tripId}` : null;
     case NotificationType.TRIP_ANNOUNCEMENT:
+      return typeof payload.tripId === 'string' ? `/trips/${payload.tripId}/announcements` : null;
+    case NotificationType.TRIP_ROLE_CHANGED:
+      return typeof payload.tripId === 'string' ? `/trips/${payload.tripId}/participants` : null;
+    case NotificationType.TRIP_COMPLETED:
+    case NotificationType.TRIP_KEY_DATE_REMINDER:
       return typeof payload.tripId === 'string' ? `/trips/${payload.tripId}` : null;
     case NotificationType.PASSPORT_EXPIRING_SOON:
     case NotificationType.PASSPORT_EXPIRED:

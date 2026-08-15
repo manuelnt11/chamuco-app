@@ -70,6 +70,13 @@ describe('buildNotificationContent()', () => {
       expect(result.url).toBe('/groups');
     });
 
+    it('derives /groups/:id/members url for GROUP_INVITATION_ACCEPTED', () => {
+      const result = buildNotificationContent(NotificationType.GROUP_INVITATION_ACCEPTED, {
+        groupId: 'g-456',
+      });
+      expect(result.url).toBe('/groups/g-456/members');
+    });
+
     it('derives /groups/:id url for GROUP_JOIN_ACCEPTED', () => {
       const result = buildNotificationContent(NotificationType.GROUP_JOIN_ACCEPTED, {
         groupId: 'g-456',
@@ -77,11 +84,11 @@ describe('buildNotificationContent()', () => {
       expect(result.url).toBe('/groups/g-456');
     });
 
-    it('derives /groups/:id url for GROUP_ANNOUNCEMENT', () => {
+    it('derives /groups/:id/announcements url for GROUP_ANNOUNCEMENT', () => {
       const result = buildNotificationContent(NotificationType.GROUP_ANNOUNCEMENT, {
         groupId: 'g-789',
       });
-      expect(result.url).toBe('/groups/g-789');
+      expect(result.url).toBe('/groups/g-789/announcements');
     });
 
     it('derives /groups url for GROUP_INVITATION when groupId is missing', () => {
@@ -104,20 +111,67 @@ describe('buildNotificationContent()', () => {
       expect(result.url).toBe('/profile/achievements');
     });
 
-    it('returns null for types without a dedicated url (e.g. TRIP_COMPLETED)', () => {
-      const result = buildNotificationContent(NotificationType.TRIP_COMPLETED, {});
+    it('returns null for TRIP_INVITATION (handled client-side, no builder url)', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_INVITATION, {
+        tripId: 't-123',
+      });
       expect(result.url).toBeNull();
     });
 
-    it('derives /trips/:id url for TRIP_ANNOUNCEMENT', () => {
+    it('derives /trips/:id/announcements url for TRIP_ANNOUNCEMENT', () => {
       const result = buildNotificationContent(NotificationType.TRIP_ANNOUNCEMENT, {
         tripId: 't-123',
       });
-      expect(result.url).toBe('/trips/t-123');
+      expect(result.url).toBe('/trips/t-123/announcements');
     });
 
     it('returns null for TRIP_ANNOUNCEMENT when tripId is missing', () => {
       const result = buildNotificationContent(NotificationType.TRIP_ANNOUNCEMENT, {});
+      expect(result.url).toBeNull();
+    });
+
+    it('derives /trips url for TRIP_PARTICIPANT_REMOVED', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_PARTICIPANT_REMOVED, {
+        tripId: 't-999',
+      });
+      expect(result.url).toBe('/trips');
+    });
+
+    it('derives /trips/:id/participants url for TRIP_INVITATION_ACCEPTED', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_INVITATION_ACCEPTED, {
+        tripId: 't-321',
+      });
+      expect(result.url).toBe('/trips/t-321/participants');
+    });
+
+    it('derives /trips/:id url for TRIP_JOIN_ACCEPTED', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_JOIN_ACCEPTED, {
+        tripId: 't-654',
+      });
+      expect(result.url).toBe('/trips/t-654');
+    });
+
+    it('derives /trips/:id/participants url for TRIP_ROLE_CHANGED', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_ROLE_CHANGED, {
+        tripId: 't-777',
+      });
+      expect(result.url).toBe('/trips/t-777/participants');
+    });
+
+    it('derives /trips/:id url for TRIP_COMPLETED', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_COMPLETED, { tripId: 't-1' });
+      expect(result.url).toBe('/trips/t-1');
+    });
+
+    it('derives /trips/:id url for TRIP_KEY_DATE_REMINDER', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_KEY_DATE_REMINDER, {
+        tripId: 't-2',
+      });
+      expect(result.url).toBe('/trips/t-2');
+    });
+
+    it('returns null for TRIP_COMPLETED when tripId is missing', () => {
+      const result = buildNotificationContent(NotificationType.TRIP_COMPLETED, {});
       expect(result.url).toBeNull();
     });
   });
