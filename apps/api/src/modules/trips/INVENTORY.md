@@ -2,6 +2,45 @@
 
 ---
 
+## `trip-completion.util.spec.ts`
+
+### Imports
+
+- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType` enums for assertions
+- `./trip-completion.util` — `notifyTripCompleted` function under test
+
+### Definitions
+
+- `notifyTripCompleted()` test suite — covers: notifies all active participants, excludes a given user, no-ops when no active participants remain, logs (not throws) on `notifyMany` rejection
+
+### Exports
+
+- _(none — test file)_
+
+---
+
+## `trip-completion.util.ts`
+
+### Imports
+
+- `@nestjs/common` — `Logger` for logging notify failures
+- `drizzle-orm` — `and`, `eq`, `inArray` query helpers
+- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType` enums
+- `@/database/drizzle.provider` — `DrizzleClient` type
+- `@/modules/notifications/notifications.service` — `NotificationsService` type
+- `@/modules/trips/participants/trip-participants.constants` — `ACTIVE_STATUSES`
+- `@/modules/trips/schema/trip-participants.schema` — `tripParticipants` table reference
+
+### Definitions
+
+- `notifyTripCompleted(db, notifications, tripId, tripName, excludeUserId?)` (function) — shared logic for dispatching `TRIP_COMPLETED`: looks up the trip's `ACTIVE_STATUSES` participants (optionally excluding one user), sends via `notifyMany`, and logs (not throws) on failure. Used by both `TripsService.transitionStatus` and `TripStatusJob.completeTrip` — the two places a trip can become `COMPLETED`.
+
+### Exports
+
+- `notifyTripCompleted` — named
+
+---
+
 ## `trips.controller.spec.ts`
 
 ### Imports
@@ -152,6 +191,7 @@
 - `./dto/my-trip-list-item-response.dto` — `MyTripListItemResponseDto` type
 - `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` type
 - `./participants/trip-participants.constants` — `ACTIVE_STATUSES` array of active participant statuses
+- `./trip-completion.util` — `notifyTripCompleted`, shared with `TripStatusJob`
 
 ### Definitions
 
@@ -162,10 +202,9 @@
 - `TripsService.getTrip` (function) — fetches a single trip by ID and returns the mapped response DTO
 - `TripsService.updateTrip` (function) — patches trip fields with organizer/co-organizer guard; handles cover asset replacement with GCS cleanup
 - `TripsService.deleteTrip` (function) — hard-deletes trip and announcements in a transaction; ORGANIZER restricted to DRAFT, SUPPORT_ADMIN unrestricted
-- `TripsService.transitionStatus` (function) — validates and applies trip status transitions; on DRAFT→OPEN auto-invites linked group members, on →COMPLETED fires `notifyTripCompleted` (excluding the caller)
+- `TripsService.transitionStatus` (function) — validates and applies trip status transitions; the UPDATE re-checks the status it read (via `.returning()`) so a double-submit either idempotently no-ops (target already reached) or throws `BadRequestException` (a different transition won the race); on a real DRAFT→OPEN write auto-invites linked group members, on a real →COMPLETED write calls the shared `notifyTripCompleted` (excluding the caller)
 - `TripsService.assertOrganizerRole` (function) — shared guard asserting the user holds ORGANIZER (or optionally CO_ORGANIZER) role on the trip
 - `TripsService.inviteLinkedGroupMembers` (function) — private; queries linked groups, inserts INVITED participants, and fires TRIP_INVITATION notifications
-- `TripsService.notifyTripCompleted` (function) — private; notifies the trip's `ACTIVE_STATUSES` participants (optionally excluding one user) of `TRIP_COMPLETED` via `notifyMany`, logging (not throwing) on failure
 - `TripsService.fetchAndMapTrip` (function) — private; fetches trip with coverAsset relation and maps to `TripResponseDto`
 - `TripsService.mapTrip` (function) — private; converts a raw trip row to `TripResponseDto`, computing `requiresConfirmation` and `feedbackOpenUntil`
 

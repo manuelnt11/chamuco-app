@@ -96,6 +96,7 @@ describe('TripsService', () => {
   let mockSelectFrom: jest.Mock;
   let mockSelect: jest.Mock;
   let mockUpdateWhere: jest.Mock;
+  let mockUpdateReturning: jest.Mock;
   let mockUpdateSet: jest.Mock;
   let mockUpdate: jest.Mock;
   let mockDeleteWhere: jest.Mock;
@@ -116,7 +117,14 @@ describe('TripsService', () => {
     mockSelectFrom = jest.fn().mockReturnValue({ where: mockSelectWhere });
     mockSelect = jest.fn().mockReturnValue({ from: mockSelectFrom });
 
-    mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
+    // `.where(...)` is awaited directly by some call sites (updateTrip) and chained
+    // with `.returning(...)` by others (transitionStatus) — this thenable object
+    // supports both without needing per-test-site mock branching.
+    mockUpdateReturning = jest.fn().mockResolvedValue([{ id: 'trip-uuid' }]);
+    mockUpdateWhere = jest.fn().mockReturnValue({
+      returning: mockUpdateReturning,
+      then: (resolve: (value: undefined) => void) => resolve(undefined),
+    });
     mockUpdateSet = jest.fn().mockReturnValue({ where: mockUpdateWhere });
     mockUpdate = jest.fn().mockReturnValue({ set: mockUpdateSet });
 
@@ -629,6 +637,35 @@ describe('TripsService', () => {
 
       await service.transitionStatus(mockUser, 'trip-uuid', dto);
 
+      expect(mockNotificationsService.notifyMany).not.toHaveBeenCalled();
+    });
+
+    it('idempotently no-ops a double-submit that already reached the target status', async () => {
+      mockUpdateReturning.mockResolvedValueOnce([]); // lost the race — another request already wrote it
+      mockTripsFindFirst
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS }) // transitionStatus fetch
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS }) // assertOrganizerRole
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.COMPLETED }) // re-fetch after lost race
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.COMPLETED }); // fetchAndMapTrip
+      const dto: TransitionTripStatusDto = { status: TripStatus.COMPLETED };
+
+      const result = await service.transitionStatus(mockUser, 'trip-uuid', dto);
+
+      expect(result.id).toBe('trip-uuid');
+      expect(mockNotificationsService.notifyMany).not.toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException when the trip status changed to something else concurrently', async () => {
+      mockUpdateReturning.mockResolvedValueOnce([]); // lost the race
+      mockTripsFindFirst
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS }) // transitionStatus fetch
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.IN_PROGRESS }) // assertOrganizerRole
+        .mockResolvedValueOnce({ ...mockTripRow, status: TripStatus.CANCELLED }); // re-fetch: someone else cancelled it
+      const dto: TransitionTripStatusDto = { status: TripStatus.COMPLETED };
+
+      await expect(service.transitionStatus(mockUser, 'trip-uuid', dto)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(mockNotificationsService.notifyMany).not.toHaveBeenCalled();
     });
   });

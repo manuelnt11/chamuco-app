@@ -113,21 +113,19 @@
 
 - `@nestjs/common` — `Inject`, `Injectable`, `Logger` for DI, logging, and provider registration
 - `@nestjs/schedule` — `Cron`, `CronExpression` for cron-based scheduling
-- `drizzle-orm` — `and`, `eq`, `inArray`, `lt`, `sql` for query composition
-- `@chamuco/shared-types` — `NotificationChannel`, `NotificationType`, `TripStatus` enums
+- `drizzle-orm` — `and`, `eq`, `lt`, `sql` for query composition
+- `@chamuco/shared-types` — `TripStatus` enum
 - `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token, `DrizzleClient` type
-- `@/modules/notifications/notifications.service` — `NotificationsService`, used to dispatch `TRIP_COMPLETED` on auto-complete
-- `@/modules/trips/participants/trip-participants.constants` — `ACTIVE_STATUSES` (shared confirmed-participant status list)
+- `@/modules/notifications/notifications.service` — `NotificationsService`, passed through to `notifyTripCompleted`
+- `@/modules/trips/trip-completion.util` — `notifyTripCompleted`, shared with `TripsService.transitionStatus`
 - `@/modules/trips/schema/trips.schema` — `trips` Drizzle table reference
-- `@/modules/trips/schema/trip-participants.schema` — `tripParticipants` Drizzle table reference
 
 ### Definitions
 
 - `TripStatusJob` (service) — scheduled job that runs daily at midnight; transitions `IN_PROGRESS` trips whose `end_date` is before `CURRENT_DATE` to `COMPLETED`, one trip at a time, and notifies each trip's confirmed participants
   - `runTripAutoComplete()` — cron entry point (`EVERY_DAY_AT_MIDNIGHT`); catches and logs top-level errors
-  - `autoComplete()` (private) — SELECTs due trips, then processes each via `completeTrip()`
-  - `completeTrip(tripId, tripName)` (private) — UPDATEs a single trip to `COMPLETED`, re-checking `status = IN_PROGRESS AND end_date < CURRENT_DATE` at write time (via `.returning()`) so a trip cancelled between the SELECT and this UPDATE isn't overwritten; skips notification if the row didn't match
-  - `notifyTripCompleted(tripId, tripName)` (private) — looks up the trip's `ACTIVE_STATUSES` participants and dispatches `TRIP_COMPLETED` via `notifyMany`, logging (not throwing) on failure
+  - `autoComplete()` (private) — SELECTs due trips, then processes each via `completeTrip()` inside a per-trip try/catch so one trip's failure doesn't skip the rest of that run's batch
+  - `completeTrip(tripId, tripName)` (private) — UPDATEs a single trip to `COMPLETED`, re-checking `status = IN_PROGRESS AND end_date < CURRENT_DATE` at write time (via `.returning()`) so a trip cancelled between the SELECT and this UPDATE isn't overwritten; skips notification if the row didn't match; delegates to the shared `notifyTripCompleted` util on success
 
 ### Exports
 
@@ -146,7 +144,7 @@
 
 ### Definitions
 
-- `TripStatusJob` test suite — covers: per-trip completion with participant notification, no-op when no trips are due, skipped notification when a trip's UPDATE matches no row (concurrent status change) or has no confirmed participants, notifyMany rejection logged without rethrowing, DB error caught and logged without rethrowing, and independent processing across multiple due trips
+- `TripStatusJob` test suite — covers: per-trip completion with participant notification, no-op when no trips are due, skipped notification when a trip's UPDATE matches no row (concurrent status change) or has no confirmed participants, notifyMany rejection does not rethrow, DB error caught and logged without rethrowing, independent processing across multiple due trips, and one trip's UPDATE throwing does not abort the rest of the batch
 
 ### Exports
 

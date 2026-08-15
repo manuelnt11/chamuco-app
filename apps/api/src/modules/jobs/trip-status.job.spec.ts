@@ -96,17 +96,12 @@ describe('TripStatusJob', () => {
     expect(notifyMany).not.toHaveBeenCalled();
   });
 
-  it('logs error and does not rethrow when notifyMany rejects', async () => {
+  it('does not rethrow when notifyMany rejects (logging is covered by trip-completion.util.spec.ts)', async () => {
     queueSelectResult(dueTrips);
     queueSelectResult(participantRows);
     notifyMany.mockRejectedValue(new Error('notify failed'));
-    const loggerSpy = jest.spyOn(job['logger'], 'error').mockImplementation(() => undefined);
 
     await expect(job.runTripAutoComplete()).resolves.toBeUndefined();
-    expect(loggerSpy).toHaveBeenCalledWith(
-      'Failed to send TRIP_COMPLETED notification',
-      expect.any(Error),
-    );
   });
 
   it('logs error and does not rethrow on DB failure', async () => {
@@ -132,6 +127,30 @@ describe('TripStatusJob', () => {
 
     expect(mockUpdate).toHaveBeenCalledTimes(2);
     expect(notifyMany).toHaveBeenCalledTimes(1);
+    expect(notifyMany).toHaveBeenCalledWith(
+      ['user-3'],
+      'TRIP_COMPLETED',
+      { tripId: 'trip-2', tripName: 'Trip Two' },
+      ['PUSH'],
+    );
+  });
+
+  it('does not let one trip throwing abort the rest of the batch', async () => {
+    queueSelectResult([
+      { id: 'trip-1', name: 'Trip One' },
+      { id: 'trip-2', name: 'Trip Two' },
+    ]);
+    mockUpdateReturning.mockRejectedValueOnce(new Error('transient DB error')); // trip-1's UPDATE throws
+    queueUpdateResult([{ id: 'trip-2' }]); // trip-2 still gets processed
+    queueSelectResult([{ userId: 'user-3' }]); // trip-2 participants
+    const loggerSpy = jest.spyOn(job['logger'], 'error').mockImplementation(() => undefined);
+
+    await expect(job.runTripAutoComplete()).resolves.toBeUndefined();
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      'Failed to auto-complete trip trip-1',
+      expect.any(Error),
+    );
     expect(notifyMany).toHaveBeenCalledWith(
       ['user-3'],
       'TRIP_COMPLETED',

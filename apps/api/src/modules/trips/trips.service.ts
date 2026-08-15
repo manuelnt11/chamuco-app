@@ -39,6 +39,7 @@ import type { MyTripListItemResponseDto } from './dto/my-trip-list-item-response
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
 import { VALID_TRANSITIONS } from '@chamuco/shared-types';
 import { ACTIVE_STATUSES } from './participants/trip-participants.constants';
+import { notifyTripCompleted } from './trip-completion.util';
 
 // TODO: migrate to system settings module when admin config is available
 const FEEDBACK_WINDOW_DAYS = parseInt(process.env['TRIP_FEEDBACK_WINDOW_DAYS'] ?? '7', 10) || 7;
@@ -348,7 +349,21 @@ export class TripsService {
       }
     }
 
-    await this.db.update(trips).set({ status: dto.status }).where(eq(trips.id, id));
+    const [updated] = await this.db
+      .update(trips)
+      .set({ status: dto.status })
+      .where(and(eq(trips.id, id), eq(trips.status, trip.status)))
+      .returning({ id: trips.id });
+
+    if (!updated) {
+      const current = await this.db.query.trips.findFirst({ where: eq(trips.id, id) });
+      if (current?.status === dto.status) {
+        return this.fetchAndMapTrip(id);
+      }
+      throw new BadRequestException(
+        `Cannot transition trip from ${current?.status} to ${dto.status}`,
+      );
+    }
 
     if (trip.status === TripStatus.DRAFT && dto.status === TripStatus.OPEN) {
       try {
@@ -359,34 +374,10 @@ export class TripsService {
     }
 
     if (dto.status === TripStatus.COMPLETED) {
-      await this.notifyTripCompleted(id, trip.name, user.id);
+      await notifyTripCompleted(this.db, this.notifications, id, trip.name, user.id);
     }
 
     return this.fetchAndMapTrip(id);
-  }
-
-  private async notifyTripCompleted(
-    tripId: string,
-    tripName: string,
-    excludeUserId?: string,
-  ): Promise<void> {
-    const participantRows = await this.db
-      .select({ userId: tripParticipants.userId })
-      .from(tripParticipants)
-      .where(
-        and(eq(tripParticipants.tripId, tripId), inArray(tripParticipants.status, ACTIVE_STATUSES)),
-      );
-
-    const userIds = participantRows.map((r) => r.userId).filter((uid) => uid !== excludeUserId);
-    if (userIds.length === 0) return;
-
-    await this.notifications
-      .notifyMany(userIds, NotificationType.TRIP_COMPLETED, { tripId, tripName }, [
-        NotificationChannel.PUSH,
-      ])
-      .catch((err: unknown) => {
-        this.logger.error('Failed to send TRIP_COMPLETED notification', err);
-      });
   }
 
   private async inviteLinkedGroupMembers(
