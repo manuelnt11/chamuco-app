@@ -69,18 +69,26 @@ Composite PK `(user_id, token)` — one token per device per user.
 
 Defined in `packages/shared-types/src/enums/notification-type.enum.ts`.
 
-| Type                     | Trigger                             | Recipient                  | Status                    |
-| ------------------------ | ----------------------------------- | -------------------------- | ------------------------- |
-| `GROUP_INVITATION`       | Admin invites a user to a group     | Invited user               | ✅ Active                 |
-| `GROUP_JOIN_ACCEPTED`    | Admin accepts a group join request  | Requesting user            | ✅ Active                 |
-| `GROUP_ANNOUNCEMENT`     | Admin sends a group announcement    | All active group members   | ✅ Active                 |
-| `PASSPORT_EXPIRING_SOON` | Daily `PassportStatusJob`           | User who owns the record   | ✅ Active                 |
-| `PASSPORT_EXPIRED`       | Daily `PassportStatusJob`           | User who owns the record   | ✅ Active                 |
-| `TRIP_INVITATION`        | Organizer invites a user to a trip  | Invited user               | ⏳ Pending trips module   |
-| `TRIP_ANNOUNCEMENT`      | Organizer sends a trip announcement | All confirmed participants | ⏳ Pending trips module   |
-| `TRIP_KEY_DATE_REMINDER` | Daily job, 24h before a key date    | All confirmed participants | ⏳ Pending jobs (Epic #9) |
-| `TRIP_COMPLETED`         | Trip reaches `COMPLETED` status     | All confirmed participants | ⏳ Pending trips module   |
-| `ACHIEVEMENT_UNLOCKED`   | Trip completion flow                | User                       | ⏳ Pending gamification   |
+| Type                        | Trigger                                                                             | Recipient                                                                  | Status                    |
+| --------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------- |
+| `GROUP_INVITATION`          | Admin invites a user to a group                                                     | Invited user                                                               | ✅ Active                 |
+| `GROUP_INVITATION_ACCEPTED` | Invited user accepts a group invitation                                             | Group admins                                                               | ✅ Active                 |
+| `GROUP_JOIN_ACCEPTED`       | Admin accepts a group join request                                                  | Requesting user                                                            | ✅ Active                 |
+| `GROUP_ANNOUNCEMENT`        | Admin sends a group announcement                                                    | All active group members                                                   | ✅ Active                 |
+| `GROUP_MEMBER_REMOVED`      | Admin removes a member from a group                                                 | Removed member                                                             | ✅ Active                 |
+| `GROUP_MEMBER_PROMOTED`     | Admin promotes a member's role                                                      | Promoted member                                                            | ✅ Active                 |
+| `GROUP_MEMBER_DEMOTED`      | Admin demotes a member's role                                                       | Demoted member                                                             | ✅ Active                 |
+| `PASSPORT_EXPIRING_SOON`    | Daily `PassportStatusJob`                                                           | User who owns the record                                                   | ✅ Active                 |
+| `PASSPORT_EXPIRED`          | Daily `PassportStatusJob`                                                           | User who owns the record                                                   | ✅ Active                 |
+| `TRIP_INVITATION`           | Organizer invites a user to a trip                                                  | Invited user                                                               | ✅ Active                 |
+| `TRIP_INVITATION_ACCEPTED`  | Invited user accepts a trip invitation                                              | Trip organizers                                                            | ✅ Active                 |
+| `TRIP_JOIN_ACCEPTED`        | Organizer accepts a trip join request                                               | Requesting user                                                            | ✅ Active                 |
+| `TRIP_PARTICIPANT_REMOVED`  | Organizer removes a participant from a trip                                         | Removed participant                                                        | ✅ Active                 |
+| `TRIP_ROLE_CHANGED`         | Organizer changes a participant's role                                              | Participant whose role changed                                             | ✅ Active                 |
+| `TRIP_ANNOUNCEMENT`         | Organizer sends a trip announcement                                                 | All confirmed participants                                                 | ✅ Active                 |
+| `TRIP_COMPLETED`            | Manual `IN_PROGRESS → COMPLETED` transition, or daily `TripStatusJob` auto-complete | All confirmed participants (excludes the organizer on a manual transition) | ✅ Active                 |
+| `TRIP_KEY_DATE_REMINDER`    | Daily job, 24h before a key date                                                    | All confirmed participants                                                 | ⏳ Pending jobs (Epic #9) |
+| `ACHIEVEMENT_UNLOCKED`      | Trip completion flow                                                                | User                                                                       | ⏳ Pending gamification   |
 
 ---
 

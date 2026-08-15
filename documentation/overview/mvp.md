@@ -178,9 +178,9 @@ FCM is the only Firebase service used in MVP. Firestore is not required (messagi
 | Group invitation received   | Admin invites user           | Invited user               | ✅                                |
 | Group join request accepted | Admin accepts request        | Requesting user            | ✅                                |
 | Group announcement          | Admin sends broadcast        | All group members          | ✅                                |
-| Trip invitation received    | Organizer invites user       | Invited user               | ⏳ Pending trips module           |
-| Trip status changed         | Organizer transitions status | All confirmed participants | ⏳ Pending trips module           |
-| Trip announcement           | Organizer sends broadcast    | All confirmed participants | ⏳ Pending trips module           |
+| Trip invitation received    | Organizer invites user       | Invited user               | ✅                                |
+| Trip status changed         | Organizer transitions status | All confirmed participants | ✅                                |
+| Trip announcement           | Organizer sends broadcast    | All confirmed participants | ✅                                |
 | Key date reminder           | Daily job, 24h before date   | All confirmed participants | ⏳ Pending trips module (Epic #9) |
 | Achievement unlocked        | Trip completion flow         | User                       | ⏳ Pending gamification           |
 | New recognition received    | Organizer/admin awards       | Recipient user             | ⏳ Pending gamification           |
@@ -215,13 +215,13 @@ The following modules are designed and documented but will not be built in the M
 
 ## Module Build Progress Summary
 
-| Module          | Status         | Notes                                                                    |
-| --------------- | -------------- | ------------------------------------------------------------------------ |
-| Authentication  | ✅ Built       | —                                                                        |
-| Notifications   | ✅ Built       | Trip-related events pending trips module                                 |
-| Users & Profile | 🔄 Partial     | Health data, emergency contacts, loyalty programs not started            |
-| Groups          | 🔄 Partial     | Member tiers (#245), resources (#246) pending                            |
-| Trips           | ⏳ Not started | Issues #343–#354                                                         |
-| Participants    | ⏳ Not started | Epic #7                                                                  |
-| Gamification    | ⏳ Not started | Epic #10; depends on Trips                                               |
-| Scheduled jobs  | 🔄 Partial     | Passport job ✅; trip-transitions + key-date-reminders pending (Epic #9) |
+| Module          | Status         | Notes                                                                        |
+| --------------- | -------------- | ---------------------------------------------------------------------------- |
+| Authentication  | ✅ Built       | —                                                                            |
+| Notifications   | ✅ Built       | Key-date reminders pending (Epic #9)                                         |
+| Users & Profile | 🔄 Partial     | Health data, emergency contacts, loyalty programs not started                |
+| Groups          | 🔄 Partial     | Member tiers (#245), resources (#246) pending                                |
+| Trips           | ⏳ Not started | Issues #343–#354                                                             |
+| Participants    | ⏳ Not started | Epic #7                                                                      |
+| Gamification    | ⏳ Not started | Epic #10; depends on Trips                                                   |
+| Scheduled jobs  | 🔄 Partial     | Passport job ✅; trip auto-complete ✅; key-date-reminders pending (Epic #9) |
