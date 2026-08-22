@@ -3,8 +3,6 @@
   "compilerOptions": {
     "outDir": "./dist",
     "module": "commonjs",
-    "moduleResolution": "node10",
-    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"]
     },

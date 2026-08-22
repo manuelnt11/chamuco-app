@@ -34,7 +34,7 @@ catalogs:
       specifier: ^3.9.6
       version: 3.9.6
     typescript:
-      specifier: ^7.0.0
+      specifier: ^7.0.2
       version: 7.0.2
     vitest:
       specifier: ^4.1.10
