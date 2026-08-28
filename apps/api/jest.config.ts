@@ -23,7 +23,11 @@ const config: Config = {
       },
     ],
   },
-  transformIgnorePatterns: ['/node_modules/\\.pnpm/(?!(jose|jwks-rsa|uuid|marked)@)'],
+  // sanitize-html's parser chain (htmlparser2 + its dom* dependencies) ships ESM-only —
+  // all listed here alongside the pre-existing jose/jwks-rsa/uuid/marked exceptions.
+  transformIgnorePatterns: [
+    '/node_modules/\\.pnpm/(?!(jose|jwks-rsa|uuid|marked|htmlparser2|entities|domhandler|domelementtype|dom-serializer|domutils)@)',
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@chamuco/shared-types$': '<rootDir>/../../packages/shared-types/src',

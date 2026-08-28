@@ -72,6 +72,7 @@ backups/
 # Claude Code
 .claude/plans/
 .claude/worktrees/
+.scratch
 
 # Misc
 .cache

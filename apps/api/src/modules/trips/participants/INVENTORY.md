@@ -112,12 +112,12 @@
 - `@/modules/users/schema/users.schema` — `users`
 - `@/modules/users/schema/user-profiles.schema` — `userProfiles`
 - `@/modules/users/schema/user-nationalities.schema` — `userNationalities`
-- `@/modules/users/schema/user-preferences.schema` — `userPreferences`
 - `@/modules/assets/schema/assets.schema` — `assets`
 - `@/modules/assets/asset-resolver.service` — `AssetResolverService`
 - `@/modules/notifications/notifications.service` — `NotificationsService`
 - `@/modules/trips/schema/trips.schema` — `trips`
 - `@/modules/trips/schema/trip-participants.schema` — `tripParticipants`
+- `@/modules/trips/caller-language.util` — `resolveCallerLanguage`
 - `@/modules/users/emergency-contacts/dto/emergency-contact.dto` — `EmergencyContactDto`
 - `./dto/update-participant-role.dto` — `UpdateParticipantRoleDto`
 - `./dto/participant-response.dto` — `ParticipantResponseDto`
@@ -133,7 +133,7 @@
 - `EXPORT_TRANSLATIONS` (const) — keyed `en`/`es` `ExportLangBundle` instances used to localise export output based on the organizer's DB language preference
 - `ParticipantExportRow` (type) — `Record<ExportField, string>` alias representing one participant row in an export spreadsheet
 - `ALL_EXPORT_FIELDS` (const) — ordered array of all `ExportField` enum values; defines canonical column order and default field set for exports
-- `TripParticipantsService` (service) — NestJS injectable service; manages participant removal/self-leave, role updates (including atomic ORGANIZER transfer), confirmation toggle, active/pending participant listing, invitation listing, participant export (XLSX/CSV/ODS with i18n), and capacity check; exposes `findParticipantOrThrow`, `assertTripExists`, `assertTripOrganizer`, `assertCapacityAvailable` as public helpers consumed by sibling services
+- `TripParticipantsService` (service) — NestJS injectable service; manages participant removal/self-leave, role updates (including atomic ORGANIZER transfer), confirmation toggle, active/pending participant listing, invitation listing, participant export (XLSX/CSV/ODS with i18n), and capacity check; exposes `findParticipantOrThrow`, `assertTripExists`, `assertTripOrganizer`, `assertCapacityAvailable`, `assertActiveParticipant` as public helpers consumed by sibling services (`assertActiveParticipant` is also used by `TripItineraryPdfService` to gate PDF export to active participants)
 
 ### Exports
 

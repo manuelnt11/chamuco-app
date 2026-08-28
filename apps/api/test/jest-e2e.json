@@ -4,7 +4,9 @@
   "testEnvironment": "node",
   "rootDir": "..",
   "testMatch": ["<rootDir>/test/**/*.e2e-spec.ts"],
-  "transformIgnorePatterns": ["/node_modules/.pnpm/(?!(jose|jwks-rsa)@|uuid@)"],
+  "transformIgnorePatterns": [
+    "/node_modules/.pnpm/(?!(jose|jwks-rsa|marked|htmlparser2|entities|domhandler|domelementtype|dom-serializer|domutils)@|uuid@)"
+  ],
   "transform": {
     "^.+\\.(t|j)s$": [
       "@swc/jest",

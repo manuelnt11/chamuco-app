@@ -2,16 +2,59 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { eq } from 'drizzle-orm';
 import Handlebars from 'handlebars';
 import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
 
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
-import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
+import { resolveCallerLanguage } from '@/modules/trips/caller-language.util';
 import { TripsService } from '@/modules/trips/trips.service';
 import { TripsDestinationsService } from '@/modules/trips/destinations/trips-destinations.service';
+import { TripParticipantsService } from '@/modules/trips/participants/trip-participants.service';
 import type { TripResponseDto } from '@/modules/trips/dto/trip-response.dto';
 import type { DestinationResponseDto } from '@/modules/trips/destinations/dto/destination-response.dto';
+
+// Itinerary notes/destination text is organizer-authored markdown, converted to HTML and
+// rendered by a real (scriptable, networked) Chromium instance. marked passes raw HTML through
+// unsanitized by default, so without this allowlist an organizer could embed <script>,
+// <img onerror=...>, or <iframe src="http://169.254.169.254/..."> and trigger server-side script
+// execution or SSRF against the container's network the moment anyone exports the PDF.
+// No <img> here on purpose: the only intentional image in the document is the trip cover, bound
+// directly in the template — user-authored content never gets a tag that can trigger a fetch.
+const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: [
+    'p',
+    'br',
+    'strong',
+    'em',
+    'u',
+    's',
+    'ul',
+    'ol',
+    'li',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'blockquote',
+    'code',
+    'pre',
+    'a',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+  ],
+  allowedAttributes: { a: ['href'] },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  disallowedTagsMode: 'discard',
+};
+
+// Render timeout for the whole page (navigation + any resource the trip cover image needs to
+// load) — bounds worst-case latency per PDF export instead of trusting Puppeteer's own default.
+const RENDER_TIMEOUT_MS = 10_000;
 
 interface ItineraryPdfLabels {
   dates: string;
@@ -76,20 +119,19 @@ export class TripItineraryPdfService {
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
     private readonly tripsService: TripsService,
     private readonly tripsDestinationsService: TripsDestinationsService,
+    private readonly tripParticipantsService: TripParticipantsService,
     private readonly config: ConfigService,
   ) {}
 
   async generate(tripId: string, requestingUserId: string): Promise<Buffer> {
-    const [trip, destinations, prefs] = await Promise.all([
+    await this.tripParticipantsService.assertActiveParticipant(tripId, requestingUserId);
+
+    const [trip, destinations, lang] = await Promise.all([
       this.tripsService.getTrip(tripId),
       this.tripsDestinationsService.listDestinations(tripId),
-      this.db.query.userPreferences.findFirst({
-        where: eq(userPreferences.userId, requestingUserId),
-        columns: { language: true },
-      }),
+      resolveCallerLanguage(this.db, requestingUserId),
     ]);
 
-    const lang = (prefs?.language ?? 'EN').toLowerCase();
     const context = this.buildContext(trip, destinations, lang);
     const html = this.renderHtml(context);
     return this.renderPdf(html);
@@ -134,7 +176,8 @@ export class TripItineraryPdfService {
   }
 
   private renderMarkdown(source: string): string {
-    return marked.parse(source, { async: false });
+    const html = marked.parse(source, { async: false });
+    return sanitizeHtml(html, SANITIZE_OPTIONS);
   }
 
   private async renderPdf(html: string): Promise<Buffer> {
@@ -149,7 +192,11 @@ export class TripItineraryPdfService {
 
     try {
       const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'load' });
+      // The template needs no JavaScript — disabling it removes any script-execution path
+      // (e.g. an onerror handler) that sanitization missed, as defense in depth.
+      await page.setJavaScriptEnabled(false);
+      page.setDefaultNavigationTimeout(RENDER_TIMEOUT_MS);
+      await page.setContent(html, { waitUntil: 'load', timeout: RENDER_TIMEOUT_MS });
       const pdf = await page.pdf({ format: 'A4', printBackground: true });
       return Buffer.from(pdf);
     } finally {

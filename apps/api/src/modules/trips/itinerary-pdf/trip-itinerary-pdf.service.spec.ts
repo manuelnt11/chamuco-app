@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { TripStatus, TripVisibility } from '@chamuco/shared-types';
@@ -5,11 +6,14 @@ import { TripStatus, TripVisibility } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT } from '@/database/drizzle.provider';
 import { TripsService } from '@/modules/trips/trips.service';
 import { TripsDestinationsService } from '@/modules/trips/destinations/trips-destinations.service';
+import { TripParticipantsService } from '@/modules/trips/participants/trip-participants.service';
 import type { TripResponseDto } from '@/modules/trips/dto/trip-response.dto';
 import type { DestinationResponseDto } from '@/modules/trips/destinations/dto/destination-response.dto';
 import { TripItineraryPdfService } from './trip-itinerary-pdf.service';
 
 const mockPage = {
+  setJavaScriptEnabled: jest.fn().mockResolvedValue(undefined),
+  setDefaultNavigationTimeout: jest.fn(),
   setContent: jest.fn().mockResolvedValue(undefined),
   pdf: jest.fn().mockResolvedValue(Buffer.from('%PDF-1.4')),
 };
@@ -76,6 +80,7 @@ describe('TripItineraryPdfService', () => {
   let service: TripItineraryPdfService;
   let mockGetTrip: jest.Mock;
   let mockListDestinations: jest.Mock;
+  let mockAssertActiveParticipant: jest.Mock;
   let mockUserPreferencesFindFirst: jest.Mock;
   let mockConfigGet: jest.Mock;
 
@@ -83,6 +88,7 @@ describe('TripItineraryPdfService', () => {
     jest.clearAllMocks();
     mockGetTrip = jest.fn().mockResolvedValue(mockTrip);
     mockListDestinations = jest.fn().mockResolvedValue(mockDestinations);
+    mockAssertActiveParticipant = jest.fn().mockResolvedValue(undefined);
     mockUserPreferencesFindFirst = jest.fn().mockResolvedValue({ language: 'EN' });
     mockConfigGet = jest.fn().mockReturnValue('/usr/bin/chromium-browser');
     mockLaunch.mockResolvedValue(mockBrowser);
@@ -100,6 +106,10 @@ describe('TripItineraryPdfService', () => {
         {
           provide: TripsDestinationsService,
           useValue: { listDestinations: mockListDestinations },
+        },
+        {
+          provide: TripParticipantsService,
+          useValue: { assertActiveParticipant: mockAssertActiveParticipant },
         },
         { provide: ConfigService, useValue: { get: mockConfigGet } },
       ],
@@ -139,6 +149,22 @@ describe('TripItineraryPdfService', () => {
       const context = service.buildContext({ ...mockTrip, itineraryNotes: null }, [], 'en');
       expect(context.generalNotesHtml).toBeNull();
     });
+
+    it('strips raw HTML that markdown passes through unsanitized (script/img/event handlers)', () => {
+      const malicious =
+        '<script>fetch("http://169.254.169.254/")</script>' +
+        '<img src=x onerror="fetch(1)">' +
+        '<a href="javascript:alert(1)">click</a>' +
+        '<a href="https://example.com">safe link</a>';
+
+      const context = service.buildContext({ ...mockTrip, itineraryNotes: malicious }, [], 'en');
+
+      expect(context.generalNotesHtml).not.toContain('<script');
+      expect(context.generalNotesHtml).not.toContain('<img');
+      expect(context.generalNotesHtml).not.toContain('onerror');
+      expect(context.generalNotesHtml).not.toContain('javascript:');
+      expect(context.generalNotesHtml).toContain('href="https://example.com"');
+    });
   });
 
   // ─── renderHtml ───────────────────────────────────────────────────────────
@@ -170,18 +196,28 @@ describe('TripItineraryPdfService', () => {
     it('fetches trip data, renders the PDF via puppeteer, and closes the browser', async () => {
       const buffer = await service.generate(TRIP_ID, USER_ID);
 
+      expect(mockAssertActiveParticipant).toHaveBeenCalledWith(TRIP_ID, USER_ID);
       expect(mockGetTrip).toHaveBeenCalledWith(TRIP_ID);
       expect(mockListDestinations).toHaveBeenCalledWith(TRIP_ID);
       expect(mockUserPreferencesFindFirst).toHaveBeenCalled();
       expect(mockLaunch).toHaveBeenCalledWith(
         expect.objectContaining({ executablePath: '/usr/bin/chromium-browser' }),
       );
+      expect(mockPage.setJavaScriptEnabled).toHaveBeenCalledWith(false);
       expect(mockPage.setContent).toHaveBeenCalledWith(
         expect.stringContaining('Alps Adventure'),
-        expect.objectContaining({ waitUntil: 'load' }),
+        expect.objectContaining({ waitUntil: 'load', timeout: expect.any(Number) }),
       );
       expect(mockBrowser.close).toHaveBeenCalled();
       expect(buffer).toBeInstanceOf(Buffer);
+    });
+
+    it('rejects when the caller is not an active trip participant, without touching the browser', async () => {
+      mockAssertActiveParticipant.mockRejectedValueOnce(new ForbiddenException());
+
+      await expect(service.generate(TRIP_ID, USER_ID)).rejects.toBeInstanceOf(ForbiddenException);
+      expect(mockGetTrip).not.toHaveBeenCalled();
+      expect(mockLaunch).not.toHaveBeenCalled();
     });
 
     it('closes the browser even if PDF rendering fails', async () => {

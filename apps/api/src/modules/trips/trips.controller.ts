@@ -124,7 +124,7 @@ export class TripsController {
     description:
       'Renders trip details (dates, departure/return, cover) plus the itinerary notes for each ' +
       'destination in position order, followed by the general trip-level notes, into a printable ' +
-      "PDF. Uses the caller's app language for section labels.",
+      "PDF. Uses the caller's app language for section labels. Active trip participants only.",
   })
   @ApiProduces('application/pdf')
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
@@ -133,6 +133,7 @@ export class TripsController {
     description: 'PDF file with the trip itinerary.',
     schema: { type: 'string', format: 'binary' },
   })
+  @ApiForbiddenResponse({ description: 'Caller is not an active participant of the trip.' })
   @ApiNotFoundResponse({ description: 'Trip not found.' })
   async exportItineraryPdf(
     @CurrentUser() user: AuthenticatedUser,

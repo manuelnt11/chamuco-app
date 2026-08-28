@@ -408,6 +408,7 @@
 
 ### Definitions
 
+- `downloadBlob` (function) — private; creates an object URL for a `Blob` and clicks a synthetic `<a download>` to trigger a browser download, then revokes the URL. Shared by `exportTripParticipants` and `exportTripItineraryPdf`.
 - `searchTrips` (function) — GET `/v1/trips/search` with `SearchTripsParams` and optional `AbortSignal`
 - `getMyTrips` (function) — GET `/v1/trips`; returns `MyTripListItemResponse[]`
 - `createTrip` (function) — POST `/v1/trips`; returns `TripResponse`

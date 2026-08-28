@@ -163,6 +163,15 @@ export async function removeTripParticipant(id: string, userId: string): Promise
   await apiClient.delete(`/v1/trips/${id}/participants/${userId}`);
 }
 
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export async function exportTripParticipants(
   tripId: string,
   format: ExportFormat,
@@ -177,12 +186,7 @@ export async function exportTripParticipants(
 
   const extensions: Record<string, string> = { csv: 'csv', xlsx: 'xlsx', ods: 'ods' };
   const ext = extensions[format] ?? format;
-  const url = URL.createObjectURL(response.data as Blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `participants.${ext}`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(response.data as Blob, `participants.${ext}`);
 }
 
 export async function exportTripItineraryPdf(tripId: string): Promise<void> {
@@ -190,12 +194,7 @@ export async function exportTripItineraryPdf(tripId: string): Promise<void> {
     responseType: 'blob',
   });
 
-  const url = URL.createObjectURL(response.data as Blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `itinerary-${tripId}.pdf`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(response.data as Blob, `itinerary-${tripId}.pdf`);
 }
 
 // ─── Global invitation methods ────────────────────────────────────────────────
