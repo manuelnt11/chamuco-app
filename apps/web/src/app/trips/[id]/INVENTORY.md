@@ -10,9 +10,10 @@
 - `next/link` — `Link` (client-side navigation component)
 - `react-i18next` — `useTranslation` (i18n hook for trips and common namespaces)
 - `@chamuco/shared-types` — `ORGANIZER_ROLES`, `TripRole`, `TripStatus`, `TripVisibility` (shared constant and enums for roles, lifecycle states, and visibility)
-- `@phosphor-icons/react` — `ArrowLeftIcon`, `ArrowRightIcon`, `GearSixIcon`, `ListChecksIcon`, `MegaphoneIcon`, `UsersThreeIcon`, `AirplaneTakeoffIcon`, `AirplaneLandingIcon`, `UsersIcon`, `NavigationArrowIcon`, `PencilSimpleIcon`, `LinkIcon` (icon components for nav and UI)
+- `@phosphor-icons/react` — `ArrowLeftIcon`, `ArrowRightIcon`, `FilePdfIcon`, `GearSixIcon`, `ListChecksIcon`, `MegaphoneIcon`, `UsersThreeIcon`, `AirplaneTakeoffIcon`, `AirplaneLandingIcon`, `UsersIcon`, `NavigationArrowIcon`, `PencilSimpleIcon`, `LinkIcon` (icon components for nav and UI)
 - `@/components/ui/toast` — `toast` (toast notification utility)
-- `@/services/trips.service` — `getTrip`, `getTripAnnouncements`, `getTripDestinations`, `getTripLinkedGroups`, `getTripParticipation`, `updateTrip` (API call functions for trip data)
+- `@/components/ui/spinner` — `Spinner` (loading indicator shown in the export-PDF button while the request is in flight)
+- `@/services/trips.service` — `exportTripItineraryPdf`, `getTrip`, `getTripAnnouncements`, `getTripDestinations`, `getTripLinkedGroups`, `getTripParticipation`, `updateTrip` (API call functions for trip data)
 - `@/hooks/useAuth` — `useAuth` (authentication state hook)
 - `@/components/ui/announcement-card` — `AnnouncementCard` (renders a single announcement item)
 - `@/components/trips/TripStatusBadge` — `TripStatusBadge` (badge component showing trip status)
@@ -25,8 +26,9 @@
 ### Definitions
 
 - `TripDetailPageProps` (interface) — Props type with `params` as a `Promise<{ id: string }>` for Next.js dynamic segment
-- `TripDetailPage` (component) — Default export; fetches trip, destinations, participation, linked groups, and announcements in parallel; renders trip header, nav bar (participants, announcements, tasks, settings), status transitions, destination list, quick stats, linked groups, announcements preview, and inline-editable itinerary notes
+- `TripDetailPage` (component) — Default export; fetches trip, destinations, participation, linked groups, and announcements in parallel; renders trip header, nav bar (participants, announcements, tasks, export-PDF, settings), status transitions, destination list, quick stats, linked groups, announcements preview, and inline-editable itinerary notes
 - `handleSaveNotes` (function) — Async handler inside `TripDetailPage` that calls `updateTrip` to persist itinerary notes and exits edit mode on success
+- `handleExportPdf` (function) — Async handler inside `TripDetailPage` that calls `exportTripItineraryPdf`, toggling `isExportingPdf` (swaps the nav-bar icon for a `Spinner` and disables the button) and showing a toast on failure
 
 ### Exports
 
