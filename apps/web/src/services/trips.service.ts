@@ -185,6 +185,19 @@ export async function exportTripParticipants(
   URL.revokeObjectURL(url);
 }
 
+export async function exportTripItineraryPdf(tripId: string): Promise<void> {
+  const response = await apiClient.get(`/v1/trips/${tripId}/itinerary/pdf`, {
+    responseType: 'blob',
+  });
+
+  const url = URL.createObjectURL(response.data as Blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `itinerary-${tripId}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── Global invitation methods ────────────────────────────────────────────────
 
 export async function getMyTripInvitations(): Promise<MyTripInvitationResponse[]> {

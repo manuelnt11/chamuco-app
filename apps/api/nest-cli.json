@@ -15,6 +15,10 @@
         "watchAssets": true
       },
       {
+        "include": "modules/trips/itinerary-pdf/templates/**/*.hbs",
+        "watchAssets": true
+      },
+      {
         "include": "public/**/*",
         "watchAssets": true
       }

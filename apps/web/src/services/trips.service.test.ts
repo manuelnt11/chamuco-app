@@ -8,6 +8,7 @@ import {
   deleteTripAnnouncement,
   deleteTripDestination,
   deleteTripTask,
+  exportTripItineraryPdf,
   getMyTripJoinRequests,
   getMyTrips,
   getTrip,
@@ -781,6 +782,33 @@ describe('deleteTripTask', () => {
   it('propagates 404 errors', async () => {
     mockDelete.mockRejectedValueOnce({ response: { status: 404 } });
     await expect(deleteTripTask('trip-uuid-1', 'task-uuid-1')).rejects.toEqual({
+      response: { status: 404 },
+    });
+  });
+});
+
+describe('exportTripItineraryPdf', () => {
+  beforeEach(() => {
+    global.URL.createObjectURL = vi.fn(() => 'blob:mock-itinerary-url');
+    global.URL.revokeObjectURL = vi.fn();
+  });
+
+  it('downloads the PDF from /v1/trips/:tripId/itinerary/pdf as a blob', async () => {
+    const blob = new Blob(['%PDF-1.4'], { type: 'application/pdf' });
+    mockGet.mockResolvedValueOnce({ data: blob });
+
+    await exportTripItineraryPdf('trip-uuid-1');
+
+    expect(mockGet).toHaveBeenCalledWith('/v1/trips/trip-uuid-1/itinerary/pdf', {
+      responseType: 'blob',
+    });
+    expect(URL.createObjectURL).toHaveBeenCalledWith(blob);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-itinerary-url');
+  });
+
+  it('propagates 404 errors', async () => {
+    mockGet.mockRejectedValueOnce({ response: { status: 404 } });
+    await expect(exportTripItineraryPdf('trip-uuid-1')).rejects.toEqual({
       response: { status: 404 },
     });
   });

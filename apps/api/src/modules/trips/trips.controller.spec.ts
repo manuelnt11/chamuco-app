@@ -1,9 +1,12 @@
+import { StreamableFile } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import type { Response } from 'express';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import { TripsController } from './trips.controller';
 import { TripsService } from './trips.service';
 import { TripDiscoveryService } from './discovery/trip-discovery.service';
 import { TripJoinRequestsService } from './join-requests/trip-join-requests.service';
+import { TripItineraryPdfService } from './itinerary-pdf/trip-itinerary-pdf.service';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TransitionTripStatusDto } from './dto/transition-trip-status.dto';
@@ -75,6 +78,7 @@ describe('TripsController', () => {
   let mockDeleteTrip: jest.Mock;
   let mockTransitionStatus: jest.Mock;
   let mockListMyPendingRequests: jest.Mock;
+  let mockGenerateItineraryPdf: jest.Mock;
 
   beforeEach(async () => {
     mockGetMyTrips = jest.fn().mockResolvedValue([mockListItemResponse]);
@@ -84,6 +88,7 @@ describe('TripsController', () => {
     mockDeleteTrip = jest.fn().mockResolvedValue(undefined);
     mockTransitionStatus = jest.fn().mockResolvedValue(mockResponse);
     mockListMyPendingRequests = jest.fn().mockResolvedValue([]);
+    mockGenerateItineraryPdf = jest.fn().mockResolvedValue(Buffer.from('%PDF-1.4'));
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TripsController],
@@ -106,6 +111,10 @@ describe('TripsController', () => {
         {
           provide: TripJoinRequestsService,
           useValue: { listMyPendingRequests: mockListMyPendingRequests },
+        },
+        {
+          provide: TripItineraryPdfService,
+          useValue: { generate: mockGenerateItineraryPdf },
         },
       ],
     }).compile();
@@ -170,6 +179,24 @@ describe('TripsController', () => {
 
     expect(mockTransitionStatus).toHaveBeenCalledWith(mockUser, 'trip-uuid', dto);
     expect(result).toBe(mockResponse);
+  });
+
+  describe('GET /v1/trips/:id/itinerary/pdf', () => {
+    const mockRes = () => ({ set: jest.fn() }) as unknown as Response;
+
+    it('delegates to TripItineraryPdfService and streams a PDF', async () => {
+      const res = mockRes();
+      const result = await controller.exportItineraryPdf(mockUser, 'trip-uuid', res);
+
+      expect(mockGenerateItineraryPdf).toHaveBeenCalledWith('trip-uuid', mockUser.id);
+      expect(res.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': expect.stringContaining('itinerary-trip-uuid.pdf'),
+        }),
+      );
+      expect(result).toBeInstanceOf(StreamableFile);
+    });
   });
 
   it('listMyPendingJoinRequests delegates to TripJoinRequestsService', async () => {

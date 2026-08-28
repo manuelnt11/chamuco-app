@@ -10,7 +10,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -18,6 +21,7 @@ import {
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
+  ApiProduces,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -35,6 +39,7 @@ import { SearchTripsQueryDto } from './discovery/dto/search-trips-query.dto';
 import { TripSearchResponseDto } from './discovery/dto/trip-search-result.dto';
 import { TripJoinRequestsService } from './join-requests/trip-join-requests.service';
 import { MyTripJoinRequestResponseDto } from './join-requests/dto/my-trip-join-request-response.dto';
+import { TripItineraryPdfService } from './itinerary-pdf/trip-itinerary-pdf.service';
 
 @ApiTags('trips')
 @ApiBearerAuth()
@@ -44,6 +49,7 @@ export class TripsController {
     private readonly tripsService: TripsService,
     private readonly tripDiscoveryService: TripDiscoveryService,
     private readonly tripJoinRequestsService: TripJoinRequestsService,
+    private readonly tripItineraryPdfService: TripItineraryPdfService,
   ) {}
 
   @Get()
@@ -110,6 +116,36 @@ export class TripsController {
   @ApiNotFoundResponse({ description: 'Trip not found.' })
   async getTrip(@Param('id', ParseUUIDPipe) id: string): Promise<TripResponseDto> {
     return this.tripsService.getTrip(id);
+  }
+
+  @Get(':id/itinerary/pdf')
+  @ApiOperation({
+    summary: 'Export the trip itinerary as a PDF',
+    description:
+      'Renders trip details (dates, departure/return, cover) plus the itinerary notes for each ' +
+      'destination in position order, followed by the general trip-level notes, into a printable ' +
+      "PDF. Uses the caller's app language for section labels.",
+  })
+  @ApiProduces('application/pdf')
+  @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'PDF file with the trip itinerary.',
+    schema: { type: 'string', format: 'binary' },
+  })
+  @ApiNotFoundResponse({ description: 'Trip not found.' })
+  async exportItineraryPdf(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const buffer = await this.tripItineraryPdfService.generate(id, user.id);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="itinerary-${id}.pdf"`,
+    });
+    return new StreamableFile(buffer);
   }
 
   @Patch(':id')
