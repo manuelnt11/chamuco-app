@@ -301,6 +301,13 @@ describe('TripItineraryPdfService', () => {
       expect(mockBrowser.close).toHaveBeenCalled();
     });
 
+    it('surfaces the original render error, not a close() failure, when both fail', async () => {
+      mockPage.pdf.mockRejectedValueOnce(new Error('render failed'));
+      mockBrowser.close.mockRejectedValueOnce(new Error('close failed'));
+
+      await expect(service.generate(TRIP_ID, USER_ID)).rejects.toThrow('render failed');
+    });
+
     it('defaults to English when the caller has no language preference', async () => {
       mockUserPreferencesFindFirst.mockResolvedValueOnce(null);
 

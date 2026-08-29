@@ -173,7 +173,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           <button
             type="button"
             onClick={() => void handleExportPdf()}
-            disabled={isExportingPdf}
+            disabled={isExportingPdf || isDraft}
             className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
             title={isExportingPdf ? t('detail.exportingPdf') : t('detail.exportPdf')}
             aria-label={isExportingPdf ? t('detail.exportingPdf') : t('detail.exportPdf')}

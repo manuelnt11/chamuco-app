@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Handlebars from 'handlebars';
 import { marked } from 'marked';
@@ -120,6 +120,7 @@ const WATERMARK_WIDTH_RATIO = 0.6;
 
 @Injectable()
 export class TripItineraryPdfService {
+  private readonly logger = new Logger(TripItineraryPdfService.name);
   private compiledTemplate: Handlebars.TemplateDelegate<ItineraryPdfContext> | null = null;
   private watermarkPng: Buffer | null = null;
 
@@ -196,7 +197,10 @@ export class TripItineraryPdfService {
     const browser = await launch({
       executablePath: this.config.get<string>('CHROMIUM_EXECUTABLE_PATH'),
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      // --disable-dev-shm-usage: Docker/Cloud Run default /dev/shm to ~64MB, which Chromium's
+      // renderer can exhaust under real page content, crashing mid-render; this makes it fall
+      // back to disk-backed shared memory instead.
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
     });
 
     try {
@@ -225,7 +229,12 @@ export class TripItineraryPdfService {
       });
       return this.applyWatermark(pdf);
     } finally {
-      await browser.close();
+      // Swallow (don't await-throw) a close() failure here — if the try block above already
+      // threw (e.g. Chromium's renderer crashed), letting close() reject too would replace that
+      // real, actionable error with an unrelated "close" one in the caller's catch.
+      await browser.close().catch((err: unknown) => {
+        this.logger.warn(`Failed to close Chromium after render: ${String(err)}`);
+      });
     }
   }
 

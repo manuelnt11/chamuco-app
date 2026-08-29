@@ -1,4 +1,5 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { toast } from '@/components/ui/toast';
 import { TripRole, TripStatus, TripVisibility } from '@chamuco/shared-types';
 import type { TripAnnouncement, TripResponse, DestinationResponse } from '@/services/trips.types';
 
@@ -194,6 +195,8 @@ function setupMocks({
     if (url.includes('/announcements'))
       return Promise.resolve({ data: { items: announcements, total: announcements.length } });
     if (url.includes('/linked-groups')) return Promise.resolve({ data: [] });
+    if (url.includes('/itinerary/pdf'))
+      return Promise.resolve({ data: new Blob(['%PDF-1.4'], { type: 'application/pdf' }) });
     return Promise.resolve({ data: trip });
   });
 }
@@ -201,6 +204,8 @@ function setupMocks({
 describe('TripDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    global.URL.createObjectURL = vi.fn(() => 'blob:mock-itinerary-url');
+    global.URL.revokeObjectURL = vi.fn();
   });
 
   it('renders trip name, status badge, and dates after load', async () => {
@@ -507,6 +512,87 @@ describe('TripDetailPage', () => {
     await waitFor(() => {
       const link = screen.getByRole('link', { name: 'announcementsViewAll' });
       expect(link).toHaveAttribute('href', '/trips/trip-id/announcements');
+    });
+  });
+
+  it('exports the itinerary PDF on click and triggers a download', async () => {
+    setupMocks();
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    const button = await screen.findByRole('button', { name: 'detail.exportPdf' });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(mocks.mockApiGet).toHaveBeenCalledWith(
+        '/v1/trips/trip-id/itinerary/pdf',
+        expect.objectContaining({ responseType: 'blob' }),
+      );
+      expect(URL.createObjectURL).toHaveBeenCalled();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-itinerary-url');
+    });
+    // Returns to the icon (not the loading label) once the download completes.
+    expect(screen.getByRole('button', { name: 'detail.exportPdf' })).toBeInTheDocument();
+  });
+
+  it('shows the spinner and disables the button while the export is in flight', async () => {
+    setupMocks();
+    let resolveExport!: (value: { data: Blob }) => void;
+    mocks.mockApiGet.mockImplementation((url: string) => {
+      if (url.includes('/itinerary/pdf'))
+        return new Promise((resolve) => (resolveExport = resolve));
+      if (url.includes('/participants/me'))
+        return Promise.resolve({
+          data: {
+            role: TripRole.ORGANIZER,
+            userId: 'user-1',
+            username: 'user1',
+            displayName: 'User 1',
+            avatarUrl: null,
+            isTraveler: true,
+            confirmedAt: null,
+          },
+        });
+      if (url.includes('/destinations')) return Promise.resolve({ data: [mockDestination] });
+      if (url.includes('/announcements')) return Promise.resolve({ data: { items: [], total: 0 } });
+      if (url.includes('/linked-groups')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockTrip });
+    });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    const button = await screen.findByRole('button', { name: 'detail.exportPdf' });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'detail.exportingPdf' })).toBeDisabled();
+    });
+
+    resolveExport({ data: new Blob(['%PDF-1.4'], { type: 'application/pdf' }) });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'detail.exportPdf' })).not.toBeDisabled();
+    });
+  });
+
+  it('shows an error toast and re-enables the button when export fails', async () => {
+    setupMocks();
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    const button = await screen.findByRole('button', { name: 'detail.exportPdf' });
+    mocks.mockApiGet.mockImplementationOnce(() => Promise.reject(new Error('network error')));
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('detail.exportPdfError');
+      expect(screen.getByRole('button', { name: 'detail.exportPdf' })).not.toBeDisabled();
+    });
+  });
+
+  it('disables the export PDF button for a DRAFT trip', async () => {
+    setupMocks({ trip: { ...mockTrip, status: TripStatus.DRAFT } });
+    render(<TripDetailPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'detail.exportPdf' })).toBeDisabled();
     });
   });
 });
