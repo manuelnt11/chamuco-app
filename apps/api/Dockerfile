@@ -62,8 +62,11 @@ RUN pnpm --filter @chamuco/api build
 # ==========================================
 FROM node:24-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS runner
 
-# Install curl for health checks, Chromium for PDF rendering (puppeteer-core), and enable pnpm
-RUN apk add --no-cache curl chromium nss freetype harfbuzz ca-certificates ttf-freefont && \
+# Install curl for health checks, Chromium for PDF rendering (puppeteer-core), and enable pnpm.
+# font-noto-emoji: itinerary notes/destination labels are organizer-authored and often contain
+# emoji — without it Chromium has no glyphs to paint them and renders tofu boxes in the PDF.
+RUN apk add --no-cache curl chromium nss freetype harfbuzz ca-certificates ttf-freefont font-noto-emoji fontconfig && \
+    fc-cache -f && \
     corepack enable && \
     corepack prepare pnpm@10.33.0 --activate
 
