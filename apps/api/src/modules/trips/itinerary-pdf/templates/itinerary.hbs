@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8" />
   <style>
-    @page { margin: 32px 40px; }
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -12,6 +11,11 @@
       font-size: 13px;
       line-height: 1.6;
     }
+    /* The watermark is NOT here: neither `position: fixed` nor a `background-attachment: fixed`
+       image repeats reliably per printed page in Chromium's PDF engine — both were verified to
+       behave like one tall canvas, landing on only one arbitrary page (or none) instead of
+       repeating. It's drawn onto every page of the finished PDF afterwards, in code, via pdf-lib
+       — see TripItineraryPdfService.renderPdf / applyWatermark. */
     header {
       display: flex;
       align-items: center;
@@ -28,6 +32,7 @@
       flex-shrink: 0;
     }
     h1 { margin: 0 0 4px; font-size: 22px; font-weight: 800; }
+    .description { margin: 0 0 20px; color: #4a7a9b; font-size: 13px; }
     .trip-meta { color: #4a7a9b; font-size: 12px; }
     .route { color: #4a7a9b; font-size: 12px; margin-top: 4px; }
     h2 {
@@ -40,7 +45,6 @@
     }
     .destination {
       margin-bottom: 16px;
-      page-break-inside: avoid;
     }
     .destination-title {
       font-size: 14px;
@@ -57,13 +61,6 @@
     }
     .prose :first-child { margin-top: 0; }
     .prose :last-child { margin-bottom: 0; }
-    footer {
-      margin-top: 32px;
-      padding-top: 12px;
-      border-top: 1px solid #bae6fd;
-      color: #94a3b8;
-      font-size: 10px;
-    }
   </style>
 </head>
 <body>
@@ -79,6 +76,8 @@
       </div>
     </div>
   </header>
+
+  {{#if description}}<p class="description">{{description}}</p>{{/if}}
 
   {{#if generalNotesHtml}}
     <h2>{{labels.generalNotes}}</h2>
@@ -99,7 +98,5 @@
       {{/if}}
     </div>
   {{/each}}
-
-  <footer>{{labels.generatedOn}} {{generatedAt}} · Chamuco Travel</footer>
 </body>
 </html>

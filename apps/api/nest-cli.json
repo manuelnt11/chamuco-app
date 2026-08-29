@@ -15,7 +15,7 @@
         "watchAssets": true
       },
       {
-        "include": "modules/trips/itinerary-pdf/templates/**/*.hbs",
+        "include": "modules/trips/itinerary-pdf/templates/**/*.{hbs,png}",
         "watchAssets": true
       },
       {

@@ -25,13 +25,30 @@ const mockLaunch = jest.fn().mockResolvedValue(mockBrowser);
 
 jest.mock('puppeteer-core', () => ({ launch: (...args: unknown[]) => mockLaunch(...args) }));
 
+const mockDrawImage = jest.fn();
+const mockPdfPage = { getSize: () => ({ width: 595, height: 842 }), drawImage: mockDrawImage };
+const mockEmbedPng = jest.fn().mockResolvedValue({ width: 280, height: 320 });
+const mockSave = jest.fn().mockResolvedValue(Buffer.from('%PDF-FINAL'));
+const mockPdfDoc = {
+  embedPng: mockEmbedPng,
+  getPages: jest.fn().mockReturnValue([mockPdfPage]),
+  save: mockSave,
+};
+const mockPdfDocumentLoad = jest.fn().mockResolvedValue(mockPdfDoc);
+
+// pdf-lib does the actual watermarking (see trip-itinerary-pdf.service.ts) — mocked here so
+// these tests don't need to feed it a real parseable PDF byte stream.
+jest.mock('pdf-lib', () => ({
+  PDFDocument: { load: (...args: unknown[]) => mockPdfDocumentLoad(...args) },
+}));
+
 const TRIP_ID = 'trip-uuid';
 const USER_ID = 'user-uuid';
 
 const mockTrip: TripResponseDto = {
   id: TRIP_ID,
   name: 'Alps Adventure',
-  description: null,
+  description: 'A week hiking through the Alps with the whole crew.',
   status: TripStatus.CONFIRMED,
   visibility: TripVisibility.PRIVATE,
   startDate: '2026-06-01',
@@ -135,6 +152,16 @@ describe('TripItineraryPdfService', () => {
       expect(context.destinations[1]!.itineraryHtml).toBeNull();
     });
 
+    it('passes the trip description through as plain text', () => {
+      const context = service.buildContext(mockTrip, mockDestinations, 'en');
+      expect(context.description).toBe('A week hiking through the Alps with the whole crew.');
+    });
+
+    it('carries a null description through unchanged', () => {
+      const context = service.buildContext({ ...mockTrip, description: null }, [], 'en');
+      expect(context.description).toBeNull();
+    });
+
     it('falls back to English labels for an unknown language', () => {
       const context = service.buildContext(mockTrip, mockDestinations, 'fr');
       expect(context.labels).toBe(service.buildContext(mockTrip, mockDestinations, 'en').labels);
@@ -170,14 +197,34 @@ describe('TripItineraryPdfService', () => {
   // ─── renderHtml ───────────────────────────────────────────────────────────
 
   describe('renderHtml', () => {
-    it('renders the destinations and trip name into the template', () => {
+    it('renders the destinations, trip name, and description into the template', () => {
       const context = service.buildContext(mockTrip, mockDestinations, 'en');
       const html = service.renderHtml(context);
 
       expect(html).toContain('Alps Adventure');
+      expect(html).toContain('A week hiking through the Alps with the whole crew.');
       expect(html).toContain('ZERMATT');
       expect(html).toContain('ZURICH');
       expect(html).toContain('No itinerary notes for this destination.');
+    });
+
+    it('escapes the description instead of rendering it as HTML', () => {
+      const context = service.buildContext(
+        { ...mockTrip, description: '<b>bold</b> & risky' },
+        mockDestinations,
+        'en',
+      );
+      const html = service.renderHtml(context);
+
+      expect(html).not.toContain('<b>bold</b>');
+      expect(html).toContain('&lt;b&gt;bold&lt;/b&gt; &amp; risky');
+    });
+
+    it('omits the description paragraph when the trip has none', () => {
+      const context = service.buildContext({ ...mockTrip, description: null }, [], 'en');
+      const html = service.renderHtml(context);
+
+      expect(html).not.toContain('class="description"');
     });
 
     it('caches the compiled template across calls', () => {
@@ -208,8 +255,35 @@ describe('TripItineraryPdfService', () => {
         expect.stringContaining('Alps Adventure'),
         expect.objectContaining({ waitUntil: 'load', timeout: expect.any(Number) }),
       );
+      expect(mockPage.pdf).toHaveBeenCalledWith(
+        expect.objectContaining({
+          displayHeaderFooter: true,
+          margin: expect.objectContaining({ bottom: expect.any(String) }),
+          footerTemplate: expect.stringContaining('pageNumber'),
+        }),
+      );
       expect(mockBrowser.close).toHaveBeenCalled();
+      // Watermarking happens after Puppeteer produces the PDF, via pdf-lib directly on its page
+      // list — draws once per page rather than relying on the CSS layout Chromium paginated.
+      expect(mockPdfDocumentLoad).toHaveBeenCalled();
+      expect(mockEmbedPng).toHaveBeenCalled();
+      expect(mockDrawImage).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ opacity: expect.any(Number) }),
+      );
+      expect(mockSave).toHaveBeenCalled();
       expect(buffer).toBeInstanceOf(Buffer);
+    });
+
+    it('reads the watermark PNG from disk only once across multiple exports', async () => {
+      await service.generate(TRIP_ID, USER_ID);
+      await service.generate(TRIP_ID, USER_ID);
+
+      expect(mockEmbedPng).toHaveBeenCalledTimes(2);
+      // Both calls should have been handed the exact same cached Buffer instance.
+      const [firstCallArg] = mockEmbedPng.mock.calls[0]!;
+      const [secondCallArg] = mockEmbedPng.mock.calls[1]!;
+      expect(firstCallArg).toBe(secondCallArg);
     });
 
     it('rejects when the caller is not an active trip participant, without touching the browser', async () => {

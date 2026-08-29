@@ -4,6 +4,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Handlebars from 'handlebars';
 import { marked } from 'marked';
+import { PDFDocument } from 'pdf-lib';
 import sanitizeHtml from 'sanitize-html';
 
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -93,6 +94,7 @@ export interface ItineraryPdfContext {
   lang: string;
   labels: ItineraryPdfLabels;
   tripName: string;
+  description: string | null;
   startDate: string;
   endDate: string;
   coverUrl: string | null;
@@ -111,9 +113,15 @@ export interface ItineraryPdfContext {
   generatedAt: string;
 }
 
+const WATERMARK_OPACITY = 0.06;
+// Fraction of each page's width the watermark image occupies — its height follows from its own
+// aspect ratio (280x320), so this alone keeps it proportionally sized across page formats.
+const WATERMARK_WIDTH_RATIO = 0.6;
+
 @Injectable()
 export class TripItineraryPdfService {
   private compiledTemplate: Handlebars.TemplateDelegate<ItineraryPdfContext> | null = null;
+  private watermarkPng: Buffer | null = null;
 
   constructor(
     @Inject(DRIZZLE_CLIENT) private readonly db: DrizzleClient,
@@ -134,7 +142,7 @@ export class TripItineraryPdfService {
 
     const context = this.buildContext(trip, destinations, lang);
     const html = this.renderHtml(context);
-    return this.renderPdf(html);
+    return this.renderPdf(html, context);
   }
 
   buildContext(
@@ -148,6 +156,7 @@ export class TripItineraryPdfService {
       lang,
       labels,
       tripName: trip.name,
+      description: trip.description,
       startDate: trip.startDate,
       endDate: trip.endDate,
       coverUrl: trip.coverUrl,
@@ -180,7 +189,7 @@ export class TripItineraryPdfService {
     return sanitizeHtml(html, SANITIZE_OPTIONS);
   }
 
-  private async renderPdf(html: string): Promise<Buffer> {
+  private async renderPdf(html: string, context: ItineraryPdfContext): Promise<Buffer> {
     // puppeteer-core is ESM-only; dynamic import lets this CJS-compiled service load it
     // without forcing every static importer of this file to parse its ESM dependency tree.
     const { launch } = await import('puppeteer-core');
@@ -197,10 +206,60 @@ export class TripItineraryPdfService {
       await page.setJavaScriptEnabled(false);
       page.setDefaultNavigationTimeout(RENDER_TIMEOUT_MS);
       await page.setContent(html, { waitUntil: 'load', timeout: RENDER_TIMEOUT_MS });
-      const pdf = await page.pdf({ format: 'A4', printBackground: true });
-      return Buffer.from(pdf);
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '40px', right: '40px', bottom: '70px', left: '40px' },
+        displayHeaderFooter: true,
+        headerTemplate: '<span></span>',
+        // Chromium renders header/footer templates in an isolated context (no access to the
+        // main document's <style>), so this needs its own inline styles. pageNumber/totalPages
+        // are special classes Chromium fills in per page — this is what makes the footer repeat,
+        // correctly numbered, on every page instead of once at the end of the document flow.
+        footerTemplate: `
+          <div style="width:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:9px;color:#94a3b8;padding:6px 40px 0;border-top:1px solid #bae6fd;display:flex;justify-content:space-between;">
+            <span>${context.labels.generatedOn} ${context.generatedAt} &middot; Chamuco Travel</span>
+            <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
+          </div>
+        `,
+      });
+      return this.applyWatermark(pdf);
     } finally {
       await browser.close();
     }
+  }
+
+  // Neither `position: fixed` nor a `background-attachment: fixed` image reliably repeats per
+  // printed page in Chromium's PDF engine — both were verified (via a real multi-page render) to
+  // behave like one tall canvas: the watermark landed on one arbitrary page, or none, instead of
+  // every page. Drawing it onto each page of the already-generated PDF with pdf-lib is the
+  // approach that actually guarantees "every page", because it operates on the PDF's real page
+  // list rather than depending on how Chromium chose to paginate a CSS layout.
+  private async applyWatermark(pdfBytes: Uint8Array): Promise<Buffer> {
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const watermarkImage = await pdfDoc.embedPng(this.getWatermarkPng());
+    const aspectRatio = watermarkImage.height / watermarkImage.width;
+
+    for (const page of pdfDoc.getPages()) {
+      const { width: pageWidth, height: pageHeight } = page.getSize();
+      const width = pageWidth * WATERMARK_WIDTH_RATIO;
+      const height = width * aspectRatio;
+      page.drawImage(watermarkImage, {
+        x: (pageWidth - width) / 2,
+        y: (pageHeight - height) / 2,
+        width,
+        height,
+        opacity: WATERMARK_OPACITY,
+      });
+    }
+
+    return Buffer.from(await pdfDoc.save());
+  }
+
+  private getWatermarkPng(): Buffer {
+    if (!this.watermarkPng) {
+      this.watermarkPng = readFileSync(join(__dirname, 'templates', 'watermark.png'));
+    }
+    return this.watermarkPng;
   }
 }

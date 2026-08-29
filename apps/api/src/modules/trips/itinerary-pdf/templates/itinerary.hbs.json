@@ -1,0 +1,46 @@
+{
+  "lang": "es",
+  "labels": {
+    "dates": "Fechas",
+    "departure": "Salida",
+    "arrival": "Llegada",
+    "generalNotes": "Notas generales",
+    "destinations": "Destinos",
+    "noItinerary": "Sin notas de itinerario para este destino.",
+    "generatedOn": "Generado el"
+  },
+  "tripName": "Cancún 2026",
+  "description": "Viaje de playa con todo el grupo — snorkel, ruinas mayas y buena comida.",
+  "startDate": "2026-12-01",
+  "endDate": "2026-12-08",
+  "coverUrl": "https://storage.googleapis.com/chamuco-uploads/trip-covers/d9e6472e-d2aa-49f6-b1c1-6824a4f927e5/3ac5427e-c840-49fa-b365-64a250462bde.jpg",
+  "departureCity": "CIUDAD DE MEXICO",
+  "departureCountry": "MX",
+  "landingCity": "CANCUN",
+  "landingCountry": "MX",
+  "generalNotesHtml": "<p>Llegar al aeropuerto con <strong>3 horas</strong> de anticipación. Llevar documentos de viaje impresos y copia digital.</p>",
+  "destinations": [
+    {
+      "position": 1,
+      "city": "CANCUN",
+      "countryCode": "MX",
+      "label": "Hotel base",
+      "itineraryHtml": "<p>Check-in a las 15:00. Tarde libre en la playa.</p><ul><li>Llevar bloqueador solar</li><li>Confirmar reservación de snorkel</li></ul>"
+    },
+    {
+      "position": 2,
+      "city": "TULUM",
+      "countryCode": "MX",
+      "label": "Excursión de día",
+      "itineraryHtml": "<p>Salida 08:00 en van rentada. Visita a las ruinas y cenote cercano.</p>"
+    },
+    {
+      "position": 3,
+      "city": "PLAYA DEL CARMEN",
+      "countryCode": "MX",
+      "label": null,
+      "itineraryHtml": null
+    }
+  ],
+  "generatedAt": "2026-08-29"
+}
