@@ -408,6 +408,7 @@
 
 ### Definitions
 
+- `downloadBlob` (function) — private; creates an object URL for a `Blob` and clicks a synthetic `<a download>` to trigger a browser download, then revokes the URL. Shared by `exportTripParticipants` and `exportTripItineraryPdf`.
 - `searchTrips` (function) — GET `/v1/trips/search` with `SearchTripsParams` and optional `AbortSignal`
 - `getMyTrips` (function) — GET `/v1/trips`; returns `MyTripListItemResponse[]`
 - `createTrip` (function) — POST `/v1/trips`; returns `TripResponse`
@@ -426,6 +427,7 @@
 - `updateTripParticipantRole` (function) — PATCH `/v1/trips/:id/participants/:userId/role`
 - `removeTripParticipant` (function) — DELETE `/v1/trips/:id/participants/:userId`
 - `exportTripParticipants` (function) — GET participants export as blob, triggers browser download in csv/xlsx/ods
+- `exportTripItineraryPdf` (function) — GET `/v1/trips/:id/itinerary/pdf` as blob, triggers browser download of `itinerary-:id.pdf`
 - `getMyTripInvitations` (function) — GET `/v1/trips/invitations`; returns `MyTripInvitationResponse[]`
 - `inviteTripParticipants` (function) — POST `/v1/trips/:id/invitations`; returns `BulkInvitationResponse`
 - `acceptTripInvitation` (function) — PATCH `/v1/trips/:id/invitations/accept`
@@ -453,7 +455,7 @@
 
 ### Exports
 
-- All 41 functions above — named
+- All 42 functions above — named
 
 ---
 

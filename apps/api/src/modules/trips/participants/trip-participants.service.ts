@@ -23,7 +23,7 @@ import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
 import { users } from '@/modules/users/schema/users.schema';
 import { userProfiles } from '@/modules/users/schema/user-profiles.schema';
 import { userNationalities } from '@/modules/users/schema/user-nationalities.schema';
-import { userPreferences } from '@/modules/users/schema/user-preferences.schema';
+import { resolveCallerLanguage } from '@/modules/trips/caller-language.util';
 import { assets } from '@/modules/assets/schema/assets.schema';
 import { AssetResolverService } from '@/modules/assets/asset-resolver.service';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
@@ -532,7 +532,7 @@ export class TripParticipantsService {
       throw new ForbiddenException('Only trip organizers can perform this action');
   }
 
-  private async assertActiveParticipant(tripId: string, userId: string): Promise<void> {
+  async assertActiveParticipant(tripId: string, userId: string): Promise<void> {
     await this.assertTripExists(tripId);
 
     const participation = await this.db.query.tripParticipants.findFirst({
@@ -583,12 +583,9 @@ export class TripParticipantsService {
   ): Promise<Buffer> {
     await this.assertTripOrganizer(tripId, requestingUserId);
 
-    // Fetch language prefs and participation list in parallel — both are independent of each other.
-    const [prefs, participationRows] = await Promise.all([
-      this.db.query.userPreferences.findFirst({
-        where: eq(userPreferences.userId, requestingUserId),
-        columns: { language: true },
-      }),
+    // Fetch language and participation list in parallel — both are independent of each other.
+    const [lang, participationRows] = await Promise.all([
+      resolveCallerLanguage(this.db, requestingUserId),
       this.db.query.tripParticipants.findMany({
         where: and(
           eq(tripParticipants.tripId, tripId),
@@ -596,7 +593,6 @@ export class TripParticipantsService {
         ),
       }),
     ]);
-    const lang = (prefs?.language ?? 'EN').toLowerCase();
 
     const userIds = participationRows.map((r) => r.userId);
 

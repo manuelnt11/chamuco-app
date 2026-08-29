@@ -85,6 +85,7 @@ vi.mock('@phosphor-icons/react', () => ({
   DesktopIcon: (props: Record<string, unknown>) => <svg {...props} />,
   DotsSixVerticalIcon: (props: Record<string, unknown>) => <svg {...props} />,
   DownloadSimpleIcon: (props: Record<string, unknown>) => <svg {...props} />,
+  FilePdfIcon: (props: Record<string, unknown>) => <svg {...props} />,
   GearSixIcon: (props: Record<string, unknown>) => <svg {...props} />,
   GlobeHemisphereWestIcon: (props: Record<string, unknown>) => <svg {...props} />,
   GlobeIcon: (props: Record<string, unknown>) => <svg {...props} />,

@@ -164,7 +164,10 @@
     "itineraryNotes": "Itinerary notes",
     "noItineraryNotes": "No itinerary notes yet.",
     "editItineraryNotes": "Edit itinerary notes",
-    "linkedGroups": "Linked groups"
+    "linkedGroups": "Linked groups",
+    "exportPdf": "Export itinerary as PDF",
+    "exportingPdf": "Generating itinerary PDF…",
+    "exportPdfError": "Could not generate the itinerary PDF. Please try again."
   },
   "role": {
     "organizer": "Organizer",

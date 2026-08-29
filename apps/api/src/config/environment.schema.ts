@@ -92,6 +92,10 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   FRONTEND_URL!: string;
+
+  @IsOptional()
+  @IsString()
+  CHROMIUM_EXECUTABLE_PATH?: string = '/usr/bin/chromium-browser';
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {

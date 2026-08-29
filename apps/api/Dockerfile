@@ -62,10 +62,15 @@ RUN pnpm --filter @chamuco/api build
 # ==========================================
 FROM node:24-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS runner
 
-# Install curl for health checks and enable pnpm
-RUN apk add --no-cache curl && \
+# Install curl for health checks, Chromium for PDF rendering (puppeteer-core), and enable pnpm
+RUN apk add --no-cache curl chromium nss freetype harfbuzz ca-certificates ttf-freefont && \
     corepack enable && \
     corepack prepare pnpm@10.33.0 --activate
+
+# puppeteer-core drives this system Chromium instead of downloading its own (musl/Alpine has no
+# compatible prebuilt binary — see CHROMIUM_EXECUTABLE_PATH in environment.schema.ts)
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 WORKDIR /app
 

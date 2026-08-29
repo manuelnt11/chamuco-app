@@ -2,6 +2,40 @@
 
 ---
 
+## `caller-language.util.spec.ts`
+
+### Imports
+
+- `./caller-language.util` — `resolveCallerLanguage` function under test
+
+### Definitions
+
+- `resolveCallerLanguage()` test suite — covers: returns the lowercased language preference, defaults to `'en'` with no preferences row, defaults to `'en'` when the row has no language set
+
+### Exports
+
+- _(none — test file)_
+
+---
+
+## `caller-language.util.ts`
+
+### Imports
+
+- `drizzle-orm` — `eq`
+- `@/database/drizzle.provider` — `DrizzleClient` type
+- `@/modules/users/schema/user-preferences.schema` — `userPreferences` table reference
+
+### Definitions
+
+- `resolveCallerLanguage(db, userId)` (function) — looks up the caller's `user_preferences.language`, lowercased, defaulting to `'en'`. Shared by every generated-document endpoint (`TripParticipantsService.exportParticipants`, `TripItineraryPdfService.generate`) so the caller's app language drives the document's copy.
+
+### Exports
+
+- `resolveCallerLanguage` — named
+
+---
+
 ## `trip-completion.util.spec.ts`
 
 ### Imports
@@ -45,16 +79,21 @@
 
 ### Imports
 
+- `@nestjs/common` — `StreamableFile` for asserting the PDF export response type
 - `@nestjs/testing` — `Test`, `TestingModule` for building isolated test modules
+- `express` — `Response` type for the mocked response object in export tests
 - `@chamuco/shared-types` — `AuthProvider`, `PlatformRole`, `ProfileVisibility`, `TripRole`, `TripStatus`, `TripVisibility` enums used in mock data and DTOs
 - `./trips.controller` — `TripsController` (system under test)
 - `./trips.service` — `TripsService` (mocked provider)
 - `./discovery/trip-discovery.service` — `TripDiscoveryService` (mocked provider)
+- `./join-requests/trip-join-requests.service` — `TripJoinRequestsService` (mocked provider)
+- `./itinerary-pdf/trip-itinerary-pdf.service` — `TripItineraryPdfService` (mocked provider)
 - `./dto/create-trip.dto` — `CreateTripDto` type for test input
 - `./dto/update-trip.dto` — `UpdateTripDto` type for test input
 - `./dto/transition-trip-status.dto` — `TransitionTripStatusDto` type for test input
 - `./dto/trip-response.dto` — `TripResponseDto` type for mock response
 - `./dto/my-trip-list-item-response.dto` — `MyTripListItemResponseDto` type for mock list response
+- `./join-requests/dto/my-trip-join-request-response.dto` — `MyTripJoinRequestResponseDto` type for mock join request response
 - `@/types/express` — `AuthenticatedUser` type for mock user
 
 ### Definitions
@@ -62,7 +101,7 @@
 - `mockUser` (const) — mock `AuthenticatedUser` fixture used across all controller tests
 - `mockListItemResponse` (const) — mock `MyTripListItemResponseDto` fixture for list endpoint tests
 - `mockResponse` (const) — mock `TripResponseDto` fixture for single-trip endpoint tests
-- `TripsController` (describe block) — test suite covering all six controller methods with mocked service delegates
+- `TripsController` (describe block) — test suite covering all controller methods with mocked service delegates, including `GET /v1/trips/:id/itinerary/pdf` delegating to `TripItineraryPdfService`
 
 ### Exports
 
@@ -74,8 +113,9 @@
 
 ### Imports
 
-- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post`, `Query` decorators and utilities
-- `@nestjs/swagger` — `ApiBadRequestResponse`, `ApiBearerAuth`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiResponse`, `ApiTags` for OpenAPI documentation
+- `@nestjs/common` — `Body`, `Controller`, `Delete`, `Get`, `HttpCode`, `HttpStatus`, `Param`, `ParseUUIDPipe`, `Patch`, `Post`, `Query`, `Res`, `StreamableFile` decorators and utilities
+- `express` — `Response` type for the itinerary PDF response
+- `@nestjs/swagger` — `ApiBadRequestResponse`, `ApiBearerAuth`, `ApiForbiddenResponse`, `ApiNotFoundResponse`, `ApiOperation`, `ApiParam`, `ApiProduces`, `ApiResponse`, `ApiTags` for OpenAPI documentation
 - `@/common/decorators/current-user.decorator` — `CurrentUser` parameter decorator
 - `@/types/express` — `AuthenticatedUser` type for authenticated request context
 - `./trips.service` — `TripsService` for core CRUD and lifecycle operations
@@ -87,10 +127,14 @@
 - `./discovery/trip-discovery.service` — `TripDiscoveryService` for public trip search
 - `./discovery/dto/search-trips-query.dto` — `SearchTripsQueryDto` query parameters for search
 - `./discovery/dto/trip-search-result.dto` — `TripSearchResponseDto` paginated search response
+- `./join-requests/trip-join-requests.service` — `TripJoinRequestsService` for the caller's pending join requests
+- `./join-requests/dto/my-trip-join-request-response.dto` — `MyTripJoinRequestResponseDto` response shape
+- `./itinerary-pdf/trip-itinerary-pdf.service` — `TripItineraryPdfService` for rendering the itinerary PDF
 
 ### Definitions
 
-- `TripsController` (controller) — REST controller at `v1/trips`; handles `GET /`, `POST /`, `GET /search`, `GET /:id`, `PATCH /:id`, `DELETE /:id`, `PATCH /:id/status`
+- `TripsController` (controller) — REST controller at `v1/trips`; handles `GET /`, `POST /`, `GET /join-requests/mine`, `GET /search`, `GET /:id`, `GET /:id/itinerary/pdf`, `PATCH /:id`, `DELETE /:id`, `PATCH /:id/status`
+- `TripsController.exportItineraryPdf` (function) — streams the trip itinerary PDF generated by `TripItineraryPdfService.generate` (active participants only, throws `ForbiddenException` otherwise), setting `Content-Type: application/pdf` and a `Content-Disposition` attachment header
 
 ### Exports
 
@@ -121,6 +165,7 @@
 - `./invitations/trip-invitations.service` — `TripInvitationsService`
 - `./join-requests/trip-join-requests.service` — `TripJoinRequestsService`
 - `./discovery/trip-discovery.service` — `TripDiscoveryService`
+- `./itinerary-pdf/trip-itinerary-pdf.service` — `TripItineraryPdfService`
 
 ### Definitions
 

@@ -47,7 +47,7 @@
 ### Definitions
 
 - `Environment` (enum) — Declares `Development`, `Production`, and `Test` environment values; used to constrain `NODE_ENV`
-- `EnvironmentVariables` (class) — Decorated class holding all required and optional env vars with validation rules; covers `NODE_ENV`, `PORT`, `SWAGGER_ENABLED`, `DATABASE_URL`, `DATABASE_POOL_MIN`, `DATABASE_POOL_MAX`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `GEONAMES_USERNAME`, `CORS_ORIGIN`, `GOOGLE_CLOUD_STORAGE_BUCKET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, and `FRONTEND_URL`
+- `EnvironmentVariables` (class) — Decorated class holding all required and optional env vars with validation rules; covers `NODE_ENV`, `PORT`, `SWAGGER_ENABLED`, `DATABASE_URL`, `DATABASE_POOL_MIN`, `DATABASE_POOL_MAX`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `GEONAMES_USERNAME`, `CORS_ORIGIN`, `GOOGLE_CLOUD_STORAGE_BUCKET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `FRONTEND_URL`, and `CHROMIUM_EXECUTABLE_PATH` (optional, defaults to `/usr/bin/chromium-browser`, the Alpine `apk add chromium` path used by `TripItineraryPdfService`)
 - `validate` (function) — Transforms a plain config record into an `EnvironmentVariables` instance, runs `validateSync`, and throws a descriptive error if validation fails; used by `ConfigModule`
 
 ### Exports

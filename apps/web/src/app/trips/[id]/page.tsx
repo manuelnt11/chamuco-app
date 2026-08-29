@@ -7,6 +7,7 @@ import { ORGANIZER_ROLES, TripRole, TripStatus, TripVisibility } from '@chamuco/
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  FilePdfIcon,
   GearSixIcon,
   ListChecksIcon,
   MegaphoneIcon,
@@ -21,6 +22,7 @@ import {
 
 import { toast } from '@/components/ui/toast';
 import {
+  exportTripItineraryPdf,
   getTrip,
   getTripAnnouncements,
   getTripDestinations,
@@ -30,6 +32,7 @@ import {
 } from '@/services/trips.service';
 import { useAuth } from '@/hooks/useAuth';
 import { AnnouncementCard } from '@/components/ui/announcement-card';
+import { Spinner } from '@/components/ui/spinner';
 import { TripStatusBadge } from '@/components/trips/TripStatusBadge';
 import { TripStatusTransition } from '@/components/trips/TripStatusTransition';
 import { TripDestinationList } from '@/components/trips/TripDestinationList';
@@ -61,6 +64,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [draftNotes, setDraftNotes] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -95,6 +99,17 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       toast.error(t('settings.saveFailed'));
     } finally {
       setIsSavingNotes(false);
+    }
+  }
+
+  async function handleExportPdf() {
+    setIsExportingPdf(true);
+    try {
+      await exportTripItineraryPdf(id);
+    } catch {
+      toast.error(t('detail.exportPdfError'));
+    } finally {
+      setIsExportingPdf(false);
     }
   }
 
@@ -155,6 +170,20 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           >
             <ListChecksIcon className="size-5" aria-hidden="true" />
           </Link>
+          <button
+            type="button"
+            onClick={() => void handleExportPdf()}
+            disabled={isExportingPdf || isDraft}
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
+            title={isExportingPdf ? t('detail.exportingPdf') : t('detail.exportPdf')}
+            aria-label={isExportingPdf ? t('detail.exportingPdf') : t('detail.exportPdf')}
+          >
+            {isExportingPdf ? (
+              <Spinner size="sm" aria-hidden="true" />
+            ) : (
+              <FilePdfIcon className="size-5" aria-hidden="true" />
+            )}
+          </button>
           {isOrganizer && (
             <Link
               href={!isTerminal ? `/trips/${trip.id}/settings` : '#'}
