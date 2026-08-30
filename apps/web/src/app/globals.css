@@ -91,13 +91,6 @@
   right: max(0px, calc(50% - (var(--layout-app-max-width) / 2)));
 }
 
-/* Inset variant of right-app-edge — same shell-aware edge, offset inward by 1.5rem
-   (right-6). Used by floating UI (feedback FAB) that needs a fixed margin from the
-   shell's edge on every screen size, not just an edge-flush element. */
-@utility right-app-edge-6 {
-  right: max(1.5rem, calc(50% - (var(--layout-app-max-width) / 2) + 1.5rem));
-}
-
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

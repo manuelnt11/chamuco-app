@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Header } from '@/components/header';
 import { MobileBottomNav, DesktopSideNav } from '@/components/navigation';
-import { FeedbackButton } from '@/components/feedback/FeedbackButton';
 import { AppWallpaper } from './AppWallpaper';
 import { GroupInvitationsProvider } from '@/store/group-invitations';
 import { TripInvitationsProvider } from '@/store/trip-invitations';
@@ -42,7 +41,6 @@ export function AppShell({ children }: AppShellProps) {
         <main className="relative mx-auto max-w-app pt-header-safe pb-nav-safe md:pb-0 md:pl-sidebar md:transition-[padding-left] md:duration-200 md:ease-in-out min-h-screen">
           {children}
         </main>
-        <FeedbackButton />
       </TripInvitationsProvider>
     </GroupInvitationsProvider>
   );

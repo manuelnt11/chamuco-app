@@ -2,29 +2,6 @@
 
 ---
 
-## FeedbackButton.test.tsx
-
-### Imports
-
-- `@testing-library/react` — `render`, `screen` for rendering components and querying the DOM
-- `@testing-library/user-event` — `userEvent` for simulating user interactions
-- `vitest` — `describe`, `it`, `expect`, `vi`, `beforeEach` for test structure and assertions
-- `react-i18next` (mocked) — `useTranslation` returning an identity `t` function
-- `@/components/feedback/FeedbackModal` (mocked) — `FeedbackModal` replaced with a controllable mock
-- `@phosphor-icons/react` (mocked) — `ChatCircleIcon` replaced with a stub span
-- `@/components/feedback/FeedbackButton` — the component under test
-
-### Definitions
-
-- `mocks` (const) — hoisted mock object holding `mockFeedbackModal` vi.fn() for controlling FeedbackModal behavior across tests
-- `FeedbackButton describe block` (function) — test suite covering: initial render, chat icon presence, modal closed initially, modal opens on button click, modal closes when onClose is called
-
-### Exports
-
-- None
-
----
-
 ## FeedbackModal.test.tsx
 
 ### Imports
