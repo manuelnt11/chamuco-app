@@ -42,8 +42,12 @@ vi.mock('@/services/api-client', () => ({
 }));
 
 vi.mock('@/components/feedback/FeedbackModal', () => ({
-  FeedbackModal: ({ open }: { open: boolean; onClose: () => void }) =>
-    open ? <div data-testid="feedback-modal" /> : null,
+  FeedbackModal: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+    open ? (
+      <div data-testid="feedback-modal">
+        <button onClick={onClose}>Close</button>
+      </div>
+    ) : null,
 }));
 
 // Menu primitives use portals — stub them so assertions work in jsdom
@@ -265,17 +269,25 @@ describe('UserAvatar', () => {
     it('opens the feedback modal when the Feedback item is clicked', async () => {
       const user = userEvent.setup();
       render(<UserAvatar />);
-      const items = screen.getAllByRole('menuitem');
       expect(screen.queryByTestId('feedback-modal')).not.toBeInTheDocument();
-      await user.click(items[3]!);
+      await user.click(screen.getByRole('menuitem', { name: 'feedback:button.label' }));
       expect(screen.getByTestId('feedback-modal')).toBeInTheDocument();
+    });
+
+    it('closes the feedback modal when onClose is called', async () => {
+      const user = userEvent.setup();
+      render(<UserAvatar />);
+      await user.click(screen.getByRole('menuitem', { name: 'feedback:button.label' }));
+      expect(screen.getByTestId('feedback-modal')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Close' }));
+      expect(screen.queryByTestId('feedback-modal')).not.toBeInTheDocument();
     });
 
     it('calls signOut and redirects to /sign-in when Sign out is clicked', async () => {
       const user = userEvent.setup();
       render(<UserAvatar />);
-      const items = screen.getAllByRole('menuitem');
-      await user.click(items[4]!);
+      await user.click(screen.getByRole('menuitem', { name: 'auth:signOut' }));
       await waitFor(() => expect(mocks.mockSignOut).toHaveBeenCalledOnce());
       expect(mocks.mockRouterReplace).toHaveBeenCalledWith('/sign-in');
     });
@@ -284,8 +296,7 @@ describe('UserAvatar', () => {
       mocks.mockSignOut.mockRejectedValue(new Error('network error'));
       const user = userEvent.setup();
       render(<UserAvatar />);
-      const items = screen.getAllByRole('menuitem');
-      await user.click(items[4]!);
+      await user.click(screen.getByRole('menuitem', { name: 'auth:signOut' }));
       await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalled());
     });
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import {
@@ -44,6 +44,7 @@ export function UserAvatar() {
   const { theme, mounted: themeMounted, cycleTheme } = useThemeCycle();
   const { language, mounted: languageMounted, cycleLanguage } = useLanguageCycle();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const closeFeedback = useCallback(() => setFeedbackOpen(false), []);
 
   const currentThemeKey = (theme as keyof typeof THEME_ICONS) ?? 'system';
   const ThemeIcon = THEME_ICONS[currentThemeKey] ?? DesktopIcon;
@@ -147,6 +148,8 @@ export function UserAvatar() {
             )}
           </MenuItem>
 
+          <MenuSeparator />
+
           <MenuItem onClick={() => setFeedbackOpen(true)}>
             <ChatCircleIcon className="size-4 shrink-0" aria-hidden="true" />
             {t('feedback:button.label')}
@@ -163,7 +166,7 @@ export function UserAvatar() {
           </MenuItem>
         </MenuPopup>
       </MenuRoot>
-      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      <FeedbackModal open={feedbackOpen} onClose={closeFeedback} />
     </>
   );
 }
