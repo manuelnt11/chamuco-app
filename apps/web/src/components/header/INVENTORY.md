@@ -172,9 +172,10 @@
 
 ### Imports
 
+- `react` — `useState` for feedback modal open/close state
 - `next/navigation` — `useRouter` for navigation on sign-out and profile clicks
-- `react-i18next` — `useTranslation` for i18n strings across `common`, `auth`, and `errors` namespaces
-- `@phosphor-icons/react` — `UserCircleIcon`, `SignOutIcon`, `UserIcon`, `SunDimIcon`, `MoonIcon`, `DesktopIcon`, `TranslateIcon` icons
+- `react-i18next` — `useTranslation` for i18n strings across `common`, `auth`, `errors`, and `feedback` namespaces
+- `@phosphor-icons/react` — `UserCircleIcon`, `SignOutIcon`, `UserIcon`, `SunDimIcon`, `MoonIcon`, `DesktopIcon`, `TranslateIcon`, `ChatCircleIcon` icons
 - `@/hooks/useAuth` — `useAuth` hook for `currentUser`, `isLoading`, `signOut`
 - `@/hooks/useUser` — `useUser` hook for `appUser` and `isLoading`
 - `@/hooks/useThemeCycle` — `useThemeCycle` for theme state + cycle-and-persist behavior
@@ -182,11 +183,12 @@
 - `@/components/ui/menu` — `MenuRoot`, `MenuTrigger`, `MenuPopup`, `MenuItem`, `MenuSeparator`, `MenuLabel` primitives
 - `@/components/ui/toast` — `toast` utility for error notifications
 - `@/lib/name-utils` — `getInitials` for deriving avatar fallback text
+- `@/components/feedback/FeedbackModal` — `FeedbackModal` dialog opened from the Feedback menu item
 
 ### Definitions
 
 - `THEME_ICONS` (const) — lookup map from each theme value (`light`/`dark`/`system`) to its Phosphor icon component
-- `UserAvatar` (component) — Three-state component: loading placeholder (non-interactive icon), unauthenticated state (sign-in button), and authenticated state (avatar/initials trigger with dropdown menu showing profile info, "Profile" navigation, theme cycle item, language cycle item, and "Sign out" action). Theme/language cycling and persistence come from `useThemeCycle`/`useLanguageCycle`; the two menu items show a neutral icon-only placeholder until both hooks report `mounted`
+- `UserAvatar` (component) — Three-state component: loading placeholder (non-interactive icon), unauthenticated state (sign-in button), and authenticated state (avatar/initials trigger with dropdown menu showing profile info, "Profile" navigation, theme cycle item, language cycle item, "Feedback" item opening `FeedbackModal`, and "Sign out" action). Theme/language cycling and persistence come from `useThemeCycle`/`useLanguageCycle`; the two menu items show a neutral icon-only placeholder until both hooks report `mounted`
 
 ### Exports
 
@@ -205,7 +207,7 @@
 - `@chamuco/shared-types` — `ProfileVisibility` enum
 - `@/store/auth` — `AuthContextValue` type
 - `@/store/user` — `UserContextValue` type
-- `@/hooks/useAuth`, `@/hooks/useUser`, `@/components/ui/toast`, `react-i18next`, `next/navigation`, `@/components/ui/menu`, `next-themes`, `@/lib/i18n/client`, `@/services/api-client` — mocked dependencies
+- `@/hooks/useAuth`, `@/hooks/useUser`, `@/components/ui/toast`, `react-i18next`, `next/navigation`, `@/components/ui/menu`, `next-themes`, `@/lib/i18n/client`, `@/services/api-client`, `@/components/feedback/FeedbackModal` — mocked dependencies
 - `./UserAvatar` — component under test
 
 ### Definitions

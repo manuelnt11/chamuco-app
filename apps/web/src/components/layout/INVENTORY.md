@@ -10,7 +10,6 @@
 - `next/navigation` — `usePathname` (reads current route to detect auth/no-chrome pages)
 - `@/components/header` — `Header` (top navigation bar)
 - `@/components/navigation` — `MobileBottomNav`, `DesktopSideNav` (responsive nav chrome)
-- `@/components/feedback/FeedbackButton` — `FeedbackButton` (floating feedback widget)
 - `@/store/group-invitations` — `GroupInvitationsProvider` (context provider for group invitation state)
 - `@/store/trip-invitations` — `TripInvitationsProvider` (context provider for trip invitation state)
 - `./AppWallpaper` — `AppWallpaper` (desktop gutter wallpaper behind the shell)

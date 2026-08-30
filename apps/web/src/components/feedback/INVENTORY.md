@@ -2,26 +2,6 @@
 
 ---
 
-## FeedbackButton.tsx
-
-### Imports
-
-- react — `useState` for open/close state
-- @phosphor-icons/react — `ChatCircleIcon` for the floating action button icon
-- react-i18next — `useTranslation` for i18n strings from the `feedback` namespace
-- @/components/ui/button — `Button` base UI component
-- @/components/feedback/FeedbackModal — `FeedbackModal` dialog triggered by this button
-
-### Definitions
-
-- `FeedbackButton` (component) — Fixed-position floating icon button (bottom-right) that opens `FeedbackModal` on click; uses `feedback` namespace for `aria-label`
-
-### Exports
-
-- `FeedbackButton` — named
-
----
-
 ## FeedbackModal.tsx
 
 ### Imports

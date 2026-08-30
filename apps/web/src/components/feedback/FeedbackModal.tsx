@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ interface FeedbackModalProps {
   onClose: () => void;
 }
 
-export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
+export const FeedbackModal = memo(function FeedbackModal({ open, onClose }: FeedbackModalProps) {
   const { t } = useTranslation('feedback');
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -135,4 +135,4 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
       </DialogPopup>
     </Dialog>
   );
-}
+});
