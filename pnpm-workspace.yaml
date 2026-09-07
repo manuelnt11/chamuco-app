@@ -4,6 +4,7 @@ packages:
 allowBuilds:
   '@firebase/util': true
   '@nestjs/core': true
+  '@parcel/watcher': true
   '@scarf/scarf': true
   '@swc/core': true
   esbuild: true
@@ -21,7 +22,7 @@ catalog:
   eslint-plugin-i18next: ^6.1.5
   eslint-plugin-prettier: ^5.5.6
   prettier: ^3.9.6
-  typescript: ^7.0.0
+  typescript: 6.0.3
   '@vitest/coverage-v8': ^5.0.0
   vitest: ^5.0.0
 minimumReleaseAgeExclude:
