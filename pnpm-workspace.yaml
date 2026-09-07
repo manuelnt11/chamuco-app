@@ -21,9 +21,9 @@ catalog:
   eslint-plugin-i18next: ^6.1.5
   eslint-plugin-prettier: ^5.5.6
   prettier: ^3.9.6
-  typescript: ^6.0.3
-  '@vitest/coverage-v8': ^4.1.10
-  vitest: ^4.1.10
+  typescript: ^7.0.0
+  '@vitest/coverage-v8': ^5.0.0
+  vitest: ^5.0.0
 minimumReleaseAgeExclude:
   - '@turbo/darwin-64@2.10.10'
   - '@turbo/darwin-arm64@2.10.10'
