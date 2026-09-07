@@ -188,52 +188,34 @@ describe('TripTasksPage', () => {
     });
   });
 
-  it('shows scope toggle for organizer, defaulting to personal', async () => {
+  it('shows shared task input for organizer', async () => {
     setupDefaultMocks({ participation: organizerParticipation });
     render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
-      const toggle = screen.getByTitle('tasks.scope.PERSONAL');
-      expect(toggle).toBeInTheDocument();
-      expect(toggle).toHaveAttribute('aria-pressed', 'false');
+      expect(screen.getByPlaceholderText('tasks.addPlaceholderShared')).toBeInTheDocument();
     });
   });
 
-  it('hides scope toggle for regular participant', async () => {
+  it('hides shared task input for regular participant', async () => {
     setupDefaultMocks({ participation: participantParticipation });
     render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
       expect(screen.getByText(sharedTask.title)).toBeInTheDocument();
     });
-    expect(screen.queryByTitle('tasks.scope.PERSONAL')).not.toBeInTheDocument();
-    expect(screen.queryByTitle('tasks.scope.SHARED')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('tasks.addPlaceholderShared')).not.toBeInTheDocument();
   });
 
-  it('toggles the scope button to shared when clicked, then back to personal', async () => {
-    setupDefaultMocks({ participation: organizerParticipation });
-    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
-
-    await waitFor(() => screen.getByTitle('tasks.scope.PERSONAL'));
-    fireEvent.click(screen.getByTitle('tasks.scope.PERSONAL'));
-
-    const toggle = screen.getByTitle('tasks.scope.SHARED');
-    expect(toggle).toHaveAttribute('aria-pressed', 'true');
-
-    fireEvent.click(toggle);
-    expect(screen.getByTitle('tasks.scope.PERSONAL')).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  it('creates a shared task after toggling scope to group', async () => {
+  it('creates a shared task from the shared input', async () => {
     setupDefaultMocks({ participation: organizerParticipation, tasks: [] });
     render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
 
-    await waitFor(() => screen.getByTitle('tasks.scope.PERSONAL'));
-    fireEvent.click(screen.getByTitle('tasks.scope.PERSONAL'));
-    fireEvent.change(screen.getByPlaceholderText('tasks.addPlaceholder'), {
+    await waitFor(() => screen.getByPlaceholderText('tasks.addPlaceholderShared'));
+    fireEvent.change(screen.getByPlaceholderText('tasks.addPlaceholderShared'), {
       target: { value: 'Book the group van' },
     });
-    fireEvent.click(screen.getByTitle('tasks.addButton'));
+    fireEvent.click(screen.getByTitle('tasks.addButtonShared'));
 
     await waitFor(() => {
       expect(mocks.mockApiPost).toHaveBeenCalledWith('/v1/trips/trip-id/tasks', {
@@ -247,11 +229,11 @@ describe('TripTasksPage', () => {
     setupDefaultMocks({ participation: participantParticipation, tasks: [] });
     render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
 
-    await waitFor(() => screen.getByPlaceholderText('tasks.addPlaceholder'));
-    fireEvent.change(screen.getByPlaceholderText('tasks.addPlaceholder'), {
+    await waitFor(() => screen.getByPlaceholderText('tasks.addPlaceholderPersonal'));
+    fireEvent.change(screen.getByPlaceholderText('tasks.addPlaceholderPersonal'), {
       target: { value: 'Pack sunscreen' },
     });
-    fireEvent.click(screen.getByTitle('tasks.addButton'));
+    fireEvent.click(screen.getByTitle('tasks.addButtonPersonal'));
 
     await waitFor(() => {
       expect(mocks.mockApiPost).toHaveBeenCalledWith('/v1/trips/trip-id/tasks', {

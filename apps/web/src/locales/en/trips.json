@@ -272,12 +272,10 @@
     "toggleError": "Failed to update task.",
     "renameError": "Failed to rename task.",
     "deleteError": "Failed to delete task.",
-    "addPlaceholder": "Add a task...",
-    "addButton": "Add task",
-    "scope": {
-      "SHARED": "Group",
-      "PERSONAL": "Personal"
-    }
+    "addPlaceholderShared": "Add a group task...",
+    "addPlaceholderPersonal": "Add a personal task...",
+    "addButtonShared": "Add group task",
+    "addButtonPersonal": "Add personal task"
   },
   "cover": {
     "label": "Cover",
