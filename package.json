@@ -39,7 +39,7 @@
     "eslint-plugin-i18next": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "husky": "9.1.7",
-    "lint-staged": "17.3.0",
+    "lint-staged": "17.4.1",
     "prettier": "catalog:",
     "turbo": "2.10.12",
     "typescript": "catalog:"
@@ -48,5 +48,5 @@
     "node": ">=24.0.0",
     "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@11.22.0"
+  "packageManager": "pnpm@12.3.2"
 }
