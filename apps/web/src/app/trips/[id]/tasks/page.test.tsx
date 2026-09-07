@@ -225,6 +225,38 @@ describe('TripTasksPage', () => {
     });
   });
 
+  it('keeps a form create error independent of the other form succeeding', async () => {
+    setupDefaultMocks({ participation: organizerParticipation, tasks: [] });
+    mocks.mockApiPost
+      .mockRejectedValueOnce(new Error('Server error'))
+      .mockResolvedValueOnce({ data: personalTask });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => screen.getByPlaceholderText('tasks.addPlaceholderShared'));
+    fireEvent.change(screen.getByPlaceholderText('tasks.addPlaceholderShared'), {
+      target: { value: 'Book the group van' },
+    });
+    fireEvent.click(screen.getByTitle('tasks.addButtonShared'));
+
+    await waitFor(() => {
+      expect(screen.getByText('tasks.createError')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByPlaceholderText('tasks.addPlaceholderPersonal'), {
+      target: { value: 'Pack sunscreen' },
+    });
+    fireEvent.click(screen.getByTitle('tasks.addButtonPersonal'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Pack sunscreen')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('tasks.createError')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('tasks.addPlaceholderShared')).toHaveValue(
+      'Book the group van',
+    );
+  });
+
   it('creates a personal task and appends it to the list', async () => {
     setupDefaultMocks({ participation: participantParticipation, tasks: [] });
     render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
