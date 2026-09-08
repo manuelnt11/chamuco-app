@@ -151,3 +151,9 @@ All transactional emails go through `EmailService` in `src/modules/email/`. When
 7. Add the type to `EMAIL_SUPPORTED` in `NotificationPreferencesSection.tsx` if the user should be able to opt out.
 
 **Never hardcode SMTP credentials.** All SMTP config is validated at startup via `environment.schema.ts` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `FRONTEND_URL`). See `documentation/features/email.md` for the full guide and `documentation/architecture/email-architecture.md` for the ADR.
+
+### 6. `scripts/startup.sh` execs `node dist/main` directly — keep it in sync with `start:prod`
+
+The production container never invokes pnpm/Corepack at runtime — `scripts/startup.sh` runs `exec node dist/main` directly instead of `pnpm run start:prod`. This was a deliberate fix for a 2026-09-07 outage: Corepack resolving a drifted `packageManager` version at runtime triggered a full workspace reinstall inside the container, OOM-crashing it before it could bind to `PORT`.
+
+This duplicates the `start:prod` script in `package.json` (`"node dist/main"`) as a literal string in `startup.sh`. **If `start:prod` ever changes** (e.g. adding `--require ./tracing.js` for APM instrumentation), update `scripts/startup.sh`'s exec line to match — it will not pick up the change automatically. Do not reintroduce `pnpm run` in `startup.sh` as a way to avoid this duplication; that reopens the exact failure mode above.
