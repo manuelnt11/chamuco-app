@@ -131,6 +131,13 @@ jobs:
           docker push ${{ env.ARTIFACT_REGISTRY }}/web:${{ github.sha }}
           docker push ${{ env.ARTIFACT_REGISTRY }}/web:latest
 
+      - name: Capture current revision (rollback target)
+        run: |
+          PREV=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --format='value(status.traffic[0].revisionName)' 2>/dev/null || echo "")
+          echo "PREVIOUS_REVISION=$PREV" >> $GITHUB_ENV
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
@@ -164,3 +171,16 @@ jobs:
             echo "❌ Service check failed (HTTP $HTTP_CODE)"
             exit 1
           fi
+
+      - name: Rollback to previous revision
+        if: failure()
+        run: |
+          if [ -z "${{ env.PREVIOUS_REVISION }}" ]; then
+            echo "⚠️ No previous revision recorded — nothing to roll back to (likely first-ever deploy)."
+            exit 0
+          fi
+          echo "🔙 Rolling back traffic to ${{ env.PREVIOUS_REVISION }}..."
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --to-revisions=${{ env.PREVIOUS_REVISION }}=100
+          echo "✅ Traffic restored to ${{ env.PREVIOUS_REVISION }}. This workflow run still fails so the bad image gets flagged."
