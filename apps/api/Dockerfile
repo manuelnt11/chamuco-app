@@ -4,9 +4,6 @@
 # ==========================================
 FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS deps
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
-
 # Set working directory
 WORKDIR /app
 
@@ -18,6 +15,10 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/shared-utils/package.json ./packages/shared-utils/
 
+# Install pnpm — version comes from the "packageManager" field in package.json
+# above, never hardcoded here, so it can't drift when Renovate bumps it.
+RUN corepack enable && corepack install
+
 # Install dependencies
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
@@ -26,9 +27,6 @@ RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 # Build the application
 # ==========================================
 FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS builder
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
 WORKDIR /app
 
@@ -39,6 +37,10 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/shared-utils/package.json ./packages/shared-utils/
+
+# Install pnpm — version comes from the "packageManager" field in package.json
+# above, never hardcoded here, so it can't drift when Renovate bumps it.
+RUN corepack enable && corepack install
 
 # Install ALL dependencies (including dev dependencies for build)
 RUN pnpm install --frozen-lockfile --ignore-scripts
@@ -62,13 +64,13 @@ RUN pnpm --filter @chamuco/api build
 # ==========================================
 FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS runner
 
-# Install curl for health checks, Chromium for PDF rendering (puppeteer-core), and enable pnpm.
+# Install curl for health checks and Chromium for PDF rendering (puppeteer-core).
 # font-noto-emoji: itinerary notes/destination labels are organizer-authored and often contain
 # emoji — without it Chromium has no glyphs to paint them and renders tofu boxes in the PDF.
+# No pnpm/corepack here — startup.sh execs node directly, the package manager is never
+# invoked at runtime, so installing it in this stage would only be dead weight.
 RUN apk add --no-cache curl chromium nss freetype harfbuzz ca-certificates ttf-freefont font-noto-emoji fontconfig && \
-    fc-cache -f && \
-    corepack enable && \
-    corepack prepare pnpm@12.3.4 --activate
+    fc-cache -f
 
 # puppeteer-core drives this system Chromium instead of downloading its own (musl/Alpine has no
 # compatible prebuilt binary — see CHROMIUM_EXECUTABLE_PATH in environment.schema.ts)

@@ -4,9 +4,6 @@
 # ==========================================
 FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS deps
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
-
 # Install libc6-compat for Next.js compatibility
 RUN apk add --no-cache libc6-compat
 
@@ -21,6 +18,10 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/shared-utils/package.json ./packages/shared-utils/
 
+# Install pnpm — version comes from the "packageManager" field in package.json
+# above, never hardcoded here, so it can't drift when Renovate bumps it.
+RUN corepack enable && corepack install
+
 # Install dependencies
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
@@ -29,9 +30,6 @@ RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 # Build the Next.js application
 # ==========================================
 FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS builder
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 RUN apk add --no-cache libc6-compat
 
@@ -44,6 +42,10 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/shared-utils/package.json ./packages/shared-utils/
+
+# Install pnpm — version comes from the "packageManager" field in package.json
+# above, never hardcoded here, so it can't drift when Renovate bumps it.
+RUN corepack enable && corepack install
 
 # Install ALL dependencies (including dev dependencies for build)
 RUN pnpm install --frozen-lockfile --ignore-scripts
