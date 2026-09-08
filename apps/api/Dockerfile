@@ -5,7 +5,7 @@
 FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS deps
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
 # Set working directory
 WORKDIR /app
@@ -28,7 +28,7 @@ RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
 WORKDIR /app
 
@@ -68,7 +68,7 @@ FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a
 RUN apk add --no-cache curl chromium nss freetype harfbuzz ca-certificates ttf-freefont font-noto-emoji fontconfig && \
     fc-cache -f && \
     corepack enable && \
-    corepack prepare pnpm@10.33.0 --activate
+    corepack prepare pnpm@12.3.4 --activate
 
 # puppeteer-core drives this system Chromium instead of downloading its own (musl/Alpine has no
 # compatible prebuilt binary — see CHROMIUM_EXECUTABLE_PATH in environment.schema.ts)
@@ -79,7 +79,8 @@ WORKDIR /app
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nestjs
+    adduser --system --uid 1001 nestjs && \
+    chown nestjs:nodejs /app
 
 # Copy workspace configuration
 COPY --from=builder --chown=nestjs:nodejs /app/package.json /app/pnpm-workspace.yaml ./

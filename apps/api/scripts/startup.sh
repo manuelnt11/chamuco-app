@@ -19,6 +19,8 @@ fi
 echo "📦 Running database migrations..."
 node scripts/run-migrations.js
 
-# Start the application
+# Start the application (invoke node directly — deps are already installed at
+# build time, and going through pnpm/corepack here risks a runtime package-manager
+# version check triggering a full workspace reinstall, see incident 2026-09-07)
 echo "🎯 Starting NestJS application..."
-exec pnpm run start:prod
+exec node dist/main
