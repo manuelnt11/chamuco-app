@@ -143,10 +143,15 @@ jobs:
 
       - name: Capture current revision (rollback target)
         run: |
+          # Select the revision at 100% traffic explicitly rather than trusting
+          # traffic[0] — that index isn't guaranteed to be the primary revision
+          # if traffic is ever split (e.g. a manual canary/tag during an incident).
+          # If no single revision holds 100%, leave this empty so the rollback
+          # step below skips rather than guessing which one to restore.
           PREV=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
-            --format='value(status.traffic[0].revisionName)' 2>/dev/null || echo "")
+            --format=json 2>/dev/null | jq -r '[.status.traffic[]? | select(.percent == 100)][0].revisionName // ""')
           echo "PREVIOUS_REVISION=$PREV" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
@@ -189,13 +194,21 @@ jobs:
 
           echo "Service URL: $SERVICE_URL"
 
-          # Test health endpoint
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL/health)
+          # Test health endpoint — retry before failing. A single transient blip here
+          # now triggers a real traffic rollback (see below), so don't act on one bad
+          # curl against an otherwise-healthy deploy.
+          for i in $(seq 1 5); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL/health)
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed (HTTP $HTTP_CODE)"
+              break
+            fi
+            echo "⏳ Attempt $i/5 got HTTP $HTTP_CODE, retrying in 5s..."
+            sleep 5
+          done
 
-          if [ $HTTP_CODE -eq 200 ]; then
-            echo "✅ Health check passed (HTTP $HTTP_CODE)"
-          else
-            echo "❌ Health check failed (HTTP $HTTP_CODE)"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Health check failed after 5 attempts (HTTP $HTTP_CODE)"
             exit 1
           fi
 
