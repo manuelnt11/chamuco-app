@@ -272,12 +272,10 @@
     "toggleError": "Error al actualizar la tarea.",
     "renameError": "Error al renombrar la tarea.",
     "deleteError": "Error al eliminar la tarea.",
-    "addPlaceholder": "Agregar una tarea...",
-    "addButton": "Agregar tarea",
-    "scope": {
-      "SHARED": "Grupal",
-      "PERSONAL": "Personal"
-    }
+    "addPlaceholderShared": "Agregar una tarea grupal...",
+    "addPlaceholderPersonal": "Agregar una tarea personal...",
+    "addButtonShared": "Agregar tarea grupal",
+    "addButtonPersonal": "Agregar tarea personal"
   },
   "cover": {
     "label": "Portada",

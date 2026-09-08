@@ -30,6 +30,54 @@ interface TripTasksPageProps {
   params: Promise<{ id: string }>;
 }
 
+interface TaskFormState {
+  title: string;
+  isSubmitting: boolean;
+  error: string | null;
+}
+
+const EMPTY_TASK_FORM: TaskFormState = { title: '', isSubmitting: false, error: null };
+
+interface AddTaskFormProps {
+  formState: TaskFormState;
+  onTitleChange: (title: string) => void;
+  onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
+  placeholder: string;
+  buttonLabel: string;
+}
+
+function AddTaskForm({
+  formState,
+  onTitleChange,
+  onSubmit,
+  placeholder,
+  buttonLabel,
+}: AddTaskFormProps) {
+  return (
+    <div className="mt-3">
+      <form onSubmit={onSubmit} className="flex items-center gap-2">
+        <Input
+          value={formState.title}
+          onChange={(e) => onTitleChange(e.target.value)}
+          placeholder={placeholder}
+          maxLength={200}
+          disabled={formState.isSubmitting}
+        />
+        <button
+          type="submit"
+          disabled={formState.isSubmitting || !formState.title.trim()}
+          className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary p-2 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={buttonLabel}
+          aria-label={buttonLabel}
+        >
+          <PlusIcon className="size-5" aria-hidden="true" />
+        </button>
+      </form>
+      {formState.error && <p className="mt-1 text-sm text-destructive">{formState.error}</p>}
+    </div>
+  );
+}
+
 export default function TripTasksPage({ params }: TripTasksPageProps) {
   const { id } = use(params);
   const { t } = useTranslation('trips');
@@ -42,9 +90,8 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
   const [loadError, setLoadError] = useState(false);
   const [mutateError, setMutateError] = useState<string | null>(null);
 
-  const [title, setTitle] = useState('');
-  const [scope, setScope] = useState<TripTaskScope>(TripTaskScope.PERSONAL);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sharedForm, setSharedForm] = useState<TaskFormState>(EMPTY_TASK_FORM);
+  const [personalForm, setPersonalForm] = useState<TaskFormState>(EMPTY_TASK_FORM);
 
   const isOrganizer = callerRole !== null && ORGANIZER_ROLES.includes(callerRole);
 
@@ -104,21 +151,29 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
     }
   };
 
-  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!title.trim()) return;
+  const handleCreateTask = async (scope: TripTaskScope) => {
+    const form = scope === TripTaskScope.SHARED ? sharedForm : personalForm;
+    const setForm = scope === TripTaskScope.SHARED ? setSharedForm : setPersonalForm;
+    if (!form.title.trim()) return;
 
-    setIsSubmitting(true);
-    setMutateError(null);
+    setForm((prev) => ({ ...prev, isSubmitting: true, error: null }));
     try {
-      const created = await createTripTask(id, { scope, title: title.trim() });
+      const created = await createTripTask(id, { scope, title: form.title.trim() });
       setTasks((prev) => [...prev, created]);
-      setTitle('');
+      setForm(EMPTY_TASK_FORM);
     } catch {
-      setMutateError(t('tasks.createError'));
-    } finally {
-      setIsSubmitting(false);
+      setForm((prev) => ({ ...prev, isSubmitting: false, error: t('tasks.createError') }));
     }
+  };
+
+  const handleSubmitShared = (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void handleCreateTask(TripTaskScope.SHARED);
+  };
+
+  const handleSubmitPersonal = (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void handleCreateTask(TripTaskScope.PERSONAL);
   };
 
   if (isLoading) return null;
@@ -178,6 +233,15 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
             ))}
           </ul>
         )}
+        {isOrganizer && (
+          <AddTaskForm
+            formState={sharedForm}
+            onTitleChange={(title) => setSharedForm((prev) => ({ ...prev, title }))}
+            onSubmit={handleSubmitShared}
+            placeholder={t('tasks.addPlaceholderShared')}
+            buttonLabel={t('tasks.addButtonShared')}
+          />
+        )}
       </section>
 
       <section className="mb-6">
@@ -205,51 +269,14 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
             ))}
           </ul>
         )}
-      </section>
-
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder={t('tasks.addPlaceholder')}
-          maxLength={200}
-          disabled={isSubmitting}
+        <AddTaskForm
+          formState={personalForm}
+          onTitleChange={(title) => setPersonalForm((prev) => ({ ...prev, title }))}
+          onSubmit={handleSubmitPersonal}
+          placeholder={t('tasks.addPlaceholderPersonal')}
+          buttonLabel={t('tasks.addButtonPersonal')}
         />
-        {isOrganizer && (
-          <button
-            type="button"
-            onClick={() =>
-              setScope((prev) =>
-                prev === TripTaskScope.PERSONAL ? TripTaskScope.SHARED : TripTaskScope.PERSONAL,
-              )
-            }
-            disabled={isSubmitting}
-            aria-pressed={scope === TripTaskScope.SHARED}
-            className={`inline-flex shrink-0 items-center justify-center rounded-lg border p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed${
-              scope === TripTaskScope.SHARED
-                ? ' border-primary bg-primary text-primary-foreground'
-                : ' border-border bg-background hover:bg-muted'
-            }`}
-            title={t(`tasks.scope.${scope}`)}
-            aria-label={t(`tasks.scope.${scope}`)}
-          >
-            {scope === TripTaskScope.SHARED ? (
-              <UsersThreeIcon className="size-5" aria-hidden="true" />
-            ) : (
-              <UserIcon className="size-5" aria-hidden="true" />
-            )}
-          </button>
-        )}
-        <button
-          type="submit"
-          disabled={isSubmitting || !title.trim()}
-          className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary p-2 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          title={t('tasks.addButton')}
-          aria-label={t('tasks.addButton')}
-        >
-          <PlusIcon className="size-5" aria-hidden="true" />
-        </button>
-      </form>
+      </section>
     </div>
   );
 }
