@@ -102,13 +102,13 @@ export function TripTaskItem({ task, onToggle, onRename, onDelete }: TripTaskIte
         onCheckedChange={() => void handleToggle(!task.completed)}
         disabled={isToggling || isDeleting}
       />
-      <span
-        className={cn(
-          'flex-1 text-sm wrap-break-word',
-          task.completed && 'text-muted-foreground line-through',
+      <span className="flex-1 text-sm wrap-break-word">
+        <span className={cn(task.completed && 'text-muted-foreground line-through')}>
+          {task.title}
+        </span>
+        {task.completed && task.completedByUsername && (
+          <span className="text-muted-foreground"> @{task.completedByUsername}</span>
         )}
-      >
-        {task.title}
       </span>
       {(onRename ?? onDelete) && (
         <EditDeleteActions

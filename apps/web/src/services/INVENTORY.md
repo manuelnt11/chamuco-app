@@ -512,7 +512,7 @@
 - `TripSearchResponse` (interface) — paginated search result wrapper
 - `SearchTripsParams` (interface) — optional query params for trip search (q, limit, offset)
 - `MyTripInvitationResponse` (interface) — pending trip invitation visible to the invited user
-- `TripTask` (interface) — trip task record; `scope` (SHARED/PERSONAL), `completed` resolved for the requesting user, `ownerId` null for SHARED
+- `TripTask` (interface) — trip task record; `scope` (SHARED/PERSONAL/ORGANIZER), `completed` resolved for the requesting user (single shared status for PERSONAL/ORGANIZER, per-participant for SHARED), `completedByUsername` (who completed an ORGANIZER task; null otherwise)
 - `CreateTripTaskPayload` (interface) — payload for create task (scope + title)
 - `UpdateTripTaskPayload` (interface) — payload to rename a task (title)
 - `SetTripTaskCompletionPayload` (interface) — payload to toggle a task's completion state

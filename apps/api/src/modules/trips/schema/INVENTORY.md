@@ -147,19 +147,22 @@
 ### Imports
 
 - `drizzle-orm` — `relations`, `sql` for raw SQL in CHECK constraints
-- `drizzle-orm/pg-core` — `check`, `index`, `pgTable`, `primaryKey`, `timestamp`, `uuid`, `varchar` for table and column builders
+- `drizzle-orm/pg-core` — `check`, `index`, `pgEnum`, `pgTable`, `primaryKey`, `timestamp`, `uuid`, `varchar` for table and column builders
+- `@chamuco/shared-types` — `TripTaskScope` enum used to populate the pg enum
 - `@/modules/trips/schema/trips.schema` — `trips` table reference for FK
-- `@/modules/users/schema/users.schema` — `users` table reference for FKs (`owner_id`, `created_by`, `user_id`)
+- `@/modules/users/schema/users.schema` — `users` table reference for FKs (`created_by`, `completed_by`, `user_id`)
 
 ### Definitions
 
-- `tripTasks` (const) — Drizzle table for `trip_tasks`; UUID PK, shared task when `owner_id` is null (created by organizer/co-organizer) or personal task when `owner_id` is set, `completed_at` only meaningful for personal tasks, index on `(trip_id, owner_id)`, CHECK `trip_tasks_completed_only_when_personal`
-- `tripTaskCompletions` (const) — Drizzle table for `trip_task_completions`; composite PK on `(task_id, user_id)`; row presence records a participant's completion of a shared `trip_task`
-- `tripTasksRelations` (const) — Drizzle relations defining `trip`, `owner`, `creator`, and `completions` associations
+- `tripTaskScopeEnum` (const) — Drizzle pgEnum `trip_task_scope` seeded from `TripTaskScope` values (SHARED, PERSONAL, ORGANIZER)
+- `tripTasks` (const) — Drizzle table for `trip_tasks`; UUID PK, `scope` discriminates SHARED (per-participant completion), PERSONAL (owned by `created_by`, single `completed_at`), and ORGANIZER (organizer/co-organizer only, single shared `completed_at` + `completed_by` recording which organizer completed it — extra accountability since it carries more responsibility); index on `(trip_id, scope)`, CHECK `trip_tasks_completed_at_not_shared` and CHECK `trip_tasks_completed_by_organizer_only` (`completed_by` only settable when `scope = 'ORGANIZER'`)
+- `tripTaskCompletions` (const) — Drizzle table for `trip_task_completions`; composite PK on `(task_id, user_id)`; row presence records a participant's completion of a SHARED `trip_task` only
+- `tripTasksRelations` (const) — Drizzle relations defining `trip`, `creator`, and `completions` associations
 - `tripTaskCompletionsRelations` (const) — Drizzle relations defining `task` and `user` one-to-one associations
 
 ### Exports
 
+- `tripTaskScopeEnum` — named
 - `tripTasks` — named
 - `tripTaskCompletions` — named
 - `tripTasksRelations` — named
@@ -176,7 +179,7 @@
 
 ### Definitions
 
-- `describe('trip_tasks schema', ...)` (const) — test suite verifying UUID PK, index, CHECK constraint, timestamptz columns, and nullable `owner_id`
+- `describe('trip_tasks schema', ...)` (const) — test suite verifying UUID PK, `(trip_id, scope)` index, `trip_tasks_completed_at_not_shared` and `trip_tasks_completed_by_organizer_only` CHECK constraints, timestamptz columns, nullable `completed_by`, and the required `scope` enum (SHARED, PERSONAL, ORGANIZER)
 - `describe('trip_task_completions schema', ...)` (const) — test suite verifying composite PK and `completed_at` column
 
 ### Exports

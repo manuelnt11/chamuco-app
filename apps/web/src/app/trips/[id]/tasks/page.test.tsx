@@ -113,7 +113,7 @@ const sharedTask = {
   scope: TripTaskScope.SHARED,
   title: 'Book the group van',
   completed: false,
-  ownerId: null,
+  completedByUsername: null,
   createdBy: 'organizer-id',
   createdAt: '2026-01-01T00:00:00.000Z',
 };
@@ -124,8 +124,19 @@ const personalTask = {
   scope: TripTaskScope.PERSONAL,
   title: 'Pack sunscreen',
   completed: false,
-  ownerId: 'user-id',
+  completedByUsername: null,
   createdBy: 'user-id',
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
+const organizerTask = {
+  id: 'organizer-1',
+  tripId: 'trip-id',
+  scope: TripTaskScope.ORGANIZER,
+  title: 'Secure permits',
+  completed: false,
+  completedByUsername: null,
+  createdBy: 'organizer-id',
   createdAt: '2026-01-01T00:00:00.000Z',
 };
 
@@ -143,7 +154,7 @@ const participantParticipation = {
 function setupDefaultMocks(
   overrides: {
     participation?: typeof organizerParticipation | null;
-    tasks?: (typeof sharedTask)[];
+    tasks?: (typeof sharedTask | typeof organizerTask)[];
   } = {},
 ) {
   const { participation = organizerParticipation, tasks = [sharedTask, personalTask] } = overrides;
@@ -183,9 +194,68 @@ describe('TripTasksPage', () => {
     render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
 
     await waitFor(() => {
+      expect(screen.getByText('tasks.organizerEmpty')).toBeInTheDocument();
       expect(screen.getByText('tasks.sharedEmpty')).toBeInTheDocument();
       expect(screen.getByText('tasks.personalEmpty')).toBeInTheDocument();
     });
+  });
+
+  it('renders organizer tasks and their input for an organizer', async () => {
+    setupDefaultMocks({ tasks: [organizerTask] });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(organizerTask.title)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('tasks.addPlaceholderOrganizer')).toBeInTheDocument();
+    });
+  });
+
+  it('hides the organizer section entirely for a regular participant', async () => {
+    setupDefaultMocks({ participation: participantParticipation, tasks: [organizerTask] });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => screen.getByPlaceholderText('tasks.addPlaceholderPersonal'));
+    expect(screen.queryByText(organizerTask.title)).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('tasks.addPlaceholderOrganizer')).not.toBeInTheDocument();
+  });
+
+  it('creates an organizer task from the organizer input', async () => {
+    setupDefaultMocks({ participation: organizerParticipation, tasks: [] });
+    mocks.mockApiPost.mockResolvedValueOnce({ data: organizerTask });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => screen.getByPlaceholderText('tasks.addPlaceholderOrganizer'));
+    fireEvent.change(screen.getByPlaceholderText('tasks.addPlaceholderOrganizer'), {
+      target: { value: 'Secure permits' },
+    });
+    fireEvent.click(screen.getByTitle('tasks.addButtonOrganizer'));
+
+    await waitFor(() => {
+      expect(mocks.mockApiPost).toHaveBeenCalledWith('/v1/trips/trip-id/tasks', {
+        scope: TripTaskScope.ORGANIZER,
+        title: 'Secure permits',
+      });
+      expect(screen.getByText(organizerTask.title)).toBeInTheDocument();
+    });
+  });
+
+  it('toggles, renames, and deletes an organizer task the same way as a shared task', async () => {
+    setupDefaultMocks({ tasks: [organizerTask] });
+    mocks.mockApiPatch.mockResolvedValue({ data: { ...organizerTask, completed: true } });
+    render(<TripTasksPage params={Promise.resolve({ id: 'trip-id' })} />);
+
+    await waitFor(() => screen.getByTestId(`toggle-${organizerTask.id}`));
+    fireEvent.click(screen.getByTestId(`toggle-${organizerTask.id}`));
+
+    await waitFor(() => {
+      expect(mocks.mockApiPatch).toHaveBeenCalledWith(
+        `/v1/trips/trip-id/tasks/${organizerTask.id}/completion`,
+        { completed: true },
+      );
+    });
+
+    expect(screen.getByTestId(`rename-${organizerTask.id}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`delete-${organizerTask.id}`)).toBeInTheDocument();
   });
 
   it('shows shared task input for organizer', async () => {

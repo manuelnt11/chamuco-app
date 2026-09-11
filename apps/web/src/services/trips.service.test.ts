@@ -663,7 +663,7 @@ const taskFixture: TripTask = {
   scope: TripTaskScope.PERSONAL,
   title: 'Pack sunscreen',
   completed: false,
-  ownerId: 'user-uuid-1',
+  completedByUsername: null,
   createdBy: 'user-uuid-1',
   createdAt: '2026-01-01T00:00:00.000Z',
 };

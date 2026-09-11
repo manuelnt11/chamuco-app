@@ -50,9 +50,10 @@ const mockActiveParticipant = {
 const mockSharedTask = {
   id: 'shared-task-uuid',
   tripId: 'trip-uuid',
-  ownerId: null,
+  scope: TripTaskScope.SHARED,
   title: 'Book the group van',
   completedAt: null,
+  completedBy: null,
   createdBy: 'organizer-uuid',
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
 };
@@ -60,10 +61,22 @@ const mockSharedTask = {
 const mockPersonalTask = {
   id: 'personal-task-uuid',
   tripId: 'trip-uuid',
-  ownerId: mockUser.id,
+  scope: TripTaskScope.PERSONAL,
   title: 'Pack sunscreen',
   completedAt: null,
+  completedBy: null,
   createdBy: mockUser.id,
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+};
+
+const mockOrganizerTask = {
+  id: 'organizer-task-uuid',
+  tripId: 'trip-uuid',
+  scope: TripTaskScope.ORGANIZER,
+  title: 'Secure permits',
+  completedAt: null,
+  completedBy: null,
+  createdBy: 'organizer-uuid',
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
@@ -75,6 +88,8 @@ describe('TripsTasksService', () => {
   let mockTripTasksFindMany: jest.Mock;
   let mockTripTaskCompletionsFindFirst: jest.Mock;
   let mockTripTaskCompletionsFindMany: jest.Mock;
+  let mockUsersFindFirst: jest.Mock;
+  let mockUsersFindMany: jest.Mock;
   let mockUpdateReturning: jest.Mock;
   let mockUpdateSet: jest.Mock;
   let mockUpdate: jest.Mock;
@@ -85,6 +100,7 @@ describe('TripsTasksService', () => {
   let mockInsertValues: jest.Mock;
   let mockInsert: jest.Mock;
   let mockAssertOrganizerRole: jest.Mock;
+  let mockIsOrganizerRole: jest.Mock;
 
   beforeEach(async () => {
     mockTripsFindFirst = jest.fn().mockResolvedValue(mockTripRow);
@@ -93,6 +109,8 @@ describe('TripsTasksService', () => {
     mockTripTasksFindMany = jest.fn().mockResolvedValue([mockSharedTask, mockPersonalTask]);
     mockTripTaskCompletionsFindFirst = jest.fn().mockResolvedValue(undefined);
     mockTripTaskCompletionsFindMany = jest.fn().mockResolvedValue([]);
+    mockUsersFindFirst = jest.fn().mockResolvedValue(undefined);
+    mockUsersFindMany = jest.fn().mockResolvedValue([]);
 
     mockUpdateReturning = jest.fn().mockResolvedValue([mockSharedTask]);
     mockUpdateSet = jest.fn().mockReturnValue({
@@ -112,6 +130,7 @@ describe('TripsTasksService', () => {
     mockInsert = jest.fn().mockReturnValue({ values: mockInsertValues });
 
     mockAssertOrganizerRole = jest.fn().mockResolvedValue(undefined);
+    mockIsOrganizerRole = jest.fn().mockResolvedValue(false);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -127,6 +146,7 @@ describe('TripsTasksService', () => {
                 findFirst: mockTripTaskCompletionsFindFirst,
                 findMany: mockTripTaskCompletionsFindMany,
               },
+              users: { findFirst: mockUsersFindFirst, findMany: mockUsersFindMany },
             },
             update: mockUpdate,
             insert: mockInsert,
@@ -135,7 +155,10 @@ describe('TripsTasksService', () => {
         },
         {
           provide: TripsService,
-          useValue: { assertOrganizerRole: mockAssertOrganizerRole },
+          useValue: {
+            assertOrganizerRole: mockAssertOrganizerRole,
+            isOrganizerRole: mockIsOrganizerRole,
+          },
         },
       ],
     }).compile();
@@ -181,6 +204,50 @@ describe('TripsTasksService', () => {
 
       await expect(service.listTasks(mockUser, 'trip-uuid')).rejects.toThrow(ForbiddenException);
     });
+
+    it('includes ORGANIZER tasks when the requesting user is an organizer', async () => {
+      mockIsOrganizerRole.mockResolvedValue(true);
+      mockTripTasksFindMany.mockResolvedValue([
+        mockSharedTask,
+        mockPersonalTask,
+        mockOrganizerTask,
+      ]);
+
+      const result = await service.listTasks(mockUser, 'trip-uuid');
+
+      expect(mockIsOrganizerRole).toHaveBeenCalledWith('trip-uuid', mockUser.id, true);
+      expect(result.map((t) => t.scope)).toContain(TripTaskScope.ORGANIZER);
+    });
+
+    it('excludes ORGANIZER tasks entirely when the requesting user is not an organizer', async () => {
+      mockIsOrganizerRole.mockResolvedValue(false);
+      mockTripTasksFindMany.mockResolvedValue([mockSharedTask, mockPersonalTask]);
+
+      const result = await service.listTasks(mockUser, 'trip-uuid');
+
+      expect(result.map((t) => t.scope)).not.toContain(TripTaskScope.ORGANIZER);
+    });
+
+    it('resolves completedByUsername for a completed ORGANIZER task', async () => {
+      mockIsOrganizerRole.mockResolvedValue(true);
+      mockTripTasksFindMany.mockResolvedValue([
+        { ...mockOrganizerTask, completedAt: new Date(), completedBy: 'organizer-uuid' },
+      ]);
+      mockUsersFindMany.mockResolvedValue([{ id: 'organizer-uuid', username: 'ana_organizer' }]);
+
+      const result = await service.listTasks(mockUser, 'trip-uuid');
+
+      expect(mockUsersFindMany).toHaveBeenCalled();
+      expect(result[0]?.completedByUsername).toBe('ana_organizer');
+    });
+
+    it('does not query users when no task has a completedBy', async () => {
+      mockTripTasksFindMany.mockResolvedValue([mockSharedTask, mockPersonalTask]);
+
+      await service.listTasks(mockUser, 'trip-uuid');
+
+      expect(mockUsersFindMany).not.toHaveBeenCalled();
+    });
   });
 
   describe('createTask', () => {
@@ -190,8 +257,8 @@ describe('TripsTasksService', () => {
       const result = await service.createTask(mockUser, 'trip-uuid', dto);
 
       expect(mockAssertOrganizerRole).toHaveBeenCalledWith('trip-uuid', mockUser.id, true);
-      const insertedValues = mockInsertValues.mock.calls[0]?.[0] as { ownerId: string | null };
-      expect(insertedValues.ownerId).toBeNull();
+      const insertedValues = mockInsertValues.mock.calls[0]?.[0] as { scope: TripTaskScope };
+      expect(insertedValues.scope).toBe(TripTaskScope.SHARED);
       expect(result.scope).toBe(TripTaskScope.SHARED);
       expect(result.completed).toBe(false);
     });
@@ -203,14 +270,35 @@ describe('TripsTasksService', () => {
       const result = await service.createTask(mockUser, 'trip-uuid', dto);
 
       expect(mockAssertOrganizerRole).not.toHaveBeenCalled();
-      const insertedValues = mockInsertValues.mock.calls[0]?.[0] as { ownerId: string | null };
-      expect(insertedValues.ownerId).toBe(mockUser.id);
+      const insertedValues = mockInsertValues.mock.calls[0]?.[0] as { scope: TripTaskScope };
+      expect(insertedValues.scope).toBe(TripTaskScope.PERSONAL);
       expect(result.scope).toBe(TripTaskScope.PERSONAL);
+    });
+
+    it('creates an ORGANIZER task after verifying organizer role', async () => {
+      mockInsertReturning.mockResolvedValue([mockOrganizerTask]);
+      const dto: CreateTripTaskDto = { scope: TripTaskScope.ORGANIZER, title: 'Secure permits' };
+
+      const result = await service.createTask(mockUser, 'trip-uuid', dto);
+
+      expect(mockAssertOrganizerRole).toHaveBeenCalledWith('trip-uuid', mockUser.id, true);
+      const insertedValues = mockInsertValues.mock.calls[0]?.[0] as { scope: TripTaskScope };
+      expect(insertedValues.scope).toBe(TripTaskScope.ORGANIZER);
+      expect(result.scope).toBe(TripTaskScope.ORGANIZER);
     });
 
     it('throws ForbiddenException when creating SHARED without organizer role', async () => {
       mockAssertOrganizerRole.mockRejectedValue(new ForbiddenException());
       const dto: CreateTripTaskDto = { scope: TripTaskScope.SHARED, title: 'Book the group van' };
+
+      await expect(service.createTask(mockUser, 'trip-uuid', dto)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('throws ForbiddenException when creating ORGANIZER without organizer role', async () => {
+      mockAssertOrganizerRole.mockRejectedValue(new ForbiddenException());
+      const dto: CreateTripTaskDto = { scope: TripTaskScope.ORGANIZER, title: 'Secure permits' };
 
       await expect(service.createTask(mockUser, 'trip-uuid', dto)).rejects.toThrow(
         ForbiddenException,
@@ -262,11 +350,50 @@ describe('TripsTasksService', () => {
     });
 
     it('throws ForbiddenException when requester does not own the PERSONAL task', async () => {
-      mockTripTasksFindFirst.mockResolvedValue({ ...mockPersonalTask, ownerId: 'other-user-uuid' });
+      mockTripTasksFindFirst.mockResolvedValue({
+        ...mockPersonalTask,
+        createdBy: 'other-user-uuid',
+      });
 
       await expect(
         service.updateTaskTitle(mockUser, 'trip-uuid', 'personal-task-uuid', dto),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('updates an ORGANIZER task after verifying organizer role', async () => {
+      mockTripTasksFindFirst.mockResolvedValue(mockOrganizerTask);
+      mockUpdateReturning.mockResolvedValue([mockOrganizerTask]);
+
+      const result = await service.updateTaskTitle(
+        mockUser,
+        'trip-uuid',
+        'organizer-task-uuid',
+        dto,
+      );
+
+      expect(mockAssertOrganizerRole).toHaveBeenCalledWith('trip-uuid', mockUser.id, true);
+      expect(result.id).toBe('organizer-task-uuid');
+    });
+
+    it('resolves completedByUsername when renaming an already-completed ORGANIZER task', async () => {
+      const completedTask = {
+        ...mockOrganizerTask,
+        completedAt: new Date(),
+        completedBy: 'organizer-uuid',
+      };
+      mockTripTasksFindFirst.mockResolvedValue(completedTask);
+      mockUpdateReturning.mockResolvedValue([completedTask]);
+      mockUsersFindFirst.mockResolvedValue({ username: 'ana_organizer' });
+
+      const result = await service.updateTaskTitle(
+        mockUser,
+        'trip-uuid',
+        'organizer-task-uuid',
+        dto,
+      );
+
+      expect(mockUsersFindFirst).toHaveBeenCalled();
+      expect(result.completedByUsername).toBe('ana_organizer');
     });
 
     it('throws NotFoundException when task does not exist', async () => {
@@ -327,7 +454,7 @@ describe('TripsTasksService', () => {
       expect(result.completed).toBe(false);
     });
 
-    it('PERSONAL task: owner sets completedAt', async () => {
+    it('PERSONAL task: owner sets completedAt without recording completedBy', async () => {
       mockTripTasksFindFirst.mockResolvedValue(mockPersonalTask);
       mockUpdateReturning.mockResolvedValue([{ ...mockPersonalTask, completedAt: new Date() }]);
       const dto: SetTripTaskCompletionDto = { completed: true };
@@ -335,15 +462,63 @@ describe('TripsTasksService', () => {
       const result = await service.setCompletion(mockUser, 'trip-uuid', 'personal-task-uuid', dto);
 
       expect(mockUpdate).toHaveBeenCalled();
+      expect(mockUpdateSet).toHaveBeenCalledWith(expect.objectContaining({ completedBy: null }));
       expect(result.completed).toBe(true);
+      expect(result.completedByUsername).toBeNull();
     });
 
     it('PERSONAL task: throws ForbiddenException for a non-owner', async () => {
-      mockTripTasksFindFirst.mockResolvedValue({ ...mockPersonalTask, ownerId: 'other-user-uuid' });
+      mockTripTasksFindFirst.mockResolvedValue({
+        ...mockPersonalTask,
+        createdBy: 'other-user-uuid',
+      });
       const dto: SetTripTaskCompletionDto = { completed: true };
 
       await expect(
         service.setCompletion(mockUser, 'trip-uuid', 'personal-task-uuid', dto),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('ORGANIZER task: organizer sets a single shared completedAt and records completedBy', async () => {
+      mockTripTasksFindFirst.mockResolvedValue(mockOrganizerTask);
+      mockUpdateReturning.mockResolvedValue([
+        { ...mockOrganizerTask, completedAt: new Date(), completedBy: mockUser.id },
+      ]);
+      const dto: SetTripTaskCompletionDto = { completed: true };
+
+      const result = await service.setCompletion(mockUser, 'trip-uuid', 'organizer-task-uuid', dto);
+
+      expect(mockAssertOrganizerRole).toHaveBeenCalledWith('trip-uuid', mockUser.id, true);
+      expect(mockUpdateSet).toHaveBeenCalledWith(
+        expect.objectContaining({ completedBy: mockUser.id }),
+      );
+      expect(result.completed).toBe(true);
+      expect(result.completedByUsername).toBe(mockUser.username);
+    });
+
+    it('ORGANIZER task: uncompleting clears completedBy regardless of who completed it', async () => {
+      mockTripTasksFindFirst.mockResolvedValue({
+        ...mockOrganizerTask,
+        completedAt: new Date(),
+        completedBy: 'other-organizer-uuid',
+      });
+      mockUpdateReturning.mockResolvedValue([mockOrganizerTask]);
+      const dto: SetTripTaskCompletionDto = { completed: false };
+
+      const result = await service.setCompletion(mockUser, 'trip-uuid', 'organizer-task-uuid', dto);
+
+      expect(mockUpdateSet).toHaveBeenCalledWith(expect.objectContaining({ completedBy: null }));
+      expect(result.completed).toBe(false);
+      expect(result.completedByUsername).toBeNull();
+    });
+
+    it('ORGANIZER task: throws ForbiddenException for a non-organizer', async () => {
+      mockTripTasksFindFirst.mockResolvedValue(mockOrganizerTask);
+      mockAssertOrganizerRole.mockRejectedValue(new ForbiddenException());
+      const dto: SetTripTaskCompletionDto = { completed: true };
+
+      await expect(
+        service.setCompletion(mockUser, 'trip-uuid', 'organizer-task-uuid', dto),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -407,11 +582,25 @@ describe('TripsTasksService', () => {
     });
 
     it('throws ForbiddenException when requester does not own the PERSONAL task', async () => {
-      mockTripTasksFindFirst.mockResolvedValue({ ...mockPersonalTask, ownerId: 'other-user-uuid' });
+      mockTripTasksFindFirst.mockResolvedValue({
+        ...mockPersonalTask,
+        createdBy: 'other-user-uuid',
+      });
 
       await expect(service.deleteTask(mockUser, 'trip-uuid', 'personal-task-uuid')).rejects.toThrow(
         ForbiddenException,
       );
+    });
+
+    it('deletes an ORGANIZER task after verifying organizer role', async () => {
+      mockTripTasksFindFirst.mockResolvedValue(mockOrganizerTask);
+
+      await expect(
+        service.deleteTask(mockUser, 'trip-uuid', 'organizer-task-uuid'),
+      ).resolves.toBeUndefined();
+
+      expect(mockAssertOrganizerRole).toHaveBeenCalledWith('trip-uuid', mockUser.id, true);
+      expect(mockDeleteWhere).toHaveBeenCalled();
     });
 
     it('throws NotFoundException when task does not exist', async () => {

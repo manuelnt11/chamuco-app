@@ -1,0 +1,3 @@
+ALTER TABLE "trip_tasks" ADD COLUMN "completed_by" uuid;--> statement-breakpoint
+ALTER TABLE "trip_tasks" ADD CONSTRAINT "trip_tasks_completed_by_users_id_fk" FOREIGN KEY ("completed_by") REFERENCES "public"."users"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "trip_tasks" ADD CONSTRAINT "trip_tasks_completed_by_organizer_only" CHECK ("trip_tasks"."scope" = 'ORGANIZER' OR "trip_tasks"."completed_by" IS NULL);

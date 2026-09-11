@@ -200,7 +200,7 @@ export interface TripTask {
   scope: TripTaskScope;
   title: string;
   completed: boolean;
-  ownerId: string | null;
+  completedByUsername: string | null;
   createdBy: string;
   createdAt: string;
 }

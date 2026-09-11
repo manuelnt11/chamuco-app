@@ -14,7 +14,7 @@
 
 ### Definitions
 
-- `CreateTripTaskDto` (class) — Request body DTO for creating a trip task; `scope` (SHARED requires ORGANIZER/CO_ORGANIZER, PERSONAL is owned by the creator) and `title` (1-200 chars, trimmed via `sanitizeName` so a whitespace-only value fails `MinLength(1)`)
+- `CreateTripTaskDto` (class) — Request body DTO for creating a trip task; `scope` (SHARED and ORGANIZER require ORGANIZER/CO_ORGANIZER, PERSONAL is owned by the creator) and `title` (1-200 chars, trimmed via `sanitizeName` so a whitespace-only value fails `MinLength(1)`)
 
 ### Exports
 
@@ -31,7 +31,7 @@
 
 ### Definitions
 
-- `SetTripTaskCompletionDto` (class) — Request body DTO for toggling a trip task's completion state; single `completed` boolean field
+- `SetTripTaskCompletionDto` (class) — Request body DTO for toggling a trip task's completion state; single `completed` boolean field. For SHARED this only touches the requester's own completion row; for PERSONAL and ORGANIZER it sets a single shared status. For ORGANIZER, completing also records the acting organizer as `completed_by` (surfaced as `completedByUsername`); un-completing clears it regardless of who completed it
 
 ### Exports
 
@@ -48,7 +48,7 @@
 
 ### Definitions
 
-- `TripTaskResponseDto` (class) — Response shape for a trip task; exposes `id`, `tripId`, `scope`, `title`, `completed` (resolved for the requesting user), `ownerId` (null for SHARED), `createdBy`, `createdAt`
+- `TripTaskResponseDto` (class) — Response shape for a trip task; exposes `id`, `tripId`, `scope` (SHARED, PERSONAL, or ORGANIZER), `title`, `completed` (resolved for the requesting user), `completedByUsername` (username of the organizer who completed an ORGANIZER task; always null for SHARED/PERSONAL and for an incomplete ORGANIZER task), `createdBy`, `createdAt`
 
 ### Exports
 

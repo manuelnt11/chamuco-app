@@ -263,8 +263,10 @@
   },
   "tasks": {
     "title": "Tareas",
+    "organizerTitle": "Tareas de organizadores ({{completed}}/{{total}})",
     "sharedTitle": "Tareas grupales ({{completed}}/{{total}})",
     "personalTitle": "Mis tareas ({{completed}}/{{total}})",
+    "organizerEmpty": "Aún no hay tareas de organizadores.",
     "sharedEmpty": "Aún no hay tareas grupales.",
     "personalEmpty": "Aún no hay tareas personales.",
     "loadError": "Error al cargar las tareas.",
@@ -272,8 +274,10 @@
     "toggleError": "Error al actualizar la tarea.",
     "renameError": "Error al renombrar la tarea.",
     "deleteError": "Error al eliminar la tarea.",
+    "addPlaceholderOrganizer": "Agregar una tarea de organizadores...",
     "addPlaceholderShared": "Agregar una tarea grupal...",
     "addPlaceholderPersonal": "Agregar una tarea personal...",
+    "addButtonOrganizer": "Agregar tarea de organizadores",
     "addButtonShared": "Agregar tarea grupal",
     "addButtonPersonal": "Agregar tarea personal"
   },

@@ -16,7 +16,7 @@ const mockTaskResponse: TripTaskResponseDto = {
   scope: TripTaskScope.PERSONAL,
   title: 'Pack sunscreen',
   completed: false,
-  ownerId: mockUser.id,
+  completedByUsername: null,
   createdBy: mockUser.id,
   createdAt: '2026-01-01T00:00:00.000Z',
 };
