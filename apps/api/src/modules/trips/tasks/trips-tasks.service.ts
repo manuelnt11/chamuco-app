@@ -31,14 +31,26 @@ export class TripsTasksService {
 
     const visibleScopes = [
       eq(tripTasks.scope, TripTaskScope.SHARED),
-      eq(tripTasks.createdBy, user.id),
+      and(eq(tripTasks.scope, TripTaskScope.PERSONAL), eq(tripTasks.createdBy, user.id)),
     ];
     if (isOrganizer) visibleScopes.push(eq(tripTasks.scope, TripTaskScope.ORGANIZER));
 
-    const tasks = await this.db.query.tripTasks.findMany({
-      where: and(eq(tripTasks.tripId, tripId), or(...visibleScopes)),
-      orderBy: asc(tripTasks.createdAt),
-    });
+    const tasks = await this.db
+      .select({
+        id: tripTasks.id,
+        tripId: tripTasks.tripId,
+        scope: tripTasks.scope,
+        title: tripTasks.title,
+        completedAt: tripTasks.completedAt,
+        completedBy: tripTasks.completedBy,
+        createdBy: tripTasks.createdBy,
+        createdAt: tripTasks.createdAt,
+        completedByUsername: users.username,
+      })
+      .from(tripTasks)
+      .leftJoin(users, eq(tripTasks.completedBy, users.id))
+      .where(and(eq(tripTasks.tripId, tripId), or(...visibleScopes)))
+      .orderBy(asc(tripTasks.createdAt));
 
     const sharedTaskIds = tasks.filter((t) => t.scope === TripTaskScope.SHARED).map((t) => t.id);
     let completedSharedIds = new Set<string>();
@@ -52,13 +64,11 @@ export class TripsTasksService {
       completedSharedIds = new Set(rows.map((r) => r.taskId));
     }
 
-    const completerUsernames = await this.fetchCompleterUsernames(tasks);
-
     return tasks.map((t) =>
       this.mapTask(
         t,
         t.scope === TripTaskScope.SHARED ? completedSharedIds.has(t.id) : t.completedAt !== null,
-        t.completedBy ? (completerUsernames.get(t.completedBy) ?? null) : null,
+        t.completedByUsername ?? null,
       ),
     );
   }
@@ -217,17 +227,6 @@ export class TripsTasksService {
       columns: { username: true },
     });
     return completer?.username ?? null;
-  }
-
-  private async fetchCompleterUsernames(tasks: TripTask[]): Promise<Map<string, string>> {
-    const completerIds = [...new Set(tasks.map((t) => t.completedBy).filter((id) => id !== null))];
-    if (completerIds.length === 0) return new Map();
-
-    const completers = await this.db.query.users.findMany({
-      where: inArray(users.id, completerIds),
-      columns: { id: true, username: true },
-    });
-    return new Map(completers.map((c) => [c.id, c.username]));
   }
 
   private async assertActiveParticipant(tripId: string, userId: string): Promise<Trip> {

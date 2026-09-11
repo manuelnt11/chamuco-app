@@ -1,5 +1,6 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PgDialect } from 'drizzle-orm/pg-core';
 import {
   TripParticipantStatus,
   TripRole,
@@ -85,11 +86,14 @@ describe('TripsTasksService', () => {
   let mockTripsFindFirst: jest.Mock;
   let mockTripParticipantsFindFirst: jest.Mock;
   let mockTripTasksFindFirst: jest.Mock;
-  let mockTripTasksFindMany: jest.Mock;
   let mockTripTaskCompletionsFindFirst: jest.Mock;
   let mockTripTaskCompletionsFindMany: jest.Mock;
   let mockUsersFindFirst: jest.Mock;
-  let mockUsersFindMany: jest.Mock;
+  let mockSelectOrderBy: jest.Mock;
+  let mockSelectWhere: jest.Mock;
+  let mockSelectLeftJoin: jest.Mock;
+  let mockSelectFrom: jest.Mock;
+  let mockSelect: jest.Mock;
   let mockUpdateReturning: jest.Mock;
   let mockUpdateSet: jest.Mock;
   let mockUpdate: jest.Mock;
@@ -106,11 +110,18 @@ describe('TripsTasksService', () => {
     mockTripsFindFirst = jest.fn().mockResolvedValue(mockTripRow);
     mockTripParticipantsFindFirst = jest.fn().mockResolvedValue(mockActiveParticipant);
     mockTripTasksFindFirst = jest.fn().mockResolvedValue(mockSharedTask);
-    mockTripTasksFindMany = jest.fn().mockResolvedValue([mockSharedTask, mockPersonalTask]);
     mockTripTaskCompletionsFindFirst = jest.fn().mockResolvedValue(undefined);
     mockTripTaskCompletionsFindMany = jest.fn().mockResolvedValue([]);
     mockUsersFindFirst = jest.fn().mockResolvedValue(undefined);
-    mockUsersFindMany = jest.fn().mockResolvedValue([]);
+
+    mockSelectOrderBy = jest.fn().mockResolvedValue([
+      { ...mockSharedTask, completedByUsername: null },
+      { ...mockPersonalTask, completedByUsername: null },
+    ]);
+    mockSelectWhere = jest.fn().mockReturnValue({ orderBy: mockSelectOrderBy });
+    mockSelectLeftJoin = jest.fn().mockReturnValue({ where: mockSelectWhere });
+    mockSelectFrom = jest.fn().mockReturnValue({ leftJoin: mockSelectLeftJoin });
+    mockSelect = jest.fn().mockReturnValue({ from: mockSelectFrom });
 
     mockUpdateReturning = jest.fn().mockResolvedValue([mockSharedTask]);
     mockUpdateSet = jest.fn().mockReturnValue({
@@ -141,13 +152,14 @@ describe('TripsTasksService', () => {
             query: {
               trips: { findFirst: mockTripsFindFirst },
               tripParticipants: { findFirst: mockTripParticipantsFindFirst },
-              tripTasks: { findFirst: mockTripTasksFindFirst, findMany: mockTripTasksFindMany },
+              tripTasks: { findFirst: mockTripTasksFindFirst },
               tripTaskCompletions: {
                 findFirst: mockTripTaskCompletionsFindFirst,
                 findMany: mockTripTaskCompletionsFindMany,
               },
-              users: { findFirst: mockUsersFindFirst, findMany: mockUsersFindMany },
+              users: { findFirst: mockUsersFindFirst },
             },
+            select: mockSelect,
             update: mockUpdate,
             insert: mockInsert,
             delete: mockDelete,
@@ -186,7 +198,9 @@ describe('TripsTasksService', () => {
     });
 
     it('marks a personal task completed when completedAt is set', async () => {
-      mockTripTasksFindMany.mockResolvedValue([{ ...mockPersonalTask, completedAt: new Date() }]);
+      mockSelectOrderBy.mockResolvedValue([
+        { ...mockPersonalTask, completedAt: new Date(), completedByUsername: null },
+      ]);
 
       const result = await service.listTasks(mockUser, 'trip-uuid');
 
@@ -207,10 +221,10 @@ describe('TripsTasksService', () => {
 
     it('includes ORGANIZER tasks when the requesting user is an organizer', async () => {
       mockIsOrganizerRole.mockResolvedValue(true);
-      mockTripTasksFindMany.mockResolvedValue([
-        mockSharedTask,
-        mockPersonalTask,
-        mockOrganizerTask,
+      mockSelectOrderBy.mockResolvedValue([
+        { ...mockSharedTask, completedByUsername: null },
+        { ...mockPersonalTask, completedByUsername: null },
+        { ...mockOrganizerTask, completedByUsername: null },
       ]);
 
       const result = await service.listTasks(mockUser, 'trip-uuid');
@@ -221,32 +235,44 @@ describe('TripsTasksService', () => {
 
     it('excludes ORGANIZER tasks entirely when the requesting user is not an organizer', async () => {
       mockIsOrganizerRole.mockResolvedValue(false);
-      mockTripTasksFindMany.mockResolvedValue([mockSharedTask, mockPersonalTask]);
 
       const result = await service.listTasks(mockUser, 'trip-uuid');
 
       expect(result.map((t) => t.scope)).not.toContain(TripTaskScope.ORGANIZER);
     });
 
-    it('resolves completedByUsername for a completed ORGANIZER task', async () => {
+    it('resolves completedByUsername for a completed ORGANIZER task via the joined query', async () => {
       mockIsOrganizerRole.mockResolvedValue(true);
-      mockTripTasksFindMany.mockResolvedValue([
-        { ...mockOrganizerTask, completedAt: new Date(), completedBy: 'organizer-uuid' },
+      mockSelectOrderBy.mockResolvedValue([
+        {
+          ...mockOrganizerTask,
+          completedAt: new Date(),
+          completedBy: 'organizer-uuid',
+          completedByUsername: 'ana_organizer',
+        },
       ]);
-      mockUsersFindMany.mockResolvedValue([{ id: 'organizer-uuid', username: 'ana_organizer' }]);
 
       const result = await service.listTasks(mockUser, 'trip-uuid');
 
-      expect(mockUsersFindMany).toHaveBeenCalled();
       expect(result[0]?.completedByUsername).toBe('ana_organizer');
     });
 
-    it('does not query users when no task has a completedBy', async () => {
-      mockTripTasksFindMany.mockResolvedValue([mockSharedTask, mockPersonalTask]);
+    it('scopes the createdBy visibility clause to PERSONAL tasks only', async () => {
+      mockIsOrganizerRole.mockResolvedValue(false);
 
       await service.listTasks(mockUser, 'trip-uuid');
 
-      expect(mockUsersFindMany).not.toHaveBeenCalled();
+      const whereArg = mockSelectWhere.mock.calls[0]?.[0] as Parameters<
+        InstanceType<typeof PgDialect>['sqlToQuery']
+      >[0];
+      const { sql } = new PgDialect().sqlToQuery(whereArg);
+
+      // A task the user created that ISN'T scoped to PERSONAL (e.g. an ORGANIZER task
+      // created before losing the organizer role) must never match this clause on its
+      // own — created_by may only appear ANDed with scope = PERSONAL, never as a bare
+      // OR branch. Regression test for a visibility bypass: see PR review on #512.
+      expect(sql).not.toMatch(/or\s+"trip_tasks"\."created_by"/);
+      expect(sql).toMatch(/"trip_tasks"\."scope"\s*=\s*\$\d+\s+and\s+"trip_tasks"\."created_by"/);
     });
   });
 
