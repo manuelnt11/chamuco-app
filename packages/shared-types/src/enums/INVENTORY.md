@@ -547,7 +547,7 @@
 
 ### Definitions
 
-- TripTaskScope (enum) — Discriminates a trip checklist item as SHARED (organizer/co-organizer-created, visible to all active participants) or PERSONAL (owner-managed); API contract only, no PG-backed column
+- TripTaskScope (enum) — Discriminates a trip checklist item as SHARED (organizer/co-organizer-created, per-participant completion, visible to all active participants), PERSONAL (owner-managed), or ORGANIZER (organizer/co-organizer-only, single shared completion status); backs the `trip_task_scope` PG enum in `apps/api`
 
 ### Exports
 
