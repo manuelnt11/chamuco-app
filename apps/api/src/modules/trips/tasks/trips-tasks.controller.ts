@@ -40,7 +40,8 @@ export class TripsTasksController {
     summary: 'List trip tasks',
     description:
       "Returns every SHARED task plus the requesting user's own PERSONAL tasks, " +
-      'with completed resolved for that user.',
+      'with completed resolved for that user. ORGANIZER tasks are included only when the ' +
+      'requesting user is an organizer or co-organizer.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiResponse({ status: 200, type: [TripTaskResponseDto] })
@@ -58,7 +59,8 @@ export class TripsTasksController {
   @ApiOperation({
     summary: 'Create a trip task',
     description:
-      'SHARED requires ORGANIZER or CO_ORGANIZER. PERSONAL is created for the requesting user.',
+      'SHARED and ORGANIZER require ORGANIZER or CO_ORGANIZER. PERSONAL is created for the ' +
+      'requesting user.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiResponse({ status: 201, type: TripTaskResponseDto })
@@ -79,7 +81,7 @@ export class TripsTasksController {
   @Patch(':id/tasks/:taskId')
   @ApiOperation({
     summary: 'Rename a trip task',
-    description: 'SHARED: ORGANIZER/CO_ORGANIZER only. PERSONAL: owner only.',
+    description: 'SHARED and ORGANIZER: ORGANIZER/CO_ORGANIZER only. PERSONAL: owner only.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiParam({ name: 'taskId', type: String, description: 'Trip task UUID' })
@@ -102,7 +104,10 @@ export class TripsTasksController {
   @ApiOperation({
     summary: 'Set a trip task completion state',
     description:
-      'PERSONAL: owner only. SHARED: any active participant toggles only their own completion record.',
+      'PERSONAL: owner only, single status. ORGANIZER: ORGANIZER/CO_ORGANIZER only, single ' +
+      'status shared by the organizing team — records the completing organizer as ' +
+      'completedByUsername. SHARED: any active participant toggles only their own completion ' +
+      'record.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiParam({ name: 'taskId', type: String, description: 'Trip task UUID' })
@@ -125,7 +130,7 @@ export class TripsTasksController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Delete a trip task',
-    description: 'SHARED: ORGANIZER/CO_ORGANIZER only. PERSONAL: owner only.',
+    description: 'SHARED and ORGANIZER: ORGANIZER/CO_ORGANIZER only. PERSONAL: owner only.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Trip UUID' })
   @ApiParam({ name: 'taskId', type: String, description: 'Trip task UUID' })

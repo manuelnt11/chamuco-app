@@ -248,7 +248,8 @@
 - `TripsService.updateTrip` (function) — patches trip fields with organizer/co-organizer guard; handles cover asset replacement with GCS cleanup
 - `TripsService.deleteTrip` (function) — hard-deletes trip and announcements in a transaction; ORGANIZER restricted to DRAFT, SUPPORT_ADMIN unrestricted
 - `TripsService.transitionStatus` (function) — validates and applies trip status transitions; the UPDATE re-checks the status it read (via `.returning()`) so a double-submit either idempotently no-ops (target already reached) or throws `BadRequestException` (a different transition won the race); on a real DRAFT→OPEN write auto-invites linked group members, on a real →COMPLETED write calls the shared `notifyTripCompleted` (excluding the caller)
-- `TripsService.assertOrganizerRole` (function) — shared guard asserting the user holds ORGANIZER (or optionally CO_ORGANIZER) role on the trip
+- `TripsService.assertOrganizerRole` (function) — shared guard asserting the user holds ORGANIZER (or optionally CO_ORGANIZER) role on the trip; delegates to `isOrganizerRole` and throws `ForbiddenException` when it returns `false`
+- `TripsService.isOrganizerRole` (function) — non-throwing check for whether the user holds ORGANIZER (or optionally CO_ORGANIZER) role on the trip; used where callers need to branch on organizer status instead of rejecting (e.g. filtering ORGANIZER-scope trip tasks)
 - `TripsService.inviteLinkedGroupMembers` (function) — private; queries linked groups, inserts INVITED participants, and fires TRIP_INVITATION notifications
 - `TripsService.fetchAndMapTrip` (function) — private; fetches trip with coverAsset relation and maps to `TripResponseDto`
 - `TripsService.mapTrip` (function) — private; converts a raw trip row to `TripResponseDto`, computing `requiresConfirmation` and `feedbackOpenUntil`

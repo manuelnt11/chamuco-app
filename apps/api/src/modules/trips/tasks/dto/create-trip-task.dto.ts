@@ -9,7 +9,8 @@ export class CreateTripTaskDto {
   @ApiProperty({
     description:
       'SHARED tasks require ORGANIZER/CO_ORGANIZER and are visible to every active participant. ' +
-      'PERSONAL tasks are owned and managed only by the creator.',
+      'PERSONAL tasks are owned and managed only by the creator. ORGANIZER tasks require ' +
+      'ORGANIZER/CO_ORGANIZER and are only visible to organizers.',
     enum: TripTaskScope,
     example: TripTaskScope.PERSONAL,
   })

@@ -1,5 +1,5 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq, inArray, isNull, or } from 'drizzle-orm';
+import { and, asc, eq, inArray, or } from 'drizzle-orm';
 
 import { TripStatus, TripTaskScope } from '@chamuco/shared-types';
 import { DRIZZLE_CLIENT, DrizzleClient } from '@/database/drizzle.provider';
@@ -7,6 +7,7 @@ import type { AuthenticatedUser } from '@/types/express';
 import { trips } from '@/modules/trips/schema/trips.schema';
 import { tripParticipants } from '@/modules/trips/schema/trip-participants.schema';
 import { tripTaskCompletions, tripTasks } from '@/modules/trips/schema/trip-tasks.schema';
+import { users } from '@/modules/users/schema/users.schema';
 import { ACTIVE_STATUSES } from '@/modules/trips/participants/trip-participants.constants';
 import { TripsService } from '@/modules/trips/trips.service';
 import type { CreateTripTaskDto } from './dto/create-trip-task.dto';
@@ -26,16 +27,32 @@ export class TripsTasksService {
 
   async listTasks(user: AuthenticatedUser, tripId: string): Promise<TripTaskResponseDto[]> {
     await this.assertActiveParticipant(tripId, user.id);
+    const isOrganizer = await this.tripsService.isOrganizerRole(tripId, user.id, true);
 
-    const tasks = await this.db.query.tripTasks.findMany({
-      where: and(
-        eq(tripTasks.tripId, tripId),
-        or(isNull(tripTasks.ownerId), eq(tripTasks.ownerId, user.id)),
-      ),
-      orderBy: asc(tripTasks.createdAt),
-    });
+    const visibleScopes = [
+      eq(tripTasks.scope, TripTaskScope.SHARED),
+      and(eq(tripTasks.scope, TripTaskScope.PERSONAL), eq(tripTasks.createdBy, user.id)),
+    ];
+    if (isOrganizer) visibleScopes.push(eq(tripTasks.scope, TripTaskScope.ORGANIZER));
 
-    const sharedTaskIds = tasks.filter((t) => t.ownerId === null).map((t) => t.id);
+    const tasks = await this.db
+      .select({
+        id: tripTasks.id,
+        tripId: tripTasks.tripId,
+        scope: tripTasks.scope,
+        title: tripTasks.title,
+        completedAt: tripTasks.completedAt,
+        completedBy: tripTasks.completedBy,
+        createdBy: tripTasks.createdBy,
+        createdAt: tripTasks.createdAt,
+        completedByUsername: users.username,
+      })
+      .from(tripTasks)
+      .leftJoin(users, eq(tripTasks.completedBy, users.id))
+      .where(and(eq(tripTasks.tripId, tripId), or(...visibleScopes)))
+      .orderBy(asc(tripTasks.createdAt));
+
+    const sharedTaskIds = tasks.filter((t) => t.scope === TripTaskScope.SHARED).map((t) => t.id);
     let completedSharedIds = new Set<string>();
     if (sharedTaskIds.length > 0) {
       const rows = await this.db.query.tripTaskCompletions.findMany({
@@ -48,7 +65,11 @@ export class TripsTasksService {
     }
 
     return tasks.map((t) =>
-      this.mapTask(t, t.ownerId === null ? completedSharedIds.has(t.id) : t.completedAt !== null),
+      this.mapTask(
+        t,
+        t.scope === TripTaskScope.SHARED ? completedSharedIds.has(t.id) : t.completedAt !== null,
+        t.completedByUsername ?? null,
+      ),
     );
   }
 
@@ -60,7 +81,7 @@ export class TripsTasksService {
     const trip = await this.assertActiveParticipant(tripId, user.id);
     this.assertTripMutable(trip);
 
-    if (dto.scope === TripTaskScope.SHARED) {
+    if (dto.scope === TripTaskScope.SHARED || dto.scope === TripTaskScope.ORGANIZER) {
       await this.tripsService.assertOrganizerRole(tripId, user.id, true);
     }
 
@@ -68,7 +89,7 @@ export class TripsTasksService {
       .insert(tripTasks)
       .values({
         tripId,
-        ownerId: dto.scope === TripTaskScope.PERSONAL ? user.id : null,
+        scope: dto.scope,
         title: dto.title,
         createdBy: user.id,
       })
@@ -76,7 +97,7 @@ export class TripsTasksService {
 
     if (!task) throw new Error('Failed to insert trip task');
 
-    return this.mapTask(task, false);
+    return this.mapTask(task, false, null);
   }
 
   async updateTaskTitle(
@@ -99,11 +120,12 @@ export class TripsTasksService {
     if (!updated) throw new Error('Failed to update trip task');
 
     const completed =
-      updated.ownerId === null
+      updated.scope === TripTaskScope.SHARED
         ? await this.hasSharedCompletion(taskId, user.id)
         : updated.completedAt !== null;
+    const completedByUsername = await this.resolveCompleterUsername(updated.completedBy);
 
-    return this.mapTask(updated, completed);
+    return this.mapTask(updated, completed, completedByUsername);
   }
 
   async setCompletion(
@@ -116,19 +138,19 @@ export class TripsTasksService {
     this.assertTripMutable(trip);
     const task = await this.findTaskOrThrow(tripId, taskId);
 
-    if (task.ownerId !== null) {
-      if (task.ownerId !== user.id) {
+    if (task.scope === TripTaskScope.PERSONAL) {
+      if (task.createdBy !== user.id) {
         throw new ForbiddenException('Only the owner can complete a personal task');
       }
 
-      const [updated] = await this.db
-        .update(tripTasks)
-        .set({ completedAt: dto.completed ? new Date() : null })
-        .where(eq(tripTasks.id, taskId))
-        .returning();
+      return this.setSingleCompletion(task, dto.completed, null, null);
+    }
 
-      if (!updated) throw new Error('Failed to update trip task');
-      return this.mapTask(updated, dto.completed);
+    if (task.scope === TripTaskScope.ORGANIZER) {
+      await this.tripsService.assertOrganizerRole(tripId, user.id, true);
+      const completedBy = dto.completed ? user.id : null;
+      const completedByUsername = dto.completed ? user.username : null;
+      return this.setSingleCompletion(task, dto.completed, completedBy, completedByUsername);
     }
 
     if (dto.completed) {
@@ -144,7 +166,7 @@ export class TripsTasksService {
         );
     }
 
-    return this.mapTask(task, dto.completed);
+    return this.mapTask(task, dto.completed, null);
   }
 
   async deleteTask(user: AuthenticatedUser, tripId: string, taskId: string): Promise<void> {
@@ -156,6 +178,22 @@ export class TripsTasksService {
     await this.db.delete(tripTasks).where(eq(tripTasks.id, taskId));
   }
 
+  private async setSingleCompletion(
+    task: TripTask,
+    completed: boolean,
+    completedBy: string | null,
+    completedByUsername: string | null,
+  ): Promise<TripTaskResponseDto> {
+    const [updated] = await this.db
+      .update(tripTasks)
+      .set({ completedAt: completed ? new Date() : null, completedBy })
+      .where(eq(tripTasks.id, task.id))
+      .returning();
+
+    if (!updated) throw new Error('Failed to update trip task');
+    return this.mapTask(updated, completed, completedByUsername);
+  }
+
   private async findTaskOrThrow(tripId: string, taskId: string): Promise<TripTask> {
     const task = await this.db.query.tripTasks.findFirst({
       where: and(eq(tripTasks.id, taskId), eq(tripTasks.tripId, tripId)),
@@ -165,14 +203,14 @@ export class TripsTasksService {
   }
 
   private async assertCanManageTask(tripId: string, userId: string, task: TripTask): Promise<void> {
-    if (task.ownerId === null) {
-      await this.tripsService.assertOrganizerRole(tripId, userId, true);
+    if (task.scope === TripTaskScope.PERSONAL) {
+      if (task.createdBy !== userId) {
+        throw new ForbiddenException('Only the owner can manage a personal task');
+      }
       return;
     }
 
-    if (task.ownerId !== userId) {
-      throw new ForbiddenException('Only the owner can manage a personal task');
-    }
+    await this.tripsService.assertOrganizerRole(tripId, userId, true);
   }
 
   private async hasSharedCompletion(taskId: string, userId: string): Promise<boolean> {
@@ -180,6 +218,15 @@ export class TripsTasksService {
       where: and(eq(tripTaskCompletions.taskId, taskId), eq(tripTaskCompletions.userId, userId)),
     });
     return !!row;
+  }
+
+  private async resolveCompleterUsername(completedBy: string | null): Promise<string | null> {
+    if (!completedBy) return null;
+    const completer = await this.db.query.users.findFirst({
+      where: eq(users.id, completedBy),
+      columns: { username: true },
+    });
+    return completer?.username ?? null;
   }
 
   private async assertActiveParticipant(tripId: string, userId: string): Promise<Trip> {
@@ -207,14 +254,18 @@ export class TripsTasksService {
     }
   }
 
-  private mapTask(task: TripTask, completed: boolean): TripTaskResponseDto {
+  private mapTask(
+    task: TripTask,
+    completed: boolean,
+    completedByUsername: string | null,
+  ): TripTaskResponseDto {
     return {
       id: task.id,
       tripId: task.tripId,
-      scope: task.ownerId === null ? TripTaskScope.SHARED : TripTaskScope.PERSONAL,
+      scope: task.scope,
       title: task.title,
       completed,
-      ownerId: task.ownerId,
+      completedByUsername,
       createdBy: task.createdBy,
       createdAt: task.createdAt.toISOString(),
     };

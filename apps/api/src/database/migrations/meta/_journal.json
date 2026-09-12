@@ -274,6 +274,27 @@
       "when": 1785618630096,
       "tag": "0038_talented_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1789152565076,
+      "tag": "0039_add_trip_task_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1789152681148,
+      "tag": "0040_finalize_trip_task_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1789164620007,
+      "tag": "0041_add_trip_task_completed_by",
+      "breakpoints": true
     }
   ]
 }

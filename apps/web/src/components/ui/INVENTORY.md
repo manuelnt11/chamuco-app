@@ -1127,8 +1127,8 @@ None
 ### Definitions
 
 - Mocks `@/components/ui/edit-delete-actions` with a stub exposing `edit-btn`/`delete-btn` test IDs
-- `task` (const) — baseline `TripTask` fixture (PERSONAL, not completed)
-- Test suite covering title rendering, strike-through styling, checkbox toggle, delete gating, and a `describe('rename', ...)` block covering edit-action visibility, entering edit mode with the current title pre-filled, saving a trimmed title via `onRename`, cancelling without calling `onRename`, and saving an unchanged title as a no-op
+- `task` (const) — baseline `TripTask` fixture (PERSONAL, not completed, `completedByUsername: null`)
+- Test suite covering title rendering, strike-through styling, the inline `@username` suffix appended to the title (shown only when both `completed` and `completedByUsername` are set), checkbox toggle, delete gating, and a `describe('rename', ...)` block covering edit-action visibility, entering edit mode with the current title pre-filled, saving a trimmed title via `onRename`, cancelling without calling `onRename`, and saving an unchanged title as a no-op
 
 ### Exports
 
@@ -1150,7 +1150,7 @@ None
 
 ### Definitions
 
-- `TripTaskItem` (component) — renders a checkbox bound to `task.completed`, the task title (strike-through when completed), and edit/delete actions when `onRename`/`onDelete` are provided (omit either to hide that affordance, e.g. a SHARED task for a non-organizer). When editing, swaps the row for an `Input` pre-filled with the title plus Cancel/Save buttons; Save is a no-op (no API call) when the trimmed title is empty or unchanged. Tracks local `isToggling`/`isDeleting`/`isEditing`/`isSaving` state to disable interaction mid-mutation
+- `TripTaskItem` (component) — renders a checkbox bound to `task.completed`, the task title (strike-through when completed) with an inline ` @username` suffix appended when the task is completed and `task.completedByUsername` is set (ORGANIZER tasks only — accountability for who completed it), and edit/delete actions when `onRename`/`onDelete` are provided (omit either to hide that affordance, e.g. a SHARED task for a non-organizer). When editing, swaps the row for an `Input` pre-filled with the title plus Cancel/Save buttons; Save is a no-op (no API call) when the trimmed title is empty or unchanged. Tracks local `isToggling`/`isDeleting`/`isEditing`/`isSaving` state to disable interaction mid-mutation
 
 ### Exports
 

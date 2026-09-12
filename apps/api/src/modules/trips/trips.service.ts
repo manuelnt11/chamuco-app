@@ -452,6 +452,17 @@ export class TripsService {
     const trip = await this.db.query.trips.findFirst({ where: eq(trips.id, tripId) });
     if (!trip) throw new NotFoundException('Trip not found');
 
+    const isOrganizer = await this.isOrganizerRole(tripId, userId, allowCoOrganizer);
+    if (!isOrganizer) {
+      throw new ForbiddenException('Only trip organizers can perform this action');
+    }
+  }
+
+  async isOrganizerRole(
+    tripId: string,
+    userId: string,
+    allowCoOrganizer: boolean,
+  ): Promise<boolean> {
     const roles = allowCoOrganizer
       ? [TripRole.ORGANIZER, TripRole.CO_ORGANIZER]
       : [TripRole.ORGANIZER];
@@ -465,9 +476,7 @@ export class TripsService {
       ),
     });
 
-    if (!participant) {
-      throw new ForbiddenException('Only trip organizers can perform this action');
-    }
+    return !!participant;
   }
 
   private async fetchAndMapTrip(id: string): Promise<TripResponseDto> {

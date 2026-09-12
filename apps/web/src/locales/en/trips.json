@@ -263,8 +263,10 @@
   },
   "tasks": {
     "title": "Tasks",
+    "organizerTitle": "Organizer tasks ({{completed}}/{{total}})",
     "sharedTitle": "Group tasks ({{completed}}/{{total}})",
     "personalTitle": "My tasks ({{completed}}/{{total}})",
+    "organizerEmpty": "No organizer tasks yet.",
     "sharedEmpty": "No group tasks yet.",
     "personalEmpty": "No personal tasks yet.",
     "loadError": "Failed to load tasks.",
@@ -272,8 +274,10 @@
     "toggleError": "Failed to update task.",
     "renameError": "Failed to rename task.",
     "deleteError": "Failed to delete task.",
+    "addPlaceholderOrganizer": "Add an organizer task...",
     "addPlaceholderShared": "Add a group task...",
     "addPlaceholderPersonal": "Add a personal task...",
+    "addButtonOrganizer": "Add organizer task",
     "addButtonShared": "Add group task",
     "addButtonPersonal": "Add personal task"
   },

@@ -69,6 +69,7 @@ vi.mock('@phosphor-icons/react', () => ({
   BackpackIcon: (props: Record<string, unknown>) => <svg {...props} />,
   BellIcon: (props: Record<string, unknown>) => <svg {...props} />,
   BinocularsIcon: (props: Record<string, unknown>) => <svg {...props} />,
+  BriefcaseIcon: (props: Record<string, unknown>) => <svg {...props} />,
   CalendarBlankIcon: (props: Record<string, unknown>) => <svg {...props} />,
   CameraIcon: (props: Record<string, unknown>) => <svg {...props} />,
   CaretDownIcon: (props: Record<string, unknown>) => <svg {...props} />,

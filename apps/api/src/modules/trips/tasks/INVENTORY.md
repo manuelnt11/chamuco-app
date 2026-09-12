@@ -19,8 +19,8 @@
 ### Definitions
 
 - `mockUser` (const) — stub `AuthenticatedUser` fixture used across all test cases
-- `mockTaskResponse` (const) — stub `TripTaskResponseDto` fixture (PERSONAL scope, not completed)
-- `TripsTasksController` describe block — five delegation tests verifying each controller method forwards args to the corresponding service method and returns its result
+- `mockTaskResponse` (const) — stub `TripTaskResponseDto` fixture (PERSONAL scope, not completed, `completedByUsername: null`)
+- `TripsTasksController` describe block — five delegation tests verifying each controller method forwards args to the corresponding service method and returns its result. Controller is scope-agnostic — no ORGANIZER-specific behavior lives here, only in the service
 
 ### Exports
 
@@ -58,10 +58,11 @@
 
 - `@nestjs/common` — `ForbiddenException`, `NotFoundException` for exception-type assertions
 - `@nestjs/testing` — `Test`, `TestingModule` for NestJS test module setup
+- `drizzle-orm/pg-core` — `PgDialect` used to render the `listTasks` visibility `where` clause to SQL text for the visibility-scope regression test
 - `@chamuco/shared-types` — `TripParticipantStatus`, `TripRole`, `TripStatus`, `TripTaskScope`, `TripVisibility` for fixture data and status-based test scenarios
 - `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token for providing the mock DB client
 - `./trips-tasks.service` — `TripsTasksService` (subject under test)
-- `@/modules/trips/trips.service` — `TripsService` (mocked; only `assertOrganizerRole` is exercised)
+- `@/modules/trips/trips.service` — `TripsService` (mocked; `assertOrganizerRole` and `isOrganizerRole` are exercised)
 - `./dto/create-trip-task.dto` — `CreateTripTaskDto` type
 - `./dto/update-trip-task.dto` — `UpdateTripTaskDto` type
 - `./dto/set-trip-task-completion.dto` — `SetTripTaskCompletionDto` type
@@ -72,9 +73,11 @@
 - `mockUser` (const) — stub `AuthenticatedUser` fixture
 - `mockTripRow` (const) — stub trip database row in `OPEN` status
 - `mockActiveParticipant` (const) — stub trip-participant row with `PARTICIPANT` role and `CONFIRMED` status
-- `mockSharedTask` (const) — stub `trip_tasks` row with `ownerId: null` (SHARED)
-- `mockPersonalTask` (const) — stub `trip_tasks` row owned by `mockUser`
-- `TripsTasksService` describe block — grouped tests for `listTasks`, `createTask`, `updateTaskTitle`, `setCompletion`, `deleteTask`, covering both SHARED (organizer-gated) and PERSONAL (owner-gated) branches, the COMPLETED/CANCELLED trip-mutable gate, and (for `updateTaskTitle`/`setCompletion`/`deleteTask`) that trip-not-found/not-a-participant is rejected _before_ the task is loaded
+- `mockSharedTask` (const) — stub `trip_tasks` row with `scope: SHARED`, `completedBy: null`
+- `mockPersonalTask` (const) — stub `trip_tasks` row with `scope: PERSONAL`, `createdBy: mockUser.id`, `completedBy: null`
+- `mockOrganizerTask` (const) — stub `trip_tasks` row with `scope: ORGANIZER`, `completedBy: null`
+- `mockSelect`/`mockSelectFrom`/`mockSelectLeftJoin`/`mockSelectWhere`/`mockSelectOrderBy` (consts) — mock chain for `db.select().from().leftJoin().where().orderBy()`, replacing `db.query.tripTasks.findMany` now that `listTasks` joins `users` directly; default resolves `[sharedTask, personalTask]` each with `completedByUsername: null`
+- `TripsTasksService` describe block — grouped tests for `listTasks`, `createTask`, `updateTaskTitle`, `setCompletion`, `deleteTask`, covering SHARED (organizer-gated create, per-participant completion), PERSONAL (creator-gated, never records `completedBy`), and ORGANIZER (organizer-gated create/completion/manage, single shared `completedAt` + `completedBy` recording which organizer completed it, cleared on un-complete regardless of who set it) branches, `listTasks` including/excluding ORGANIZER tasks based on the caller's organizer status and resolving `completedByUsername` from the joined row, a regression test asserting (via `PgDialect().sqlToQuery` on the captured `where` argument) that the `createdBy` visibility clause only ever appears ANDed with `scope = PERSONAL`, never as a bare OR branch, `updateTaskTitle` resolving `completedByUsername` for an already-completed ORGANIZER task, the COMPLETED/CANCELLED trip-mutable gate, and (for `updateTaskTitle`/`setCompletion`/`deleteTask`) that trip-not-found/not-a-participant is rejected _before_ the task is loaded
 
 ### Exports
 
@@ -87,15 +90,16 @@
 ### Imports
 
 - `@nestjs/common` — `ForbiddenException`, `Inject`, `Injectable`, `NotFoundException`
-- `drizzle-orm` — `and`, `asc`, `eq`, `inArray`, `isNull`, `or` for composing Drizzle query expressions
+- `drizzle-orm` — `and`, `asc`, `eq`, `inArray`, `or` for composing Drizzle query expressions
 - `@chamuco/shared-types` — `TripStatus`, `TripTaskScope` enums
 - `@/database/drizzle.provider` — `DRIZZLE_CLIENT` injection token, `DrizzleClient` type
 - `@/types/express` — `AuthenticatedUser` type
 - `@/modules/trips/schema/trips.schema` — `trips` Drizzle table definition
 - `@/modules/trips/schema/trip-participants.schema` — `tripParticipants` Drizzle table definition
 - `@/modules/trips/schema/trip-tasks.schema` — `tripTasks`, `tripTaskCompletions` Drizzle table definitions
+- `@/modules/users/schema/users.schema` — `users` table reference for resolving `completedByUsername`
 - `@/modules/trips/participants/trip-participants.constants` — `ACTIVE_STATUSES`
-- `@/modules/trips/trips.service` — `TripsService` for `assertOrganizerRole` delegation
+- `@/modules/trips/trips.service` — `TripsService` for `assertOrganizerRole`/`isOrganizerRole` delegation
 - `./dto/create-trip-task.dto` — `CreateTripTaskDto` type
 - `./dto/update-trip-task.dto` — `UpdateTripTaskDto` type
 - `./dto/set-trip-task-completion.dto` — `SetTripTaskCompletionDto` type
@@ -103,13 +107,15 @@
 
 ### Definitions
 
-- `TripsTasksService` (service) — injectable service exposing `listTasks`, `createTask`, `updateTaskTitle`, `setCompletion`, `deleteTask`. `updateTaskTitle`/`setCompletion`/`deleteTask` check `assertActiveParticipant` + `assertTripMutable` _before_ loading the task via `findTaskOrThrow`, so a non-participant never learns whether a given task exists
+- `TripsTasksService` (service) — injectable service exposing `listTasks`, `createTask`, `updateTaskTitle`, `setCompletion`, `deleteTask`. `listTasks` builds its visibility filter as `SHARED` OR (`PERSONAL` AND own `createdBy`) OR (`ORGANIZER`, only when `isOrganizerRole` is true) — the `createdBy` check is scoped to `PERSONAL` specifically so a task the caller created under a different scope (e.g. an `ORGANIZER` task made while still an organizer) never leaks through once they lose that role. It resolves `completedByUsername` via a `leftJoin(users, ...)` in the same query rather than a second round-trip. `updateTaskTitle`/`setCompletion`/`deleteTask` check `assertActiveParticipant` + `assertTripMutable` _before_ loading the task via `findTaskOrThrow`, so a non-participant never learns whether a given task exists
 - `findTaskOrThrow` (function) — private guard; fetches a `trip_tasks` row scoped to the trip or throws `NotFoundException`
-- `assertCanManageTask` (function) — private guard; SHARED tasks require `assertOrganizerRole`, PERSONAL tasks require the caller to be `ownerId`
-- `hasSharedCompletion` (function) — private helper; checks whether a `trip_task_completions` row exists for a task/user pair
+- `assertCanManageTask` (function) — private guard; SHARED and ORGANIZER tasks require `assertOrganizerRole`, PERSONAL tasks require the caller to be `createdBy`
+- `setSingleCompletion` (function) — private helper; updates `trip_tasks.completed_at` and `completed_by` directly (single shared status) — used by both PERSONAL (`completedBy` always `null`) and ORGANIZER (`completedBy` set to the completing organizer, cleared on un-complete regardless of who set it) completion
+- `hasSharedCompletion` (function) — private helper; checks whether a `trip_task_completions` row exists for a task/user pair (SHARED only)
+- `resolveCompleterUsername` (function) — private helper; resolves a single `completedBy` id to a username via `db.query.users.findFirst`, used by `updateTaskTitle` (the one path that can't use a join, since it runs against an `UPDATE ... RETURNING`)
 - `assertActiveParticipant` (function) — private guard; verifies trip exists and caller holds an ACCEPTED/CONFIRMED `trip_participants` row; returns the trip row
 - `assertTripMutable` (function) — private guard; throws `ForbiddenException` when trip status is COMPLETED or CANCELLED
-- `mapTask` (function) — private mapper; converts a `tripTasks` Drizzle row plus a resolved `completed` boolean into `TripTaskResponseDto`
+- `mapTask` (function) — private mapper; converts a `tripTasks` Drizzle row plus a resolved `completed` boolean and `completedByUsername` into `TripTaskResponseDto`
 
 ### Exports
 

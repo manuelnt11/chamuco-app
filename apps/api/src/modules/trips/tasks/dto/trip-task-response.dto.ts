@@ -9,7 +9,13 @@ export class TripTaskResponseDto {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440001' })
   tripId!: string;
 
-  @ApiProperty({ enum: TripTaskScope, example: TripTaskScope.PERSONAL })
+  @ApiProperty({
+    description:
+      'SHARED: any active participant tracks their own completion. PERSONAL: private to the ' +
+      'creator. ORGANIZER: organizer/co-organizer only, both for visibility and completion.',
+    enum: TripTaskScope,
+    example: TripTaskScope.PERSONAL,
+  })
   scope!: TripTaskScope;
 
   @ApiProperty({ example: 'Pack sunscreen' })
@@ -17,18 +23,22 @@ export class TripTaskResponseDto {
 
   @ApiProperty({
     description:
-      'Completion state for the requesting user — for a SHARED task this reflects their own ' +
-      'completion record, not the task overall.',
+      'Completion state. For a SHARED task this reflects the requesting user’s own ' +
+      'completion record. For PERSONAL and ORGANIZER tasks this is a single status shared by ' +
+      'everyone who can see the task.',
     example: false,
   })
   completed!: boolean;
 
   @ApiProperty({
-    description: 'Owner of a PERSONAL task; null for a SHARED task.',
-    example: null,
+    description:
+      'Username of the organizer who completed an ORGANIZER task — accountability for a task ' +
+      'that carries more responsibility than SHARED/PERSONAL. Always null for SHARED and ' +
+      'PERSONAL, and null for an ORGANIZER task that is not currently completed.',
+    example: 'ana_organizer',
     nullable: true,
   })
-  ownerId!: string | null;
+  completedByUsername!: string | null;
 
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440002' })
   createdBy!: string;

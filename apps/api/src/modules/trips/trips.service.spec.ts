@@ -670,6 +670,32 @@ describe('TripsService', () => {
     });
   });
 
+  describe('isOrganizerRole', () => {
+    it('returns true when the user is the ORGANIZER', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(mockOrganizerParticipant);
+
+      await expect(service.isOrganizerRole('trip-uuid', 'user-uuid', true)).resolves.toBe(true);
+    });
+
+    it('returns true for a CO_ORGANIZER when allowCoOrganizer is true', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(mockCoOrganizerParticipantAccepted);
+
+      await expect(service.isOrganizerRole('trip-uuid', 'user-uuid', true)).resolves.toBe(true);
+    });
+
+    it('returns false for a CO_ORGANIZER when allowCoOrganizer is false', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.isOrganizerRole('trip-uuid', 'user-uuid', false)).resolves.toBe(false);
+    });
+
+    it('returns false and does not throw when there is no matching participant', async () => {
+      mockTripParticipantsFindFirst.mockResolvedValue(undefined);
+
+      await expect(service.isOrganizerRole('trip-uuid', 'user-uuid', true)).resolves.toBe(false);
+    });
+  });
+
   describe('getMyTrips', () => {
     let getMyTripsService: TripsService;
     let mockTripParticipantsFindMany: jest.Mock;

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ORGANIZER_ROLES, TripRole, TripTaskScope } from '@chamuco/shared-types';
 import {
   ArrowLeftIcon,
+  BriefcaseIcon,
   ListChecksIcon,
   PlusIcon,
   UserIcon,
@@ -90,6 +91,7 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
   const [loadError, setLoadError] = useState(false);
   const [mutateError, setMutateError] = useState<string | null>(null);
 
+  const [organizerForm, setOrganizerForm] = useState<TaskFormState>(EMPTY_TASK_FORM);
   const [sharedForm, setSharedForm] = useState<TaskFormState>(EMPTY_TASK_FORM);
   const [personalForm, setPersonalForm] = useState<TaskFormState>(EMPTY_TASK_FORM);
 
@@ -151,9 +153,14 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
     }
   };
 
+  const TASK_FORM_BY_SCOPE = {
+    [TripTaskScope.ORGANIZER]: [organizerForm, setOrganizerForm] as const,
+    [TripTaskScope.SHARED]: [sharedForm, setSharedForm] as const,
+    [TripTaskScope.PERSONAL]: [personalForm, setPersonalForm] as const,
+  };
+
   const handleCreateTask = async (scope: TripTaskScope) => {
-    const form = scope === TripTaskScope.SHARED ? sharedForm : personalForm;
-    const setForm = scope === TripTaskScope.SHARED ? setSharedForm : setPersonalForm;
+    const [form, setForm] = TASK_FORM_BY_SCOPE[scope];
     if (!form.title.trim()) return;
 
     setForm((prev) => ({ ...prev, isSubmitting: true, error: null }));
@@ -164,6 +171,11 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
     } catch {
       setForm((prev) => ({ ...prev, isSubmitting: false, error: t('tasks.createError') }));
     }
+  };
+
+  const handleSubmitOrganizer = (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void handleCreateTask(TripTaskScope.ORGANIZER);
   };
 
   const handleSubmitShared = (e: SubmitEvent<HTMLFormElement>) => {
@@ -186,6 +198,7 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
     );
   }
 
+  const organizerTasks = tasks.filter((task) => task.scope === TripTaskScope.ORGANIZER);
   const sharedTasks = tasks.filter((task) => task.scope === TripTaskScope.SHARED);
   const personalTasks = tasks.filter((task) => task.scope === TripTaskScope.PERSONAL);
 
@@ -207,6 +220,42 @@ export default function TripTasksPage({ params }: TripTasksPageProps) {
       </div>
 
       {mutateError && <p className="mb-4 text-sm text-destructive">{mutateError}</p>}
+
+      {isOrganizer && (
+        <section className="mb-6">
+          <div className="mb-3 flex items-center gap-2">
+            <BriefcaseIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+            <h2 className="text-sm font-semibold">
+              {t('tasks.organizerTitle', {
+                completed: organizerTasks.filter((task) => task.completed).length,
+                total: organizerTasks.length,
+              })}
+            </h2>
+          </div>
+          {organizerTasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('tasks.organizerEmpty')}</p>
+          ) : (
+            <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+              {organizerTasks.map((task) => (
+                <TripTaskItem
+                  key={task.id}
+                  task={task}
+                  onToggle={(completed) => handleToggle(task.id, completed)}
+                  onRename={(newTitle) => handleRename(task.id, newTitle)}
+                  onDelete={() => handleDelete(task.id)}
+                />
+              ))}
+            </ul>
+          )}
+          <AddTaskForm
+            formState={organizerForm}
+            onTitleChange={(title) => setOrganizerForm((prev) => ({ ...prev, title }))}
+            onSubmit={handleSubmitOrganizer}
+            placeholder={t('tasks.addPlaceholderOrganizer')}
+            buttonLabel={t('tasks.addButtonOrganizer')}
+          />
+        </section>
+      )}
 
       <section className="mb-6">
         <div className="mb-3 flex items-center gap-2">

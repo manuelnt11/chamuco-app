@@ -35,7 +35,7 @@ const task: TripTask = {
   scope: TripTaskScope.PERSONAL,
   title: 'Pack sunscreen',
   completed: false,
-  ownerId: 'user-1',
+  completedByUsername: null,
   createdBy: 'user-1',
   createdAt: '2026-01-01T00:00:00.000Z',
 };
@@ -58,6 +58,39 @@ describe('TripTaskItem', () => {
   it('does not apply strike-through styling when not completed', () => {
     render(<TripTaskItem task={task} onToggle={vi.fn()} />);
     expect(screen.getByText('Pack sunscreen').className).not.toContain('line-through');
+  });
+
+  it('appends the completer @username without strike-through when completed', () => {
+    render(
+      <TripTaskItem
+        task={{ ...task, completed: true, completedByUsername: 'ana_organizer' }}
+        onToggle={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('Pack sunscreen').className).toContain('line-through');
+    const tag = screen.getByText('@ana_organizer', { exact: false });
+    expect(tag).toBeInTheDocument();
+    expect(tag.className).not.toContain('line-through');
+  });
+
+  it('does not append @username when task is not completed', () => {
+    render(
+      <TripTaskItem
+        task={{ ...task, completed: false, completedByUsername: 'ana_organizer' }}
+        onToggle={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText('@ana_organizer', { exact: false })).not.toBeInTheDocument();
+  });
+
+  it('does not append @username when completedByUsername is null', () => {
+    render(
+      <TripTaskItem
+        task={{ ...task, completed: true, completedByUsername: null }}
+        onToggle={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('Pack sunscreen')).toBeInTheDocument();
   });
 
   it('calls onToggle with the inverted completion state when checkbox is clicked', async () => {
