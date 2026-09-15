@@ -123,6 +123,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
           value={timezone}
           onChange={setTimezone}
           placeholder={t('basicInfo.timezonePlaceholder')}
+          clearable={false}
           disabled={isSaving}
           aria-labelledby="timezone-label"
           className="w-full"

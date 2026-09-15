@@ -10,6 +10,7 @@ interface TimezoneComboboxProps {
   value: string;
   onChange: (tz: string) => void;
   placeholder?: string;
+  clearable?: boolean;
   className?: string;
   disabled?: boolean;
   'aria-invalid'?: boolean;
@@ -20,6 +21,7 @@ function TimezoneCombobox({
   value,
   onChange,
   placeholder = '—',
+  clearable = true,
   className,
   disabled,
   'aria-invalid': ariaInvalid,
@@ -37,6 +39,7 @@ function TimezoneCombobox({
       onChange={onChange}
       options={options}
       placeholder={placeholder}
+      clearable={clearable}
       searchable
       autoFocus={false}
       searchPlaceholder={t('timezoneCombobox.searchPlaceholder')}

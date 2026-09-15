@@ -1,11 +1,32 @@
+import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { LoyaltyProgramCombobox } from './loyalty-program-combobox';
 
+function ControlledLoyaltyProgramCombobox({
+  initialValue = '',
+  onChange,
+}: {
+  initialValue?: string;
+  onChange: (value: string) => void;
+}) {
+  const [value, setValue] = useState(initialValue);
+  return (
+    <LoyaltyProgramCombobox
+      value={value}
+      onChange={(v) => {
+        setValue(v);
+        onChange(v);
+      }}
+      data-testid="program"
+    />
+  );
+}
+
 function setup(value = '', onChange = vi.fn()) {
   const user = userEvent.setup();
-  render(<LoyaltyProgramCombobox value={value} onChange={onChange} data-testid="program" />);
+  render(<ControlledLoyaltyProgramCombobox initialValue={value} onChange={onChange} />);
   return { user, onChange };
 }
 

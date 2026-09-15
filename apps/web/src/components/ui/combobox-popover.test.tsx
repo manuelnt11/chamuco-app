@@ -142,7 +142,7 @@ describe('ComboboxPopover', () => {
     expect(within(listbox).getByRole('option', { name: 'Apple' })).toBeInTheDocument();
   });
 
-  it('hides the search box when searchable is false, options still render and select', async () => {
+  it('visually hides the search box when searchable is false, options still render and select', async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
     renderCombobox({
@@ -162,7 +162,8 @@ describe('ComboboxPopover', () => {
         )),
     });
     await user.click(screen.getByTestId('trigger'));
-    expect(screen.queryByPlaceholderText('Search fruits...')).not.toBeInTheDocument();
+    const search = screen.getByPlaceholderText('Search fruits...');
+    expect(search.parentElement).toHaveClass('sr-only');
     expect(screen.getByRole('option', { name: 'Apple' })).toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: 'Banana' }));
     expect(onSelect).toHaveBeenCalledWith('Banana');
@@ -197,5 +198,47 @@ describe('ComboboxPopover', () => {
     });
     await user.click(screen.getByTestId('trigger'));
     expect(screen.getByRole('option', { name: 'Apple' })).toBeInTheDocument();
+  });
+
+  it('keeps options keyboard-navigable via ArrowDown/Enter when searchable is false', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    renderCombobox({
+      searchable: false,
+      children: (close) =>
+        OPTIONS.map((option) => (
+          <CommandOption
+            key={option}
+            value={option}
+            onSelect={() => {
+              onSelect(option);
+              close();
+            }}
+          >
+            {option}
+          </CommandOption>
+        )),
+    });
+    await user.click(screen.getByTestId('trigger'));
+    expect(screen.getByPlaceholderText('Search fruits...')).toHaveFocus();
+    await user.keyboard('{ArrowDown}{Enter}');
+    expect(onSelect).toHaveBeenCalledWith('Banana');
+  });
+
+  it('does not filter options based on typed text when searchable is false', async () => {
+    const user = userEvent.setup();
+    renderCombobox({ searchable: false });
+    await user.click(screen.getByTestId('trigger'));
+    await user.keyboard('zzz');
+    expect(screen.getByRole('option', { name: 'Apple' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Banana' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Cherry' })).toBeInTheDocument();
+  });
+
+  it('forwards maxLength to the search input', async () => {
+    const user = userEvent.setup();
+    renderCombobox({ maxLength: 5 });
+    await user.click(screen.getByTestId('trigger'));
+    expect(screen.getByPlaceholderText('Search fruits...')).toHaveAttribute('maxLength', '5');
   });
 });

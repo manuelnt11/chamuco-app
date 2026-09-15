@@ -38,7 +38,12 @@ vi.mock('@/components/ui/popover', () => ({
 
 vi.mock('@/components/ui/command', () => ({
   Command: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  CommandSearch: (props: ComponentProps<'input'>) => <input role="searchbox" {...props} />,
+  CommandSearch: ({
+    visuallyHidden,
+    ...props
+  }: ComponentProps<'input'> & { visuallyHidden?: boolean }) => (
+    <input role="searchbox" data-visually-hidden={visuallyHidden ? 'true' : 'false'} {...props} />
+  ),
   CommandItems: ({ children }: { children: ReactNode }) => <div role="listbox">{children}</div>,
   CommandNoResults: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   CommandGroupSection: ({ children }: { children: ReactNode }) => <div>{children}</div>,
@@ -146,19 +151,35 @@ describe('Select', () => {
     expect(screen.getByText('🇨🇴')).toBeInTheDocument();
   });
 
-  it('does not render a search box by default', async () => {
+  it('keeps the search box visually hidden by default (still focusable for keyboard nav)', async () => {
     const user = userEvent.setup();
     render(<Select value="" onChange={vi.fn()} options={OPTIONS} data-testid="my-select" />);
     await user.click(screen.getByTestId('my-select'));
-    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox')).toHaveAttribute('data-visually-hidden', 'true');
   });
 
-  it('renders a search box when searchable is true', async () => {
+  it('shows the search box when searchable is true', async () => {
     const user = userEvent.setup();
     render(
       <Select value="" onChange={vi.fn()} options={OPTIONS} searchable data-testid="my-select" />,
     );
     await user.click(screen.getByTestId('my-select'));
-    expect(screen.getByRole('searchbox')).toBeInTheDocument();
+    expect(screen.getByRole('searchbox')).toHaveAttribute('data-visually-hidden', 'false');
+  });
+
+  it('does not render a placeholder clear row when clearable is false', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select
+        value="A"
+        onChange={vi.fn()}
+        options={OPTIONS}
+        placeholder="Choose one"
+        clearable={false}
+        data-testid="my-select"
+      />,
+    );
+    await user.click(screen.getByTestId('my-select'));
+    expect(screen.queryByTestId('my-select-placeholder')).not.toBeInTheDocument();
   });
 });

@@ -79,7 +79,7 @@ _(none)_
 ### Definitions
 
 - `BasicInfoSectionProps` (interface) — props for BasicInfoSection
-- `BasicInfoSection` (component) — form for display name, bio, timezone, profile visibility, and avatar editing
+- `BasicInfoSection` (component) — form for display name, bio, timezone, profile visibility, and avatar editing; passes `clearable={false}` to `TimezoneCombobox` since this field always has a value (`suggestedTimezone` never resolves to empty) and `handleSave` sends it to `updateMe` unguarded — the field must not offer a "reset to empty" affordance
 
 ### Exports
 
@@ -114,18 +114,15 @@ _(none)_
 
 ### Imports
 
-- `react` — useEffect, useState, SubmitEvent (type)
+- `react` — useMemo, useState, SubmitEvent (type)
 - `react-i18next` — useTranslation
 - `@/lib/countries` — isoByCallingCode
 - `@phosphor-icons/react` — PlusIcon
-- `@/lib/utils` — cn
 - `@/components/ui/button` — Button
-- `@/components/ui/combobox-popover` — ComboboxPopover
-- `@/components/ui/command` — CommandOption
 - `@/components/ui/edit-delete-actions` — EditDeleteActions
+- `@/components/ui/free-text-combobox` — FreeTextCombobox
 - `@/components/ui/input` — Input
 - `@/components/ui/label` — Label
-- `@/components/ui/select-item` — SelectItem
 - `@/components/ui/country-combobox` — getCallingCode
 - `@/components/ui/phone-input` — PhoneInput, cleanPhoneNumber, isPhoneValid
 - `@/components/ui/save-button` — SaveButton
@@ -139,7 +136,7 @@ _(none)_
 
 - `RELATIONSHIP_KEYS` (const) — predefined relationship key list for `RelationshipCombobox` suggestions
 - `RelationshipComboboxProps` (interface) — props for `RelationshipCombobox`
-- `RelationshipCombobox` (component) — free-text popover combobox (replaces the former `<input list>`/`<datalist>` pair) built on `ComboboxPopover`, uppercasing input and offering `RELATIONSHIP_KEYS` as filterable suggestions; typed text that matches nothing is still accepted as free text via `onChange`
+- `RelationshipCombobox` (component) — thin wrapper around the shared `FreeTextCombobox` (replaces the former `<input list>`/`<datalist>` pair, and its own hand-rolled `ComboboxPopover` usage from an earlier pass — deduplicated alongside `LoyaltyProgramCombobox`, which had independently reimplemented the same pattern); passes `transformInput={(raw) => raw.toUpperCase()}` (applied uniformly to both typing and selecting a suggestion — the earlier hand-rolled version only uppercased typed text, missing it on selection) and `maxLength={50}`
 - `FormState` (interface) — local form state shape for a single contact
 - `FormErrors` (interface) — field-level error state for a single contact form
 - `EMPTY_ERRORS` (const) — zeroed-out FormErrors sentinel

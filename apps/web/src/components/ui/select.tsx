@@ -14,6 +14,7 @@ interface SelectProps {
   onChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
+  clearable?: boolean;
   searchable?: boolean;
   autoFocus?: boolean;
   searchPlaceholder?: string;
@@ -34,6 +35,7 @@ function Select({
   onChange,
   options,
   placeholder,
+  clearable = true,
   searchable = false,
   autoFocus = true,
   searchPlaceholder,
@@ -95,7 +97,7 @@ function Select({
     >
       {(close) => (
         <>
-          {placeholder !== undefined && (
+          {placeholder !== undefined && clearable && (
             <CommandOption
               value={`__placeholder__ ${placeholder}`}
               onSelect={() => {

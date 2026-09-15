@@ -1,18 +1,15 @@
 'use client';
 
-import { useEffect, useState, type SubmitEvent } from 'react';
+import { useMemo, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isoByCallingCode } from '@/lib/countries';
 import { PlusIcon } from '@phosphor-icons/react';
 
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ComboboxPopover } from '@/components/ui/combobox-popover';
-import { CommandOption } from '@/components/ui/command';
 import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
+import { FreeTextCombobox } from '@/components/ui/free-text-combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { SelectItem } from '@/components/ui/select-item';
 import { getCallingCode } from '@/components/ui/country-combobox';
 import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import { SaveButton } from '@/components/ui/save-button';
@@ -93,65 +90,28 @@ function RelationshipCombobox({
   'aria-invalid': ariaInvalid,
 }: RelationshipComboboxProps) {
   const { t } = useTranslation('profile');
-  const [query, setQuery] = useState(value);
-
-  useEffect(() => {
-    setQuery(value);
-  }, [value]);
-
-  function handleQueryChange(raw: string) {
-    const upper = raw.toUpperCase();
-    setQuery(upper);
-    onChange(upper);
-  }
-
-  function handleSelect(label: string, close: () => void) {
-    setQuery(label);
-    onChange(label);
-    close();
-  }
-
-  const allLabels = RELATIONSHIP_KEYS.map((key) =>
-    t(`emergencyContacts.relationshipOptions.${key}`),
+  const options = useMemo(
+    () =>
+      RELATIONSHIP_KEYS.map((key) => ({
+        value: key,
+        label: t(`emergencyContacts.relationshipOptions.${key}`),
+      })),
+    [t],
   );
-  const suggestions = query.trim()
-    ? allLabels.filter((label) => label.toLowerCase().includes(query.toLowerCase()))
-    : allLabels;
 
   return (
-    <ComboboxPopover
-      trigger={
-        <Button
-          id={id}
-          variant="outline"
-          disabled={disabled}
-          aria-invalid={ariaInvalid}
-          className="w-full justify-start font-normal uppercase"
-        />
-      }
-      triggerChildren={
-        <span className={cn('truncate', !value && 'font-normal text-muted-foreground normal-case')}>
-          {value || t('emergencyContacts.relationship')}
-        </span>
-      }
-      contentClassName="w-[var(--anchor-width)]"
-      searchable
-      searchValue={query}
-      onSearchValueChange={handleQueryChange}
-      shouldFilter={false}
-      searchPlaceholder={t('emergencyContacts.relationship')}
+    <FreeTextCombobox
+      id={id}
+      value={value}
+      onChange={onChange}
+      options={options}
+      transformInput={(raw) => raw.toUpperCase()}
+      maxLength={50}
+      placeholder={t('emergencyContacts.relationship')}
       noResultsText={t('emergencyContacts.relationshipNoResults')}
-    >
-      {(close) =>
-        suggestions.map((label) => (
-          <CommandOption key={label} value={label} onSelect={() => handleSelect(label, close)}>
-            <SelectItem>
-              <span className="truncate">{label}</span>
-            </SelectItem>
-          </CommandOption>
-        ))
-      }
-    </ComboboxPopover>
+      disabled={disabled}
+      aria-invalid={ariaInvalid}
+    />
   );
 }
 

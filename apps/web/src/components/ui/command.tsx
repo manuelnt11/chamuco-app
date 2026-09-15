@@ -26,9 +26,16 @@ function Command({ className, ...props }: ComponentPropsWithoutRef<typeof Comman
   );
 }
 
-function CommandSearch({ className, ...props }: ComponentPropsWithoutRef<typeof CommandInput>) {
+function CommandSearch({
+  className,
+  visuallyHidden,
+  ...props
+}: ComponentPropsWithoutRef<typeof CommandInput> & { visuallyHidden?: boolean }) {
   return (
-    <div className="flex items-center border-b border-border px-3" cmdk-input-wrapper="">
+    <div
+      className={cn('flex items-center border-b border-border px-3', visuallyHidden && 'sr-only')}
+      cmdk-input-wrapper=""
+    >
       <MagnifyingGlassIcon className="mr-2 size-4 shrink-0 text-muted-foreground" />
       <CommandInput
         className={cn(

@@ -62,7 +62,12 @@ vi.mock('@/components/ui/popover', () => ({
 
 vi.mock('@/components/ui/command', () => ({
   Command: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  CommandSearch: (props: ComponentProps<'input'>) => <input role="searchbox" {...props} />,
+  CommandSearch: ({
+    visuallyHidden: _visuallyHidden,
+    ...props
+  }: ComponentProps<'input'> & { visuallyHidden?: boolean }) => (
+    <input role="searchbox" {...props} />
+  ),
   CommandItems: ({ children }: { children: ReactNode }) => <div role="listbox">{children}</div>,
   CommandNoResults: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   CommandGroupSection: ({ children }: { children: ReactNode }) => <div>{children}</div>,

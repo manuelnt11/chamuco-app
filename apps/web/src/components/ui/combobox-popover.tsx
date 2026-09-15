@@ -25,6 +25,7 @@ interface ComboboxPopoverProps {
   searchValue?: string;
   onSearchValueChange?: (value: string) => void;
   shouldFilter?: boolean;
+  maxLength?: number;
   isLoading?: boolean;
   autoFocus?: boolean;
   children: (close: () => void) => ReactNode;
@@ -42,6 +43,7 @@ function ComboboxPopover({
   searchValue,
   onSearchValueChange,
   shouldFilter = true,
+  maxLength,
   isLoading = false,
   autoFocus = true,
   children,
@@ -62,16 +64,16 @@ function ComboboxPopover({
         {triggerChildren}
       </PopoverTrigger>
       <PopoverContent className={cn(contentClassName, 'p-0')} sideOffset={4}>
-        <Command label={searchPlaceholder} shouldFilter={shouldFilter}>
-          {searchable && (
-            <CommandSearch
-              placeholder={searchPlaceholder}
-              aria-label={searchPlaceholder}
-              autoFocus={autoFocus}
-              value={searchValue}
-              onValueChange={onSearchValueChange}
-            />
-          )}
+        <Command label={searchPlaceholder} shouldFilter={searchable ? shouldFilter : false}>
+          <CommandSearch
+            placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder}
+            autoFocus={autoFocus}
+            value={searchValue}
+            onValueChange={onSearchValueChange}
+            maxLength={maxLength}
+            visuallyHidden={!searchable}
+          />
           <CommandItems>
             {isLoading ? (
               <div className="flex items-center justify-center py-6">
