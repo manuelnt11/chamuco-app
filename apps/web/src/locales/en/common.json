@@ -75,7 +75,17 @@
   },
   "cityCombobox": {
     "placeholder": "Enter a city",
-    "selectCountryFirst": "Select a country first"
+    "selectCountryFirst": "Select a country first",
+    "typeToSearch": "Type at least 2 characters to search",
+    "noResults": "No cities found."
+  },
+  "select": {
+    "searchPlaceholder": "Search...",
+    "noResults": "No results."
+  },
+  "timezoneCombobox": {
+    "searchPlaceholder": "Search timezones...",
+    "noResults": "No timezones found."
   },
   "time": {
     "days": "{{count}} day",

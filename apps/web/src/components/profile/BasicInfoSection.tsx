@@ -123,9 +123,6 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
           value={timezone}
           onChange={setTimezone}
           placeholder={t('basicInfo.timezonePlaceholder')}
-          searchPlaceholder={t('basicInfo.timezoneSearchPlaceholder')}
-          noResultsText={t('basicInfo.timezoneNoResults')}
-          selectedHint={t('common:a11y.selected')}
           disabled={isSaving}
           aria-labelledby="timezone-label"
           className="w-full"
@@ -137,15 +134,13 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
         <Select
           id="profileVisibility"
           value={visibility}
-          onChange={(e) => setVisibility(e.target.value as ProfileVisibility)}
+          onChange={(v) => setVisibility(v as ProfileVisibility)}
+          options={Object.values(ProfileVisibility).map((v) => ({
+            value: v,
+            label: t(`basicInfo.profileVisibilityOptions.${v}`),
+          }))}
           disabled={isSaving}
-        >
-          {Object.values(ProfileVisibility).map((v) => (
-            <option key={v} value={v}>
-              {t(`basicInfo.profileVisibilityOptions.${v}`)}
-            </option>
-          ))}
-        </Select>
+        />
         <FieldMessage hint={t('basicInfo.profileVisibilityHint')} />
       </div>
 

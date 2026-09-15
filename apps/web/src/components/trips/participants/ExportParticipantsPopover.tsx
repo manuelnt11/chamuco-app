@@ -88,11 +88,14 @@ export function ExportParticipantsPopover({ tripId }: ExportParticipantsPopoverP
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             {t('participants.export.format')}
           </label>
-          <Select value={format} onChange={(e) => setFormat(e.target.value as ExportFormat)}>
-            <option value={ExportFormat.CSV}>{t('participants.export.formats.csv')}</option>
-            <option value={ExportFormat.XLSX}>{t('participants.export.formats.xlsx')}</option>
-            <option value={ExportFormat.ODS}>{t('participants.export.formats.ods')}</option>
-          </Select>
+          <Select
+            value={format}
+            onChange={(v) => setFormat(v as ExportFormat)}
+            options={Object.values(ExportFormat).map((f) => ({
+              value: f,
+              label: t(`participants.export.formats.${f}`),
+            }))}
+          />
         </div>
 
         {/* Fields */}

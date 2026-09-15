@@ -1,160 +1,107 @@
-import { type ComponentProps } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
-vi.mock('@/components/ui/input', () => ({
-  Input: (props: ComponentProps<'input'>) => <input {...props} />,
-}));
 
 import { LoyaltyProgramCombobox } from './loyalty-program-combobox';
 
 function setup(value = '', onChange = vi.fn()) {
   const user = userEvent.setup();
-  render(<LoyaltyProgramCombobox value={value} onChange={onChange} />);
-  return { user, onChange, input: screen.getByRole('textbox') };
+  render(<LoyaltyProgramCombobox value={value} onChange={onChange} data-testid="program" />);
+  return { user, onChange };
 }
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  HTMLElement.prototype.scrollIntoView = vi.fn();
+});
 
 describe('LoyaltyProgramCombobox', () => {
   describe('rendering', () => {
-    it('renders an input', () => {
+    it('shows a placeholder when value is empty', () => {
       setup();
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
+      expect(screen.getByText('loyaltyPrograms.programName')).toBeInTheDocument();
     });
 
-    it('reflects the value prop', () => {
+    it('reflects the value prop in the trigger', () => {
       setup('Delta SkyMiles');
-      expect(screen.getByRole('textbox')).toHaveValue('Delta SkyMiles');
-    });
-
-    it('passes required to the input', () => {
-      render(<LoyaltyProgramCombobox value="" onChange={vi.fn()} required />);
-      expect(screen.getByRole('textbox')).toBeRequired();
-    });
-
-    it('passes maxLength to the input', () => {
-      render(<LoyaltyProgramCombobox value="" onChange={vi.fn()} maxLength={100} />);
-      expect(screen.getByRole('textbox')).toHaveAttribute('maxLength', '100');
-    });
-
-    it('passes disabled to the input', () => {
-      render(<LoyaltyProgramCombobox value="" onChange={vi.fn()} disabled />);
-      expect(screen.getByRole('textbox')).toBeDisabled();
-    });
-
-    it('passes id to the input', () => {
-      render(<LoyaltyProgramCombobox id="program-name" value="" onChange={vi.fn()} />);
-      expect(screen.getByRole('textbox')).toHaveAttribute('id', 'program-name');
-    });
-  });
-
-  describe('dropdown visibility', () => {
-    it('shows no dropdown when value is empty', () => {
-      setup('');
-      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
-      expect(screen.queryByRole('list')).not.toBeInTheDocument();
-    });
-
-    it('shows dropdown when value matches suggestions', async () => {
-      const { user, input } = setup('');
-      await user.type(input, 'Delta');
-      expect(screen.getByRole('list')).toBeInTheDocument();
-    });
-
-    it('shows matching suggestion in the dropdown', async () => {
-      const { user, input } = setup('');
-      await user.type(input, 'Delta');
       expect(screen.getByText('Delta SkyMiles')).toBeInTheDocument();
     });
 
-    it('shows category label alongside suggestion', async () => {
-      const { user, input } = setup('');
-      await user.type(input, 'Delta');
-      // category key rendered via t() mock as-is: "loyaltyPrograms.categories.airline"
+    it('passes id to the trigger', () => {
+      render(<LoyaltyProgramCombobox id="program-name" value="" onChange={vi.fn()} />);
+      expect(document.getElementById('program-name')).toBeInTheDocument();
+    });
+
+    it('disables the trigger when disabled is set', () => {
+      render(<LoyaltyProgramCombobox value="" onChange={vi.fn()} disabled data-testid="program" />);
+      expect(screen.getByTestId('program')).toBeDisabled();
+    });
+  });
+
+  describe('suggestions', () => {
+    it('shows matching suggestions after typing', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button'));
+      await user.type(screen.getByPlaceholderText('loyaltyPrograms.programName'), 'Delta');
+      expect(screen.getByText('Delta SkyMiles')).toBeInTheDocument();
+    });
+
+    it('shows category label alongside a suggestion', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button'));
+      await user.type(screen.getByPlaceholderText('loyaltyPrograms.programName'), 'Delta');
       expect(screen.getByText('loyaltyPrograms.categories.airline')).toBeInTheDocument();
     });
 
-    it('shows no dropdown when query has no matches', async () => {
-      const { user, input } = setup('');
-      await user.type(input, 'zzznonexistent');
-      expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    it('shows the no-results hint when the query has no matches', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button'));
+      await user.type(screen.getByPlaceholderText('loyaltyPrograms.programName'), 'zzznonexistent');
+      expect(screen.getByText('loyaltyPrograms.noResults')).toBeInTheDocument();
     });
 
     it('limits results to 8 suggestions', async () => {
-      const { user, input } = setup('');
-      // "a" matches >8 programs so the cap is always exercised
-      await user.type(input, 'a');
-      const buttons = screen.getAllByRole('button');
-      expect(buttons.length).toBe(8);
-    });
-
-    it('hides dropdown after blur', async () => {
-      const { user, input } = setup('');
-      await user.type(input, 'Delta');
-      expect(screen.getByRole('list')).toBeInTheDocument();
-      fireEvent.blur(input);
-      // dropdown closes after 150ms timeout
-      await new Promise((r) => setTimeout(r, 200));
-      expect(screen.queryByRole('list')).not.toBeInTheDocument();
-    });
-
-    it('re-opens dropdown on focus when suggestions exist', async () => {
-      const { user, input } = setup('');
-      await user.type(input, 'Delta');
-      fireEvent.blur(input);
-      await new Promise((r) => setTimeout(r, 200));
-      expect(screen.queryByRole('list')).not.toBeInTheDocument();
-      fireEvent.focus(input);
-      expect(screen.getByRole('list')).toBeInTheDocument();
+      const { user } = setup();
+      await user.click(screen.getByRole('button'));
+      // "a" matches more than 8 programs so the cap is always exercised
+      await user.type(screen.getByPlaceholderText('loyaltyPrograms.programName'), 'a');
+      expect(screen.getAllByRole('option')).toHaveLength(8);
     });
   });
 
   describe('selection', () => {
-    it('calls onChange with suggestion name when selected', async () => {
-      const onChange = vi.fn();
-      render(<LoyaltyProgramCombobox value="" onChange={onChange} />);
-      const user = userEvent.setup();
-      const input = screen.getByRole('textbox');
-
-      await user.type(input, 'Delta');
-      const button = screen.getByRole('button', { name: /Delta SkyMiles/ });
-      fireEvent.mouseDown(button);
-
+    it('calls onChange with the suggestion name when selected and closes the popover', async () => {
+      const { user, onChange } = setup();
+      await user.click(screen.getByRole('button'));
+      await user.type(screen.getByPlaceholderText('loyaltyPrograms.programName'), 'Delta');
+      await user.click(screen.getByText('Delta SkyMiles'));
       expect(onChange).toHaveBeenCalledWith('Delta SkyMiles');
+      expect(screen.queryByRole('option')).not.toBeInTheDocument();
     });
 
     it('calls onChange on every keystroke', async () => {
-      const onChange = vi.fn();
-      render(<LoyaltyProgramCombobox value="" onChange={onChange} />);
-      const user = userEvent.setup();
-      await user.type(screen.getByRole('textbox'), 'Life');
+      const { user, onChange } = setup();
+      await user.click(screen.getByRole('button'));
+      await user.type(screen.getByPlaceholderText('loyaltyPrograms.programName'), 'Life');
       expect(onChange).toHaveBeenCalledTimes(4);
-    });
-
-    it('calls onChange with empty string when input is cleared', async () => {
-      const onChange = vi.fn();
-      render(<LoyaltyProgramCombobox value="LifeMiles" onChange={onChange} />);
-      const user = userEvent.setup();
-      await user.clear(screen.getByRole('textbox'));
-      expect(onChange).toHaveBeenLastCalledWith('');
+      expect(onChange).toHaveBeenLastCalledWith('Life');
     });
   });
 
   describe('external value sync', () => {
-    it('updates input when value prop changes via rerender', () => {
+    it('updates the trigger when value prop changes via rerender', () => {
       const { rerender } = render(
         <LoyaltyProgramCombobox value="Delta SkyMiles" onChange={vi.fn()} />,
       );
-      expect(screen.getByRole('textbox')).toHaveValue('Delta SkyMiles');
+      expect(screen.getByText('Delta SkyMiles')).toBeInTheDocument();
       rerender(<LoyaltyProgramCombobox value="Marriott Bonvoy" onChange={vi.fn()} />);
-      expect(screen.getByRole('textbox')).toHaveValue('Marriott Bonvoy');
-    });
-
-    it('clears input when value prop is reset to empty string', () => {
-      const { rerender } = render(
-        <LoyaltyProgramCombobox value="Delta SkyMiles" onChange={vi.fn()} />,
-      );
-      rerender(<LoyaltyProgramCombobox value="" onChange={vi.fn()} />);
-      expect(screen.getByRole('textbox')).toHaveValue('');
+      expect(screen.getByText('Marriott Bonvoy')).toBeInTheDocument();
     });
   });
 });

@@ -324,29 +324,31 @@ describe('LoyaltyProgramsSection', () => {
   });
 
   describe('input constraints', () => {
-    it('sets maxLength 100 on programName input in add form', async () => {
-      const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
-        'maxLength',
-        '100',
-      );
-    });
-
     it('sets maxLength 100 on memberId input in add form', async () => {
       const { user } = setup();
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('loyaltyPrograms.memberId')).toHaveAttribute('maxLength', '100');
     });
+  });
 
-    it('sets maxLength 100 on programName input in edit form', async () => {
+  describe('program name validation', () => {
+    it('blocks add and shows an error when programName is empty', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
+      await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'LM999');
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('loyaltyPrograms.programNameRequired');
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('blocks update and shows an error when programName is cleared', async () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
-      expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
-        'maxLength',
-        '100',
-      );
+      await user.clear(screen.getByLabelText('loyaltyPrograms.programName'));
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('loyaltyPrograms.programNameRequired');
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
     });
   });
 

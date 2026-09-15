@@ -95,12 +95,30 @@ function setup(passportNumber: string | null = PASSPORT_NUMBER) {
   return { user };
 }
 
+async function selectFromCombobox(
+  user: ReturnType<typeof userEvent.setup>,
+  labelText: string,
+  optionName: string,
+) {
+  await user.click(screen.getByLabelText(labelText));
+  await user.click(screen.getByRole('option', { name: optionName }));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockGet.mockResolvedValue({ data: sampleEtas });
   mocks.mockPost.mockResolvedValue({});
   mocks.mockPatch.mockResolvedValue({});
   mocks.mockDelete.mockResolvedValue({});
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
 describe('EtasSubsection', () => {
@@ -222,8 +240,16 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1B2C3D4E5' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'MULTIPLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.MULTIPLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -257,8 +283,16 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1B2C3' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -281,8 +315,16 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1B2C3' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -300,8 +342,16 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1B2C3' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -333,8 +383,16 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1B2C3' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -347,8 +405,16 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       await user.selectOptions(screen.getByTestId('country-combobox'), 'CA');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -364,8 +430,16 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1 B2' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -381,8 +455,16 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1-B2C3' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.etas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -408,7 +490,11 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1B2C3' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.entriesRequired')).toBeInTheDocument();
     });
@@ -420,8 +506,16 @@ describe('EtasSubsection', () => {
       fireEvent.change(screen.getByLabelText('nationalities.etas.authorizationNumber'), {
         target: { value: 'A1B2C3' },
       });
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.etaType',
+        'nationalities.etas.etaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.etas.entries',
+        'nationalities.etas.entriesOptions.SINGLE',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.expiryRequired')).toBeInTheDocument();
     });
@@ -534,7 +628,7 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.entries'), '');
+      await selectFromCombobox(user, 'nationalities.etas.entries', 'nationalities.etas.entries');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.entriesRequired')).toBeInTheDocument();
       expect(mocks.mockPatch).not.toHaveBeenCalled();
@@ -554,7 +648,7 @@ describe('EtasSubsection', () => {
       const { user } = setup();
       await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
-      await user.selectOptions(screen.getByLabelText('nationalities.etas.etaType'), '');
+      await selectFromCombobox(user, 'nationalities.etas.etaType', 'nationalities.etas.etaType');
       await user.click(screen.getByRole('button', { name: 'nationalities.etas.save' }));
       expect(screen.getByText('nationalities.etas.errors.typeRequired')).toBeInTheDocument();
       expect(mocks.mockPatch).not.toHaveBeenCalled();

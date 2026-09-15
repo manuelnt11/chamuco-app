@@ -1,14 +1,18 @@
 'use client';
 
-import { useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isoByCallingCode } from '@/lib/countries';
 import { PlusIcon } from '@phosphor-icons/react';
 
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ComboboxPopover } from '@/components/ui/combobox-popover';
+import { CommandOption } from '@/components/ui/command';
 import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SelectItem } from '@/components/ui/select-item';
 import { getCallingCode } from '@/components/ui/country-combobox';
 import { PhoneInput, cleanPhoneNumber, isPhoneValid } from '@/components/ui/phone-input';
 import { SaveButton } from '@/components/ui/save-button';
@@ -71,6 +75,84 @@ function makeEmptyForm(isPrimary = false): FormState {
 
 function getIsoFromCallingCode(callingCode: string): string {
   return isoByCallingCode(callingCode.replace('+', '')) ?? 'CO';
+}
+
+interface RelationshipComboboxProps {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  'aria-invalid'?: boolean;
+}
+
+function RelationshipCombobox({
+  id,
+  value,
+  onChange,
+  disabled,
+  'aria-invalid': ariaInvalid,
+}: RelationshipComboboxProps) {
+  const { t } = useTranslation('profile');
+  const [query, setQuery] = useState(value);
+
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
+
+  function handleQueryChange(raw: string) {
+    const upper = raw.toUpperCase();
+    setQuery(upper);
+    onChange(upper);
+  }
+
+  function handleSelect(label: string, close: () => void) {
+    setQuery(label);
+    onChange(label);
+    close();
+  }
+
+  const allLabels = RELATIONSHIP_KEYS.map((key) =>
+    t(`emergencyContacts.relationshipOptions.${key}`),
+  );
+  const suggestions = query.trim()
+    ? allLabels.filter((label) => label.toLowerCase().includes(query.toLowerCase()))
+    : allLabels;
+
+  return (
+    <ComboboxPopover
+      trigger={
+        <Button
+          id={id}
+          variant="outline"
+          disabled={disabled}
+          aria-invalid={ariaInvalid}
+          className="w-full justify-start font-normal uppercase"
+        />
+      }
+      triggerChildren={
+        <span className={cn('truncate', !value && 'font-normal text-muted-foreground normal-case')}>
+          {value || t('emergencyContacts.relationship')}
+        </span>
+      }
+      contentClassName="w-[var(--anchor-width)]"
+      searchable
+      searchValue={query}
+      onSearchValueChange={handleQueryChange}
+      shouldFilter={false}
+      searchPlaceholder={t('emergencyContacts.relationship')}
+      noResultsText={t('emergencyContacts.relationshipNoResults')}
+    >
+      {(close) =>
+        suggestions.map((label) => (
+          <CommandOption key={label} value={label} onSelect={() => handleSelect(label, close)}>
+            <SelectItem>
+              <span className="truncate">{label}</span>
+            </SelectItem>
+          </CommandOption>
+        ))
+      }
+    </ComboboxPopover>
+  );
 }
 
 interface ContactFormProps {
@@ -137,23 +219,13 @@ function ContactForm({
 
       <div className="space-y-1.5">
         <Label htmlFor={`${idPrefix}-relationship`}>{t('emergencyContacts.relationship')}</Label>
-        <Input
+        <RelationshipCombobox
           id={`${idPrefix}-relationship`}
-          list={`${idPrefix}-relationship-options`}
           value={form.relationship}
-          onChange={(e) => onChange({ relationship: e.target.value.toUpperCase() })}
-          autoCapitalize="characters"
-          minLength={2}
-          maxLength={50}
-          aria-invalid={errors.relationship !== null}
+          onChange={(v) => onChange({ relationship: v })}
           disabled={isSaving}
-          className="uppercase placeholder:normal-case"
+          aria-invalid={errors.relationship !== null}
         />
-        <datalist id={`${idPrefix}-relationship-options`}>
-          {RELATIONSHIP_KEYS.map((key) => (
-            <option key={key} value={t(`emergencyContacts.relationshipOptions.${key}`)} />
-          ))}
-        </datalist>
         <FieldMessage error={errors.relationship} />
       </div>
 

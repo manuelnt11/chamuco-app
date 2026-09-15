@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CaretUpDownIcon, CheckIcon } from '@phosphor-icons/react';
+import { CaretUpDownIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
 import {
@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ComboboxPopover } from '@/components/ui/combobox-popover';
 import { CommandOption } from '@/components/ui/command';
+import { SelectItem } from '@/components/ui/select-item';
 
 // ---------------------------------------------------------------------------
 // Utilities
@@ -96,23 +97,22 @@ function CountryCombobox({
               close();
             }}
           >
-            <span className="text-base leading-none">{getEmojiFlag(c.iso2)}</span>
-            {displayMode === 'phone' ? (
-              <>
-                <span className="font-mono text-sm">+{c.dialCode}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {c.name.toUpperCase()}
-                </span>
-              </>
-            ) : (
-              <span className="truncate">{c.name.toUpperCase()}</span>
-            )}
-            {value === c.iso2 && (
-              <>
-                <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" aria-hidden="true" />
-                <span className="sr-only">, {selectedHint}</span>
-              </>
-            )}
+            <SelectItem
+              icon={getEmojiFlag(c.iso2)}
+              selected={value === c.iso2}
+              selectedHint={selectedHint}
+            >
+              {displayMode === 'phone' ? (
+                <>
+                  <span className="font-mono text-sm">+{c.dialCode}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {c.name.toUpperCase()}
+                  </span>
+                </>
+              ) : (
+                <span className="truncate">{c.name.toUpperCase()}</span>
+              )}
+            </SelectItem>
           </CommandOption>
         ))
       }

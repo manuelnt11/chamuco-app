@@ -503,7 +503,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                 value={defaultTimezone}
                 onChange={setDefaultTimezone}
                 placeholder={t('form.defaultTimezonePlaceholder')}
-                searchPlaceholder={t('common:actions.search')}
                 disabled={isSaving}
               />
             </div>

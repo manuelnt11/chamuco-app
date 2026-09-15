@@ -23,8 +23,6 @@
     "bioPlaceholder": "Cuéntales a otros sobre ti...",
     "timezone": "Zona horaria",
     "timezonePlaceholder": "Selecciona una zona horaria",
-    "timezoneSearchPlaceholder": "Buscar zonas horarias...",
-    "timezoneNoResults": "No se encontró zona horaria.",
     "avatarEditor": {
       "editButton": "Cambiar avatar",
       "tabPhoto": "Subir foto",
@@ -161,6 +159,8 @@
     "deleteSuccess": "Programa eliminado",
     "saveError": "Error al guardar",
     "duplicateError": "Ya tienes este programa con el mismo número de socio.",
+    "noResults": "Sin coincidencias — puedes ingresar el nombre de tu propio programa.",
+    "programNameRequired": "El nombre del programa es obligatorio",
     "categories": {
       "airline": "Aerolínea",
       "hotel": "Hotel",
@@ -287,6 +287,7 @@
     "fullName": "Nombre completo",
     "phoneNumber": "Número de teléfono",
     "relationship": "Relación",
+    "relationshipNoResults": "Sin coincidencias — puedes ingresar tu propia relación.",
     "isPrimary": "Contacto principal",
     "primaryBadge": "Principal",
     "addSuccess": "Contacto añadido.",

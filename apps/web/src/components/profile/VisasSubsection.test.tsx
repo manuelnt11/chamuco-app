@@ -87,12 +87,30 @@ function setup() {
   return { user };
 }
 
+async function selectFromCombobox(
+  user: ReturnType<typeof userEvent.setup>,
+  labelText: string,
+  optionName: string,
+) {
+  await user.click(screen.getByLabelText(labelText));
+  await user.click(screen.getByRole('option', { name: optionName }));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockGet.mockResolvedValue({ data: sampleVisas });
   mocks.mockPost.mockResolvedValue({});
   mocks.mockPatch.mockResolvedValue({});
   mocks.mockDelete.mockResolvedValue({});
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
 describe('VisasSubsection', () => {
@@ -171,9 +189,10 @@ describe('VisasSubsection', () => {
     it('shows country combobox when COUNTRY coverage selected', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       expect(screen.getByTestId('country-combobox')).toBeInTheDocument();
     });
@@ -181,7 +200,11 @@ describe('VisasSubsection', () => {
     it('shows zone select when ZONE coverage selected', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.coverageType'), 'ZONE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.ZONE',
+      );
       expect(screen.getByLabelText('nationalities.visas.zone')).toBeInTheDocument();
     });
 
@@ -196,13 +219,22 @@ describe('VisasSubsection', () => {
     it('calls POST with COUNTRY visa payload', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.entries',
+        'nationalities.visas.entriesOptions.MULTIPLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -225,10 +257,26 @@ describe('VisasSubsection', () => {
     it('calls POST with ZONE visa payload', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.coverageType'), 'ZONE');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.zone'), 'SCHENGEN');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.ZONE',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.zone',
+        'nationalities.visas.zones.SCHENGEN',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.BUSINESS',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.entries',
+        'nationalities.visas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -249,13 +297,22 @@ describe('VisasSubsection', () => {
     it('includes notes in POST when provided', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'SINGLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.entries',
+        'nationalities.visas.entriesOptions.SINGLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -274,13 +331,22 @@ describe('VisasSubsection', () => {
     it('shows success toast after add', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.entries',
+        'nationalities.visas.entriesOptions.MULTIPLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -294,13 +360,22 @@ describe('VisasSubsection', () => {
       mocks.mockPost.mockRejectedValue(new Error('network'));
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.entries',
+        'nationalities.visas.entriesOptions.MULTIPLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -328,8 +403,16 @@ describe('VisasSubsection', () => {
       const { user } = setup();
       await openAddForm(user);
       // Fill other fields to enable save button (isAddDirty), but leave coverageType empty
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.entries',
+        'nationalities.visas.entriesOptions.MULTIPLE',
+      );
       fireEvent.change(screen.getByLabelText('nationalities.visas.expiryDate'), {
         target: { value: '2027-12-31' },
       });
@@ -341,9 +424,10 @@ describe('VisasSubsection', () => {
     it('shows country required error when COUNTRY selected but no country', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.countryRequired')).toBeInTheDocument();
@@ -353,7 +437,11 @@ describe('VisasSubsection', () => {
     it('shows zone required error when ZONE selected but no zone', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.coverageType'), 'ZONE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.ZONE',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.zoneRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -362,9 +450,10 @@ describe('VisasSubsection', () => {
     it('shows type required error', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
@@ -374,12 +463,17 @@ describe('VisasSubsection', () => {
     it('shows entries required error', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.TOURIST',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.entriesRequired')).toBeInTheDocument();
     });
@@ -387,13 +481,22 @@ describe('VisasSubsection', () => {
     it('shows expiry required error', async () => {
       const { user } = setup();
       await openAddForm(user);
-      await user.selectOptions(
-        screen.getByLabelText('nationalities.visas.coverageType'),
-        'COUNTRY',
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.coverageType',
+        'nationalities.visas.coverageTypes.COUNTRY',
       );
       await user.selectOptions(screen.getByTestId('country-combobox'), 'US');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'TOURIST');
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), 'MULTIPLE');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.TOURIST',
+      );
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.entries',
+        'nationalities.visas.entriesOptions.MULTIPLE',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.expiryRequired')).toBeInTheDocument();
     });
@@ -421,7 +524,11 @@ describe('VisasSubsection', () => {
       const { user } = setup();
       await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.BUSINESS',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith(
@@ -435,7 +542,11 @@ describe('VisasSubsection', () => {
       const { user } = setup();
       await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.BUSINESS',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.success)).toHaveBeenCalledWith('nationalities.visas.updateSuccess'),
@@ -447,7 +558,11 @@ describe('VisasSubsection', () => {
       const { user } = setup();
       await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), 'BUSINESS');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaTypes.BUSINESS',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.error)).toHaveBeenCalledWith('nationalities.visas.saveError'),
@@ -466,7 +581,7 @@ describe('VisasSubsection', () => {
       const { user } = setup();
       await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.entries'), '');
+      await selectFromCombobox(user, 'nationalities.visas.entries', 'nationalities.visas.entries');
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.entriesRequired')).toBeInTheDocument();
       expect(mocks.mockPatch).not.toHaveBeenCalled();
@@ -486,7 +601,11 @@ describe('VisasSubsection', () => {
       const { user } = setup();
       await waitFor(() => screen.getAllByRole('button', { name: 'actions.edit' }));
       await user.click(screen.getAllByRole('button', { name: 'actions.edit' })[0]!);
-      await user.selectOptions(screen.getByLabelText('nationalities.visas.visaType'), '');
+      await selectFromCombobox(
+        user,
+        'nationalities.visas.visaType',
+        'nationalities.visas.visaType',
+      );
       await user.click(screen.getByRole('button', { name: 'nationalities.visas.save' }));
       expect(screen.getByText('nationalities.visas.errors.typeRequired')).toBeInTheDocument();
       expect(mocks.mockPatch).not.toHaveBeenCalled();

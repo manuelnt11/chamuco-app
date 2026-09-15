@@ -83,6 +83,15 @@ function setup(userOverride?: Partial<AppUser>, profileOverride?: Partial<BasicI
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockPatch.mockResolvedValue({});
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
 describe('BasicInfoSection', () => {
@@ -237,9 +246,9 @@ describe('BasicInfoSection', () => {
 
     it('includes profileVisibility in the PATCH /v1/users/me payload', async () => {
       const { user } = setup({ profileVisibility: ProfileVisibility.PRIVATE });
-      await user.selectOptions(
-        screen.getByLabelText('basicInfo.profileVisibility'),
-        'basicInfo.profileVisibilityOptions.PUBLIC',
+      await user.click(screen.getByLabelText('basicInfo.profileVisibility'));
+      await user.click(
+        screen.getByRole('option', { name: 'basicInfo.profileVisibilityOptions.PUBLIC' }),
       );
       await user.click(screen.getByRole('button', { name: 'basicInfo.save' }));
       await waitFor(() =>
@@ -343,9 +352,9 @@ describe('BasicInfoSection', () => {
 
     it('shows indicator after changing profileVisibility', async () => {
       const { user } = setup({ profileVisibility: ProfileVisibility.PRIVATE });
-      await user.selectOptions(
-        screen.getByLabelText('basicInfo.profileVisibility'),
-        'basicInfo.profileVisibilityOptions.PUBLIC',
+      await user.click(screen.getByLabelText('basicInfo.profileVisibility'));
+      await user.click(
+        screen.getByRole('option', { name: 'basicInfo.profileVisibilityOptions.PUBLIC' }),
       );
       expect(screen.getByTestId('unsaved-indicator')).toBeInTheDocument();
     });

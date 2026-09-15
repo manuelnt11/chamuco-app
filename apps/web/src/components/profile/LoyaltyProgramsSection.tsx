@@ -66,8 +66,6 @@ function ProgramForm({
           id={`${idPrefix}-programName`}
           value={form.programName}
           onChange={onChangeProgramName}
-          required
-          maxLength={100}
           disabled={isSaving}
         />
       </div>
@@ -149,6 +147,10 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
 
   async function handleAdd(e: SubmitEvent) {
     e.preventDefault();
+    if (!addForm.programName.trim()) {
+      toast.error(t('loyaltyPrograms.programNameRequired'));
+      return;
+    }
     const nameNorm = addForm.programName.trim().toLowerCase();
     const memberNorm = addForm.memberId.trim().toLowerCase();
     const isDuplicate = programs.some(
@@ -179,6 +181,10 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
   async function handleUpdate(e: SubmitEvent) {
     e.preventDefault();
     if (!editingId) return;
+    if (!editForm.programName.trim()) {
+      toast.error(t('loyaltyPrograms.programNameRequired'));
+      return;
+    }
     setIsSaving(true);
     try {
       await updateLoyaltyProgram(editingId, {

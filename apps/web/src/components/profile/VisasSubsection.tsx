@@ -118,24 +118,24 @@ function VisaForm({
           <Select
             id={`${idPrefix}-coverageType`}
             value={form.coverageType}
-            onChange={(e) =>
+            onChange={(v) =>
               onChange({
-                coverageType: e.target.value as VisaCoverageType | '',
+                coverageType: v as VisaCoverageType | '',
                 countryCode: '',
                 visaZone: '',
               })
             }
+            options={[
+              {
+                value: VisaCoverageType.COUNTRY,
+                label: t('nationalities.visas.coverageTypes.COUNTRY'),
+              },
+              { value: VisaCoverageType.ZONE, label: t('nationalities.visas.coverageTypes.ZONE') },
+            ]}
+            placeholder={t('nationalities.visas.coverageType')}
             disabled={isSaving}
             aria-invalid={errors.coverage !== null}
-          >
-            <option value="">{t('nationalities.visas.coverageType')}</option>
-            <option value={VisaCoverageType.COUNTRY}>
-              {t('nationalities.visas.coverageTypes.COUNTRY')}
-            </option>
-            <option value={VisaCoverageType.ZONE}>
-              {t('nationalities.visas.coverageTypes.ZONE')}
-            </option>
-          </Select>
+          />
         )}
         <FieldMessage error={errors.coverage} />
       </div>
@@ -175,17 +175,15 @@ function VisaForm({
             <Select
               id={`${idPrefix}-visaZone`}
               value={form.visaZone}
-              onChange={(e) => onChange({ visaZone: e.target.value as VisaZone | '' })}
+              onChange={(v) => onChange({ visaZone: v as VisaZone | '' })}
+              options={Object.values(VisaZone).map((zone) => ({
+                value: zone,
+                label: t(`nationalities.visas.zones.${zone}`),
+              }))}
+              placeholder={t('nationalities.visas.zone')}
               disabled={isSaving}
               aria-invalid={errors.zone !== null}
-            >
-              <option value="">{t('nationalities.visas.zone')}</option>
-              {Object.values(VisaZone).map((zone) => (
-                <option key={zone} value={zone}>
-                  {t(`nationalities.visas.zones.${zone}`)}
-                </option>
-              ))}
-            </Select>
+            />
           )}
           <FieldMessage error={errors.zone} />
         </div>
@@ -197,17 +195,15 @@ function VisaForm({
         <Select
           id={`${idPrefix}-visaType`}
           value={form.visaType}
-          onChange={(e) => onChange({ visaType: e.target.value as VisaType | '' })}
+          onChange={(v) => onChange({ visaType: v as VisaType | '' })}
+          options={Object.values(VisaType).map((type) => ({
+            value: type,
+            label: t(`nationalities.visas.visaTypes.${type}`),
+          }))}
+          placeholder={t('nationalities.visas.visaType')}
           disabled={isSaving}
           aria-invalid={errors.visaType !== null}
-        >
-          <option value="">{t('nationalities.visas.visaType')}</option>
-          {Object.values(VisaType).map((type) => (
-            <option key={type} value={type}>
-              {t(`nationalities.visas.visaTypes.${type}`)}
-            </option>
-          ))}
-        </Select>
+        />
         <FieldMessage error={errors.visaType} />
       </div>
 
@@ -217,17 +213,15 @@ function VisaForm({
         <Select
           id={`${idPrefix}-entries`}
           value={form.entries}
-          onChange={(e) => onChange({ entries: e.target.value as VisaEntries | '' })}
+          onChange={(v) => onChange({ entries: v as VisaEntries | '' })}
+          options={Object.values(VisaEntries).map((entry) => ({
+            value: entry,
+            label: t(`nationalities.visas.entriesOptions.${entry}`),
+          }))}
+          placeholder={t('nationalities.visas.entries')}
           disabled={isSaving}
           aria-invalid={errors.entries !== null}
-        >
-          <option value="">{t('nationalities.visas.entries')}</option>
-          {Object.values(VisaEntries).map((entry) => (
-            <option key={entry} value={entry}>
-              {t(`nationalities.visas.entriesOptions.${entry}`)}
-            </option>
-          ))}
-        </Select>
+        />
         <FieldMessage error={errors.entries} />
       </div>
 

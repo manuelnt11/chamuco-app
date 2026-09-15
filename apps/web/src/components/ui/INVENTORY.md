@@ -219,6 +219,25 @@ None
 
 ---
 
+## city-combobox.test.tsx
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen` render/query helpers
+- `@testing-library/user-event` — `userEvent` for simulating user interactions
+- `./city-combobox` — `CityCombobox` component under test
+- `@/hooks/useCitySearch` — mocked to control `results`/`isLoading` deterministically
+
+### Definitions
+
+- `CityCombobox` tests (test suite) — verifies placeholder text (country set vs empty), uppercased trigger value, type-to-search/loading/no-results states, rendered result rows, selection closing the popover, and clearing the search calling `onChange('')`
+
+### Exports
+
+- None (test file)
+
+---
+
 ## city-combobox.tsx
 
 ### Imports
@@ -226,14 +245,16 @@ None
 - `react` — `useEffect`, `useState` hooks
 - `react-i18next` — `useTranslation` for i18n default placeholder text
 - `@/lib/utils` — `cn` class merging helper
-- `@/components/ui/input` — `Input` text field
-- `@/components/ui/spinner` — `Spinner` loading indicator
+- `@/components/ui/button` — `Button` trigger button
+- `@/components/ui/combobox-popover` — `ComboboxPopover` shared Popover+Command wiring
+- `@/components/ui/command` — `CommandOption` individual option row
+- `@/components/ui/select-item` — `SelectItem` shared icon/label/selected-state item renderer
 - `@/hooks/useCitySearch` — `useCitySearch` hook for debounced city search
 
 ### Definitions
 
 - `CityComboboxProps` (interface) — prop types for `CityCombobox`; no `placeholder` prop — derived internally from `country` prop via i18n
-- `CityCombobox` (component) — text input with dropdown autocomplete for city search; forces uppercase values; shows "Select a country first" hint when `country` is empty
+- `CityCombobox` (component) — searchable popover combobox for city search built on `ComboboxPopover`; forces uppercase values; shows "Select a country first" hint when `country` is empty; drives `ComboboxPopover`'s controlled `searchValue`/`onSearchValueChange`/`shouldFilter={false}`/`isLoading` props since results are server-filtered; shows a context-aware no-results message (type-to-search hint below 2 chars, "no cities found" otherwise)
 
 ### Exports
 
@@ -251,6 +272,10 @@ None
 - `@/components/ui/button` — `Button` used as the test trigger element
 - `@/components/ui/command` — `CommandOption` used to render test options
 
+### Definitions
+
+- `ComboboxPopover` tests (test suite) — verifies trigger rendering, open/close on click and on `disabled`, search placeholder/accessible name, no-results text, `onSelect`+`close()`, content width, plus `searchable={false}` hiding the search box, `isLoading` showing a spinner in place of options, controlled `searchValue`/`onSearchValueChange`, and `shouldFilter={false}` keeping externally pre-filtered options visible
+
 ### Exports
 
 - None (test file)
@@ -265,11 +290,12 @@ None
 - `@/lib/utils` — `cn` class merging helper
 - `@/components/ui/popover` — `Popover`, `PopoverContent`, `PopoverTrigger` floating popover
 - `@/components/ui/command` — `Command`, `CommandGroupSection`, `CommandItems`, `CommandNoResults`, `CommandSearch` command palette components
+- `@/components/ui/spinner` — `Spinner` shown in place of the option list when `isLoading`
 
 ### Definitions
 
-- `ComboboxPopoverProps` (interface) — prop types for `ComboboxPopover`; `trigger`/`triggerChildren` split mirrors `PopoverTrigger`'s `render` composition; `children` is a render-prop receiving `close()` so single-select callers can close the popover on select while multi-select callers can ignore it
-- `ComboboxPopover` (component) — shared `Popover` + `Command` wiring extracted from `country-combobox.tsx`, `timezone-combobox.tsx`, and `multi-select.tsx`; owns open state, closes automatically when `disabled` becomes true while open, and sets `Command`'s `label` prop (used internally by `cmdk` for the search input's `aria-labelledby`) so the search box always has an accessible name even though only a `placeholder` is visually shown
+- `ComboboxPopoverProps` (interface) — prop types for `ComboboxPopover`; `trigger`/`triggerChildren` split mirrors `PopoverTrigger`'s `render` composition; `children` is a render-prop receiving `close()` so single-select callers can close the popover on select while multi-select callers can ignore it; `searchable` (default `true`) toggles the search box; `searchValue`/`onSearchValueChange` externally control the search input (for async/free-text consumers); `shouldFilter` (default `true`) forwards to `cmdk`'s own substring filter, set `false` when the caller pre-filters; `isLoading` swaps the option list for a `Spinner`
+- `ComboboxPopover` (component) — shared `Popover` + `Command` wiring used by `select.tsx`, `country-combobox.tsx`, `timezone-combobox.tsx`, `multi-select.tsx`, `city-combobox.tsx`, and `loyalty-program-combobox.tsx`; owns open state, closes automatically when `disabled` becomes true while open, and sets `Command`'s `label` prop (used internally by `cmdk` for the search input's `aria-labelledby`) so the search box always has an accessible name even though only a `placeholder` is visually shown
 
 ### Exports
 
@@ -307,17 +333,18 @@ None
 
 - `react` — `useMemo` hook
 - `react-i18next` — `useTranslation` for locale detection
-- `@phosphor-icons/react` — `CaretUpDownIcon`, `CheckIcon` icons
+- `@phosphor-icons/react` — `CaretUpDownIcon` icon
 - `@/lib/utils` — `cn` class merging helper
 - `@/lib/countries` — `buildCountryList`, `getCallingCodePrefix`, `getEmojiFlag`, `CountryEntry` country data utilities
 - `@/components/ui/button` — `Button` trigger button
 - `@/components/ui/combobox-popover` — `ComboboxPopover` shared Popover+Command wiring
 - `@/components/ui/command` — `CommandOption` individual option row
+- `@/components/ui/select-item` — `SelectItem` shared icon/label/selected-state item renderer
 
 ### Definitions
 
 - `CountryComboboxProps` (interface) — prop types for `CountryCombobox`; supports `name` or `phone` display modes; no text override props — all default text resolved from i18n
-- `CountryCombobox` (component) — country picker with emoji flag, name or dial-code display, and searchable popover command palette; full-width button; defaults resolved from `common:countryCombobox.*` i18n keys; selected option appends a visually-hidden `common:a11y.selected` hint (cmdk's own `aria-selected` reflects keyboard highlight, not the chosen value, so it can't be relied on for this)
+- `CountryCombobox` (component) — country picker with emoji flag, name or dial-code display, and searchable popover command palette; full-width button; defaults resolved from `common:countryCombobox.*` i18n keys; option rows render via `SelectItem` (flag icon + selected checkmark), keeping its own bespoke two-part phone-mode label (dial code + country name) since that doesn't fit `Select`'s single-label option model
 
 ### Exports
 
@@ -694,14 +721,13 @@ None
 
 ### Imports
 
-- `react` — `ComponentProps` for mock component types
-- `@testing-library/react` — `render`, `screen`, `fireEvent` render/query helpers
+- `@testing-library/react` — `render`, `screen` render/query helpers
 - `@testing-library/user-event` — `userEvent` for simulating user interactions
 - `./loyalty-program-combobox` — `LoyaltyProgramCombobox` component under test
 
 ### Definitions
 
-- `LoyaltyProgramCombobox` tests (test suite) — verifies rendering, dropdown visibility, suggestion filtering/capping at 8, selection, blur/focus lifecycle, and external value sync
+- `LoyaltyProgramCombobox` tests (test suite) — verifies trigger placeholder/value/id/disabled, suggestion matching/category label/capping at 8, no-results hint, selection closing the popover, `onChange` firing every keystroke, and external value sync via rerender
 
 ### Exports
 
@@ -713,15 +739,19 @@ None
 
 ### Imports
 
-- `react` — `useEffect`, `useRef`, `useState` hooks
+- `react` — `useEffect`, `useState` hooks
 - `react-i18next` — `useTranslation` for i18n `t()` accessor
 - `@chamuco/shared-types` — `LOYALTY_PROGRAM_SUGGESTIONS`, `LoyaltyProgramCategory` suggestions data and category type
-- `@/components/ui/input` — `Input` text field
+- `@/lib/utils` — `cn` class merging helper
+- `@/components/ui/button` — `Button` trigger button
+- `@/components/ui/combobox-popover` — `ComboboxPopover` shared Popover+Command wiring
+- `@/components/ui/command` — `CommandOption` individual option row
+- `@/components/ui/select-item` — `SelectItem` shared icon/label/selected-state item renderer
 
 ### Definitions
 
-- `LoyaltyProgramComboboxProps` (interface) — `id`, `value`, `onChange`, `required`, `maxLength`, `disabled`
-- `LoyaltyProgramCombobox` (component) — free-text input with a dropdown showing up to 8 matching loyalty program suggestions from a static list
+- `LoyaltyProgramComboboxProps` (interface) — `id`, `value`, `onChange`, `disabled`, `className`, `data-testid`; no `required`/`maxLength` (no literal `<input>` backs the field anymore — callers needing that validation must check it in their own submit handler, see `LoyaltyProgramsSection.tsx`)
+- `LoyaltyProgramCombobox` (component) — free-text popover combobox built on `ComboboxPopover`, showing up to 8 matching loyalty program suggestions (with category subtitle) from a static list; drives `ComboboxPopover`'s controlled `searchValue`/`onSearchValueChange`/`shouldFilter={false}` since it does its own local substring filtering; typed text that matches nothing is still accepted as free text via `onChange`
 
 ### Exports
 
@@ -797,6 +827,10 @@ None
 - `@testing-library/user-event` — `userEvent` for simulating user interactions
 - `./multi-select` — `MultiSelect` component under test
 
+### Definitions
+
+- `MultiSelect` tests (test suite) — verifies placeholder/chip rendering, option list, toggle-on-select/toggle-off-when-already-selected, selected hint, chip removal (and that it doesn't reopen the popover), `disabled`, and an option's `icon` rendering when provided
+
 ### Exports
 
 - None (test file)
@@ -807,18 +841,19 @@ None
 
 ### Imports
 
-- `@phosphor-icons/react` — `CaretUpDownIcon`, `CheckIcon`, `XIcon` icons
+- `@phosphor-icons/react` — `CaretUpDownIcon`, `XIcon` icons
 - `@/lib/utils` — `cn` class merging helper
 - `@/components/ui/badge` — `Badge` chip rendering for selected values
 - `@/components/ui/button` — `buttonVariants` cva classes applied to the non-native trigger `<div>`
 - `@/components/ui/combobox-popover` — `ComboboxPopover` shared Popover+Command wiring
 - `@/components/ui/command` — `CommandOption` individual option row
+- `@/components/ui/select-item` — `SelectItem`, `SelectOption` shared icon/label/selected-state item renderer and option data shape
 
 ### Definitions
 
-- `MultiSelectOption` (interface) — `{ value, label }` shape for selectable options
+- `MultiSelectOption` (type) — re-export of `SelectOption` (`{ value, label, icon? }`) from `select-item.tsx`, kept under its original name for existing consumers
 - `MultiSelectProps` (interface) — prop types for `MultiSelect`; all display text passed in by the caller, no i18n coupling, including `selectedHint` for the screen-reader-only "selected" announcement
-- `MultiSelect` (component) — searchable multi-select combobox built on `ComboboxPopover`; trigger renders as a plain `<div>` styled via `buttonVariants` (not the `Button` component — Base UI's `Button` always renders a literal `<button>` unless also given a `render` override, so using it here would still produce an invalid `<button>`-in-`<button>` for the chip remove controls) so selected-value chips (each with its own remove button, `title`+`aria-label` on the remove icon) can live inside the trigger box without invalid nested `<button>` markup; chip removal stops event propagation so it doesn't toggle the popover; each selected option appends a visually-hidden `, {selectedHint}` span instead of `aria-selected` (cmdk's `CommandItem` unconditionally overwrites `aria-selected` with its own keyboard-highlight state, so the attribute can't carry "is this value chosen")
+- `MultiSelect` (component) — searchable multi-select combobox built on `ComboboxPopover`; trigger renders as a plain `<div>` styled via `buttonVariants` (not the `Button` component — Base UI's `Button` always renders a literal `<button>` unless also given a `render` override, so using it here would still produce an invalid `<button>`-in-`<button>` for the chip remove controls) so selected-value chips (each with its own remove button, `title`+`aria-label` on the remove icon) can live inside the trigger box without invalid nested `<button>` markup; chip removal stops event propagation so it doesn't toggle the popover; each option renders via `SelectItem` (optional icon + selected checkmark + visually-hidden `, {selectedHint}` span, since cmdk's `CommandItem` unconditionally overwrites `aria-selected` with its own keyboard-highlight state)
 
 ### Exports
 
@@ -989,21 +1024,60 @@ None
 
 ---
 
-## select.test.tsx
+## select-item.test.tsx
 
 ### Imports
 
 - `@testing-library/react` — `render`, `screen` render/query helpers
 - `vitest` — `describe`, `it`, `expect`
+- `./select-item` — `SelectItem` component under test
+
+### Definitions
+
+- `SelectItem` tests (test suite) — verifies children rendering, icon rendering (`aria-hidden`) when passed and omission when not, checkmark rendering only when `selected`, and `selectedHint` sr-only text rendering only when both `selected` and provided
+
+### Exports
+
+- None (test file)
+
+---
+
+## select-item.tsx
+
+### Imports
+
+- `react` — `ReactNode` type
+- `@phosphor-icons/react` — `CheckIcon` icon
+
+### Definitions
+
+- `SelectOption` (interface) — `{ value, label, icon? }` plain option data shape shared by `Select` and `MultiSelectOption`
+- `SelectItem` (component) — shared item-row primitive rendered as the children of a `CommandOption`: optional `aria-hidden` icon slot, caller-controlled label markup (`children`), and an optional checkmark + visually-hidden `, {selectedHint}` span when `selected`; used by `select.tsx`, `country-combobox.tsx`, `multi-select.tsx`, `city-combobox.tsx`, and `loyalty-program-combobox.tsx` to avoid duplicating this icon/label/selected-state JSX
+
+### Exports
+
+- `SelectItem` — named
+- `SelectOption` — named (interface)
+
+---
+
+## select.test.tsx
+
+### Imports
+
+- `react` — `ComponentProps`, `ReactNode` for mock component types
+- `@testing-library/react` — `render`, `screen`, `within` render/query helpers
+- `@testing-library/user-event` — `userEvent` for simulating user interactions
+- `vitest` — `describe`, `it`, `expect`, `vi`
 - `./select` — `Select` component under test
 
 ### Definitions
 
-- `Select` tests (test suite) — verifies element type, `data-slot`, children options, className forwarding, disabled state, and value/onChange forwarding
+- `Select` tests (test suite) — mocks `@/components/ui/button`, `@/components/ui/popover`, and `@/components/ui/command` (same role-mapped stand-ins used elsewhere); verifies placeholder vs selected-label rendering in the trigger, `onChange` firing with an option's value or `''` for the placeholder row, no placeholder row when `placeholder` is omitted, `disabled`/`data-testid` forwarding, option `icon` rendering, and `searchable` toggling the search box
 
 ### Exports
 
-None
+- None (test file)
 
 ---
 
@@ -1011,16 +1085,23 @@ None
 
 ### Imports
 
-- `react` — `ComponentProps` for HTML element prop spreading
+- `react-i18next` — `useTranslation` for i18n `t()` accessor
+- `@phosphor-icons/react` — `CaretUpDownIcon` icon
 - `@/lib/utils` — `cn` class merging helper
+- `@/components/ui/button` — `Button` trigger button
+- `@/components/ui/combobox-popover` — `ComboboxPopover` shared Popover+Command wiring
+- `@/components/ui/command` — `CommandOption` individual option row
+- `@/components/ui/select-item` — `SelectItem`, `SelectOption` shared icon/label/selected-state item renderer and option data shape
 
 ### Definitions
 
-- `Select` (component) — styled native `<select>` with consistent border/ring/disabled classes matching the design system
+- `SelectProps` (interface) — `value`/`onChange` (plain strings), `options: SelectOption[]`, optional `placeholder` (adds a clearable "nothing selected" row calling `onChange('')`), `searchable` (default `false` — every current usage is a small enum), `autoFocus`, `searchPlaceholder`/`noResultsText`/`selectedHint` (default to `common:select.*`/`common:a11y.selected` i18n keys), `disabled`, `className`, `contentClassName`, `id`, aria props, `data-testid`
+- `Select` (component) — popover-based single-select replacing the former native `<select>` wrapper; built on `ComboboxPopover` + `CommandOption` + `SelectItem`; trigger is a full-width `Button variant="outline"` (same design language as `CountryCombobox`/`TimezoneCombobox`); popup width matches the trigger via `w-[var(--anchor-width)]`
 
 ### Exports
 
 - `Select` — named
+- `SelectProps` — named (type)
 
 ---
 
@@ -1120,17 +1201,15 @@ None
 
 ### Imports
 
-- `@phosphor-icons/react` — `CaretUpDownIcon`, `CheckIcon` icons
-- `@/lib/utils` — `cn` class merging helper
-- `@/components/ui/button` — `Button` trigger button
-- `@/components/ui/combobox-popover` — `ComboboxPopover` shared Popover+Command wiring
-- `@/components/ui/command` — `CommandOption` individual option row
+- `react` — `useMemo` hook
+- `react-i18next` — `useTranslation` for i18n `t()` accessor
+- `@/components/ui/select` — `Select` shared popover-based single-select primitive
 - `@/lib/timezones` — `TIMEZONES`, `formatTimezoneLabel` timezone list and label formatter
 
 ### Definitions
 
-- `TimezoneComboboxProps` (interface) — `value`, `onChange`, placeholder texts, `selectedHint` (screen-reader-only "selected" announcement, defaults to `'Selected'`), `className`, `disabled`, aria attributes
-- `TimezoneCombobox` (component) — searchable timezone picker built on `ComboboxPopover`; displays a formatted label for the selected timezone; passes `autoFocus={false}` to preserve its original non-autofocusing search behavior; selected option appends a visually-hidden `selectedHint` span instead of `aria-selected` (cmdk's own `aria-selected` reflects keyboard highlight, not the chosen value)
+- `TimezoneComboboxProps` (interface) — `value`, `onChange`, `placeholder`, `className`, `disabled`, aria attributes; no more `searchPlaceholder`/`noResultsText`/`selectedHint` overrides — resolved internally from `common:timezoneCombobox.*`/`common:a11y.selected` i18n keys, matching `CountryCombobox`'s precedent
+- `TimezoneCombobox` (component) — thin wrapper around `Select`: maps `TIMEZONES` into `{value, label}` options via `formatTimezoneLabel`; `searchable` (the list has ~400 entries) with `autoFocus={false}` to preserve its original non-autofocusing search behavior
 
 ### Exports
 

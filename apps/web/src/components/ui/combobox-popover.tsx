@@ -11,6 +11,7 @@ import {
   CommandNoResults,
   CommandSearch,
 } from '@/components/ui/command';
+import { Spinner } from '@/components/ui/spinner';
 
 interface ComboboxPopoverProps {
   trigger: ReactElement;
@@ -18,8 +19,13 @@ interface ComboboxPopoverProps {
   nativeButton?: boolean;
   disabled?: boolean;
   contentClassName?: string;
-  searchPlaceholder: string;
-  noResultsText: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  noResultsText?: string;
+  searchValue?: string;
+  onSearchValueChange?: (value: string) => void;
+  shouldFilter?: boolean;
+  isLoading?: boolean;
   autoFocus?: boolean;
   children: (close: () => void) => ReactNode;
 }
@@ -30,8 +36,13 @@ function ComboboxPopover({
   nativeButton = true,
   disabled,
   contentClassName,
+  searchable = true,
   searchPlaceholder,
   noResultsText,
+  searchValue,
+  onSearchValueChange,
+  shouldFilter = true,
+  isLoading = false,
   autoFocus = true,
   children,
 }: ComboboxPopoverProps) {
@@ -51,15 +62,27 @@ function ComboboxPopover({
         {triggerChildren}
       </PopoverTrigger>
       <PopoverContent className={cn(contentClassName, 'p-0')} sideOffset={4}>
-        <Command label={searchPlaceholder}>
-          <CommandSearch
-            placeholder={searchPlaceholder}
-            aria-label={searchPlaceholder}
-            autoFocus={autoFocus}
-          />
+        <Command label={searchPlaceholder} shouldFilter={shouldFilter}>
+          {searchable && (
+            <CommandSearch
+              placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
+              autoFocus={autoFocus}
+              value={searchValue}
+              onValueChange={onSearchValueChange}
+            />
+          )}
           <CommandItems>
-            <CommandNoResults>{noResultsText}</CommandNoResults>
-            <CommandGroupSection>{children(close)}</CommandGroupSection>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Spinner size="sm" />
+              </div>
+            ) : (
+              <>
+                <CommandNoResults>{noResultsText}</CommandNoResults>
+                <CommandGroupSection>{children(close)}</CommandGroupSection>
+              </>
+            )}
           </CommandItems>
         </Command>
       </PopoverContent>

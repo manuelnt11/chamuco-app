@@ -1,83 +1,52 @@
 'use client';
 
-import { CaretUpDownIcon, CheckIcon } from '@phosphor-icons/react';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { ComboboxPopover } from '@/components/ui/combobox-popover';
-import { CommandOption } from '@/components/ui/command';
+import { Select } from '@/components/ui/select';
 import { TIMEZONES, formatTimezoneLabel } from '@/lib/timezones';
 
 interface TimezoneComboboxProps {
   value: string;
   onChange: (tz: string) => void;
   placeholder?: string;
-  searchPlaceholder?: string;
-  noResultsText?: string;
-  selectedHint?: string;
   className?: string;
   disabled?: boolean;
   'aria-invalid'?: boolean;
   'aria-labelledby'?: string;
 }
 
-export function TimezoneCombobox({
+function TimezoneCombobox({
   value,
   onChange,
   placeholder = '—',
-  searchPlaceholder = 'Search...',
-  noResultsText = 'No results.',
-  selectedHint = 'Selected',
   className,
   disabled,
   'aria-invalid': ariaInvalid,
   'aria-labelledby': ariaLabelledBy,
 }: TimezoneComboboxProps) {
-  const triggerLabel = value ? formatTimezoneLabel(value) : placeholder;
+  const { t } = useTranslation();
+  const options = useMemo(
+    () => TIMEZONES.map((tz) => ({ value: tz, label: formatTimezoneLabel(tz) })),
+    [],
+  );
 
   return (
-    <ComboboxPopover
-      trigger={
-        <Button
-          variant="outline"
-          disabled={disabled}
-          aria-invalid={ariaInvalid}
-          aria-labelledby={ariaLabelledBy}
-          className={cn('justify-between font-normal', className)}
-        />
-      }
-      triggerChildren={
-        <>
-          <span className="truncate">{triggerLabel}</span>
-          <CaretUpDownIcon className="ml-1 size-3.5 shrink-0 text-muted-foreground" />
-        </>
-      }
-      contentClassName="w-72"
-      disabled={disabled}
-      searchPlaceholder={searchPlaceholder}
-      noResultsText={noResultsText}
+    <Select
+      value={value}
+      onChange={onChange}
+      options={options}
+      placeholder={placeholder}
+      searchable
       autoFocus={false}
-    >
-      {(close) =>
-        TIMEZONES.map((tz) => (
-          <CommandOption
-            key={tz}
-            value={tz.replace(/_/g, ' ')}
-            onSelect={() => {
-              onChange(tz);
-              close();
-            }}
-          >
-            <span className="truncate">{formatTimezoneLabel(tz)}</span>
-            {value === tz && (
-              <>
-                <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" aria-hidden="true" />
-                <span className="sr-only">, {selectedHint}</span>
-              </>
-            )}
-          </CommandOption>
-        ))
-      }
-    </ComboboxPopover>
+      searchPlaceholder={t('timezoneCombobox.searchPlaceholder')}
+      noResultsText={t('timezoneCombobox.noResults')}
+      disabled={disabled}
+      className={className}
+      aria-invalid={ariaInvalid}
+      aria-labelledby={ariaLabelledBy}
+    />
   );
 }
+
+export { TimezoneCombobox };

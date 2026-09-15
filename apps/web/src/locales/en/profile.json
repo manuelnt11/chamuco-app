@@ -23,8 +23,6 @@
     "bioPlaceholder": "Tell others about yourself...",
     "timezone": "Timezone",
     "timezonePlaceholder": "Select a timezone",
-    "timezoneSearchPlaceholder": "Search timezones...",
-    "timezoneNoResults": "No timezone found.",
     "avatarEditor": {
       "editButton": "Change avatar",
       "tabPhoto": "Upload photo",
@@ -161,6 +159,8 @@
     "deleteSuccess": "Program deleted",
     "saveError": "Failed to save",
     "duplicateError": "You already have this program with the same member ID.",
+    "noResults": "No matches — you can enter your own program name.",
+    "programNameRequired": "Program name is required",
     "categories": {
       "airline": "Airline",
       "hotel": "Hotel",
@@ -287,6 +287,7 @@
     "fullName": "Full name",
     "phoneNumber": "Phone number",
     "relationship": "Relationship",
+    "relationshipNoResults": "No matches — you can enter your own relationship.",
     "isPrimary": "Primary contact",
     "primaryBadge": "Primary",
     "addSuccess": "Contact added.",
