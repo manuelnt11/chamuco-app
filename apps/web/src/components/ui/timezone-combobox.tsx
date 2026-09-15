@@ -1,19 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { CaretUpDownIcon, CheckIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Command,
-  CommandGroupSection,
-  CommandItems,
-  CommandNoResults,
-  CommandOption,
-  CommandSearch,
-} from '@/components/ui/command';
+import { ComboboxPopover } from '@/components/ui/combobox-popover';
+import { CommandOption } from '@/components/ui/command';
 import { TIMEZONES, formatTimezoneLabel } from '@/lib/timezones';
 
 interface TimezoneComboboxProps {
@@ -22,6 +14,7 @@ interface TimezoneComboboxProps {
   placeholder?: string;
   searchPlaceholder?: string;
   noResultsText?: string;
+  selectedHint?: string;
   className?: string;
   disabled?: boolean;
   'aria-invalid'?: boolean;
@@ -34,54 +27,57 @@ export function TimezoneCombobox({
   placeholder = '—',
   searchPlaceholder = 'Search...',
   noResultsText = 'No results.',
+  selectedHint = 'Selected',
   className,
   disabled,
   'aria-invalid': ariaInvalid,
   'aria-labelledby': ariaLabelledBy,
 }: TimezoneComboboxProps) {
-  const [open, setOpen] = useState(false);
-
   const triggerLabel = value ? formatTimezoneLabel(value) : placeholder;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <Button
-            variant="outline"
-            disabled={disabled}
-            aria-invalid={ariaInvalid}
-            aria-labelledby={ariaLabelledBy}
-            className={cn('justify-between font-normal', className)}
-          />
-        }
-      >
-        <span className="truncate">{triggerLabel}</span>
-        <CaretUpDownIcon className="ml-1 size-3.5 shrink-0 text-muted-foreground" />
-      </PopoverTrigger>
-      <PopoverContent className="w-72 p-0" sideOffset={4}>
-        <Command>
-          <CommandSearch placeholder={searchPlaceholder} />
-          <CommandItems>
-            <CommandNoResults>{noResultsText}</CommandNoResults>
-            <CommandGroupSection>
-              {TIMEZONES.map((tz) => (
-                <CommandOption
-                  key={tz}
-                  value={tz.replace(/_/g, ' ')}
-                  onSelect={() => {
-                    onChange(tz);
-                    setOpen(false);
-                  }}
-                >
-                  <span className="truncate">{formatTimezoneLabel(tz)}</span>
-                  {value === tz && <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" />}
-                </CommandOption>
-              ))}
-            </CommandGroupSection>
-          </CommandItems>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <ComboboxPopover
+      trigger={
+        <Button
+          variant="outline"
+          disabled={disabled}
+          aria-invalid={ariaInvalid}
+          aria-labelledby={ariaLabelledBy}
+          className={cn('justify-between font-normal', className)}
+        />
+      }
+      triggerChildren={
+        <>
+          <span className="truncate">{triggerLabel}</span>
+          <CaretUpDownIcon className="ml-1 size-3.5 shrink-0 text-muted-foreground" />
+        </>
+      }
+      contentClassName="w-72"
+      disabled={disabled}
+      searchPlaceholder={searchPlaceholder}
+      noResultsText={noResultsText}
+      autoFocus={false}
+    >
+      {(close) =>
+        TIMEZONES.map((tz) => (
+          <CommandOption
+            key={tz}
+            value={tz.replace(/_/g, ' ')}
+            onSelect={() => {
+              onChange(tz);
+              close();
+            }}
+          >
+            <span className="truncate">{formatTimezoneLabel(tz)}</span>
+            {value === tz && (
+              <>
+                <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" aria-hidden="true" />
+                <span className="sr-only">, {selectedHint}</span>
+              </>
+            )}
+          </CommandOption>
+        ))
+      }
+    </ComboboxPopover>
   );
 }

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useMemo, type SubmitEvent } from 'react';
+import { useMemo, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { SaveButton } from '@/components/ui/save-button';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
@@ -19,12 +21,25 @@ import {
   PhysicalLimitationType,
   MedicalConditionType,
 } from '@chamuco/shared-types';
-import { cn } from '@/lib/utils';
 
 interface HealthSectionProps {
   health: HealthData;
   onRefresh: () => void;
 }
+
+type ArrayFieldId = 'foodAllergies' | 'phobias' | 'physicalLimitations' | 'medicalConditions';
+
+interface ArrayFieldConfig {
+  fieldId: ArrayFieldId;
+  enumValues: string[];
+}
+
+const ARRAY_FIELD_CONFIGS: ArrayFieldConfig[] = [
+  { fieldId: 'foodAllergies', enumValues: Object.values(FoodAllergen) },
+  { fieldId: 'phobias', enumValues: Object.values(PhobiaType) },
+  { fieldId: 'physicalLimitations', enumValues: Object.values(PhysicalLimitationType) },
+  { fieldId: 'medicalConditions', enumValues: Object.values(MedicalConditionType) },
+];
 
 interface HealthArrayFieldProps {
   fieldId: string;
@@ -49,52 +64,39 @@ function HealthArrayField({
   otherDescriptionPlaceholder,
   disabled,
 }: HealthArrayFieldProps) {
-  const selectedCodes = new Set(items.map((i) => i.code));
-  const isOtherSelected = selectedCodes.has('OTHER');
+  const { t } = useTranslation('profile');
+  const selectedCodes = items.map((i) => i.code);
+  const isOtherSelected = selectedCodes.includes('OTHER');
   const otherItem = items.find((i) => i.code === 'OTHER');
+  const multiSelectOptions = options.map((code) => ({ value: code, label: getLabel(code) }));
 
-  function toggle(code: string) {
-    if (selectedCodes.has(code)) {
-      onChange(items.filter((i) => i.code !== code));
-    } else {
-      onChange([...items, { code, description: '' }]);
-    }
+  function handleSelectedChange(codes: string[]) {
+    onChange(codes.map((code) => items.find((i) => i.code === code) ?? { code, description: '' }));
   }
 
   function setOtherDescription(description: string) {
     onChange(items.map((i) => (i.code === 'OTHER' ? { ...i, description } : i)));
   }
 
+  const labelId = `${fieldId}-label`;
+
   return (
-    <fieldset className="rounded-lg border border-border p-4 space-y-3">
-      <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </legend>
-      <div className="flex flex-wrap gap-2">
-        {options.map((code) => {
-          const isSelected = selectedCodes.has(code);
-          return (
-            <button
-              key={code}
-              type="button"
-              disabled={disabled}
-              onClick={() => toggle(code)}
-              className={cn(
-                'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                'disabled:pointer-events-none disabled:opacity-50',
-                isSelected
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-background hover:bg-muted',
-              )}
-              aria-pressed={isSelected}
-              data-testid={`${fieldId}-pill-${code}`}
-            >
-              {getLabel(code)}
-            </button>
-          );
-        })}
-      </div>
+    <fieldset className="mx-0 space-y-1.5 border-0 p-0">
+      <legend className="sr-only">{label}</legend>
+      <Label id={labelId}>{label}</Label>
+      <MultiSelect
+        options={multiSelectOptions}
+        selected={selectedCodes}
+        onChange={handleSelectedChange}
+        placeholder={t('health.arrayField.placeholder')}
+        searchPlaceholder={t('health.arrayField.searchPlaceholder')}
+        noResultsText={t('health.arrayField.noResults')}
+        selectedHint={t('common:a11y.selected')}
+        getRemoveAriaLabel={(itemLabel) => t('health.arrayField.removeItem', { label: itemLabel })}
+        disabled={disabled}
+        data-testid={fieldId}
+        aria-labelledby={labelId}
+      />
       {isOtherSelected && (
         <div className="space-y-1">
           <Input
@@ -133,6 +135,20 @@ function sortedItems(items: HealthArrayItem[]): HealthArrayItem[] {
   return [...items].sort((a, b) => a.code.localeCompare(b.code));
 }
 
+function buildArrayFieldsState(
+  foodAllergies: HealthData['foodAllergies'],
+  phobias: HealthData['phobias'],
+  physicalLimitations: HealthData['physicalLimitations'],
+  medicalConditions: HealthData['medicalConditions'],
+): Record<ArrayFieldId, HealthArrayItem[]> {
+  return {
+    foodAllergies: normalizeItems(foodAllergies),
+    phobias: normalizeItems(phobias),
+    physicalLimitations: normalizeItems(physicalLimitations),
+    medicalConditions: normalizeItems(medicalConditions),
+  };
+}
+
 export function HealthSection({ health, onRefresh }: HealthSectionProps) {
   const { t } = useTranslation('profile');
 
@@ -142,32 +158,27 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
   );
   const [dietaryNotes, setDietaryNotes] = useState(health.dietaryNotes ?? '');
   const [generalMedicalNotes, setGeneralMedicalNotes] = useState(health.generalMedicalNotes ?? '');
-  const [foodAllergies, setFoodAllergies] = useState<HealthArrayItem[]>(
-    normalizeItems(health.foodAllergies),
-  );
-  const [phobias, setPhobias] = useState<HealthArrayItem[]>(normalizeItems(health.phobias));
-  const [physicalLimitations, setPhysicalLimitations] = useState<HealthArrayItem[]>(
-    normalizeItems(health.physicalLimitations),
-  );
-  const [medicalConditions, setMedicalConditions] = useState<HealthArrayItem[]>(
-    normalizeItems(health.medicalConditions),
+  const [arrayFields, setArrayFields] = useState<Record<ArrayFieldId, HealthArrayItem[]>>(() =>
+    buildArrayFieldsState(
+      health.foodAllergies,
+      health.phobias,
+      health.physicalLimitations,
+      health.medicalConditions,
+    ),
   );
 
   const [arrayErrors, setArrayErrors] = useState<Record<string, string | null>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  const initialFoodAllergies = useMemo(
-    () => normalizeItems(health.foodAllergies),
-    [health.foodAllergies],
-  );
-  const initialPhobias = useMemo(() => normalizeItems(health.phobias), [health.phobias]);
-  const initialPhysicalLimitations = useMemo(
-    () => normalizeItems(health.physicalLimitations),
-    [health.physicalLimitations],
-  );
-  const initialMedicalConditions = useMemo(
-    () => normalizeItems(health.medicalConditions),
-    [health.medicalConditions],
+  const initialArrayFields = useMemo(
+    () =>
+      buildArrayFieldsState(
+        health.foodAllergies,
+        health.phobias,
+        health.physicalLimitations,
+        health.medicalConditions,
+      ),
+    [health.foodAllergies, health.phobias, health.physicalLimitations, health.medicalConditions],
   );
 
   const isDirty = useMemo(
@@ -176,30 +187,22 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
       dietaryPreference !== health.dietaryPreference ||
       (dietaryNotes || null) !== health.dietaryNotes ||
       (generalMedicalNotes || null) !== health.generalMedicalNotes ||
-      JSON.stringify(sortedItems(foodAllergies)) !==
-        JSON.stringify(sortedItems(initialFoodAllergies)) ||
-      JSON.stringify(sortedItems(phobias)) !== JSON.stringify(sortedItems(initialPhobias)) ||
-      JSON.stringify(sortedItems(physicalLimitations)) !==
-        JSON.stringify(sortedItems(initialPhysicalLimitations)) ||
-      JSON.stringify(sortedItems(medicalConditions)) !==
-        JSON.stringify(sortedItems(initialMedicalConditions)),
+      ARRAY_FIELD_CONFIGS.some(
+        ({ fieldId }) =>
+          JSON.stringify(sortedItems(arrayFields[fieldId])) !==
+          JSON.stringify(sortedItems(initialArrayFields[fieldId])),
+      ),
     [
       bloodType,
       dietaryPreference,
       dietaryNotes,
       generalMedicalNotes,
-      foodAllergies,
-      phobias,
-      physicalLimitations,
-      medicalConditions,
+      arrayFields,
       health.bloodType,
       health.dietaryPreference,
       health.dietaryNotes,
       health.generalMedicalNotes,
-      initialFoodAllergies,
-      initialPhobias,
-      initialPhysicalLimitations,
-      initialMedicalConditions,
+      initialArrayFields,
     ],
   );
 
@@ -209,17 +212,10 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
 
     const otherRequired = t('health.arrayField.otherDescriptionRequired');
 
-    const namedArrays: [string, HealthArrayItem[]][] = [
-      ['foodAllergies', foodAllergies],
-      ['phobias', phobias],
-      ['physicalLimitations', physicalLimitations],
-      ['medicalConditions', medicalConditions],
-    ];
-
-    for (const [field, items] of namedArrays) {
-      for (const item of items) {
+    for (const { fieldId } of ARRAY_FIELD_CONFIGS) {
+      for (const item of arrayFields[fieldId]) {
         if (item.code === 'OTHER' && !item.description.trim()) {
-          errors[`${field}-OTHER`] = otherRequired;
+          errors[`${fieldId}-OTHER`] = otherRequired;
           hasError = true;
         }
       }
@@ -242,19 +238,19 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
         dietaryNotes:
           dietaryPreference === DietaryPreference.OTHER ? dietaryNotes.trim() || null : null,
         generalMedicalNotes: generalMedicalNotes.trim() || null,
-        foodAllergies: foodAllergies.map((i) => ({
+        foodAllergies: arrayFields.foodAllergies.map((i) => ({
           allergen: i.code as FoodAllergen,
           description: i.description.trim() || null,
         })),
-        phobias: phobias.map((i) => ({
+        phobias: arrayFields.phobias.map((i) => ({
           phobia: i.code as PhobiaType,
           description: i.description.trim() || null,
         })),
-        physicalLimitations: physicalLimitations.map((i) => ({
+        physicalLimitations: arrayFields.physicalLimitations.map((i) => ({
           limitation: i.code as PhysicalLimitationType,
           description: i.description.trim() || null,
         })),
-        medicalConditions: medicalConditions.map((i) => ({
+        medicalConditions: arrayFields.medicalConditions.map((i) => ({
           condition: i.code as MedicalConditionType,
           description: i.description.trim() || null,
         })),
@@ -275,134 +271,79 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
 
       <p className="text-sm text-muted-foreground">{t('health.privacyNote')}</p>
 
-      <fieldset className="rounded-lg border border-border p-4 space-y-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {t('health.bloodType.label')}
-        </legend>
-        <div className="flex flex-wrap gap-2">
-          {Object.values(BloodType).map((value) => {
-            const isActive = value === bloodType;
-            return (
-              <button
-                key={value}
-                type="button"
-                disabled={isSaving}
-                onClick={() => setBloodType(isActive ? null : value)}
-                className={cn(
-                  'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  'disabled:pointer-events-none disabled:opacity-50',
-                  isActive
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background hover:bg-muted',
-                )}
-                aria-pressed={isActive}
-                data-testid={`bloodType-pill-${value}`}
-              >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_3fr]">
+        <div className="space-y-1.5">
+          <Label htmlFor="bloodType">{t('health.bloodType.label')}</Label>
+          <Select
+            id="bloodType"
+            value={bloodType ?? ''}
+            onChange={(e) => setBloodType((e.target.value || null) as BloodType | null)}
+            disabled={isSaving}
+            data-testid="bloodType-select"
+          >
+            <option value="">{t('health.bloodType.placeholder')}</option>
+            {Object.values(BloodType).map((value) => (
+              <option key={value} value={value}>
                 {t(`health.bloodType.${value}`)}
-              </button>
-            );
-          })}
+              </option>
+            ))}
+          </Select>
         </div>
-      </fieldset>
 
-      <fieldset className="rounded-lg border border-border p-4 space-y-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {t('health.dietaryPreference.label')}
-        </legend>
-        <div className="flex flex-wrap gap-2">
-          {Object.values(DietaryPreference).map((value) => {
-            const isActive = value === dietaryPreference;
-            return (
-              <button
-                key={value}
-                type="button"
-                disabled={isSaving}
-                onClick={() => setDietaryPreference(isActive ? null : value)}
-                className={cn(
-                  'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  'disabled:pointer-events-none disabled:opacity-50',
-                  isActive
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background hover:bg-muted',
-                )}
-                aria-pressed={isActive}
-              >
+        <div className="space-y-1.5">
+          <Label htmlFor="dietaryPreference">{t('health.dietaryPreference.label')}</Label>
+          <Select
+            id="dietaryPreference"
+            value={dietaryPreference ?? ''}
+            onChange={(e) =>
+              setDietaryPreference((e.target.value || null) as DietaryPreference | null)
+            }
+            disabled={isSaving}
+            data-testid="dietaryPreference-select"
+          >
+            <option value="">{t('health.dietaryPreference.placeholder')}</option>
+            {Object.values(DietaryPreference).map((value) => (
+              <option key={value} value={value}>
                 {t(`health.dietaryPreference.${value}`)}
-              </button>
-            );
-          })}
+              </option>
+            ))}
+          </Select>
         </div>
-        {dietaryPreference === DietaryPreference.OTHER && (
-          <div className="space-y-1.5">
-            <Label htmlFor="dietaryNotes">{t('health.dietaryNotes.label')}</Label>
-            <Textarea
-              id="dietaryNotes"
-              value={dietaryNotes}
-              onChange={(e) => setDietaryNotes(e.target.value)}
-              placeholder={t('health.dietaryNotes.placeholder')}
-              maxLength={300}
-              disabled={isSaving}
-            />
-          </div>
-        )}
-      </fieldset>
+      </div>
 
-      <HealthArrayField
-        fieldId="foodAllergies"
-        label={t('health.foodAllergies.label')}
-        options={Object.values(FoodAllergen)}
-        getLabel={(code) => t(`health.foodAllergies.${code}`)}
-        items={foodAllergies}
-        onChange={setFoodAllergies}
-        otherError={arrayErrors['foodAllergies-OTHER'] ?? null}
-        otherDescriptionPlaceholder={t('health.arrayField.otherDescriptionPlaceholder')}
-        disabled={isSaving}
-      />
+      {dietaryPreference === DietaryPreference.OTHER && (
+        <div className="space-y-1.5">
+          <Label htmlFor="dietaryNotes">{t('health.dietaryNotes.label')}</Label>
+          <Textarea
+            id="dietaryNotes"
+            value={dietaryNotes}
+            onChange={(e) => setDietaryNotes(e.target.value)}
+            placeholder={t('health.dietaryNotes.placeholder')}
+            maxLength={300}
+            disabled={isSaving}
+          />
+        </div>
+      )}
 
-      <HealthArrayField
-        fieldId="phobias"
-        label={t('health.phobias.label')}
-        options={Object.values(PhobiaType)}
-        getLabel={(code) => t(`health.phobias.${code}`)}
-        items={phobias}
-        onChange={setPhobias}
-        otherError={arrayErrors['phobias-OTHER'] ?? null}
-        otherDescriptionPlaceholder={t('health.arrayField.otherDescriptionPlaceholder')}
-        disabled={isSaving}
-      />
+      {ARRAY_FIELD_CONFIGS.map(({ fieldId, enumValues }) => (
+        <HealthArrayField
+          key={fieldId}
+          fieldId={fieldId}
+          label={t(`health.${fieldId}.label`)}
+          options={enumValues}
+          getLabel={(code) => t(`health.${fieldId}.${code}`)}
+          items={arrayFields[fieldId]}
+          onChange={(items) => setArrayFields((prev) => ({ ...prev, [fieldId]: items }))}
+          otherError={arrayErrors[`${fieldId}-OTHER`] ?? null}
+          otherDescriptionPlaceholder={t('health.arrayField.otherDescriptionPlaceholder')}
+          disabled={isSaving}
+        />
+      ))}
 
-      <HealthArrayField
-        fieldId="physicalLimitations"
-        label={t('health.physicalLimitations.label')}
-        options={Object.values(PhysicalLimitationType)}
-        getLabel={(code) => t(`health.physicalLimitations.${code}`)}
-        items={physicalLimitations}
-        onChange={setPhysicalLimitations}
-        otherError={arrayErrors['physicalLimitations-OTHER'] ?? null}
-        otherDescriptionPlaceholder={t('health.arrayField.otherDescriptionPlaceholder')}
-        disabled={isSaving}
-      />
-
-      <HealthArrayField
-        fieldId="medicalConditions"
-        label={t('health.medicalConditions.label')}
-        options={Object.values(MedicalConditionType)}
-        getLabel={(code) => t(`health.medicalConditions.${code}`)}
-        items={medicalConditions}
-        onChange={setMedicalConditions}
-        otherError={arrayErrors['medicalConditions-OTHER'] ?? null}
-        otherDescriptionPlaceholder={t('health.arrayField.otherDescriptionPlaceholder')}
-        disabled={isSaving}
-      />
-
-      <fieldset className="rounded-lg border border-border p-4 space-y-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {t('health.generalMedicalNotes.label')}
-        </legend>
+      <div className="space-y-1.5">
+        <Label htmlFor="generalMedicalNotes">{t('health.generalMedicalNotes.label')}</Label>
         <Textarea
-          aria-label={t('health.generalMedicalNotes.label')}
+          id="generalMedicalNotes"
           value={generalMedicalNotes}
           onChange={(e) => setGeneralMedicalNotes(e.target.value)}
           placeholder={t('health.generalMedicalNotes.placeholder')}
@@ -410,7 +351,7 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
           disabled={isSaving}
         />
         <FieldMessage hint={t('health.generalMedicalNotes.hint')} />
-      </fieldset>
+      </div>
 
       <SaveButton isSaving={isSaving} isDirty={isDirty} label={t('health.save')} />
     </form>
