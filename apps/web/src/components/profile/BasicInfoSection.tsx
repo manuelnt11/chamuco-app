@@ -125,6 +125,7 @@ export function BasicInfoSection({ user, userProfile, onRefresh }: BasicInfoSect
           placeholder={t('basicInfo.timezonePlaceholder')}
           searchPlaceholder={t('basicInfo.timezoneSearchPlaceholder')}
           noResultsText={t('basicInfo.timezoneNoResults')}
+          selectedHint={t('common:a11y.selected')}
           disabled={isSaving}
           aria-labelledby="timezone-label"
           className="w-full"

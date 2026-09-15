@@ -4,7 +4,7 @@ import { CaretUpDownIcon, CheckIcon, XIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { ComboboxPopover } from '@/components/ui/combobox-popover';
 import { CommandOption } from '@/components/ui/command';
 
@@ -20,6 +20,7 @@ interface MultiSelectProps {
   placeholder: string;
   searchPlaceholder: string;
   noResultsText: string;
+  selectedHint: string;
   getRemoveAriaLabel: (label: string) => string;
   disabled?: boolean;
   className?: string;
@@ -34,6 +35,7 @@ function MultiSelect({
   placeholder,
   searchPlaceholder,
   noResultsText,
+  selectedHint,
   getRemoveAriaLabel,
   disabled,
   className,
@@ -57,13 +59,11 @@ function MultiSelect({
   return (
     <ComboboxPopover
       trigger={
-        <Button
-          variant="outline"
-          nativeButton={false}
-          disabled={disabled}
+        <div
           data-testid={testId}
           aria-labelledby={ariaLabelledBy}
           className={cn(
+            buttonVariants({ variant: 'outline' }),
             'relative h-auto min-h-8 w-full cursor-pointer justify-start py-1 pr-7 font-normal',
             disabled && 'pointer-events-none opacity-50',
             className,
@@ -108,6 +108,7 @@ function MultiSelect({
           <CaretUpDownIcon className="absolute top-2 right-2 size-3.5 shrink-0 text-muted-foreground" />
         </>
       }
+      nativeButton={false}
       disabled={disabled}
       contentClassName="w-72"
       searchPlaceholder={searchPlaceholder}
@@ -120,12 +121,19 @@ function MultiSelect({
             <CommandOption
               key={option.value}
               value={`${option.label} ${option.value}`}
-              aria-selected={isSelected}
               onSelect={() => toggle(option.value)}
               data-testid={testId ? `${testId}-option-${option.value}` : undefined}
             >
               <span className="truncate">{option.label}</span>
-              {isSelected && <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" />}
+              {isSelected && (
+                <>
+                  <CheckIcon
+                    className="ml-auto size-3.5 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  <span className="sr-only">, {selectedHint}</span>
+                </>
+              )}
             </CommandOption>
           );
         })

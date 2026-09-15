@@ -251,14 +251,14 @@ _(none)_
 ### Definitions
 
 - `ArrayFieldId` (type) — `'foodAllergies' | 'phobias' | 'physicalLimitations' | 'medicalConditions'`
-- `ArrayFieldConfig` (interface) — `{ fieldId, payloadKey, enumValues }` shape driving the 4 array fields
-- `ARRAY_FIELD_CONFIGS` (const) — config array for the 4 array fields; drives the JSX list, `isDirty`, `validateArrays`, and the `updateMyHealth` payload via `.map()`/`.some()` instead of 4 hand-written copies
+- `ArrayFieldConfig` (interface) — `{ fieldId, enumValues }` shape driving the 4 array fields' rendering/dirty-check/validation (no payload key — the `updateMyHealth` payload is built with an explicit per-field mapping in `handleSave` instead, so a config typo can't silently mis-map a field's DTO key past the type checker)
+- `ARRAY_FIELD_CONFIGS` (const) — config array for the 4 array fields; drives the JSX list, `isDirty`, and `validateArrays` via `.map()`/`.some()` instead of 4 hand-written copies
 - `HealthSectionProps` (interface) — props for HealthSection
 - `HealthArrayFieldProps` (interface) — props for HealthArrayField
-- `HealthArrayField` (component) — borderless `<fieldset>` with a screen-reader-only `<legend>` (keeps the OTHER-description `Input` semantically grouped with its `MultiSelect` without a visible border) wrapping a `MultiSelect` for one health array category, with optional OTHER description input
+- `HealthArrayField` (component) — borderless `<fieldset>` with a screen-reader-only `<legend>` (keeps the OTHER-description `Input` semantically grouped with its `MultiSelect` without a visible border) wrapping a `MultiSelect` for one health array category, with optional OTHER description input; passes `selectedHint={t('common:a11y.selected')}` to `MultiSelect`
 - `normalizeItems` (function) — converts raw health DTO array items to HealthArrayItem format
 - `sortedItems` (function) — returns a sorted copy of HealthArrayItem array for stable dirty comparison
-- `buildArrayFieldsState` (function) — builds the initial `Record<ArrayFieldId, HealthArrayItem[]>` state map from a `HealthData` object
+- `buildArrayFieldsState` (function) — builds a `Record<ArrayFieldId, HealthArrayItem[]>` from the 4 raw health array fields (passed individually, not as the whole `HealthData` object, so the `useMemo` call site's dependency array can name each field directly); shared by the initial `useState` and the `initialArrayFields` dirty-check memo
 - `HealthSection` (component) — form for blood type, dietary preference (native `Select`s in a `grid-cols-1 sm:grid-cols-[2fr_3fr]` row), and the 4 config-driven array fields
 
 ### Exports
@@ -271,13 +271,19 @@ _(none)_
 
 ### Imports
 
-- `react` — ComponentProps (type)
-- `@testing-library/react` — render, screen, waitFor
+- `react` — ComponentProps, ReactNode (types)
+- `@testing-library/react` — render, screen, waitFor, within
 - `@testing-library/user-event` — userEvent
+- `./HealthSection` — HealthSection under test
+- `@/services/users.types` — HealthData (type)
+- `@chamuco/shared-types` — BloodType, DietaryPreference, FoodAllergen
+- `@/components/ui/toast` — toast
 
 ### Definitions
 
-_(no substantial non-test definitions)_
+- `selectArrayOption` (function) — test helper; opens a `MultiSelect` field's dropdown by `data-testid` and clicks the given option's `data-testid`
+- Mocks `@/components/ui/input`, `textarea`, `select`, `spinner`, `button`, `label` as thin passthrough elements
+- Mocks `@/components/ui/popover` (`Popover`, `PopoverTrigger`, `PopoverContent`) and `@/components/ui/command` (`Command`, `CommandSearch`, `CommandItems`, `CommandNoResults`, `CommandGroupSection`, `CommandOption`) so `MultiSelect`'s underlying `ComboboxPopover` renders without real Base UI/`cmdk` portal behavior in tests; `PopoverTrigger`'s mock reflects the real `disabled` prop as `aria-disabled` on a `role="button"` div
 
 ### Exports
 

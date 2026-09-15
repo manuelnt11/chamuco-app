@@ -31,23 +31,14 @@ type ArrayFieldId = 'foodAllergies' | 'phobias' | 'physicalLimitations' | 'medic
 
 interface ArrayFieldConfig {
   fieldId: ArrayFieldId;
-  payloadKey: 'allergen' | 'phobia' | 'limitation' | 'condition';
   enumValues: string[];
 }
 
 const ARRAY_FIELD_CONFIGS: ArrayFieldConfig[] = [
-  { fieldId: 'foodAllergies', payloadKey: 'allergen', enumValues: Object.values(FoodAllergen) },
-  { fieldId: 'phobias', payloadKey: 'phobia', enumValues: Object.values(PhobiaType) },
-  {
-    fieldId: 'physicalLimitations',
-    payloadKey: 'limitation',
-    enumValues: Object.values(PhysicalLimitationType),
-  },
-  {
-    fieldId: 'medicalConditions',
-    payloadKey: 'condition',
-    enumValues: Object.values(MedicalConditionType),
-  },
+  { fieldId: 'foodAllergies', enumValues: Object.values(FoodAllergen) },
+  { fieldId: 'phobias', enumValues: Object.values(PhobiaType) },
+  { fieldId: 'physicalLimitations', enumValues: Object.values(PhysicalLimitationType) },
+  { fieldId: 'medicalConditions', enumValues: Object.values(MedicalConditionType) },
 ];
 
 interface HealthArrayFieldProps {
@@ -77,10 +68,7 @@ function HealthArrayField({
   const selectedCodes = items.map((i) => i.code);
   const isOtherSelected = selectedCodes.includes('OTHER');
   const otherItem = items.find((i) => i.code === 'OTHER');
-  const multiSelectOptions = useMemo(
-    () => options.map((code) => ({ value: code, label: getLabel(code) })),
-    [options, getLabel],
-  );
+  const multiSelectOptions = options.map((code) => ({ value: code, label: getLabel(code) }));
 
   function handleSelectedChange(codes: string[]) {
     onChange(codes.map((code) => items.find((i) => i.code === code) ?? { code, description: '' }));
@@ -103,6 +91,7 @@ function HealthArrayField({
         placeholder={t('health.arrayField.placeholder')}
         searchPlaceholder={t('health.arrayField.searchPlaceholder')}
         noResultsText={t('health.arrayField.noResults')}
+        selectedHint={t('common:a11y.selected')}
         getRemoveAriaLabel={(itemLabel) => t('health.arrayField.removeItem', { label: itemLabel })}
         disabled={disabled}
         data-testid={fieldId}
@@ -146,12 +135,17 @@ function sortedItems(items: HealthArrayItem[]): HealthArrayItem[] {
   return [...items].sort((a, b) => a.code.localeCompare(b.code));
 }
 
-function buildArrayFieldsState(health: HealthData): Record<ArrayFieldId, HealthArrayItem[]> {
+function buildArrayFieldsState(
+  foodAllergies: HealthData['foodAllergies'],
+  phobias: HealthData['phobias'],
+  physicalLimitations: HealthData['physicalLimitations'],
+  medicalConditions: HealthData['medicalConditions'],
+): Record<ArrayFieldId, HealthArrayItem[]> {
   return {
-    foodAllergies: normalizeItems(health.foodAllergies),
-    phobias: normalizeItems(health.phobias),
-    physicalLimitations: normalizeItems(health.physicalLimitations),
-    medicalConditions: normalizeItems(health.medicalConditions),
+    foodAllergies: normalizeItems(foodAllergies),
+    phobias: normalizeItems(phobias),
+    physicalLimitations: normalizeItems(physicalLimitations),
+    medicalConditions: normalizeItems(medicalConditions),
   };
 }
 
@@ -165,19 +159,25 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
   const [dietaryNotes, setDietaryNotes] = useState(health.dietaryNotes ?? '');
   const [generalMedicalNotes, setGeneralMedicalNotes] = useState(health.generalMedicalNotes ?? '');
   const [arrayFields, setArrayFields] = useState<Record<ArrayFieldId, HealthArrayItem[]>>(() =>
-    buildArrayFieldsState(health),
+    buildArrayFieldsState(
+      health.foodAllergies,
+      health.phobias,
+      health.physicalLimitations,
+      health.medicalConditions,
+    ),
   );
 
   const [arrayErrors, setArrayErrors] = useState<Record<string, string | null>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  const initialArrayFields = useMemo<Record<ArrayFieldId, HealthArrayItem[]>>(
-    () => ({
-      foodAllergies: normalizeItems(health.foodAllergies),
-      phobias: normalizeItems(health.phobias),
-      physicalLimitations: normalizeItems(health.physicalLimitations),
-      medicalConditions: normalizeItems(health.medicalConditions),
-    }),
+  const initialArrayFields = useMemo(
+    () =>
+      buildArrayFieldsState(
+        health.foodAllergies,
+        health.phobias,
+        health.physicalLimitations,
+        health.medicalConditions,
+      ),
     [health.foodAllergies, health.phobias, health.physicalLimitations, health.medicalConditions],
   );
 
@@ -232,23 +232,28 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
 
     setIsSaving(true);
     try {
-      const arrayPayload = Object.fromEntries(
-        ARRAY_FIELD_CONFIGS.map(({ fieldId, payloadKey }) => [
-          fieldId,
-          arrayFields[fieldId].map((i) => ({
-            [payloadKey]: i.code,
-            description: i.description.trim() || null,
-          })),
-        ]),
-      ) as Pick<HealthData, ArrayFieldId>;
-
       await updateMyHealth({
         bloodType,
         dietaryPreference,
         dietaryNotes:
           dietaryPreference === DietaryPreference.OTHER ? dietaryNotes.trim() || null : null,
         generalMedicalNotes: generalMedicalNotes.trim() || null,
-        ...arrayPayload,
+        foodAllergies: arrayFields.foodAllergies.map((i) => ({
+          allergen: i.code as FoodAllergen,
+          description: i.description.trim() || null,
+        })),
+        phobias: arrayFields.phobias.map((i) => ({
+          phobia: i.code as PhobiaType,
+          description: i.description.trim() || null,
+        })),
+        physicalLimitations: arrayFields.physicalLimitations.map((i) => ({
+          limitation: i.code as PhysicalLimitationType,
+          description: i.description.trim() || null,
+        })),
+        medicalConditions: arrayFields.medicalConditions.map((i) => ({
+          condition: i.code as MedicalConditionType,
+          description: i.description.trim() || null,
+        })),
       });
       toast.success(t('health.saveSuccess'));
       setArrayErrors({});

@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "selected": "Selected"
+  },
   "joinPage": {
     "loading": "Loading invitation...",
     "notFound": "This invitation link is not valid.",

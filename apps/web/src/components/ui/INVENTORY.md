@@ -317,7 +317,7 @@ None
 ### Definitions
 
 - `CountryComboboxProps` (interface) — prop types for `CountryCombobox`; supports `name` or `phone` display modes; no text override props — all default text resolved from i18n
-- `CountryCombobox` (component) — country picker with emoji flag, name or dial-code display, and searchable popover command palette; full-width button; defaults resolved from `common:countryCombobox.*` i18n keys
+- `CountryCombobox` (component) — country picker with emoji flag, name or dial-code display, and searchable popover command palette; full-width button; defaults resolved from `common:countryCombobox.*` i18n keys; selected option appends a visually-hidden `common:a11y.selected` hint (cmdk's own `aria-selected` reflects keyboard highlight, not the chosen value, so it can't be relied on for this)
 
 ### Exports
 
@@ -789,6 +789,20 @@ None
 
 ---
 
+## multi-select.test.tsx
+
+### Imports
+
+- `@testing-library/react` — `render`, `screen`, `within` render/query helpers
+- `@testing-library/user-event` — `userEvent` for simulating user interactions
+- `./multi-select` — `MultiSelect` component under test
+
+### Exports
+
+- None (test file)
+
+---
+
 ## multi-select.tsx
 
 ### Imports
@@ -796,15 +810,15 @@ None
 - `@phosphor-icons/react` — `CaretUpDownIcon`, `CheckIcon`, `XIcon` icons
 - `@/lib/utils` — `cn` class merging helper
 - `@/components/ui/badge` — `Badge` chip rendering for selected values
-- `@/components/ui/button` — `Button` rendered non-natively (`nativeButton={false}`) as the trigger
+- `@/components/ui/button` — `buttonVariants` cva classes applied to the non-native trigger `<div>`
 - `@/components/ui/combobox-popover` — `ComboboxPopover` shared Popover+Command wiring
 - `@/components/ui/command` — `CommandOption` individual option row
 
 ### Definitions
 
 - `MultiSelectOption` (interface) — `{ value, label }` shape for selectable options
-- `MultiSelectProps` (interface) — prop types for `MultiSelect`; all display text passed in by the caller, no i18n coupling
-- `MultiSelect` (component) — searchable multi-select combobox built on `ComboboxPopover`; trigger renders as a non-native (`nativeButton={false}`) `Button` so selected-value chips (each with its own remove button, `title`+`aria-label` on the remove icon) can live inside the trigger box without invalid nested `<button>` markup; chip removal stops event propagation so it doesn't toggle the popover; each option gets `aria-selected` reflecting its chosen state
+- `MultiSelectProps` (interface) — prop types for `MultiSelect`; all display text passed in by the caller, no i18n coupling, including `selectedHint` for the screen-reader-only "selected" announcement
+- `MultiSelect` (component) — searchable multi-select combobox built on `ComboboxPopover`; trigger renders as a plain `<div>` styled via `buttonVariants` (not the `Button` component — Base UI's `Button` always renders a literal `<button>` unless also given a `render` override, so using it here would still produce an invalid `<button>`-in-`<button>` for the chip remove controls) so selected-value chips (each with its own remove button, `title`+`aria-label` on the remove icon) can live inside the trigger box without invalid nested `<button>` markup; chip removal stops event propagation so it doesn't toggle the popover; each selected option appends a visually-hidden `, {selectedHint}` span instead of `aria-selected` (cmdk's `CommandItem` unconditionally overwrites `aria-selected` with its own keyboard-highlight state, so the attribute can't carry "is this value chosen")
 
 ### Exports
 
@@ -1115,8 +1129,8 @@ None
 
 ### Definitions
 
-- `TimezoneComboboxProps` (interface) — `value`, `onChange`, placeholder texts, `className`, `disabled`, aria attributes
-- `TimezoneCombobox` (component) — searchable timezone picker built on `ComboboxPopover`; displays a formatted label for the selected timezone; passes `autoFocus={false}` to preserve its original non-autofocusing search behavior
+- `TimezoneComboboxProps` (interface) — `value`, `onChange`, placeholder texts, `selectedHint` (screen-reader-only "selected" announcement, defaults to `'Selected'`), `className`, `disabled`, aria attributes
+- `TimezoneCombobox` (component) — searchable timezone picker built on `ComboboxPopover`; displays a formatted label for the selected timezone; passes `autoFocus={false}` to preserve its original non-autofocusing search behavior; selected option appends a visually-hidden `selectedHint` span instead of `aria-selected` (cmdk's own `aria-selected` reflects keyboard highlight, not the chosen value)
 
 ### Exports
 

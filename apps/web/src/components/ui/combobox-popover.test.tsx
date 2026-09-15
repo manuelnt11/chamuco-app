@@ -69,15 +69,6 @@ describe('ComboboxPopover', () => {
     expect(search).toHaveAccessibleName('Search fruits...');
   });
 
-  it('uses a distinct searchAriaLabel when provided', async () => {
-    const user = userEvent.setup();
-    renderCombobox({ searchAriaLabel: 'Search the fruit list' });
-    await user.click(screen.getByTestId('trigger'));
-    expect(screen.getByPlaceholderText('Search fruits...')).toHaveAccessibleName(
-      'Search the fruit list',
-    );
-  });
-
   it('shows the no-results text when the search matches nothing', async () => {
     const user = userEvent.setup();
     renderCombobox();

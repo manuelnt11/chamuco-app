@@ -14,6 +14,7 @@ interface TimezoneComboboxProps {
   placeholder?: string;
   searchPlaceholder?: string;
   noResultsText?: string;
+  selectedHint?: string;
   className?: string;
   disabled?: boolean;
   'aria-invalid'?: boolean;
@@ -26,6 +27,7 @@ export function TimezoneCombobox({
   placeholder = '—',
   searchPlaceholder = 'Search...',
   noResultsText = 'No results.',
+  selectedHint = 'Selected',
   className,
   disabled,
   'aria-invalid': ariaInvalid,
@@ -61,14 +63,18 @@ export function TimezoneCombobox({
           <CommandOption
             key={tz}
             value={tz.replace(/_/g, ' ')}
-            aria-selected={value === tz}
             onSelect={() => {
               onChange(tz);
               close();
             }}
           >
             <span className="truncate">{formatTimezoneLabel(tz)}</span>
-            {value === tz && <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" />}
+            {value === tz && (
+              <>
+                <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" aria-hidden="true" />
+                <span className="sr-only">, {selectedHint}</span>
+              </>
+            )}
           </CommandOption>
         ))
       }

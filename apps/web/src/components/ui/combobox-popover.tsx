@@ -19,7 +19,6 @@ interface ComboboxPopoverProps {
   disabled?: boolean;
   contentClassName?: string;
   searchPlaceholder: string;
-  searchAriaLabel?: string;
   noResultsText: string;
   autoFocus?: boolean;
   children: (close: () => void) => ReactNode;
@@ -32,7 +31,6 @@ function ComboboxPopover({
   disabled,
   contentClassName,
   searchPlaceholder,
-  searchAriaLabel,
   noResultsText,
   autoFocus = true,
   children,
@@ -53,10 +51,10 @@ function ComboboxPopover({
         {triggerChildren}
       </PopoverTrigger>
       <PopoverContent className={cn(contentClassName, 'p-0')} sideOffset={4}>
-        <Command label={searchAriaLabel ?? searchPlaceholder}>
+        <Command label={searchPlaceholder}>
           <CommandSearch
             placeholder={searchPlaceholder}
-            aria-label={searchAriaLabel ?? searchPlaceholder}
+            aria-label={searchPlaceholder}
             autoFocus={autoFocus}
           />
           <CommandItems>

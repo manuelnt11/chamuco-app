@@ -79,6 +79,7 @@ vi.mock('@/components/ui/command', () => ({
     children: ReactNode;
     onSelect: () => void;
     value: string;
+    // Forwards whatever data-testid/aria-* the real CommandOption call sites pass through.
     [key: string]: unknown;
   }) => (
     <div role="option" onClick={onSelect} {...props}>
@@ -280,6 +281,14 @@ describe('HealthSection', () => {
       const { user } = setup();
       await selectArrayOption(user, 'foodAllergies', 'EGGS');
       expect(screen.getByTestId('foodAllergies-chip-EGGS')).toBeInTheDocument();
+    });
+
+    it('clicking an already-selected option in the dropdown deselects it', async () => {
+      const { user } = setup({
+        foodAllergies: [{ allergen: 'EGGS' as never, description: null }],
+      });
+      await selectArrayOption(user, 'foodAllergies', 'EGGS');
+      expect(screen.queryByTestId('foodAllergies-chip-EGGS')).not.toBeInTheDocument();
     });
 
     it('removing a chip deselects it', async () => {

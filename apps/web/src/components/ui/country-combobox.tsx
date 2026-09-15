@@ -52,6 +52,7 @@ function CountryCombobox({
   const placeholder = t('countryCombobox.placeholder');
   const searchPlaceholder = t('countryCombobox.searchPlaceholder');
   const noResultsText = t('countryCombobox.noResults');
+  const selectedHint = t('a11y.selected');
 
   const selected = value ? countries.find((c) => c.iso2 === value) : undefined;
 
@@ -90,7 +91,6 @@ function CountryCombobox({
           <CommandOption
             key={c.iso2}
             value={`${c.name} ${c.iso2} +${c.dialCode}`}
-            aria-selected={value === c.iso2}
             onSelect={() => {
               onChange(c.iso2);
               close();
@@ -107,7 +107,12 @@ function CountryCombobox({
             ) : (
               <span className="truncate">{c.name.toUpperCase()}</span>
             )}
-            {value === c.iso2 && <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" />}
+            {value === c.iso2 && (
+              <>
+                <CheckIcon className="ml-auto size-3.5 shrink-0 text-primary" aria-hidden="true" />
+                <span className="sr-only">, {selectedHint}</span>
+              </>
+            )}
           </CommandOption>
         ))
       }
