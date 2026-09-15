@@ -89,7 +89,7 @@ vi.mock('@/components/ui/command', () => ({
 
 import { HealthSection } from './HealthSection';
 import type { HealthData } from '@/services/users.types';
-import { BloodType, DietaryPreference } from '@chamuco/shared-types';
+import { BloodType, DietaryPreference, FoodAllergen } from '@chamuco/shared-types';
 import { toast } from '@/components/ui/toast';
 
 const baseHealth: HealthData = {
@@ -152,13 +152,17 @@ describe('HealthSection', () => {
     it('renders dietary preference select with all options', () => {
       setup();
       const select = screen.getByTestId('dietaryPreference-select');
-      expect(within(select).getByText('health.dietaryPreference.VEGAN')).toBeInTheDocument();
-      expect(within(select).getByText('health.dietaryPreference.OTHER')).toBeInTheDocument();
+      for (const value of Object.values(DietaryPreference)) {
+        expect(within(select).getByText(`health.dietaryPreference.${value}`)).toBeInTheDocument();
+      }
     });
 
-    it('renders food allergies multi-select trigger', () => {
-      setup();
-      expect(screen.getByTestId('foodAllergies')).toBeInTheDocument();
+    it('renders every food allergy option in the multi-select', async () => {
+      const { user } = setup();
+      await user.click(screen.getByTestId('foodAllergies'));
+      for (const value of Object.values(FoodAllergen)) {
+        expect(screen.getByTestId(`foodAllergies-option-${value}`)).toBeInTheDocument();
+      }
     });
 
     it('renders general medical notes textarea', () => {
@@ -494,6 +498,17 @@ describe('HealthSection', () => {
       );
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       expect(screen.getByRole('button', { name: /health\.save/ })).toBeDisabled();
+    });
+
+    it('marks the food allergies trigger as aria-disabled while saving', async () => {
+      mocks.mockPatch.mockImplementation(() => new Promise(() => {}));
+      const { user } = setup();
+      await user.selectOptions(
+        screen.getByTestId('dietaryPreference-select'),
+        DietaryPreference.VEGAN,
+      );
+      await user.click(screen.getByRole('button', { name: /health\.save/ }));
+      expect(screen.getByTestId('foodAllergies')).toHaveAttribute('aria-disabled', 'true');
     });
 
     it('sends null for dietaryNotes when dietaryPreference is not OTHER', async () => {

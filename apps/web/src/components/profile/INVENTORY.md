@@ -238,23 +238,28 @@ _(none)_
 - `react-i18next` — useTranslation
 - `@/components/ui/input` — Input
 - `@/components/ui/label` — Label
+- `@/components/ui/multi-select` — MultiSelect
 - `@/components/ui/save-button` — SaveButton
+- `@/components/ui/select` — Select
 - `@/components/ui/textarea` — Textarea
 - `@/components/ui/toast` — toast
 - `@/components/ui/field-message` — FieldMessage
 - `@/services/users.types` — HealthArrayItem, HealthData (types)
 - `@/services/users.service` — updateMyHealth
 - `@chamuco/shared-types` — BloodType, DietaryPreference, FoodAllergen, PhobiaType, PhysicalLimitationType, MedicalConditionType
-- `@/lib/utils` — cn
 
 ### Definitions
 
+- `ArrayFieldId` (type) — `'foodAllergies' | 'phobias' | 'physicalLimitations' | 'medicalConditions'`
+- `ArrayFieldConfig` (interface) — `{ fieldId, payloadKey, enumValues }` shape driving the 4 array fields
+- `ARRAY_FIELD_CONFIGS` (const) — config array for the 4 array fields; drives the JSX list, `isDirty`, `validateArrays`, and the `updateMyHealth` payload via `.map()`/`.some()` instead of 4 hand-written copies
 - `HealthSectionProps` (interface) — props for HealthSection
 - `HealthArrayFieldProps` (interface) — props for HealthArrayField
-- `HealthArrayField` (component) — pill-toggle fieldset for multi-select health array categories with optional OTHER description input
+- `HealthArrayField` (component) — borderless `<fieldset>` with a screen-reader-only `<legend>` (keeps the OTHER-description `Input` semantically grouped with its `MultiSelect` without a visible border) wrapping a `MultiSelect` for one health array category, with optional OTHER description input
 - `normalizeItems` (function) — converts raw health DTO array items to HealthArrayItem format
 - `sortedItems` (function) — returns a sorted copy of HealthArrayItem array for stable dirty comparison
-- `HealthSection` (component) — form for blood type, dietary preference, food allergies, phobias, physical limitations, and medical conditions
+- `buildArrayFieldsState` (function) — builds the initial `Record<ArrayFieldId, HealthArrayItem[]>` state map from a `HealthData` object
+- `HealthSection` (component) — form for blood type, dietary preference (native `Select`s in a `grid-cols-1 sm:grid-cols-[2fr_3fr]` row), and the 4 config-driven array fields
 
 ### Exports
 
