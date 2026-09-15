@@ -753,6 +753,31 @@ None
 
 ---
 
+## multi-select.tsx
+
+### Imports
+
+- `react` — `useState` hook
+- `@phosphor-icons/react` — `CaretUpDownIcon`, `CheckIcon`, `XIcon` icons
+- `@/lib/utils` — `cn` class merging helper
+- `@/components/ui/badge` — `Badge` chip rendering for selected values
+- `@/components/ui/button` — `buttonVariants` cva classes applied to the non-native trigger
+- `@/components/ui/popover` — `Popover`, `PopoverContent`, `PopoverTrigger` floating popover
+- `@/components/ui/command` — `Command`, `CommandGroupSection`, `CommandItems`, `CommandNoResults`, `CommandOption`, `CommandSearch` command palette components
+
+### Definitions
+
+- `MultiSelectOption` (interface) — `{ value, label }` shape for selectable options
+- `MultiSelectProps` (interface) — prop types for `MultiSelect`; all display text passed in by the caller, no i18n coupling
+- `MultiSelect` (component) — searchable multi-select combobox; trigger renders as a non-native (`nativeButton={false}`) div so selected-value chips (each with its own remove button) can live inside the trigger box without invalid nested `<button>` markup; chip removal stops event propagation so it doesn't toggle the popover
+
+### Exports
+
+- `MultiSelect` — named
+- `MultiSelectOption` — named (type)
+
+---
+
 ## phone-input.test.tsx
 
 ### Imports

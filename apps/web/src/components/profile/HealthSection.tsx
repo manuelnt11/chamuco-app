@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { SaveButton } from '@/components/ui/save-button';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toast';
 import { FieldMessage } from '@/components/ui/field-message';
@@ -19,7 +21,6 @@ import {
   PhysicalLimitationType,
   MedicalConditionType,
 } from '@chamuco/shared-types';
-import { cn } from '@/lib/utils';
 
 interface HealthSectionProps {
   health: HealthData;
@@ -49,52 +50,37 @@ function HealthArrayField({
   otherDescriptionPlaceholder,
   disabled,
 }: HealthArrayFieldProps) {
-  const selectedCodes = new Set(items.map((i) => i.code));
-  const isOtherSelected = selectedCodes.has('OTHER');
+  const { t } = useTranslation('profile');
+  const selectedCodes = items.map((i) => i.code);
+  const isOtherSelected = selectedCodes.includes('OTHER');
   const otherItem = items.find((i) => i.code === 'OTHER');
+  const multiSelectOptions = options.map((code) => ({ value: code, label: getLabel(code) }));
 
-  function toggle(code: string) {
-    if (selectedCodes.has(code)) {
-      onChange(items.filter((i) => i.code !== code));
-    } else {
-      onChange([...items, { code, description: '' }]);
-    }
+  function handleSelectedChange(codes: string[]) {
+    onChange(codes.map((code) => items.find((i) => i.code === code) ?? { code, description: '' }));
   }
 
   function setOtherDescription(description: string) {
     onChange(items.map((i) => (i.code === 'OTHER' ? { ...i, description } : i)));
   }
 
+  const labelId = `${fieldId}-label`;
+
   return (
-    <fieldset className="rounded-lg border border-border p-4 space-y-3">
-      <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </legend>
-      <div className="flex flex-wrap gap-2">
-        {options.map((code) => {
-          const isSelected = selectedCodes.has(code);
-          return (
-            <button
-              key={code}
-              type="button"
-              disabled={disabled}
-              onClick={() => toggle(code)}
-              className={cn(
-                'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                'disabled:pointer-events-none disabled:opacity-50',
-                isSelected
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-background hover:bg-muted',
-              )}
-              aria-pressed={isSelected}
-              data-testid={`${fieldId}-pill-${code}`}
-            >
-              {getLabel(code)}
-            </button>
-          );
-        })}
-      </div>
+    <div className="space-y-1.5">
+      <Label id={labelId}>{label}</Label>
+      <MultiSelect
+        options={multiSelectOptions}
+        selected={selectedCodes}
+        onChange={handleSelectedChange}
+        placeholder={t('health.arrayField.placeholder')}
+        searchPlaceholder={t('health.arrayField.searchPlaceholder')}
+        noResultsText={t('health.arrayField.noResults')}
+        getRemoveAriaLabel={(itemLabel) => t('health.arrayField.removeItem', { label: itemLabel })}
+        disabled={disabled}
+        data-testid={fieldId}
+        aria-labelledby={labelId}
+      />
       {isOtherSelected && (
         <div className="space-y-1">
           <Input
@@ -110,7 +96,7 @@ function HealthArrayField({
           <FieldMessage error={otherError} />
         </div>
       )}
-    </fieldset>
+    </div>
   );
 }
 
@@ -275,79 +261,59 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
 
       <p className="text-sm text-muted-foreground">{t('health.privacyNote')}</p>
 
-      <fieldset className="rounded-lg border border-border p-4 space-y-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {t('health.bloodType.label')}
-        </legend>
-        <div className="flex flex-wrap gap-2">
-          {Object.values(BloodType).map((value) => {
-            const isActive = value === bloodType;
-            return (
-              <button
-                key={value}
-                type="button"
-                disabled={isSaving}
-                onClick={() => setBloodType(isActive ? null : value)}
-                className={cn(
-                  'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  'disabled:pointer-events-none disabled:opacity-50',
-                  isActive
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background hover:bg-muted',
-                )}
-                aria-pressed={isActive}
-                data-testid={`bloodType-pill-${value}`}
-              >
+      <div className="grid grid-cols-[2fr_3fr] gap-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="bloodType">{t('health.bloodType.label')}</Label>
+          <Select
+            id="bloodType"
+            value={bloodType ?? ''}
+            onChange={(e) => setBloodType((e.target.value || null) as BloodType | null)}
+            disabled={isSaving}
+            data-testid="bloodType-select"
+          >
+            <option value="">{t('health.bloodType.placeholder')}</option>
+            {Object.values(BloodType).map((value) => (
+              <option key={value} value={value}>
                 {t(`health.bloodType.${value}`)}
-              </button>
-            );
-          })}
+              </option>
+            ))}
+          </Select>
         </div>
-      </fieldset>
 
-      <fieldset className="rounded-lg border border-border p-4 space-y-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {t('health.dietaryPreference.label')}
-        </legend>
-        <div className="flex flex-wrap gap-2">
-          {Object.values(DietaryPreference).map((value) => {
-            const isActive = value === dietaryPreference;
-            return (
-              <button
-                key={value}
-                type="button"
-                disabled={isSaving}
-                onClick={() => setDietaryPreference(isActive ? null : value)}
-                className={cn(
-                  'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  'disabled:pointer-events-none disabled:opacity-50',
-                  isActive
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background hover:bg-muted',
-                )}
-                aria-pressed={isActive}
-              >
+        <div className="space-y-1.5">
+          <Label htmlFor="dietaryPreference">{t('health.dietaryPreference.label')}</Label>
+          <Select
+            id="dietaryPreference"
+            value={dietaryPreference ?? ''}
+            onChange={(e) =>
+              setDietaryPreference((e.target.value || null) as DietaryPreference | null)
+            }
+            disabled={isSaving}
+            data-testid="dietaryPreference-select"
+          >
+            <option value="">{t('health.dietaryPreference.placeholder')}</option>
+            {Object.values(DietaryPreference).map((value) => (
+              <option key={value} value={value}>
                 {t(`health.dietaryPreference.${value}`)}
-              </button>
-            );
-          })}
+              </option>
+            ))}
+          </Select>
         </div>
-        {dietaryPreference === DietaryPreference.OTHER && (
-          <div className="space-y-1.5">
-            <Label htmlFor="dietaryNotes">{t('health.dietaryNotes.label')}</Label>
-            <Textarea
-              id="dietaryNotes"
-              value={dietaryNotes}
-              onChange={(e) => setDietaryNotes(e.target.value)}
-              placeholder={t('health.dietaryNotes.placeholder')}
-              maxLength={300}
-              disabled={isSaving}
-            />
-          </div>
-        )}
-      </fieldset>
+      </div>
+
+      {dietaryPreference === DietaryPreference.OTHER && (
+        <div className="space-y-1.5">
+          <Label htmlFor="dietaryNotes">{t('health.dietaryNotes.label')}</Label>
+          <Textarea
+            id="dietaryNotes"
+            value={dietaryNotes}
+            onChange={(e) => setDietaryNotes(e.target.value)}
+            placeholder={t('health.dietaryNotes.placeholder')}
+            maxLength={300}
+            disabled={isSaving}
+          />
+        </div>
+      )}
 
       <HealthArrayField
         fieldId="foodAllergies"
@@ -397,12 +363,10 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
         disabled={isSaving}
       />
 
-      <fieldset className="rounded-lg border border-border p-4 space-y-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {t('health.generalMedicalNotes.label')}
-        </legend>
+      <div className="space-y-1.5">
+        <Label htmlFor="generalMedicalNotes">{t('health.generalMedicalNotes.label')}</Label>
         <Textarea
-          aria-label={t('health.generalMedicalNotes.label')}
+          id="generalMedicalNotes"
           value={generalMedicalNotes}
           onChange={(e) => setGeneralMedicalNotes(e.target.value)}
           placeholder={t('health.generalMedicalNotes.placeholder')}
@@ -410,7 +374,7 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
           disabled={isSaving}
         />
         <FieldMessage hint={t('health.generalMedicalNotes.hint')} />
-      </fieldset>
+      </div>
 
       <SaveButton isSaving={isSaving} isDirty={isDirty} label={t('health.save')} />
     </form>

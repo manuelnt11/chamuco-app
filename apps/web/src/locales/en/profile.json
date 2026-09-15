@@ -175,6 +175,7 @@
     "privacyNote": "This information is private and only shared with trip organizers when you grant permission.",
     "bloodType": {
       "label": "Blood Type",
+      "placeholder": "Select blood type...",
       "A_POSITIVE": "A+",
       "A_NEGATIVE": "A−",
       "B_POSITIVE": "B+",
@@ -186,6 +187,7 @@
     },
     "dietaryPreference": {
       "label": "Dietary Preference",
+      "placeholder": "Select dietary preference...",
       "OMNIVORE": "Omnivore",
       "VEGETARIAN": "Vegetarian",
       "VEGAN": "Vegan",
@@ -265,6 +267,10 @@
       "OTHER": "Other"
     },
     "arrayField": {
+      "placeholder": "Select options...",
+      "searchPlaceholder": "Search...",
+      "noResults": "No options found.",
+      "removeItem": "Remove {{label}}",
       "otherDescriptionPlaceholder": "Please describe...",
       "otherDescriptionRequired": "Description is required for \"Other\""
     },
