@@ -14,6 +14,12 @@ import { MagnifyingGlassIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
 
+// cmdk filters options by matching typed text against CommandItem's `value` string, not its
+// rendered children — fold every searchable field into one string so search matches on all of them.
+function buildFilterValue(...parts: string[]): string {
+  return parts.join(' ');
+}
+
 function Command({ className, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive>) {
   return (
     <CommandPrimitive
@@ -103,4 +109,5 @@ export {
   CommandGroupSection,
   CommandOption,
   CommandSeparator,
+  buildFilterValue,
 };

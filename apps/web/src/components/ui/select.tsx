@@ -1,13 +1,12 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import { CaretUpDownIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ComboboxPopover } from '@/components/ui/combobox-popover';
-import { CommandOption } from '@/components/ui/command';
-import { SelectItem, type SelectOption } from '@/components/ui/select-item';
+import { buildFilterValue, CommandOption } from '@/components/ui/command';
+import { ComboboxTriggerContent, SelectItem, type SelectOption } from '@/components/ui/select-item';
 
 interface SelectProps {
   value: string;
@@ -69,24 +68,14 @@ function Select({
         />
       }
       triggerChildren={
-        <>
-          {selected ? (
-            <span className="flex min-w-0 items-center gap-1.5 truncate">
-              {selected.icon !== undefined && (
-                <span className="text-base leading-none" aria-hidden="true">
-                  {selected.icon}
-                </span>
-              )}
-              <span className="truncate">{selected.label}</span>
+        <ComboboxTriggerContent selected={selected !== undefined} placeholder={placeholder}>
+          {selected?.icon !== undefined && (
+            <span className="text-base leading-none" aria-hidden="true">
+              {selected.icon}
             </span>
-          ) : (
-            <span className="truncate text-muted-foreground">{placeholder}</span>
           )}
-          <CaretUpDownIcon
-            className="ml-1 size-3.5 shrink-0 text-muted-foreground"
-            aria-hidden="true"
-          />
-        </>
+          <span className="truncate">{selected?.label}</span>
+        </ComboboxTriggerContent>
       }
       disabled={disabled}
       searchable={searchable}
@@ -99,7 +88,7 @@ function Select({
         <>
           {placeholder !== undefined && clearable && (
             <CommandOption
-              value={`__placeholder__ ${placeholder}`}
+              value={buildFilterValue('__placeholder__', placeholder)}
               onSelect={() => {
                 onChange('');
                 close();
@@ -114,7 +103,7 @@ function Select({
           {options.map((option) => (
             <CommandOption
               key={option.value}
-              value={`${option.label} ${option.value}`}
+              value={buildFilterValue(option.label, option.value)}
               onSelect={() => {
                 onChange(option.value);
                 close();

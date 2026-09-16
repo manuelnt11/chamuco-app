@@ -156,6 +156,7 @@ function VisaForm({
               <CountryCombobox
                 value={form.countryCode}
                 onChange={(iso2) => onChange({ countryCode: iso2 })}
+                disabled={isSaving}
                 aria-labelledby={`${idPrefix}-country-label`}
               />
             )}

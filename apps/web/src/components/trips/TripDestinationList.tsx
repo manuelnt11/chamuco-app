@@ -345,12 +345,18 @@ function DestinationFormDialog({
                 setCountryCode(iso2);
                 setCity('');
               }}
+              disabled={isSaving}
             />
           </div>
 
           <div className="space-y-1.5">
             <Label>{t('destinations.city')}</Label>
-            <CityCombobox value={city} onChange={setCity} country={countryCode} />
+            <CityCombobox
+              value={city}
+              onChange={setCity}
+              country={countryCode}
+              disabled={isSaving}
+            />
           </div>
 
           <div className="space-y-1.5">

@@ -289,6 +289,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
                 setBirthCountry(iso2);
                 setBirthCity('');
               }}
+              disabled={isSaving}
               aria-labelledby="birth-location-label"
               data-testid="birth-country"
             />
@@ -301,6 +302,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
               value={birthCity}
               onChange={setBirthCity}
               country={birthCountry}
+              disabled={isSaving}
               data-testid="birth-city"
             />
           </div>
@@ -320,6 +322,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
                 setHomeCountry(iso2);
                 setHomeCity('');
               }}
+              disabled={isSaving}
               aria-labelledby="home-location-label"
               aria-invalid={homeCountryError !== null}
               data-testid="home-country"
@@ -333,6 +336,7 @@ export function PersonalDetailsSection({ profile, onRefresh }: PersonalDetailsSe
               value={homeCity}
               onChange={setHomeCity}
               country={homeCountry}
+              disabled={isSaving}
               data-testid="home-city"
             />
           </div>

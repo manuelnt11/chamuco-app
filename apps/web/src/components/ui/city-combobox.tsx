@@ -14,6 +14,7 @@ interface CityComboboxProps {
   value: string;
   onChange: (city: string) => void;
   country: string;
+  disabled?: boolean;
   className?: string;
   'aria-invalid'?: boolean;
   'data-testid'?: string;
@@ -23,6 +24,7 @@ function CityCombobox({
   value,
   onChange,
   country,
+  disabled,
   className,
   'aria-invalid': ariaInvalid,
   'data-testid': testId,
@@ -61,6 +63,7 @@ function CityCombobox({
       trigger={
         <Button
           variant="outline"
+          disabled={disabled}
           aria-invalid={ariaInvalid}
           data-testid={testId}
           className={cn('w-full justify-start font-normal uppercase', className)}
@@ -71,6 +74,7 @@ function CityCombobox({
           {value || placeholder}
         </span>
       }
+      disabled={disabled}
       contentClassName="w-[var(--anchor-width)]"
       searchable
       searchValue={query}

@@ -124,6 +124,7 @@ function EtaForm({
           <CountryCombobox
             value={form.destinationCountry}
             onChange={(iso2) => onChange({ destinationCountry: iso2 })}
+            disabled={isSaving}
             aria-labelledby={`${idPrefix}-destination-label`}
           />
         )}

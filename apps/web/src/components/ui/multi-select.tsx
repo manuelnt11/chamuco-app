@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { ComboboxPopover } from '@/components/ui/combobox-popover';
-import { CommandOption } from '@/components/ui/command';
+import { buildFilterValue, CommandOption } from '@/components/ui/command';
 import { SelectItem, type SelectOption } from '@/components/ui/select-item';
 
 export type { SelectOption as MultiSelectOption } from '@/components/ui/select-item';
@@ -118,7 +118,7 @@ function MultiSelect({
           return (
             <CommandOption
               key={option.value}
-              value={`${option.label} ${option.value}`}
+              value={buildFilterValue(option.label, option.value)}
               onSelect={() => toggle(option.value)}
               data-testid={testId ? `${testId}-option-${option.value}` : undefined}
             >

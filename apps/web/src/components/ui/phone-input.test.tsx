@@ -18,12 +18,14 @@ vi.mock('@/components/ui/country-combobox', () => ({
   CountryCombobox: ({
     value,
     onChange,
+    disabled,
     'data-testid': testId,
     'aria-invalid': ariaInvalid,
     'aria-labelledby': ariaLabelledBy,
   }: {
     value: string;
     onChange: (iso: string) => void;
+    disabled?: boolean;
     'data-testid'?: string;
     'aria-invalid'?: boolean;
     'aria-labelledby'?: string;
@@ -32,6 +34,7 @@ vi.mock('@/components/ui/country-combobox', () => ({
       data-testid={testId ?? 'country-combobox'}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
       aria-invalid={ariaInvalid}
       aria-labelledby={ariaLabelledBy}
     >
@@ -189,6 +192,11 @@ describe('PhoneInput', () => {
   it('disables number input when disabled prop is true', () => {
     setup({ disabled: true });
     expect(screen.getByRole('textbox')).toBeDisabled();
+  });
+
+  it('disables country combobox when disabled prop is true', () => {
+    setup({ disabled: true });
+    expect(screen.getByTestId('country-combobox')).toBeDisabled();
   });
 
   it('splits international number on paste and updates both fields', async () => {

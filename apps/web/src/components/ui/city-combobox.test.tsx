@@ -101,6 +101,11 @@ describe('CityCombobox', () => {
     expect(onChange).toHaveBeenCalledWith('');
   });
 
+  it('disables the trigger when disabled is true', () => {
+    setup({ disabled: true });
+    expect(screen.getByTestId('city-combobox')).toBeDisabled();
+  });
+
   it('selecting a result calls onChange with its uppercased name and closes the popover', async () => {
     mocks.mockUseCitySearch.mockReturnValue({
       results: [{ name: 'Medellin', region: 'Antioquia' }],

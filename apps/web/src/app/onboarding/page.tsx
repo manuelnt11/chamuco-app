@@ -495,6 +495,7 @@ export default function OnboardingPage() {
               setTermsAccepted(v);
               clearError('terms');
             }}
+            disabled={isSubmitting}
             t={t}
           />
         )}
@@ -800,6 +801,7 @@ interface Step3Props {
   onHomeCountryChange: (v: string) => void;
   onHomeCityChange: (v: string) => void;
   onTermsChange: (v: boolean) => void;
+  disabled: boolean;
   t: TFunction;
 }
 
@@ -811,6 +813,7 @@ function Step3({
   onHomeCountryChange,
   onHomeCityChange,
   onTermsChange,
+  disabled,
   t,
 }: Step3Props) {
   return (
@@ -820,6 +823,7 @@ function Step3({
         <CountryCombobox
           value={homeCountry}
           onChange={onHomeCountryChange}
+          disabled={disabled}
           aria-invalid={!!stepErrors.homeCountry}
           aria-labelledby="home-country-label"
           data-testid="home-country-input"
@@ -834,6 +838,7 @@ function Step3({
           value={homeCity}
           onChange={onHomeCityChange}
           country={homeCountry}
+          disabled={disabled}
           data-testid="home-city-input"
         />
       </div>

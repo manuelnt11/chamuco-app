@@ -62,6 +62,7 @@ vi.mock('@/components/ui/command', () => ({
       {children}
     </div>
   ),
+  buildFilterValue: (...parts: string[]) => parts.join(' '),
 }));
 
 import { Select } from './select';

@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CaretUpDownIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
 import {
@@ -13,8 +12,8 @@ import {
 } from '@/lib/countries';
 import { Button } from '@/components/ui/button';
 import { ComboboxPopover } from '@/components/ui/combobox-popover';
-import { CommandOption } from '@/components/ui/command';
-import { SelectItem } from '@/components/ui/select-item';
+import { buildFilterValue, CommandOption } from '@/components/ui/command';
+import { ComboboxTriggerContent, SelectItem } from '@/components/ui/select-item';
 
 // ---------------------------------------------------------------------------
 // Utilities
@@ -32,6 +31,7 @@ interface CountryComboboxProps {
   value: string; // ISO alpha-2 code, e.g. "CO"
   onChange: (iso2: string) => void;
   displayMode?: 'name' | 'phone';
+  disabled?: boolean;
   className?: string;
   'aria-invalid'?: boolean;
   'aria-labelledby'?: string;
@@ -42,6 +42,7 @@ function CountryCombobox({
   value,
   onChange,
   displayMode = 'name',
+  disabled,
   className,
   'aria-invalid': ariaInvalid,
   'aria-labelledby': ariaLabelledBy,
@@ -62,6 +63,7 @@ function CountryCombobox({
       trigger={
         <Button
           variant="outline"
+          disabled={disabled}
           aria-invalid={ariaInvalid}
           aria-labelledby={ariaLabelledBy}
           data-testid={testId}
@@ -69,20 +71,18 @@ function CountryCombobox({
         />
       }
       triggerChildren={
-        <>
-          {selected ? (
-            <span className="flex min-w-0 items-center gap-1.5">
+        <ComboboxTriggerContent selected={selected !== undefined} placeholder={placeholder}>
+          {selected && (
+            <>
               <span className="text-base leading-none">{getEmojiFlag(selected.iso2)}</span>
               <span className="truncate">
                 {displayMode === 'phone' ? `+${selected.dialCode}` : selected.name.toUpperCase()}
               </span>
-            </span>
-          ) : (
-            <span className="truncate text-muted-foreground">{placeholder}</span>
+            </>
           )}
-          <CaretUpDownIcon className="ml-1 size-3.5 shrink-0 text-muted-foreground" />
-        </>
+        </ComboboxTriggerContent>
       }
+      disabled={disabled}
       contentClassName="w-64"
       searchPlaceholder={searchPlaceholder}
       noResultsText={noResultsText}
@@ -91,7 +91,7 @@ function CountryCombobox({
         countries.map((c) => (
           <CommandOption
             key={c.iso2}
-            value={`${c.name} ${c.iso2} +${c.dialCode}`}
+            value={buildFilterValue(c.name, c.iso2, `+${c.dialCode}`)}
             onSelect={() => {
               onChange(c.iso2);
               close();

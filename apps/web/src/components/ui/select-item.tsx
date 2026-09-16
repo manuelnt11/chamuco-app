@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { CheckIcon } from '@phosphor-icons/react';
+import { CaretUpDownIcon, CheckIcon } from '@phosphor-icons/react';
 
 export interface SelectOption {
   value: string;
@@ -38,4 +38,28 @@ function SelectItem({ icon, children, selected, selectedHint }: SelectItemProps)
   );
 }
 
-export { SelectItem };
+interface ComboboxTriggerContentProps {
+  selected: boolean;
+  placeholder?: ReactNode;
+  children: ReactNode;
+}
+
+// Shared trigger body for single-value combobox-style pickers (Select, CountryCombobox):
+// selected content (icon + label) or a muted placeholder, followed by the caret.
+function ComboboxTriggerContent({ selected, placeholder, children }: ComboboxTriggerContentProps) {
+  return (
+    <>
+      {selected ? (
+        <span className="flex min-w-0 items-center gap-1.5 truncate">{children}</span>
+      ) : (
+        <span className="truncate text-muted-foreground">{placeholder}</span>
+      )}
+      <CaretUpDownIcon
+        className="ml-1 size-3.5 shrink-0 text-muted-foreground"
+        aria-hidden="true"
+      />
+    </>
+  );
+}
+
+export { SelectItem, ComboboxTriggerContent };
