@@ -80,6 +80,7 @@ function FreeTextCombobox({
           {value || placeholder}
         </span>
       }
+      disabled={disabled}
       contentClassName={cn('w-[var(--anchor-width)]', contentClassName)}
       searchable
       searchValue={value}

@@ -307,6 +307,7 @@ _(none)_
 - `@phosphor-icons/react` — PlusIcon
 - `@/components/ui/button` — Button
 - `@/components/ui/edit-delete-actions` — EditDeleteActions
+- `@/components/ui/field-message` — FieldMessage
 - `@/components/ui/input` — Input
 - `@/components/ui/label` — Label
 - `@/components/ui/loyalty-program-combobox` — LoyaltyProgramCombobox
@@ -321,9 +322,9 @@ _(none)_
 - `FormState` (interface) — local form state shape for a loyalty program entry
 - `EMPTY_FORM` (const) — empty FormState sentinel
 - `LoyaltyProgramsSectionProps` (interface) — props for LoyaltyProgramsSection
-- `ProgramFormProps` (interface) — props for ProgramForm
-- `ProgramForm` (component) — inline form for create/edit of a single loyalty program record; `LoyaltyProgramCombobox` no longer takes `required`/`maxLength` (no literal `<input>` backs it), so `handleAdd`/`handleUpdate` explicitly reject an empty `programName` with a toast error before submitting
-- `LoyaltyProgramsSection` (component) — list + inline add/edit/delete UI for travel loyalty programs; duplicate detection and empty-`programName` validation before POST/PATCH
+- `ProgramFormProps` (interface) — props for ProgramForm; `programNameError: string | null` drives `aria-invalid` on `LoyaltyProgramCombobox` and an inline `FieldMessage`, matching the required-field pattern used by `VisasSubsection`/`EtasSubsection`/`EmergencyContactsSection` instead of a toast
+- `ProgramForm` (component) — inline form for create/edit of a single loyalty program record; `LoyaltyProgramCombobox` no longer takes `required`/`maxLength` (no literal `<input>` backs it), so `handleAdd`/`handleUpdate` set `addProgramNameError`/`editProgramNameError` (rendered via `FieldMessage`) instead of a toast when `programName` is empty
+- `LoyaltyProgramsSection` (component) — list + inline add/edit/delete UI for travel loyalty programs; duplicate detection and empty-`programName` validation (inline error, not a toast) before POST/PATCH
 
 ### Exports
 
@@ -340,7 +341,7 @@ _(none)_
 
 ### Definitions
 
-- Mocks `@/components/ui/loyalty-program-combobox` as a plain `<input>` (no longer forwards `required`/`maxLength` — the component doesn't accept them anymore); covers the `programNameRequired` toast-error validation added to `handleAdd`/`handleUpdate`
+- Mocks `@/components/ui/loyalty-program-combobox` as a plain `<input>` forwarding `disabled`/`aria-invalid` (no `required`/`maxLength` — the component doesn't accept them); covers the `programNameRequired` inline-error (`FieldMessage` + `aria-invalid`) validation in `handleAdd`/`handleUpdate`
 
 ### Exports
 

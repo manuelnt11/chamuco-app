@@ -133,4 +133,33 @@ describe('FreeTextCombobox', () => {
     setup({ disabled: true });
     expect(screen.getByTestId('combobox')).toBeDisabled();
   });
+
+  it('closes the option list when disabled flips to true while open', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <FreeTextCombobox
+        value=""
+        onChange={vi.fn()}
+        options={OPTIONS}
+        placeholder="Pick one"
+        noResultsText="No matches."
+        data-testid="combobox"
+      />,
+    );
+    await user.click(screen.getByTestId('combobox'));
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+
+    rerender(
+      <FreeTextCombobox
+        value=""
+        onChange={vi.fn()}
+        options={OPTIONS}
+        placeholder="Pick one"
+        noResultsText="No matches."
+        data-testid="combobox"
+        disabled
+      />,
+    );
+    expect(screen.queryByText('Alpha')).not.toBeInTheDocument();
+  });
 });

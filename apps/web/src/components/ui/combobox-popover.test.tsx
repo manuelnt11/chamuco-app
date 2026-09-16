@@ -241,4 +241,30 @@ describe('ComboboxPopover', () => {
     await user.click(screen.getByTestId('trigger'));
     expect(screen.getByPlaceholderText('Search fruits...')).toHaveAttribute('maxLength', '5');
   });
+
+  it('calls onOpenChange(true) when the trigger opens the popover', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    renderCombobox({ onOpenChange });
+    await user.click(screen.getByTestId('trigger'));
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+  });
+
+  it('calls onOpenChange(false) when an option selection closes the popover', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    renderCombobox({
+      onOpenChange,
+      children: (close: () => void) =>
+        OPTIONS.map((option) => (
+          <CommandOption key={option} value={option} onSelect={close}>
+            {option}
+          </CommandOption>
+        )),
+    });
+    await user.click(screen.getByTestId('trigger'));
+    onOpenChange.mockClear();
+    await user.click(screen.getByRole('option', { name: 'Banana' }));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
 });

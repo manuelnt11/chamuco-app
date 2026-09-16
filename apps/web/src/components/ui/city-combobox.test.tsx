@@ -106,6 +106,18 @@ describe('CityCombobox', () => {
     expect(screen.getByTestId('city-combobox')).toBeDisabled();
   });
 
+  it('resets the stale search query to the committed value on reopen', async () => {
+    const { user } = setup({ value: 'BOGOTA' });
+    await user.click(screen.getByTestId('city-combobox'));
+    await user.clear(screen.getByPlaceholderText('cityCombobox.placeholder'));
+    await user.type(screen.getByPlaceholderText('cityCombobox.placeholder'), 'CART');
+    expect(screen.getByPlaceholderText('cityCombobox.placeholder')).toHaveValue('CART');
+
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByTestId('city-combobox'));
+    expect(screen.getByPlaceholderText('cityCombobox.placeholder')).toHaveValue('BOGOTA');
+  });
+
   it('selecting a result calls onChange with its uppercased name and closes the popover', async () => {
     mocks.mockUseCitySearch.mockReturnValue({
       results: [{ name: 'Medellin', region: 'Antioquia' }],

@@ -13,6 +13,7 @@ import {
 import { MagnifyingGlassIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
 
 // cmdk filters options by matching typed text against CommandItem's `value` string, not its
 // rendered children — fold every searchable field into one string so search matches on all of them.
@@ -72,6 +73,14 @@ function CommandNoResults({ className, ...props }: ComponentPropsWithoutRef<type
   );
 }
 
+function CommandLoading({ className }: { className?: string }) {
+  return (
+    <div className={cn('flex items-center justify-center py-6', className)}>
+      <Spinner size="sm" />
+    </div>
+  );
+}
+
 function CommandGroupSection({
   className,
   ...props
@@ -106,6 +115,7 @@ export {
   CommandSearch,
   CommandItems,
   CommandNoResults,
+  CommandLoading,
   CommandGroupSection,
   CommandOption,
   CommandSeparator,

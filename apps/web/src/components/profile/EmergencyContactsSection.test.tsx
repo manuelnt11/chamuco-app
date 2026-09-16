@@ -620,6 +620,16 @@ describe('EmergencyContactsSection', () => {
         '100',
       );
     });
+
+    it('sets maxLength 50 on relationship input in add form', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
+      await user.click(screen.getByLabelText('emergencyContacts.relationship'));
+      expect(screen.getByPlaceholderText('emergencyContacts.relationship')).toHaveAttribute(
+        'maxLength',
+        '50',
+      );
+    });
   });
 
   describe('isPrimary toggle', () => {

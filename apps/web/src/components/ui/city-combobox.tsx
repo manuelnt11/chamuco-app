@@ -79,6 +79,9 @@ function CityCombobox({
       searchable
       searchValue={query}
       onSearchValueChange={handleQueryChange}
+      onOpenChange={(open) => {
+        if (open) setQuery(value);
+      }}
       shouldFilter={false}
       isLoading={isLoading}
       searchPlaceholder={placeholder}

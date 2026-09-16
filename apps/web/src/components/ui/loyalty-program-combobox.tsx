@@ -16,6 +16,7 @@ interface LoyaltyProgramComboboxProps {
   disabled?: boolean;
   className?: string;
   'data-testid'?: string;
+  'aria-invalid'?: boolean;
 }
 
 function LoyaltyProgramCombobox({
@@ -25,6 +26,7 @@ function LoyaltyProgramCombobox({
   disabled,
   className,
   'data-testid': testId,
+  'aria-invalid': ariaInvalid,
 }: LoyaltyProgramComboboxProps) {
   const { t } = useTranslation('profile');
   const options = useMemo(
@@ -52,6 +54,7 @@ function LoyaltyProgramCombobox({
       disabled={disabled}
       className={className}
       data-testid={testId}
+      aria-invalid={ariaInvalid}
     />
   );
 }

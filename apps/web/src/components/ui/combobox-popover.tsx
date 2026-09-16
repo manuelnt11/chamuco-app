@@ -8,10 +8,10 @@ import {
   Command,
   CommandGroupSection,
   CommandItems,
+  CommandLoading,
   CommandNoResults,
   CommandSearch,
 } from '@/components/ui/command';
-import { Spinner } from '@/components/ui/spinner';
 
 interface ComboboxPopoverProps {
   trigger: ReactElement;
@@ -24,6 +24,7 @@ interface ComboboxPopoverProps {
   noResultsText?: string;
   searchValue?: string;
   onSearchValueChange?: (value: string) => void;
+  onOpenChange?: (open: boolean) => void;
   shouldFilter?: boolean;
   maxLength?: number;
   isLoading?: boolean;
@@ -42,6 +43,7 @@ function ComboboxPopover({
   noResultsText,
   searchValue,
   onSearchValueChange,
+  onOpenChange,
   shouldFilter = true,
   maxLength,
   isLoading = false,
@@ -54,12 +56,18 @@ function ComboboxPopover({
     if (disabled) setOpen(false);
   }, [disabled]);
 
+  function handleOpenChange(next: boolean) {
+    setOpen(next);
+    onOpenChange?.(next);
+  }
+
   function close() {
     setOpen(false);
+    onOpenChange?.(false);
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger nativeButton={nativeButton} disabled={disabled} render={trigger}>
         {triggerChildren}
       </PopoverTrigger>
@@ -76,9 +84,7 @@ function ComboboxPopover({
           />
           <CommandItems>
             {isLoading ? (
-              <div className="flex items-center justify-center py-6">
-                <Spinner size="sm" />
-              </div>
+              <CommandLoading />
             ) : (
               <>
                 <CommandNoResults>{noResultsText}</CommandNoResults>

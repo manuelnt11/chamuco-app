@@ -6,6 +6,7 @@ import { PlusIcon } from '@phosphor-icons/react';
 
 import { Button } from '@/components/ui/button';
 import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
+import { FieldMessage } from '@/components/ui/field-message';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoyaltyProgramCombobox } from '@/components/ui/loyalty-program-combobox';
@@ -35,6 +36,7 @@ interface LoyaltyProgramsSectionProps {
 interface ProgramFormProps {
   idPrefix: string;
   form: FormState;
+  programNameError: string | null;
   isSaving: boolean;
   isDirty: boolean;
   onChangeProgramName: (v: string) => void;
@@ -48,6 +50,7 @@ interface ProgramFormProps {
 function ProgramForm({
   idPrefix,
   form,
+  programNameError,
   isSaving,
   isDirty,
   onChangeProgramName,
@@ -67,7 +70,9 @@ function ProgramForm({
           value={form.programName}
           onChange={onChangeProgramName}
           disabled={isSaving}
+          aria-invalid={programNameError !== null}
         />
+        <FieldMessage error={programNameError} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor={`${idPrefix}-memberId`}>{t('loyaltyPrograms.memberId')}</Label>
@@ -109,6 +114,8 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
   const [addForm, setAddForm] = useState<FormState>(EMPTY_FORM);
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
   const [initialEditForm, setInitialEditForm] = useState<FormState>(EMPTY_FORM);
+  const [addProgramNameError, setAddProgramNameError] = useState<string | null>(null);
+  const [editProgramNameError, setEditProgramNameError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const isEditDirty =
     editingId !== null &&
@@ -126,31 +133,36 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     };
     setEditForm(form);
     setInitialEditForm(form);
+    setEditProgramNameError(null);
     setIsAdding(false);
   }
 
   function cancelEdit() {
     setEditingId(null);
     setEditForm(EMPTY_FORM);
+    setEditProgramNameError(null);
   }
 
   function startAdd() {
     setIsAdding(true);
     setAddForm(EMPTY_FORM);
+    setAddProgramNameError(null);
     setEditingId(null);
   }
 
   function cancelAdd() {
     setIsAdding(false);
     setAddForm(EMPTY_FORM);
+    setAddProgramNameError(null);
   }
 
   async function handleAdd(e: SubmitEvent) {
     e.preventDefault();
     if (!addForm.programName.trim()) {
-      toast.error(t('loyaltyPrograms.programNameRequired'));
+      setAddProgramNameError(t('loyaltyPrograms.programNameRequired'));
       return;
     }
+    setAddProgramNameError(null);
     const nameNorm = addForm.programName.trim().toLowerCase();
     const memberNorm = addForm.memberId.trim().toLowerCase();
     const isDuplicate = programs.some(
@@ -182,9 +194,10 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
     e.preventDefault();
     if (!editingId) return;
     if (!editForm.programName.trim()) {
-      toast.error(t('loyaltyPrograms.programNameRequired'));
+      setEditProgramNameError(t('loyaltyPrograms.programNameRequired'));
       return;
     }
+    setEditProgramNameError(null);
     setIsSaving(true);
     try {
       await updateLoyaltyProgram(editingId, {
@@ -245,6 +258,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
               <ProgramForm
                 idPrefix={`edit-${program.id}`}
                 form={editForm}
+                programNameError={editProgramNameError}
                 isSaving={isSaving}
                 isDirty={isEditDirty}
                 onChangeProgramName={(v) => setEditForm((f) => ({ ...f, programName: v }))}
@@ -282,6 +296,7 @@ export function LoyaltyProgramsSection({ programs, onRefresh }: LoyaltyProgramsS
         <ProgramForm
           idPrefix="add"
           form={addForm}
+          programNameError={addProgramNameError}
           isSaving={isSaving}
           isDirty={isAddDirty}
           onChangeProgramName={(v) => setAddForm((f) => ({ ...f, programName: v }))}

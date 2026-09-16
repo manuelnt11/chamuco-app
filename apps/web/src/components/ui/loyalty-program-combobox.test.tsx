@@ -63,6 +63,16 @@ describe('LoyaltyProgramCombobox', () => {
       render(<LoyaltyProgramCombobox value="" onChange={vi.fn()} disabled data-testid="program" />);
       expect(screen.getByTestId('program')).toBeDisabled();
     });
+
+    it('caps the search input at 100 characters', async () => {
+      const user = userEvent.setup();
+      render(<LoyaltyProgramCombobox value="" onChange={vi.fn()} />);
+      await user.click(screen.getByRole('button'));
+      expect(screen.getByPlaceholderText('loyaltyPrograms.programName')).toHaveAttribute(
+        'maxLength',
+        '100',
+      );
+    });
   });
 
   describe('suggestions', () => {
