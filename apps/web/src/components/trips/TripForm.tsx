@@ -328,6 +328,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                 setDepartureCountry(iso2);
                 setDepartureCity('');
               }}
+              disabled={isSaving}
             />
           </div>
           <div className="space-y-1.5">
@@ -336,6 +337,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
               value={departureCity}
               onChange={setDepartureCity}
               country={departureCountry}
+              disabled={isSaving}
             />
           </div>
         </div>
@@ -372,6 +374,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                   setLandingCountry(iso2);
                   setLandingCity('');
                 }}
+                disabled={isSaving}
               />
             </div>
             <div className="space-y-1.5">
@@ -380,6 +383,7 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                 value={landingCity}
                 onChange={setLandingCity}
                 country={landingCountry}
+                disabled={isSaving}
               />
             </div>
           </div>
@@ -503,7 +507,6 @@ export function TripForm({ mode, tripId, initialValues, onSuccess }: TripFormPro
                 value={defaultTimezone}
                 onChange={setDefaultTimezone}
                 placeholder={t('form.defaultTimezonePlaceholder')}
-                searchPlaceholder={t('common:actions.search')}
                 disabled={isSaving}
               />
             </div>

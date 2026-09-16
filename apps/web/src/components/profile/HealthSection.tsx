@@ -277,17 +277,15 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
           <Select
             id="bloodType"
             value={bloodType ?? ''}
-            onChange={(e) => setBloodType((e.target.value || null) as BloodType | null)}
+            onChange={(v) => setBloodType((v || null) as BloodType | null)}
+            options={Object.values(BloodType).map((value) => ({
+              value,
+              label: t(`health.bloodType.${value}`),
+            }))}
+            placeholder={t('health.bloodType.placeholder')}
             disabled={isSaving}
             data-testid="bloodType-select"
-          >
-            <option value="">{t('health.bloodType.placeholder')}</option>
-            {Object.values(BloodType).map((value) => (
-              <option key={value} value={value}>
-                {t(`health.bloodType.${value}`)}
-              </option>
-            ))}
-          </Select>
+          />
         </div>
 
         <div className="space-y-1.5">
@@ -295,19 +293,15 @@ export function HealthSection({ health, onRefresh }: HealthSectionProps) {
           <Select
             id="dietaryPreference"
             value={dietaryPreference ?? ''}
-            onChange={(e) =>
-              setDietaryPreference((e.target.value || null) as DietaryPreference | null)
-            }
+            onChange={(v) => setDietaryPreference((v || null) as DietaryPreference | null)}
+            options={Object.values(DietaryPreference).map((value) => ({
+              value,
+              label: t(`health.dietaryPreference.${value}`),
+            }))}
+            placeholder={t('health.dietaryPreference.placeholder')}
             disabled={isSaving}
             data-testid="dietaryPreference-select"
-          >
-            <option value="">{t('health.dietaryPreference.placeholder')}</option>
-            {Object.values(DietaryPreference).map((value) => (
-              <option key={value} value={value}>
-                {t(`health.dietaryPreference.${value}`)}
-              </option>
-            ))}
-          </Select>
+          />
         </div>
       </div>
 

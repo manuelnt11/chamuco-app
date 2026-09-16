@@ -124,6 +124,7 @@ function EtaForm({
           <CountryCombobox
             value={form.destinationCountry}
             onChange={(iso2) => onChange({ destinationCountry: iso2 })}
+            disabled={isSaving}
             aria-labelledby={`${idPrefix}-destination-label`}
           />
         )}
@@ -154,17 +155,15 @@ function EtaForm({
         <Select
           id={`${idPrefix}-etaType`}
           value={form.etaType}
-          onChange={(e) => onChange({ etaType: e.target.value as EtaType | '' })}
+          onChange={(v) => onChange({ etaType: v as EtaType | '' })}
+          options={Object.values(EtaType).map((type) => ({
+            value: type,
+            label: t(`nationalities.etas.etaTypes.${type}`),
+          }))}
+          placeholder={t('nationalities.etas.etaType')}
           disabled={isSaving}
           aria-invalid={errors.etaType !== null}
-        >
-          <option value="">{t('nationalities.etas.etaType')}</option>
-          {Object.values(EtaType).map((type) => (
-            <option key={type} value={type}>
-              {t(`nationalities.etas.etaTypes.${type}`)}
-            </option>
-          ))}
-        </Select>
+        />
         <FieldMessage error={errors.etaType} />
       </div>
 
@@ -174,17 +173,15 @@ function EtaForm({
         <Select
           id={`${idPrefix}-entries`}
           value={form.entries}
-          onChange={(e) => onChange({ entries: e.target.value as VisaEntries | '' })}
+          onChange={(v) => onChange({ entries: v as VisaEntries | '' })}
+          options={Object.values(VisaEntries).map((entry) => ({
+            value: entry,
+            label: t(`nationalities.etas.entriesOptions.${entry}`),
+          }))}
+          placeholder={t('nationalities.etas.entries')}
           disabled={isSaving}
           aria-invalid={errors.entries !== null}
-        >
-          <option value="">{t('nationalities.etas.entries')}</option>
-          {Object.values(VisaEntries).map((entry) => (
-            <option key={entry} value={entry}>
-              {t(`nationalities.etas.entriesOptions.${entry}`)}
-            </option>
-          ))}
-        </Select>
+        />
         <FieldMessage error={errors.entries} />
       </div>
 

@@ -1,20 +1,18 @@
 'use client';
 
-import { CaretUpDownIcon, CheckIcon, XIcon } from '@phosphor-icons/react';
+import { CaretUpDownIcon, XIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { ComboboxPopover } from '@/components/ui/combobox-popover';
-import { CommandOption } from '@/components/ui/command';
+import { buildFilterValue, CommandOption } from '@/components/ui/command';
+import { SelectItem, type SelectOption } from '@/components/ui/select-item';
 
-export interface MultiSelectOption {
-  value: string;
-  label: string;
-}
+export type { SelectOption as MultiSelectOption } from '@/components/ui/select-item';
 
 interface MultiSelectProps {
-  options: MultiSelectOption[];
+  options: SelectOption[];
   selected: string[];
   onChange: (values: string[]) => void;
   placeholder: string;
@@ -120,20 +118,13 @@ function MultiSelect({
           return (
             <CommandOption
               key={option.value}
-              value={`${option.label} ${option.value}`}
+              value={buildFilterValue(option.label, option.value)}
               onSelect={() => toggle(option.value)}
               data-testid={testId ? `${testId}-option-${option.value}` : undefined}
             >
-              <span className="truncate">{option.label}</span>
-              {isSelected && (
-                <>
-                  <CheckIcon
-                    className="ml-auto size-3.5 shrink-0 text-primary"
-                    aria-hidden="true"
-                  />
-                  <span className="sr-only">, {selectedHint}</span>
-                </>
-              )}
+              <SelectItem icon={option.icon} selected={isSelected} selectedHint={selectedHint}>
+                <span className="truncate">{option.label}</span>
+              </SelectItem>
             </CommandOption>
           );
         })

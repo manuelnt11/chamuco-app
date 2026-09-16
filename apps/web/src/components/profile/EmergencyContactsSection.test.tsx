@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const mocks = vi.hoisted(() => ({
@@ -97,12 +97,28 @@ function setup(contacts: EmergencyContactDto[] = sampleContacts) {
   return { user, onRefresh };
 }
 
+async function setRelationship(user: ReturnType<typeof userEvent.setup>, value: string) {
+  await user.click(screen.getByLabelText('emergencyContacts.relationship'));
+  fireEvent.change(screen.getByPlaceholderText('emergencyContacts.relationship'), {
+    target: { value },
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockPost.mockResolvedValue({});
   mocks.mockPatch.mockResolvedValue({});
   mocks.mockDelete.mockResolvedValue({});
   mocks.mockIsValidPhoneNumber.mockReturnValue(true);
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
 describe('EmergencyContactsSection', () => {
@@ -168,9 +184,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/emergency-contacts', {
@@ -192,9 +206,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '300 987 6543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith('/v1/users/me/emergency-contacts', {
@@ -230,9 +242,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
@@ -246,9 +256,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.success)).toHaveBeenCalledWith('emergencyContacts.addSuccess'),
@@ -264,9 +272,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(screen.queryByLabelText('emergencyContacts.fullName')).not.toBeInTheDocument(),
@@ -290,9 +296,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(vi.mocked(toast.error)).toHaveBeenCalledWith('emergencyContacts.saveError'),
@@ -307,9 +311,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.fullNameRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -335,9 +337,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.fullName'), {
         target: { value: 'Ana López' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.phoneRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -353,9 +353,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '123' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.invalidPhone')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -370,9 +368,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sister' },
-      });
+      await setRelationship(user, 'Sister');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.fullNameInvalid')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -387,9 +383,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Sis@ter!' },
-      });
+      await setRelationship(user, 'Sis@ter!');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.relationshipInvalid')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -404,9 +398,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'A' },
-      });
+      await setRelationship(user, 'A');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       expect(screen.getByText('emergencyContacts.errors.relationshipRequired')).toBeInTheDocument();
       expect(mocks.mockPost).not.toHaveBeenCalled();
@@ -421,9 +413,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Hermana' },
-      });
+      await setRelationship(user, 'Hermana');
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>
         expect(mocks.mockPost).toHaveBeenCalledWith(
@@ -447,7 +437,9 @@ describe('EmergencyContactsSection', () => {
       const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
       expect(screen.getByLabelText('emergencyContacts.fullName')).toHaveValue('MARÍA GARCÍA');
-      expect(screen.getByLabelText('emergencyContacts.relationship')).toHaveValue('MOTHER');
+      expect(
+        within(screen.getByLabelText('emergencyContacts.relationship')).getByText('MOTHER'),
+      ).toBeInTheDocument();
       expect(screen.getByRole('checkbox', { name: 'emergencyContacts.isPrimary' })).toBeChecked();
     });
 
@@ -619,15 +611,6 @@ describe('EmergencyContactsSection', () => {
       );
     });
 
-    it('sets maxLength 50 on relationship input in add form', async () => {
-      const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      expect(screen.getByLabelText('emergencyContacts.relationship')).toHaveAttribute(
-        'maxLength',
-        '50',
-      );
-    });
-
     it('sets maxLength 100 on fullName input in edit form', async () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
@@ -638,11 +621,11 @@ describe('EmergencyContactsSection', () => {
       );
     });
 
-    it('sets maxLength 50 on relationship input in edit form', async () => {
+    it('sets maxLength 50 on relationship input in add form', async () => {
       const { user } = setup();
-      const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
-      await user.click(editButtons[0]!);
-      expect(screen.getByLabelText('emergencyContacts.relationship')).toHaveAttribute(
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
+      await user.click(screen.getByLabelText('emergencyContacts.relationship'));
+      expect(screen.getByPlaceholderText('emergencyContacts.relationship')).toHaveAttribute(
         'maxLength',
         '50',
       );
@@ -659,9 +642,7 @@ describe('EmergencyContactsSection', () => {
       fireEvent.change(screen.getByLabelText('emergencyContacts.phoneNumber'), {
         target: { value: '3009876543' },
       });
-      fireEvent.change(screen.getByLabelText('emergencyContacts.relationship'), {
-        target: { value: 'Father' },
-      });
+      await setRelationship(user, 'Father');
       await user.click(screen.getByRole('checkbox', { name: 'emergencyContacts.isPrimary' }));
       await user.click(screen.getByRole('button', { name: 'emergencyContacts.save' }));
       await waitFor(() =>

@@ -79,7 +79,7 @@ _(none)_
 ### Definitions
 
 - `BasicInfoSectionProps` (interface) — props for BasicInfoSection
-- `BasicInfoSection` (component) — form for display name, bio, timezone, profile visibility, and avatar editing
+- `BasicInfoSection` (component) — form for display name, bio, timezone, profile visibility, and avatar editing; passes `clearable={false}` to `TimezoneCombobox` since this field always has a value (`suggestedTimezone` never resolves to empty) and `handleSave` sends it to `updateMe` unguarded — the field must not offer a "reset to empty" affordance
 
 ### Exports
 
@@ -114,12 +114,13 @@ _(none)_
 
 ### Imports
 
-- `react` — useState, SubmitEvent (type)
+- `react` — useMemo, useState, SubmitEvent (type)
 - `react-i18next` — useTranslation
 - `@/lib/countries` — isoByCallingCode
 - `@phosphor-icons/react` — PlusIcon
 - `@/components/ui/button` — Button
 - `@/components/ui/edit-delete-actions` — EditDeleteActions
+- `@/components/ui/free-text-combobox` — FreeTextCombobox
 - `@/components/ui/input` — Input
 - `@/components/ui/label` — Label
 - `@/components/ui/country-combobox` — getCallingCode
@@ -133,7 +134,9 @@ _(none)_
 
 ### Definitions
 
-- `RELATIONSHIP_KEYS` (const) — predefined relationship key list for datalist suggestions
+- `RELATIONSHIP_KEYS` (const) — predefined relationship key list for `RelationshipCombobox` suggestions
+- `RelationshipComboboxProps` (interface) — props for `RelationshipCombobox`
+- `RelationshipCombobox` (component) — thin wrapper around the shared `FreeTextCombobox` (replaces the former `<input list>`/`<datalist>` pair, and its own hand-rolled `ComboboxPopover` usage from an earlier pass — deduplicated alongside `LoyaltyProgramCombobox`, which had independently reimplemented the same pattern); passes `transformInput={(raw) => raw.toUpperCase()}` (applied uniformly to both typing and selecting a suggestion — the earlier hand-rolled version only uppercased typed text, missing it on selection) and `maxLength={50}`
 - `FormState` (interface) — local form state shape for a single contact
 - `FormErrors` (interface) — field-level error state for a single contact form
 - `EMPTY_ERRORS` (const) — zeroed-out FormErrors sentinel
@@ -154,7 +157,7 @@ _(none)_
 
 ### Imports
 
-- `@testing-library/react` — render, screen, waitFor
+- `@testing-library/react` — render, screen, waitFor, fireEvent, within
 - `@testing-library/user-event` — userEvent
 - `@/services/users.types` — EmergencyContactDto (type)
 - `./EmergencyContactsSection` — EmergencyContactsSection
@@ -163,6 +166,8 @@ _(none)_
 
 - `sampleContacts` (const) — fixture array of EmergencyContactDto used across tests
 - `setup` (function) — renders EmergencyContactsSection with optional contacts and returns userEvent and onRefresh mock
+- `setRelationship` (function) — test helper; opens the real (unmocked) `RelationshipCombobox` popover by clicking its trigger, then `fireEvent.change`s its search input to set the value in one step
+- Stubs `ResizeObserver`/`scrollIntoView` per test (real `ComboboxPopover`/`cmdk` render for `RelationshipCombobox`, unlike `CountryCombobox` which stays fully mocked in this file)
 
 ### Exports
 
@@ -259,7 +264,7 @@ _(none)_
 - `normalizeItems` (function) — converts raw health DTO array items to HealthArrayItem format
 - `sortedItems` (function) — returns a sorted copy of HealthArrayItem array for stable dirty comparison
 - `buildArrayFieldsState` (function) — builds a `Record<ArrayFieldId, HealthArrayItem[]>` from the 4 raw health array fields (passed individually, not as the whole `HealthData` object, so the `useMemo` call site's dependency array can name each field directly); shared by the initial `useState` and the `initialArrayFields` dirty-check memo
-- `HealthSection` (component) — form for blood type, dietary preference (native `Select`s in a `grid-cols-1 sm:grid-cols-[2fr_3fr]` row), and the 4 config-driven array fields
+- `HealthSection` (component) — form for blood type, dietary preference (popover-based `Select`s, options built via `Object.values(Enum).map(...)`, in a `grid-cols-1 sm:grid-cols-[2fr_3fr]` row), and the 4 config-driven array fields
 
 ### Exports
 
@@ -282,8 +287,10 @@ _(none)_
 ### Definitions
 
 - `selectArrayOption` (function) — test helper; opens a `MultiSelect` field's dropdown by `data-testid` and clicks the given option's `data-testid`
-- Mocks `@/components/ui/input`, `textarea`, `select`, `spinner`, `button`, `label` as thin passthrough elements
-- Mocks `@/components/ui/popover` (`Popover`, `PopoverTrigger`, `PopoverContent`) and `@/components/ui/command` (`Command`, `CommandSearch`, `CommandItems`, `CommandNoResults`, `CommandGroupSection`, `CommandOption`) so `MultiSelect`'s underlying `ComboboxPopover` renders without real Base UI/`cmdk` portal behavior in tests; `PopoverTrigger`'s mock reflects the real `disabled` prop as `aria-disabled` on a `role="button"` div
+- `selectSingleOption` (function) — same pattern for a single-select `Select` field: click the trigger by `data-testid`, then click `${fieldId}-option-${value}`
+- `clearSingleSelect` (function) — click a `Select` trigger then its `${fieldId}-placeholder` row, to exercise the "deselect back to nothing" case
+- Mocks `@/components/ui/input`, `textarea`, `spinner`, `button`, `label` as thin passthrough elements (no `select` mock — `Select` now goes through the same `popover`/`command` mocks as `MultiSelect`)
+- Mocks `@/components/ui/popover` (`Popover`, `PopoverTrigger`, `PopoverContent`) and `@/components/ui/command` (`Command`, `CommandSearch`, `CommandItems`, `CommandNoResults`, `CommandGroupSection`, `CommandOption`) so both `Select` and `MultiSelect`'s underlying `ComboboxPopover` render without real Base UI/`cmdk` portal behavior in tests; `PopoverTrigger`'s mock reflects the real `disabled` prop as `aria-disabled` on a `role="button"` div
 
 ### Exports
 
@@ -300,6 +307,7 @@ _(none)_
 - `@phosphor-icons/react` — PlusIcon
 - `@/components/ui/button` — Button
 - `@/components/ui/edit-delete-actions` — EditDeleteActions
+- `@/components/ui/field-message` — FieldMessage
 - `@/components/ui/input` — Input
 - `@/components/ui/label` — Label
 - `@/components/ui/loyalty-program-combobox` — LoyaltyProgramCombobox
@@ -314,9 +322,9 @@ _(none)_
 - `FormState` (interface) — local form state shape for a loyalty program entry
 - `EMPTY_FORM` (const) — empty FormState sentinel
 - `LoyaltyProgramsSectionProps` (interface) — props for LoyaltyProgramsSection
-- `ProgramFormProps` (interface) — props for ProgramForm
-- `ProgramForm` (component) — inline form for create/edit of a single loyalty program record
-- `LoyaltyProgramsSection` (component) — list + inline add/edit/delete UI for travel loyalty programs; duplicate detection before POST
+- `ProgramFormProps` (interface) — props for ProgramForm; `programNameError: string | null` drives `aria-invalid` on `LoyaltyProgramCombobox` and an inline `FieldMessage`, matching the required-field pattern used by `VisasSubsection`/`EtasSubsection`/`EmergencyContactsSection` instead of a toast
+- `ProgramForm` (component) — inline form for create/edit of a single loyalty program record; `LoyaltyProgramCombobox` no longer takes `required`/`maxLength` (no literal `<input>` backs it), so `handleAdd`/`handleUpdate` set `addProgramNameError`/`editProgramNameError` (rendered via `FieldMessage`) instead of a toast when `programName` is empty
+- `LoyaltyProgramsSection` (component) — list + inline add/edit/delete UI for travel loyalty programs; duplicate detection and empty-`programName` validation (inline error, not a toast) before POST/PATCH
 
 ### Exports
 
@@ -333,7 +341,7 @@ _(none)_
 
 ### Definitions
 
-_(no substantial non-test definitions)_
+- Mocks `@/components/ui/loyalty-program-combobox` as a plain `<input>` forwarding `disabled`/`aria-invalid` (no `required`/`maxLength` — the component doesn't accept them); covers the `programNameRequired` inline-error (`FieldMessage` + `aria-invalid`) validation in `handleAdd`/`handleUpdate`
 
 ### Exports
 

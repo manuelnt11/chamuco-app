@@ -124,4 +124,13 @@ describe('MultiSelect', () => {
     await user.click(screen.getByTestId('allergies'));
     expect(screen.queryByRole('option')).not.toBeInTheDocument();
   });
+
+  it('renders an option icon when the option provides one', async () => {
+    const user = userEvent.setup();
+    renderMultiSelect({
+      options: [...OPTIONS, { value: 'FISH', label: 'Fish', icon: '🐟' }],
+    });
+    await user.click(screen.getByTestId('allergies'));
+    expect(within(screen.getByTestId('allergies-option-FISH')).getByText('🐟')).toBeInTheDocument();
+  });
 });

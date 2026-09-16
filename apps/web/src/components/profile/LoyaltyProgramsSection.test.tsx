@@ -21,24 +21,21 @@ vi.mock('@/components/ui/loyalty-program-combobox', () => ({
     id,
     value,
     onChange,
-    required,
-    maxLength,
     disabled,
+    'aria-invalid': ariaInvalid,
   }: {
     id?: string;
     value: string;
     onChange: (v: string) => void;
-    required?: boolean;
-    maxLength?: number;
     disabled?: boolean;
+    'aria-invalid'?: boolean;
   }) => (
     <input
       id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      required={required}
-      maxLength={maxLength}
       disabled={disabled}
+      aria-invalid={ariaInvalid}
     />
   ),
 }));
@@ -324,29 +321,35 @@ describe('LoyaltyProgramsSection', () => {
   });
 
   describe('input constraints', () => {
-    it('sets maxLength 100 on programName input in add form', async () => {
-      const { user } = setup();
-      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
-      expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
-        'maxLength',
-        '100',
-      );
-    });
-
     it('sets maxLength 100 on memberId input in add form', async () => {
       const { user } = setup();
       await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
       expect(screen.getByLabelText('loyaltyPrograms.memberId')).toHaveAttribute('maxLength', '100');
     });
+  });
 
-    it('sets maxLength 100 on programName input in edit form', async () => {
+  describe('program name validation', () => {
+    it('blocks add and shows an inline error when programName is empty', async () => {
+      const { user } = setup();
+      await user.click(screen.getByRole('button', { name: 'common:actions.create' }));
+      await user.type(screen.getByLabelText('loyaltyPrograms.memberId'), 'LM999');
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      expect(screen.getByText('loyaltyPrograms.programNameRequired')).toBeInTheDocument();
+      expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
+        'aria-invalid',
+        'true',
+      );
+      expect(mocks.mockPost).not.toHaveBeenCalled();
+    });
+
+    it('blocks update and shows an inline error when programName is cleared', async () => {
       const { user } = setup();
       const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
       await user.click(editButtons[0]!);
-      expect(screen.getByLabelText('loyaltyPrograms.programName')).toHaveAttribute(
-        'maxLength',
-        '100',
-      );
+      await user.clear(screen.getByLabelText('loyaltyPrograms.programName'));
+      await user.click(screen.getByRole('button', { name: 'loyaltyPrograms.save' }));
+      expect(screen.getByText('loyaltyPrograms.programNameRequired')).toBeInTheDocument();
+      expect(mocks.mockPatch).not.toHaveBeenCalled();
     });
   });
 

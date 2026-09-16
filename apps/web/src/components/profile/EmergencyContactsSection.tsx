@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, type SubmitEvent } from 'react';
+import { useMemo, useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isoByCallingCode } from '@/lib/countries';
 import { PlusIcon } from '@phosphor-icons/react';
 
 import { Button } from '@/components/ui/button';
 import { EditDeleteActions } from '@/components/ui/edit-delete-actions';
+import { FreeTextCombobox } from '@/components/ui/free-text-combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getCallingCode } from '@/components/ui/country-combobox';
@@ -73,6 +74,47 @@ function getIsoFromCallingCode(callingCode: string): string {
   return isoByCallingCode(callingCode.replace('+', '')) ?? 'CO';
 }
 
+interface RelationshipComboboxProps {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  'aria-invalid'?: boolean;
+}
+
+function RelationshipCombobox({
+  id,
+  value,
+  onChange,
+  disabled,
+  'aria-invalid': ariaInvalid,
+}: RelationshipComboboxProps) {
+  const { t } = useTranslation('profile');
+  const options = useMemo(
+    () =>
+      RELATIONSHIP_KEYS.map((key) => ({
+        value: key,
+        label: t(`emergencyContacts.relationshipOptions.${key}`),
+      })),
+    [t],
+  );
+
+  return (
+    <FreeTextCombobox
+      id={id}
+      value={value}
+      onChange={onChange}
+      options={options}
+      transformInput={(raw) => raw.toUpperCase()}
+      maxLength={50}
+      placeholder={t('emergencyContacts.relationship')}
+      noResultsText={t('emergencyContacts.relationshipNoResults')}
+      disabled={disabled}
+      aria-invalid={ariaInvalid}
+    />
+  );
+}
+
 interface ContactFormProps {
   idPrefix: string;
   form: FormState;
@@ -137,23 +179,13 @@ function ContactForm({
 
       <div className="space-y-1.5">
         <Label htmlFor={`${idPrefix}-relationship`}>{t('emergencyContacts.relationship')}</Label>
-        <Input
+        <RelationshipCombobox
           id={`${idPrefix}-relationship`}
-          list={`${idPrefix}-relationship-options`}
           value={form.relationship}
-          onChange={(e) => onChange({ relationship: e.target.value.toUpperCase() })}
-          autoCapitalize="characters"
-          minLength={2}
-          maxLength={50}
-          aria-invalid={errors.relationship !== null}
+          onChange={(v) => onChange({ relationship: v })}
           disabled={isSaving}
-          className="uppercase placeholder:normal-case"
+          aria-invalid={errors.relationship !== null}
         />
-        <datalist id={`${idPrefix}-relationship-options`}>
-          {RELATIONSHIP_KEYS.map((key) => (
-            <option key={key} value={t(`emergencyContacts.relationshipOptions.${key}`)} />
-          ))}
-        </datalist>
         <FieldMessage error={errors.relationship} />
       </div>
 

@@ -95,6 +95,7 @@ export function PhoneInput({
           value={countryIso}
           onChange={onCountryChange}
           displayMode="phone"
+          disabled={disabled}
           aria-labelledby={labelId}
           aria-invalid={error != null}
           data-testid={countryTestId}

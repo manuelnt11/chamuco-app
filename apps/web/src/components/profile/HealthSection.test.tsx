@@ -18,10 +18,6 @@ vi.mock('@/components/ui/textarea', () => ({
   Textarea: (props: ComponentProps<'textarea'>) => <textarea {...props} />,
 }));
 
-vi.mock('@/components/ui/select', () => ({
-  Select: (props: ComponentProps<'select'>) => <select {...props} />,
-}));
-
 vi.mock('@/components/ui/spinner', () => ({
   Spinner: () => <span data-testid="spinner" />,
 }));
@@ -66,7 +62,12 @@ vi.mock('@/components/ui/popover', () => ({
 
 vi.mock('@/components/ui/command', () => ({
   Command: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  CommandSearch: (props: ComponentProps<'input'>) => <input role="searchbox" {...props} />,
+  CommandSearch: ({
+    visuallyHidden: _visuallyHidden,
+    ...props
+  }: ComponentProps<'input'> & { visuallyHidden?: boolean }) => (
+    <input role="searchbox" {...props} />
+  ),
   CommandItems: ({ children }: { children: ReactNode }) => <div role="listbox">{children}</div>,
   CommandNoResults: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   CommandGroupSection: ({ children }: { children: ReactNode }) => <div>{children}</div>,
@@ -86,6 +87,7 @@ vi.mock('@/components/ui/command', () => ({
       {children}
     </div>
   ),
+  buildFilterValue: (...parts: string[]) => parts.join(' '),
 }));
 
 import { HealthSection } from './HealthSection';
@@ -120,6 +122,20 @@ async function selectArrayOption(
   await user.click(screen.getByTestId(`${fieldId}-option-${code}`));
 }
 
+async function selectSingleOption(
+  user: ReturnType<typeof userEvent.setup>,
+  fieldId: string,
+  value: string,
+) {
+  await user.click(screen.getByTestId(fieldId));
+  await user.click(screen.getByTestId(`${fieldId}-option-${value}`));
+}
+
+async function clearSingleSelect(user: ReturnType<typeof userEvent.setup>, fieldId: string) {
+  await user.click(screen.getByTestId(fieldId));
+  await user.click(screen.getByTestId(`${fieldId}-placeholder`));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.mockPatch.mockResolvedValue({});
@@ -137,24 +153,27 @@ describe('HealthSection', () => {
       expect(screen.getByText('health.privacyNote')).toBeInTheDocument();
     });
 
-    it('renders blood type select with all options', () => {
-      setup();
-      const select = screen.getByTestId('bloodType-select');
-      expect(select).toBeInTheDocument();
-      expect(within(select).getByText('health.bloodType.A_POSITIVE')).toBeInTheDocument();
-      expect(within(select).getByText('health.bloodType.O_NEGATIVE')).toBeInTheDocument();
+    it('renders blood type select with all options', async () => {
+      const { user } = setup();
+      await user.click(screen.getByTestId('bloodType-select'));
+      for (const value of Object.values(BloodType)) {
+        expect(screen.getByTestId(`bloodType-select-option-${value}`)).toBeInTheDocument();
+      }
     });
 
     it('marks blood type select value when set', () => {
       setup({ bloodType: BloodType.O_POSITIVE });
-      expect(screen.getByTestId('bloodType-select')).toHaveValue(BloodType.O_POSITIVE);
+      const trigger = screen.getByTestId('bloodType-select');
+      expect(
+        within(trigger).getByText(`health.bloodType.${BloodType.O_POSITIVE}`),
+      ).toBeInTheDocument();
     });
 
-    it('renders dietary preference select with all options', () => {
-      setup();
-      const select = screen.getByTestId('dietaryPreference-select');
+    it('renders dietary preference select with all options', async () => {
+      const { user } = setup();
+      await user.click(screen.getByTestId('dietaryPreference-select'));
       for (const value of Object.values(DietaryPreference)) {
-        expect(within(select).getByText(`health.dietaryPreference.${value}`)).toBeInTheDocument();
+        expect(screen.getByTestId(`dietaryPreference-select-option-${value}`)).toBeInTheDocument();
       }
     });
 
@@ -183,7 +202,10 @@ describe('HealthSection', () => {
 
     it('populates dietary preference select as selected value', () => {
       setup({ dietaryPreference: DietaryPreference.VEGAN });
-      expect(screen.getByTestId('dietaryPreference-select')).toHaveValue(DietaryPreference.VEGAN);
+      const trigger = screen.getByTestId('dietaryPreference-select');
+      expect(
+        within(trigger).getByText(`health.dietaryPreference.${DietaryPreference.VEGAN}`),
+      ).toBeInTheDocument();
     });
 
     it('populates general medical notes from initial data', () => {
@@ -210,25 +232,19 @@ describe('HealthSection', () => {
 
     it('enables save button after selecting a dietary preference', async () => {
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       expect(screen.getByRole('button', { name: /health\.save|health\.saving/ })).toBeEnabled();
     });
 
     it('enables save after selecting a blood type', async () => {
       const { user } = setup();
-      await user.selectOptions(screen.getByTestId('bloodType-select'), BloodType.B_POSITIVE);
+      await selectSingleOption(user, 'bloodType-select', BloodType.B_POSITIVE);
       expect(screen.getByRole('button', { name: /health\.save|health\.saving/ })).toBeEnabled();
     });
 
     it('shows unsaved indicator after making a change', async () => {
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       expect(screen.getByTestId('unsaved-indicator')).toBeInTheDocument();
     });
 
@@ -251,27 +267,24 @@ describe('HealthSection', () => {
 
     it('deselects dietary preference when selecting the empty option', async () => {
       const { user } = setup({ dietaryPreference: DietaryPreference.VEGAN });
-      await user.selectOptions(screen.getByTestId('dietaryPreference-select'), '');
-      expect(screen.getByTestId('dietaryPreference-select')).toHaveValue('');
+      await clearSingleSelect(user, 'dietaryPreference-select');
+      const trigger = screen.getByTestId('dietaryPreference-select');
+      expect(
+        within(trigger).queryByText(`health.dietaryPreference.${DietaryPreference.VEGAN}`),
+      ).not.toBeInTheDocument();
     });
   });
 
   describe('dietary notes visibility', () => {
     it('shows dietary notes textarea when OTHER is selected', async () => {
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.OTHER,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.OTHER);
       expect(screen.getByLabelText('health.dietaryNotes.label')).toBeInTheDocument();
     });
 
     it('hides dietary notes textarea when switching away from OTHER', async () => {
       const { user } = setup({ dietaryPreference: DietaryPreference.OTHER });
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       expect(screen.queryByLabelText('health.dietaryNotes.label')).not.toBeInTheDocument();
     });
   });
@@ -358,10 +371,7 @@ describe('HealthSection', () => {
       const { rerender } = render(
         <HealthSection health={{ ...baseHealth }} onRefresh={onRefresh} />,
       );
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() => expect(vi.mocked(toast.success)).toHaveBeenCalled());
 
@@ -378,10 +388,7 @@ describe('HealthSection', () => {
   describe('saving', () => {
     it('calls PATCH /v1/users/me/health on submit', async () => {
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith(
@@ -393,10 +400,7 @@ describe('HealthSection', () => {
 
     it('sends correct full payload', async () => {
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith('/v1/users/me/health', {
@@ -414,7 +418,7 @@ describe('HealthSection', () => {
 
     it('sends selected blood type in payload', async () => {
       const { user } = setup();
-      await user.selectOptions(screen.getByTestId('bloodType-select'), BloodType.O_POSITIVE);
+      await selectSingleOption(user, 'bloodType-select', BloodType.O_POSITIVE);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith(
@@ -426,7 +430,7 @@ describe('HealthSection', () => {
 
     it('clears blood type when empty option is selected', async () => {
       const { user } = setup({ bloodType: BloodType.A_NEGATIVE });
-      await user.selectOptions(screen.getByTestId('bloodType-select'), '');
+      await clearSingleSelect(user, 'bloodType-select');
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith(
@@ -467,20 +471,14 @@ describe('HealthSection', () => {
 
     it('calls onRefresh after successful save', async () => {
       const { user, onRefresh } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() => expect(onRefresh).toHaveBeenCalledOnce());
     });
 
     it('shows success toast on save', async () => {
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
         expect(vi.mocked(toast.success)).toHaveBeenCalledWith('health.saveSuccess'),
@@ -490,10 +488,7 @@ describe('HealthSection', () => {
     it('shows error toast when save fails', async () => {
       mocks.mockPatch.mockRejectedValue(new Error('network error'));
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() => expect(vi.mocked(toast.error)).toHaveBeenCalledWith('health.saveError'));
     });
@@ -501,10 +496,7 @@ describe('HealthSection', () => {
     it('disables save button while saving', async () => {
       mocks.mockPatch.mockImplementation(() => new Promise(() => {}));
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       expect(screen.getByRole('button', { name: /health\.save/ })).toBeDisabled();
     });
@@ -512,20 +504,14 @@ describe('HealthSection', () => {
     it('marks the food allergies trigger as aria-disabled while saving', async () => {
       mocks.mockPatch.mockImplementation(() => new Promise(() => {}));
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       expect(screen.getByTestId('foodAllergies')).toHaveAttribute('aria-disabled', 'true');
     });
 
     it('sends null for dietaryNotes when dietaryPreference is not OTHER', async () => {
       const { user } = setup({ dietaryNotes: 'old notes' });
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.VEGAN,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.VEGAN);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith(
@@ -579,10 +565,7 @@ describe('HealthSection', () => {
 
     it('sends dietary notes when preference is OTHER', async () => {
       const { user } = setup();
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.OTHER,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.OTHER);
       await user.type(screen.getByLabelText('health.dietaryNotes.label'), 'no spicy food');
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
@@ -595,10 +578,7 @@ describe('HealthSection', () => {
 
     it('sends null for dietaryNotes when preference is OTHER but notes textarea is empty', async () => {
       const { user } = setup({ dietaryPreference: null, dietaryNotes: null });
-      await user.selectOptions(
-        screen.getByTestId('dietaryPreference-select'),
-        DietaryPreference.OTHER,
-      );
+      await selectSingleOption(user, 'dietaryPreference-select', DietaryPreference.OTHER);
       await user.click(screen.getByRole('button', { name: /health\.save/ }));
       await waitFor(() =>
         expect(mocks.mockPatch).toHaveBeenCalledWith(

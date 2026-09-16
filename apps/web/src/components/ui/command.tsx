@@ -13,6 +13,13 @@ import {
 import { MagnifyingGlassIcon } from '@phosphor-icons/react';
 
 import { cn } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
+
+// cmdk filters options by matching typed text against CommandItem's `value` string, not its
+// rendered children — fold every searchable field into one string so search matches on all of them.
+function buildFilterValue(...parts: string[]): string {
+  return parts.join(' ');
+}
 
 function Command({ className, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive>) {
   return (
@@ -26,9 +33,16 @@ function Command({ className, ...props }: ComponentPropsWithoutRef<typeof Comman
   );
 }
 
-function CommandSearch({ className, ...props }: ComponentPropsWithoutRef<typeof CommandInput>) {
+function CommandSearch({
+  className,
+  visuallyHidden,
+  ...props
+}: ComponentPropsWithoutRef<typeof CommandInput> & { visuallyHidden?: boolean }) {
   return (
-    <div className="flex items-center border-b border-border px-3" cmdk-input-wrapper="">
+    <div
+      className={cn('flex items-center border-b border-border px-3', visuallyHidden && 'sr-only')}
+      cmdk-input-wrapper=""
+    >
       <MagnifyingGlassIcon className="mr-2 size-4 shrink-0 text-muted-foreground" />
       <CommandInput
         className={cn(
@@ -56,6 +70,14 @@ function CommandNoResults({ className, ...props }: ComponentPropsWithoutRef<type
       className={cn('py-6 text-center text-sm text-muted-foreground', className)}
       {...props}
     />
+  );
+}
+
+function CommandLoading({ className }: { className?: string }) {
+  return (
+    <div className={cn('flex items-center justify-center py-6', className)}>
+      <Spinner size="sm" />
+    </div>
   );
 }
 
@@ -93,7 +115,9 @@ export {
   CommandSearch,
   CommandItems,
   CommandNoResults,
+  CommandLoading,
   CommandGroupSection,
   CommandOption,
   CommandSeparator,
+  buildFilterValue,
 };
