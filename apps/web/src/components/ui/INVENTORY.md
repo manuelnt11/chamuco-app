@@ -708,11 +708,11 @@ None
 
 ### Definitions
 
-- `GroupAutocomplete` tests (test suite) — verifies dropdown visibility, loading spinner, empty state, my-groups/public-groups sections, selection callback with `isMyGroup` flag, and `excludedIds` filtering
+- `GroupAutocomplete` tests (test suite) — real (unmocked) `InlineCombobox`/`cmdk`; verifies dropdown visibility (`role="combobox"`/`"listbox"`, not the old plain `"textbox"`/`"list"`), loading spinner, empty state, my-groups/public-groups headed sections, selection callback with `isMyGroup` flag, `excludedIds` filtering, keyboard nav (`Escape` closes, `ArrowDown`+`Enter` selects — previously untested), `disabled` disabling the input, and `disabled` flipping to `true` while open closing the dropdown
 
 ### Exports
 
-None
+- None (test file)
 
 ---
 
@@ -720,11 +720,10 @@ None
 
 ### Imports
 
-- `react` — `useState`, `KeyboardEvent` hooks and types
+- `react` — `useState` hook
 - `react-i18next` — `useTranslation` for i18n `t()` accessor
-- `@/lib/utils` — `cn` class merging helper
-- `@/components/ui/input` — `Input` text field
-- `@/components/ui/spinner` — `Spinner` loading indicator
+- `@/components/ui/command` — `CommandGroupSection`, `CommandOption` group/option row primitives
+- `@/components/ui/inline-combobox` — `InlineCombobox` shared always-visible-input combobox shell
 - `@/hooks/useGroupPickerSearch` — `useGroupPickerSearch` hook for my/public group search
 - `@/types/group` — `Group`, `GroupSearchResult` local types
 
@@ -732,15 +731,55 @@ None
 
 - `GroupPickerItem` (type) — union of `Group | GroupSearchResult` extended with `isMyGroup: boolean`
 - `GroupAutocompleteProps` (interface) — prop types for `GroupAutocomplete`
-- `GroupAutocomplete` (component) — text input with sectioned dropdown (my groups / public groups), keyboard navigation, and `excludedIds` support
+- `GroupAutocomplete` (component) — rebuilt on `InlineCombobox`: two `CommandGroupSection`s (My groups / Public groups, each with a `heading`) of `CommandOption` rows; no more manual `activeIndex`/`flatItems`/`itemOffset` bookkeeping — cmdk's own `Command` root handles arrow-key/Enter navigation across both groups, and `CommandItem`'s `role="option"`/`aria-selected` (plus the input's `role="combobox"`) replace the old hand-rolled, ARIA-less dropdown
 - `GroupItemProps` (interface) — prop types for the internal `GroupItem` row
-- `GroupItem` (component) — individual group row with thumbnail, name, and keyboard-active highlight
+- `GroupItem` (component) — pure presentational group row (cover thumbnail + name); no longer takes `isActive`/`onMouseDown` — `CommandOption`'s own `data-[selected=true]:bg-muted` styling and `onSelect` handle that
 
 ### Exports
 
 - `GroupAutocomplete` — named
 - `GroupAutocompleteProps` — named (type)
 - `GroupPickerItem` — named (type)
+
+---
+
+## inline-combobox.test.tsx
+
+### Imports
+
+- `react` — `useState` for a controlled-close test harness
+- `@testing-library/react` — `render`, `screen`, `waitFor` render/query helpers
+- `@testing-library/user-event` — `userEvent` for simulating user interactions
+- `./inline-combobox` — `InlineCombobox` component under test
+- `@/components/ui/command` — `CommandOption` used to render test options
+
+### Definitions
+
+- `InlineCombobox` tests (test suite) — verifies the input renders with its placeholder, the panel is hidden when `open` is `false` and shown when `true`, `onValueChange`/`onFocus` fire, `isLoading` shows `CommandLoading`, `noResultsText` shows when there are no option children, `Escape` and blur (after its delay) call `onClose`, `disabled` hides the panel even when `open` and disables the input, and a `CommandOption`'s `onSelect` receiving the render-prop's `close` callback closes the panel
+
+### Exports
+
+- None (test file)
+
+---
+
+## inline-combobox.tsx
+
+### Imports
+
+- `react` — `KeyboardEvent`, `ReactNode` types
+- `cmdk` — `CommandInput` (used directly, not via `CommandSearch` — that wrapper's icon + bottom-border-only row styling is for the inside of a `ComboboxPopover`; here the input is the field itself, so it's styled to match `Input`'s own class string instead)
+- `@/lib/utils` — `cn` class merging helper
+- `@/components/ui/command` — `Command`, `CommandItems`, `CommandLoading`, `CommandNoResults` cmdk primitives
+
+### Definitions
+
+- `InlineComboboxProps` (interface) — sibling to `ComboboxPopoverProps` for the "input is always visible, dropdown appears inline below it" shape (vs. `ComboboxPopover`'s "closed button → floating popover"); `open`/`onFocus`/`onClose` are fully controlled by the caller (visibility policy — minimum length, `UserAutocomplete`'s `@`-only edge case, etc. — stays per-consumer); `children: (close) => ReactNode` mirrors `ComboboxPopover`'s render-prop, and is **not** pre-wrapped in a single `CommandGroupSection` the way `ComboboxPopover` wraps its children — callers render as many sibling `CommandGroupSection`s (with or without a `heading`) as they need
+- `InlineCombobox` (component) — shared shell used by `user-autocomplete.tsx` and `group-autocomplete.tsx`: `Command shouldFilter={false}` wrapping a styled `CommandInput` (Escape closes, blur closes after a 150ms delay to let a `CommandOption` click land first) and, when `open && !disabled`, an absolutely-positioned panel (`CommandItems` + `CommandLoading`/`CommandNoResults`/children) — `disabled` gates the panel at render time, no `useEffect` needed since visibility is a derived boolean, not owned state
+
+### Exports
+
+- `InlineCombobox` — named
 
 ---
 
@@ -1402,11 +1441,11 @@ None
 
 ### Definitions
 
-- `UserAutocomplete` tests (test suite) — verifies dropdown visibility, spinner, empty state, result items with display name and username, `onSelect`/`onChange` callbacks, keyboard navigation (ArrowDown, Enter, Escape), and `@`-only query suppression
+- `UserAutocomplete` tests (test suite) — real (unmocked) `InlineCombobox`/`cmdk`; verifies dropdown visibility (`role="combobox"`/`"listbox"`, not the old plain `"textbox"`/`"list"`), spinner, empty state, result items with display name and username, `onSelect`/`onChange` callbacks, keyboard navigation (ArrowDown, Enter, Escape), `@`-only query suppression, `disabled` disabling the input, and `disabled` flipping to `true` while open closing the dropdown
 
 ### Exports
 
-None
+- None (test file)
 
 ---
 
@@ -1414,19 +1453,18 @@ None
 
 ### Imports
 
-- `react` — `useState`, `KeyboardEvent` hooks and types
+- `react` — `useState` hook
 - `react-i18next` — `useTranslation` for i18n `t()` accessor
-- `@/lib/utils` — `cn` class merging helper
 - `@/components/ui/avatar` — `Avatar` user avatar
-- `@/components/ui/input` — `Input` text field
-- `@/components/ui/spinner` — `Spinner` loading indicator
+- `@/components/ui/command` — `CommandOption` individual option row
+- `@/components/ui/inline-combobox` — `InlineCombobox` shared always-visible-input combobox shell
 - `@/hooks/useUserSearch` — `useUserSearch` hook for debounced user search
 - `@/types/user` — `UserSearchResult` local type
 
 ### Definitions
 
-- `UserAutocompleteProps` (interface) — `value`, `onChange`, `onSelect`, `placeholder`, `className`, `aria-invalid`, `data-testid`
-- `UserAutocomplete` (component) — text input with dropdown showing user results (avatar, display name, @username); supports keyboard navigation (ArrowDown, ArrowUp, Enter, Escape) and clears value on selection
+- `UserAutocompleteProps` (interface) — `value`, `onChange`, `onSelect`, `placeholder`, `disabled` (new — previously not accepted at all, so callers with an `isSending`/saving state couldn't disable the field mid-request), `className`, `aria-invalid`, `data-testid`
+- `UserAutocomplete` (component) — rebuilt on `InlineCombobox`; no more manual `activeIndex`/`handleKeyDown` — cmdk's `Command` root handles arrow-key/Enter navigation and each `CommandOption`'s `onSelect` handles selection; keeps its own `value !== '@'` panel-visibility nuance (avoids flashing "no results" for that one fleeting keystroke) since that's genuinely `UserAutocomplete`-specific, passed to `InlineCombobox` as a derived `open` boolean
 
 ### Exports
 

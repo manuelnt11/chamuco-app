@@ -28,46 +28,58 @@ const mockUser: UserSearchResult = {
   avatar: null,
 };
 
-function setup(value = '', onSelect = vi.fn(), onChange = vi.fn()) {
+function setup(props: Partial<Parameters<typeof UserAutocomplete>[0]> = {}) {
   const user = userEvent.setup();
+  const onSelect = vi.fn();
+  const onChange = vi.fn();
   render(
     <UserAutocomplete
-      value={value}
+      value=""
       onChange={onChange}
       onSelect={onSelect}
       placeholder="Search"
       data-testid="user-autocomplete"
+      {...props}
     />,
   );
   return { user, onSelect, onChange };
 }
 
 beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  HTMLElement.prototype.scrollIntoView = vi.fn();
   mocks.mockUseUserSearch.mockReturnValue({ results: [], isLoading: false });
 });
 
 describe('UserAutocomplete', () => {
   it('renders the input', () => {
     setup();
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('does not show dropdown when value is empty', () => {
-    setup('');
-    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    setup({ value: '' });
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 
   it('shows spinner when loading', async () => {
     mocks.mockUseUserSearch.mockReturnValue({ results: [], isLoading: true });
-    const { user } = setup('ja');
-    await user.click(screen.getByRole('textbox'));
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    const { user } = setup({ value: 'ja' });
+    await user.click(screen.getByRole('combobox'));
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('shows empty state when no results and query is valid', async () => {
     mocks.mockUseUserSearch.mockReturnValue({ results: [], isLoading: false });
-    const { user } = setup('zzz');
-    await user.click(screen.getByRole('textbox'));
+    const { user } = setup({ value: 'zzz' });
+    await user.click(screen.getByRole('combobox'));
 
     await waitFor(() => {
       expect(screen.getByText('members.invite.noResults')).toBeInTheDocument();
@@ -76,8 +88,8 @@ describe('UserAutocomplete', () => {
 
   it('renders result items in dropdown', async () => {
     mocks.mockUseUserSearch.mockReturnValue({ results: [mockUser], isLoading: false });
-    const { user } = setup('jane');
-    await user.click(screen.getByRole('textbox'));
+    const { user } = setup({ value: 'jane' });
+    await user.click(screen.getByRole('combobox'));
 
     await waitFor(() => {
       expect(screen.getByText('Jane Doe')).toBeInTheDocument();
@@ -87,10 +99,8 @@ describe('UserAutocomplete', () => {
 
   it('calls onSelect and onChange when item is clicked', async () => {
     mocks.mockUseUserSearch.mockReturnValue({ results: [mockUser], isLoading: false });
-    const onSelect = vi.fn();
-    const onChange = vi.fn();
-    const { user } = setup('jane', onSelect, onChange);
-    await user.click(screen.getByRole('textbox'));
+    const { user, onSelect, onChange } = setup({ value: 'jane' });
+    await user.click(screen.getByRole('combobox'));
 
     await waitFor(() => screen.getByText('Jane Doe'));
     await user.click(screen.getByText('Jane Doe'));
@@ -101,8 +111,8 @@ describe('UserAutocomplete', () => {
 
   it('closes dropdown on Escape key', async () => {
     mocks.mockUseUserSearch.mockReturnValue({ results: [mockUser], isLoading: false });
-    const { user } = setup('jane');
-    const input = screen.getByRole('textbox');
+    const { user } = setup({ value: 'jane' });
+    const input = screen.getByRole('combobox');
     await user.click(input);
 
     await waitFor(() => screen.getByText('Jane Doe'));
@@ -113,10 +123,8 @@ describe('UserAutocomplete', () => {
 
   it('selects item with keyboard Enter after ArrowDown', async () => {
     mocks.mockUseUserSearch.mockReturnValue({ results: [mockUser], isLoading: false });
-    const onSelect = vi.fn();
-    const onChange = vi.fn();
-    const { user } = setup('jane', onSelect, onChange);
-    const input = screen.getByRole('textbox');
+    const { user, onSelect } = setup({ value: 'jane' });
+    const input = screen.getByRole('combobox');
     await user.click(input);
 
     await waitFor(() => screen.getByText('Jane Doe'));
@@ -127,8 +135,26 @@ describe('UserAutocomplete', () => {
 
   it('does not show dropdown when query is just @', async () => {
     mocks.mockUseUserSearch.mockReturnValue({ results: [], isLoading: false });
-    const { user } = setup('@');
-    await user.click(screen.getByRole('textbox'));
+    const { user } = setup({ value: '@' });
+    await user.click(screen.getByRole('combobox'));
     expect(screen.queryByText('members.invite.noResults')).not.toBeInTheDocument();
+  });
+
+  it('disables the input when disabled is true', () => {
+    setup({ disabled: true });
+    expect(screen.getByRole('combobox')).toBeDisabled();
+  });
+
+  it('hides the dropdown when disabled flips to true while open', async () => {
+    mocks.mockUseUserSearch.mockReturnValue({ results: [mockUser], isLoading: false });
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <UserAutocomplete value="jane" onChange={vi.fn()} onSelect={vi.fn()} />,
+    );
+    await user.click(screen.getByRole('combobox'));
+    await waitFor(() => screen.getByText('Jane Doe'));
+
+    rerender(<UserAutocomplete value="jane" onChange={vi.fn()} onSelect={vi.fn()} disabled />);
+    expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument();
   });
 });

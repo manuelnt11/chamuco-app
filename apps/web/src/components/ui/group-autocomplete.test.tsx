@@ -32,21 +32,33 @@ const publicGroup: GroupSearchResult = {
   membershipStatus: 'none' as MembershipStatus,
 };
 
-function setup(value = '', onSelect = vi.fn(), onChange = vi.fn()) {
+function setup(props: Partial<Parameters<typeof GroupAutocomplete>[0]> = {}) {
   const user = userEvent.setup();
+  const onSelect = vi.fn();
+  const onChange = vi.fn();
   render(
     <GroupAutocomplete
-      value={value}
+      value=""
       onChange={onChange}
       onSelect={onSelect}
       placeholder="Search groups"
       data-testid="group-autocomplete"
+      {...props}
     />,
   );
   return { user, onSelect, onChange };
 }
 
 beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  HTMLElement.prototype.scrollIntoView = vi.fn();
   mocks.mockUseGroupPickerSearch.mockReturnValue({
     myGroups: [],
     publicGroups: [],
@@ -57,12 +69,12 @@ beforeEach(() => {
 describe('GroupAutocomplete', () => {
   it('renders input', () => {
     setup();
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('does not show dropdown when value is empty', () => {
-    setup('');
-    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    setup({ value: '' });
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 
   it('shows spinner when loading', async () => {
@@ -71,14 +83,14 @@ describe('GroupAutocomplete', () => {
       publicGroups: [],
       isLoading: true,
     });
-    const { user } = setup('mountain');
-    await user.click(screen.getByRole('textbox'));
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    const { user } = setup({ value: 'mountain' });
+    await user.click(screen.getByRole('combobox'));
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('shows empty state when no results', async () => {
-    const { user } = setup('zzz');
-    await user.click(screen.getByRole('textbox'));
+    const { user } = setup({ value: 'zzz' });
+    await user.click(screen.getByRole('combobox'));
     await waitFor(() => {
       expect(screen.getByText('form.linkedGroupsNoResults')).toBeInTheDocument();
     });
@@ -90,8 +102,8 @@ describe('GroupAutocomplete', () => {
       publicGroups: [],
       isLoading: false,
     });
-    const { user } = setup('mountain');
-    await user.click(screen.getByRole('textbox'));
+    const { user } = setup({ value: 'mountain' });
+    await user.click(screen.getByRole('combobox'));
     await waitFor(() => {
       expect(screen.getByText('form.linkedGroupsMyGroups')).toBeInTheDocument();
       expect(screen.getByText('Mountain Crew')).toBeInTheDocument();
@@ -104,8 +116,8 @@ describe('GroupAutocomplete', () => {
       publicGroups: [publicGroup],
       isLoading: false,
     });
-    const { user } = setup('beach');
-    await user.click(screen.getByRole('textbox'));
+    const { user } = setup({ value: 'beach' });
+    await user.click(screen.getByRole('combobox'));
     await waitFor(() => {
       expect(screen.getByText('form.linkedGroupsPublicGroups')).toBeInTheDocument();
       expect(screen.getByText('Beach Explorers')).toBeInTheDocument();
@@ -118,9 +130,8 @@ describe('GroupAutocomplete', () => {
       publicGroups: [],
       isLoading: false,
     });
-    const onSelect = vi.fn();
-    const { user } = setup('mountain', onSelect);
-    await user.click(screen.getByRole('textbox'));
+    const { user, onSelect } = setup({ value: 'mountain' });
+    await user.click(screen.getByRole('combobox'));
 
     await waitFor(() => {
       expect(screen.getByText('Mountain Crew')).toBeInTheDocument();
@@ -139,20 +150,66 @@ describe('GroupAutocomplete', () => {
       publicGroups: [],
       isLoading: false,
     });
-    const { user } = setup('mountain');
-    render(
-      <GroupAutocomplete
-        value="mountain"
-        onChange={vi.fn()}
-        onSelect={vi.fn()}
-        excludedIds={['group-1']}
-        placeholder="Search"
-      />,
-    );
-    const inputs = screen.getAllByRole('textbox');
-    await user.click(inputs[inputs.length - 1]!);
+    const { user } = setup({ value: 'mountain', excludedIds: ['group-1'] });
+    await user.click(screen.getByRole('combobox'));
     await waitFor(() => {
       expect(screen.queryByText('Mountain Crew')).not.toBeInTheDocument();
     });
+  });
+
+  it('closes dropdown on Escape key', async () => {
+    mocks.mockUseGroupPickerSearch.mockReturnValue({
+      myGroups: [myGroup],
+      publicGroups: [],
+      isLoading: false,
+    });
+    const { user } = setup({ value: 'mountain' });
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+
+    await waitFor(() => screen.getByText('Mountain Crew'));
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByText('Mountain Crew')).not.toBeInTheDocument();
+  });
+
+  it('selects item with keyboard Enter after ArrowDown', async () => {
+    mocks.mockUseGroupPickerSearch.mockReturnValue({
+      myGroups: [myGroup],
+      publicGroups: [],
+      isLoading: false,
+    });
+    const { user, onSelect } = setup({ value: 'mountain' });
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+
+    await waitFor(() => screen.getByText('Mountain Crew'));
+    await user.keyboard('{ArrowDown}{Enter}');
+
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'group-1', isMyGroup: true }),
+    );
+  });
+
+  it('disables the input when disabled is true', () => {
+    setup({ disabled: true });
+    expect(screen.getByRole('combobox')).toBeDisabled();
+  });
+
+  it('hides the dropdown when disabled flips to true while open', async () => {
+    mocks.mockUseGroupPickerSearch.mockReturnValue({
+      myGroups: [myGroup],
+      publicGroups: [],
+      isLoading: false,
+    });
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <GroupAutocomplete value="mountain" onChange={vi.fn()} onSelect={vi.fn()} />,
+    );
+    await user.click(screen.getByRole('combobox'));
+    await waitFor(() => screen.getByText('Mountain Crew'));
+
+    rerender(<GroupAutocomplete value="mountain" onChange={vi.fn()} onSelect={vi.fn()} disabled />);
+    expect(screen.queryByText('Mountain Crew')).not.toBeInTheDocument();
   });
 });
