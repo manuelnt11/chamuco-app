@@ -52,7 +52,15 @@ function InlineCombobox({
 
   return (
     <div className="relative">
-      <Command shouldFilter={false} label={label}>
+      {/* Command's own bg-popover/rounded-xl/overflow-hidden are meant for a dropdown surface;
+          override them here since, unlike ComboboxPopover, this root also wraps the
+          always-visible input — its rounded-lg corners were getting clipped by the root's own
+          smaller overflow-hidden + rounded-xl mask. */}
+      <Command
+        shouldFilter={false}
+        label={label}
+        className="overflow-visible rounded-none bg-transparent"
+      >
         <CommandInput
           value={value}
           onValueChange={onValueChange}
