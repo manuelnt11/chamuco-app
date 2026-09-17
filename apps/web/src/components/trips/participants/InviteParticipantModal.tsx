@@ -158,6 +158,7 @@ export function InviteParticipantModal({
               onChange={setInputValue}
               onSelect={addUser}
               placeholder={t('participants.invite.usernamePlaceholder')}
+              disabled={isSending}
             />
 
             {selectionError && <p className="text-sm text-destructive">{selectionError}</p>}

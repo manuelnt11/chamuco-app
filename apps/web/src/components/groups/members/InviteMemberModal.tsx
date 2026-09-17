@@ -152,6 +152,7 @@ export function InviteMemberModal({ groupId, onSuccess, excludedIds }: InviteMem
               onChange={setInputValue}
               onSelect={addUser}
               placeholder={t('members.invite.usernamePlaceholder')}
+              disabled={isSending}
             />
 
             {selectionError && <p className="text-sm text-destructive">{selectionError}</p>}

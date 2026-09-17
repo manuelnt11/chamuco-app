@@ -16,16 +16,19 @@ vi.mock('@/components/ui/user-autocomplete', () => ({
   UserAutocomplete: ({
     onSelect,
     placeholder,
+    disabled,
   }: {
     onSelect: (user: UserSearchResult) => void;
     placeholder: string;
     value: string;
     onChange: (v: string) => void;
+    disabled?: boolean;
   }) => (
     <div>
-      <input placeholder={placeholder} readOnly />
+      <input placeholder={placeholder} disabled={disabled} readOnly />
       <button
         type="button"
+        disabled={disabled}
         onClick={() =>
           onSelect({ id: 'user-1', username: 'janedoe', displayName: 'Jane Doe', avatar: null })
         }
@@ -165,6 +168,7 @@ describe('InviteParticipantModal', () => {
       await user.click(screen.getByRole('button', { name: 'participants.invite.submit' }));
 
       expect(screen.getByRole('button', { name: 'participants.invite.sending' })).toBeDisabled();
+      expect(screen.getByPlaceholderText('participants.invite.usernamePlaceholder')).toBeDisabled();
       resolve(makeResults([]));
     });
 

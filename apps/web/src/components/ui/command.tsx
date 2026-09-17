@@ -96,7 +96,11 @@ function CommandGroupSection({
   );
 }
 
-function CommandOption({ className, ...props }: ComponentPropsWithoutRef<typeof CommandItem>) {
+function CommandOption({
+  className,
+  onMouseDown,
+  ...props
+}: ComponentPropsWithoutRef<typeof CommandItem>) {
   return (
     <CommandItem
       className={cn(
@@ -105,6 +109,12 @@ function CommandOption({ className, ...props }: ComponentPropsWithoutRef<typeof 
         'data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50',
         className,
       )}
+      // Prevents the default mousedown focus-shift, which would otherwise blur a still-open
+      // search/autocomplete input before its click's onSelect fires.
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onMouseDown?.(e);
+      }}
       {...props}
     />
   );

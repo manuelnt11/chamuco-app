@@ -220,6 +220,7 @@ describe('InviteMemberModal', () => {
     await user.click(screen.getByRole('button', { name: 'members.invite.submit' }));
 
     expect(screen.getByRole('button', { name: 'members.invite.sending' })).toBeDisabled();
+    expect(screen.getByRole('combobox')).toBeDisabled();
     resolve({ data: { results: [] } });
   });
 });
