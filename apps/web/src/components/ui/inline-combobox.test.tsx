@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { InlineCombobox } from './inline-combobox';
@@ -137,5 +137,45 @@ describe('InlineCombobox', () => {
     render(<ControlledCombobox />);
     await user.click(screen.getByText('Banana'));
     expect(screen.queryByRole('option', { name: 'Banana' })).not.toBeInTheDocument();
+  });
+
+  it('does not preventDefault on Enter while closed, so a surrounding form can still submit', () => {
+    renderCombobox({ open: false });
+    const notPrevented = fireEvent.keyDown(screen.getByPlaceholderText('Search fruits...'), {
+      key: 'Enter',
+    });
+    expect(notPrevented).toBe(true);
+  });
+
+  it('still lets cmdk handle Enter to select an option while open', () => {
+    const onSelect = vi.fn();
+    renderCombobox({
+      open: true,
+      children: (close) => (
+        <CommandOption
+          value="Apple"
+          onSelect={() => {
+            onSelect();
+            close();
+          }}
+        >
+          Apple
+        </CommandOption>
+      ),
+    });
+    const notPrevented = fireEvent.keyDown(screen.getByPlaceholderText('Search fruits...'), {
+      key: 'Enter',
+    });
+    expect(notPrevented).toBe(false);
+    expect(onSelect).toHaveBeenCalled();
+  });
+
+  it('keeps the input focused after clicking an option, instead of blurring it', async () => {
+    const user = userEvent.setup();
+    renderCombobox({ open: true });
+    const input = screen.getByPlaceholderText('Search fruits...');
+    await user.click(input);
+    await user.click(screen.getByText('Banana'));
+    expect(input).toHaveFocus();
   });
 });

@@ -9,6 +9,22 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+// cmdk's CommandList uses ResizeObserver internally, and its auto-scroll-to-selected-item logic
+// calls scrollIntoView — neither exists in jsdom. Every cmdk-based component test needs these.
+// Guarded: some suites (e.g. client.ssr.test.ts) run under `@vitest-environment node`, where
+// HTMLElement/window don't exist at all.
+if (typeof HTMLElement !== 'undefined') {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  HTMLElement.prototype.scrollIntoView = vi.fn();
+}
+
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter() {

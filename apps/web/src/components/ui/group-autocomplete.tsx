@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CommandGroupSection, CommandOption } from '@/components/ui/command';
-import { InlineCombobox } from '@/components/ui/inline-combobox';
+import { InlineCombobox, useInlineComboboxOpenState } from '@/components/ui/inline-combobox';
 import { useGroupPickerSearch } from '@/hooks/useGroupPickerSearch';
 import type { Group, GroupSearchResult } from '@/types/group';
 
@@ -32,7 +31,7 @@ function GroupAutocomplete({
   'data-testid': testId,
 }: GroupAutocompleteProps) {
   const { t } = useTranslation('trips');
-  const [open, setOpen] = useState(false);
+  const { open, onValueChange, onFocus, onClose } = useInlineComboboxOpenState(value, onChange);
   const { myGroups, publicGroups, isLoading } = useGroupPickerSearch(value);
 
   const filteredMyGroups = myGroups.filter((g) => !excludedIds?.includes(g.id));
@@ -49,15 +48,10 @@ function GroupAutocomplete({
   return (
     <InlineCombobox
       value={value}
-      onValueChange={(v) => {
-        onChange(v);
-        setOpen(v.length >= 1);
-      }}
+      onValueChange={onValueChange}
       open={panelOpen}
-      onFocus={() => {
-        if (value.length >= 1) setOpen(true);
-      }}
-      onClose={() => setOpen(false)}
+      onFocus={onFocus}
+      onClose={onClose}
       isLoading={isLoading}
       noResultsText={t('form.linkedGroupsNoResults')}
       placeholder={placeholder}

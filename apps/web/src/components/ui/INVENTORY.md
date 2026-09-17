@@ -320,7 +320,7 @@ None
 - `CommandNoResults` (component) — empty state message within the command palette
 - `CommandLoading` (component) — centered `Spinner` row shown in place of the option list while loading; used by `combobox-popover.tsx`'s `isLoading` branch instead of an inline duplicate
 - `CommandGroupSection` (component) — labeled group of command options
-- `CommandOption` (component) — individual selectable option row
+- `CommandOption` (component) — individual selectable option row; always calls `e.preventDefault()` on `onMouseDown` so clicking an option never blurs a still-focused search/autocomplete input before its `onSelect` fires (the previous plain `<div onClick>`-based dropdowns in `user-autocomplete.tsx`/`group-autocomplete.tsx` lost this on their refactor to cmdk, since `CommandItem` doesn't do it itself)
 - `buildFilterValue` (function) — `(...parts: string[]) => string`, joins parts with a space; cmdk filters by matching typed text against `CommandItem`'s `value` string (not its rendered children), so callers fold every searchable field (label, code, etc.) into one string via this helper instead of hand-rolling the concat — used by `select.tsx`, `multi-select.tsx`, `country-combobox.tsx`
 
 ### Exports
@@ -720,10 +720,9 @@ None
 
 ### Imports
 
-- `react` — `useState` hook
 - `react-i18next` — `useTranslation` for i18n `t()` accessor
 - `@/components/ui/command` — `CommandGroupSection`, `CommandOption` group/option row primitives
-- `@/components/ui/inline-combobox` — `InlineCombobox` shared always-visible-input combobox shell
+- `@/components/ui/inline-combobox` — `InlineCombobox`, `useInlineComboboxOpenState` shared always-visible-input combobox shell and open-state hook
 - `@/hooks/useGroupPickerSearch` — `useGroupPickerSearch` hook for my/public group search
 - `@/types/group` — `Group`, `GroupSearchResult` local types
 
@@ -755,7 +754,7 @@ None
 
 ### Definitions
 
-- `InlineCombobox` tests (test suite) — verifies the input renders with its placeholder, the panel is hidden when `open` is `false` and shown when `true`, `onValueChange`/`onFocus` fire, `isLoading` shows `CommandLoading`, `noResultsText` shows when there are no option children, `Escape` and blur (after its delay) call `onClose`, `disabled` hides the panel even when `open` and disables the input, and a `CommandOption`'s `onSelect` receiving the render-prop's `close` callback closes the panel
+- `InlineCombobox` tests (test suite) — verifies the input renders with its placeholder, the panel is hidden when `open` is `false` and shown when `true`, `onValueChange`/`onFocus` fire, `isLoading` shows `CommandLoading`, `noResultsText` shows when there are no option children, `Escape` and blur (after its delay) call `onClose`, `disabled` hides the panel even when `open` and disables the input, a `CommandOption`'s `onSelect` receiving the render-prop's `close` callback closes the panel, Enter does **not** call `preventDefault` while the panel is closed (so a surrounding `<form>` can still submit on Enter), Enter still lets cmdk select the highlighted option while open, and clicking an option keeps the input focused instead of blurring it
 
 ### Exports
 
@@ -767,19 +766,22 @@ None
 
 ### Imports
 
-- `react` — `KeyboardEvent`, `ReactNode` types
-- `cmdk` — `CommandInput` (used directly, not via `CommandSearch` — that wrapper's icon + bottom-border-only row styling is for the inside of a `ComboboxPopover`; here the input is the field itself, so it's styled to match `Input`'s own class string instead)
+- `react` — `useState`, `KeyboardEvent`, `ReactNode`
+- `cmdk` — `CommandInput` (used directly, not via `CommandSearch` — that wrapper's icon + bottom-border-only row styling is for the inside of a `ComboboxPopover`; here the input is the field itself)
 - `@/lib/utils` — `cn` class merging helper
 - `@/components/ui/command` — `Command`, `CommandItems`, `CommandLoading`, `CommandNoResults` cmdk primitives
+- `@/components/ui/input` — `inputClassName` so the standalone `CommandInput` matches `Input`'s look
 
 ### Definitions
 
 - `InlineComboboxProps` (interface) — sibling to `ComboboxPopoverProps` for the "input is always visible, dropdown appears inline below it" shape (vs. `ComboboxPopover`'s "closed button → floating popover"); `open`/`onFocus`/`onClose` are fully controlled by the caller (visibility policy — minimum length, `UserAutocomplete`'s `@`-only edge case, etc. — stays per-consumer); `children: (close) => ReactNode` mirrors `ComboboxPopover`'s render-prop, and is **not** pre-wrapped in a single `CommandGroupSection` the way `ComboboxPopover` wraps its children — callers render as many sibling `CommandGroupSection`s (with or without a `heading`) as they need
-- `InlineCombobox` (component) — shared shell used by `user-autocomplete.tsx` and `group-autocomplete.tsx`: `Command shouldFilter={false}` wrapping a styled `CommandInput` (Escape closes, blur closes after a 150ms delay to let a `CommandOption` click land first) and, when `open && !disabled`, an absolutely-positioned panel (`CommandItems` + `CommandLoading`/`CommandNoResults`/children) — `disabled` gates the panel at render time, no `useEffect` needed since visibility is a derived boolean, not owned state
+- `InlineCombobox` (component) — shared shell used by `user-autocomplete.tsx` and `group-autocomplete.tsx`: `Command shouldFilter={false}` wrapping a styled `CommandInput` and, when `open && !disabled`, an absolutely-positioned panel (`CommandItems` + `CommandLoading`/`CommandNoResults`/children) — `disabled` gates the panel at render time, no `useEffect` needed since visibility is a derived boolean, not owned state; its `onKeyDown` closes on Escape and, on Enter while the panel is closed, calls `e.stopPropagation()` so the keypress isn't swallowed by cmdk's `Command` root — which unconditionally calls `preventDefault()` on Enter regardless of whether anything is selectable — letting a surrounding `<form>` still submit on Enter; blur closes after a 150ms delay to let a `CommandOption` click land first
+- `useInlineComboboxOpenState` (function) — shared `open`/`onValueChange`/`onFocus`/`onClose` wiring hook: both consumers previously duplicated this exact block (open on focus/typing once `value` is non-empty, close on blur/Escape/select) verbatim; each still derives its own panel-visibility boolean from the returned `open` plus its own extra conditions before passing it to `InlineCombobox`'s `open` prop
 
 ### Exports
 
 - `InlineCombobox` — named
+- `useInlineComboboxOpenState` — named (function)
 
 ---
 
@@ -793,11 +795,13 @@ None
 
 ### Definitions
 
+- `inputClassName` (const) — the Tailwind class string used by `Input`, exported so `inline-combobox.tsx` can style a raw cmdk `CommandInput` (which can't use `Input` itself — Base UI's `InputPrimitive` and cmdk's controlled ref/attribute wiring don't compose) to visually match it, without hand-copying the string
 - `Input` (component) — styled text input delegating to Base UI `InputPrimitive` with full aria/validation/disabled class support
 
 ### Exports
 
 - `Input` — named
+- `inputClassName` — named (const)
 
 ---
 
@@ -1453,11 +1457,10 @@ None
 
 ### Imports
 
-- `react` — `useState` hook
 - `react-i18next` — `useTranslation` for i18n `t()` accessor
 - `@/components/ui/avatar` — `Avatar` user avatar
 - `@/components/ui/command` — `CommandOption` individual option row
-- `@/components/ui/inline-combobox` — `InlineCombobox` shared always-visible-input combobox shell
+- `@/components/ui/inline-combobox` — `InlineCombobox`, `useInlineComboboxOpenState` shared always-visible-input combobox shell and open-state hook
 - `@/hooks/useUserSearch` — `useUserSearch` hook for debounced user search
 - `@/types/user` — `UserSearchResult` local type
 

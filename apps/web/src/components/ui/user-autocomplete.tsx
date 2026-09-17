@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar } from '@/components/ui/avatar';
 import { CommandOption } from '@/components/ui/command';
-import { InlineCombobox } from '@/components/ui/inline-combobox';
+import { InlineCombobox, useInlineComboboxOpenState } from '@/components/ui/inline-combobox';
 import { useUserSearch } from '@/hooks/useUserSearch';
 import type { UserSearchResult } from '@/types/user';
 
@@ -31,7 +30,7 @@ function UserAutocomplete({
   'data-testid': testId,
 }: UserAutocompleteProps) {
   const { t } = useTranslation('groups');
-  const [open, setOpen] = useState(false);
+  const { open, onValueChange, onFocus, onClose } = useInlineComboboxOpenState(value, onChange);
   const { results, isLoading } = useUserSearch(value);
 
   function handleSelect(user: UserSearchResult, close: () => void) {
@@ -45,15 +44,10 @@ function UserAutocomplete({
   return (
     <InlineCombobox
       value={value}
-      onValueChange={(v) => {
-        onChange(v);
-        setOpen(v.length >= 1);
-      }}
+      onValueChange={onValueChange}
       open={panelOpen}
-      onFocus={() => {
-        if (value.length >= 1) setOpen(true);
-      }}
-      onClose={() => setOpen(false)}
+      onFocus={onFocus}
+      onClose={onClose}
       isLoading={isLoading}
       noResultsText={t('members.invite.noResults')}
       placeholder={placeholder}

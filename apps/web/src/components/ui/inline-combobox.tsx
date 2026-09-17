@@ -1,10 +1,11 @@
 'use client';
 
-import { type KeyboardEvent, type ReactNode } from 'react';
+import { useState, type KeyboardEvent, type ReactNode } from 'react';
 import { CommandInput } from 'cmdk';
 
 import { cn } from '@/lib/utils';
 import { Command, CommandItems, CommandLoading, CommandNoResults } from '@/components/ui/command';
+import { inputClassName } from '@/components/ui/input';
 
 interface InlineComboboxProps {
   value: string;
@@ -40,7 +41,13 @@ function InlineCombobox({
   children,
 }: InlineComboboxProps) {
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Escape') onClose();
+    if (e.key === 'Escape') {
+      onClose();
+    } else if (e.key === 'Enter' && !open) {
+      // cmdk's Command root always preventDefaults Enter, even with nothing to select while
+      // closed — stop it here so Enter can still submit a surrounding form.
+      e.stopPropagation();
+    }
   }
 
   return (
@@ -59,10 +66,7 @@ function InlineCombobox({
           data-testid={testId}
           autoComplete="off"
           spellCheck={false}
-          className={cn(
-            'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
-            className,
-          )}
+          className={cn(inputClassName, className)}
         />
         {open && !disabled && (
           <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
@@ -83,4 +87,27 @@ function InlineCombobox({
   );
 }
 
-export { InlineCombobox };
+// Shared open/close interaction wiring for InlineCombobox consumers — both currently open on
+// focus/typing once value is non-empty and close on blur/Escape/select; each consumer still
+// derives its own panel-visibility boolean (e.g. UserAutocomplete's "@"-only edge case) from
+// this hook's `open` plus its own extra conditions.
+function useInlineComboboxOpenState(value: string, onChange: (value: string) => void) {
+  const [open, setOpen] = useState(false);
+
+  function handleValueChange(next: string) {
+    onChange(next);
+    setOpen(next.length >= 1);
+  }
+
+  function handleFocus() {
+    if (value.length >= 1) setOpen(true);
+  }
+
+  function handleClose() {
+    setOpen(false);
+  }
+
+  return { open, onValueChange: handleValueChange, onFocus: handleFocus, onClose: handleClose };
+}
+
+export { InlineCombobox, useInlineComboboxOpenState };
