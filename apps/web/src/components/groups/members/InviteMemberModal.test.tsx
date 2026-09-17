@@ -55,15 +55,6 @@ describe('InviteMemberModal', () => {
     vi.clearAllMocks();
     mocks.mockPost.mockResolvedValue({ data: { results: [] } });
     mocks.mockUseUserSearch.mockReturnValue({ results: [], isLoading: false });
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      },
-    );
-    HTMLElement.prototype.scrollIntoView = vi.fn();
   });
 
   it('renders trigger button', () => {

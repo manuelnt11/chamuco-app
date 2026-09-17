@@ -50,15 +50,6 @@ function setup(props: Partial<Parameters<typeof GroupAutocomplete>[0]> = {}) {
 }
 
 beforeEach(() => {
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    },
-  );
-  HTMLElement.prototype.scrollIntoView = vi.fn();
   mocks.mockUseGroupPickerSearch.mockReturnValue({
     myGroups: [],
     publicGroups: [],
@@ -170,7 +161,7 @@ describe('GroupAutocomplete', () => {
     await waitFor(() => screen.getByText('Mountain Crew'));
     await user.keyboard('{Escape}');
 
-    expect(screen.queryByText('Mountain Crew')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Mountain Crew')).not.toBeInTheDocument());
   });
 
   it('selects item with keyboard Enter after ArrowDown', async () => {

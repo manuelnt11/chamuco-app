@@ -46,15 +46,6 @@ function setup(props: Partial<Parameters<typeof UserAutocomplete>[0]> = {}) {
 }
 
 beforeEach(() => {
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    },
-  );
-  HTMLElement.prototype.scrollIntoView = vi.fn();
   mocks.mockUseUserSearch.mockReturnValue({ results: [], isLoading: false });
 });
 
@@ -118,7 +109,7 @@ describe('UserAutocomplete', () => {
     await waitFor(() => screen.getByText('Jane Doe'));
     await user.keyboard('{Escape}');
 
-    expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument());
   });
 
   it('selects item with keyboard Enter after ArrowDown', async () => {
